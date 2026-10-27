@@ -65,7 +65,8 @@ const ICONS = {
     check: '<path d="m3.5 8.2 3 3 6-6.5"/>',
     alert: '<path d="M8 2.2 14 13H2zM8 6v3.5M8 11.3v.2"/>',
     clock: '<circle cx="8" cy="8" r="5.2"/><path d="M8 5v3.4l2.1 1.2"/>',
-    external: '<path d="M9 2h5v5M14 2 7 9M12 9v5H2V4h5"/>'
+    external: '<path d="M9 2h5v5M14 2 7 9M12 9v5H2V4h5"/>',
+    help: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M6.1 6.2a1.95 1.95 0 1 1 2.7 1.85c-.65.28-.85.65-.85 1.3"/><path d="M8 11.6v.15"/></svg>'
 };
 
 const svg = (name, cls = "") => String(ICONS[name] || "").replace("<svg", `<svg class="${cls}"`);
@@ -296,6 +297,9 @@ class ChefEngine {
         this.modulesSent = new Set();
         this.modulePromises = new Map();
         this.probeWaiter = null;
+        // How many bakes have ever come back with real data. Zero means the engine is
+        // still cold, which is the only time an empty pass is treated as a failure.
+        this.bakesWithData = 0;
     }
 
     /* Magic: run a list of candidate operations over one input inside the worker
@@ -340,8 +344,9 @@ class ChefEngine {
         if (this.loaded && this.worker) return;
         if (this.loading) return this.loading;
         this.loading = (async () => {
-            this.setStatus("loading");
+            this.setStatus("loading", "Unpacking the embedded engine…");
             const source = await this.source();
+            this.setStatus("loading", "Starting the local engine…");
             const url = URL.createObjectURL(new Blob([source + "\n//# sourceURL=cipherflow-chef-worker.js"], {type: "text/javascript"}));
             let worker;
             try {
@@ -370,6 +375,8 @@ class ChefEngine {
             worker.postMessage({action: "docURL", data: location.href.split(/[#?]/)[0]});
             this.modulesSent.clear();
             this.modulePromises.clear();
+            // A restarted worker is cold again.
+            this.bakesWithData = 0;
             this.loaded = true;
             this.setStatus("ready");
         })().catch(err => {
@@ -384,8 +391,8 @@ class ChefEngine {
         }
     }
 
-    setStatus(status) {
-        if (this.onStatus) this.onStatus(status);
+    setStatus(status, detail) {
+        if (this.onStatus) this.onStatus(status, detail);
     }
 
     async source() {
@@ -507,7 +514,17 @@ class ChefEngine {
         try {
             await this.start();
             await this.ensureModules(recipeConfig);
-            return await this._bake(recipeConfig, input, options);
+            let response = await this._bake(recipeConfig, input, options);
+            // A bake that carries neither a dish value nor a result has not really
+            // answered: the very first pass on a freshly started worker can come back
+            // like that. An empty answer is not a result, so ask again before the
+            // caller turns it into a silent empty output.
+            for (let attempt = 0; attempt < 2 && !bakeHasData(response); attempt++) {
+                await new Promise(r => setTimeout(r, 40));
+                response = await this._bake(recipeConfig, input, options);
+            }
+            if (bakeHasData(response)) this.bakesWithData++;
+            return response;
         } finally {
             release();
         }
@@ -567,6 +584,18 @@ class ChefEngine {
 
 const engine = new ChefEngine();
 
+// Does an engine response actually carry data? `result` is the payload the worker
+// computes for the requested return type; a null/undefined result with no dish value
+// means the bake returned nothing at all (an empty string or zero-length ArrayBuffer
+// is still a real answer and passes this test).
+function bakeHasData(response) {
+    if (!response) return false;
+    if (response.error) return true;
+    if (response.result != null) return true;
+    const value = response.dish && response.dish.value;
+    return value != null;
+}
+
 /* ================================================================ state */
 let state = null;
 let selected = null;
@@ -590,7 +619,10 @@ function makeNode(type, opts = {}) {
         x: Math.round(opts.x ?? 80),
         y: Math.round(opts.y ?? 100),
         title: opts.title || "",
-        previewMode: opts.previewMode || "text"
+        previewMode: opts.previewMode || "text",
+        collapsed: Boolean(opts.collapsed),
+        w: Number(opts.w) || 0,
+        h: Number(opts.h) || 0
     };
     if (type === "op") {
         node.op = opts.op;
@@ -626,10 +658,12 @@ function blankState() {
     nodeSeq = 1;
     edgeSeq = 1;
     const input = makeNode("input", {id: 1, x: 150, y: 190, text: "Hello, World!", title: "Text input"});
-    const output = makeNode("output", {id: 2, x: 610, y: 210, title: "Output"});
+    // A text node on the other end shows what flows in, so the pair reads the same as
+    // the old input → Output layout.
+    const sink = makeNode("input", {id: 2, x: 610, y: 210, title: "Result", text: ""});
     return {
         version: 1,
-        nodes: [input, output],
+        nodes: [input, sink],
         edges: [{id: optsEdgeId(), from: 1, to: 2, toPort: "main"}],
         view: {x: 90, y: 110, zoom: 0.9},
         autoRun: true
@@ -667,7 +701,7 @@ function exampleState() {
             "IV from input": "Off"
         })
     });
-    const output = makeNode("output", {id: 6, x: 1175, y: 150, title: "Roundtrip"});
+    const output = makeNode("input", {id: 6, x: 1175, y: 150, title: "Roundtrip", text: ""});
     const edges = [
         {id: optsEdgeId(), from: plain.id, to: encrypt.id, toPort: "main"},
         {id: optsEdgeId(), from: key.id, to: encrypt.id, toPort: "arg:" + opArgIndex("AES Encrypt", "Key")},
@@ -716,6 +750,9 @@ function cleanNodeForSave(n) {
         separator: n.separator,
         fileIndex: n.fileIndex || 0,
         previewMode: n.previewMode || "text",
+        collapsed: Boolean(n.collapsed),
+        w: Math.round(n.w || 0),
+        h: Math.round(n.h || 0),
         values: n.values ? cloneValue(n.values) : undefined
     };
 }
@@ -738,15 +775,20 @@ function normalizeLoaded(data) {
     if (!Array.isArray(data.nodes) || !Array.isArray(data.edges)) throw new Error("The graph file is missing nodes or edges.");
     const nodes = [];
     for (const raw of data.nodes) {
-        if (!raw || !["input", "file", "join", "output", "op"].includes(raw.type)) continue;
-        if (raw.type === "op" && (!raw.op || !OPS[raw.op])) continue;
-        const n = makeNode(raw.type, {
+        if (!raw) continue;
+        // Output nodes no longer exist. Older graphs migrate their sink to a text node,
+        // which keeps the wire and shows the same value.
+        const wasOutput = raw.type === "output";
+        const type = wasOutput ? "input" : raw.type;
+        if (!["input", "file", "join", "op"].includes(type)) continue;
+        if (type === "op" && (!raw.op || !OPS[raw.op])) continue;
+        const n = makeNode(type, {
             id: Number(raw.id),
             x: Number(raw.x) || 40,
             y: Number(raw.y) || 40,
             title: raw.title || "",
             op: raw.op,
-            text: raw.text,
+            text: wasOutput ? "" : raw.text,
             encoding: raw.encoding,
             fileName: raw.fileName,
             fileSize: raw.fileSize,
@@ -755,7 +797,10 @@ function normalizeLoaded(data) {
             joinCount: clamp(Number(raw.joinCount) || 2, 1, 8),
             separator: raw.separator || "",
             fileIndex: clamp(Number(raw.fileIndex) || 0, 0, 32),
-            previewMode: ["hex", "raw", "image", "text"].includes(raw.previewMode) ? raw.previewMode : "text"
+            previewMode: ["hex", "raw", "image", "text"].includes(raw.previewMode) ? raw.previewMode : "text",
+            collapsed: Boolean(raw.collapsed),
+            w: Number(raw.w) || 0,
+            h: Number(raw.h) || 0
         });
         if (raw.values && Array.isArray(raw.values) && raw.values.length === (OPS[raw.op]?.args || []).length) {
             n.values = cloneValue(raw.values);
@@ -771,9 +816,10 @@ function normalizeLoaded(data) {
         const target = nodes.find(n => n.id === Number(raw.to));
         if (!target) continue;
         if (target.type === "op" && !(raw.toPort === "main" || /^arg:\d+$/.test(raw.toPort))) continue;
-        if (target.type === "output" && raw.toPort !== "main") continue;
         if (target.type === "join" && !/^join:\d+$/.test(raw.toPort)) continue;
-        if (target.type === "input" || target.type === "file") continue;
+        // Text and file nodes take a single "main" pipe on their left side; anything
+        // else into them is not a valid connection.
+        if ((target.type === "input" || target.type === "file") && raw.toPort !== "main") continue;
         if (seenInputs.has(`${raw.to}:${raw.toPort}`)) continue;
         if (raw.toPort.startsWith("arg:")) {
             const idx = Number(raw.toPort.slice(4));
@@ -952,7 +998,6 @@ function sourceTitle(node) {
     if (node.type === "input") return node.title || "Text input";
     if (node.type === "file") return node.title || node.fileName || "File input";
     if (node.type === "join") return node.title || "Join";
-    if (node.type === "output") return node.title || "Output";
     return node.title || node.type;
 }
 function nodeAccent(node) {
@@ -963,7 +1008,6 @@ function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
     if (node.type === "join") return "Join";
-    if (node.type === "output") return "Output";
     return categoryOf(node.op);
 }
 function nodeTypeClass(node) {
@@ -1008,36 +1052,48 @@ function buildNode(node) {
 
     const title = node.type === "op" ? node.op : (node.title || sourceTitle(node));
     const cat = nodeCategoryLabel(node);
+    // A resized node keeps its width even when collapsed, but drops its height so the
+    // collapsed card stays compact; expanding restores it.
+    // The saved height is a floor, never a fixed size: the node still grows to fit its
+    // content, so shrinking one can no longer cut controls or a preview off.
+    if (node.w) el.style.width = node.w + "px";
+    if (node.h && !node.collapsed) el.style.minHeight = node.h + "px";
+    if ((node.w || node.h) && !node.collapsed) el.classList.add("resized");
+    el.classList.toggle("collapsed", Boolean(node.collapsed));
     el.innerHTML = `
         <div class="node-head">
             <span class="node-dot"></span>
             <span class="node-title" data-node-title>${esc(title)}</span>
             <span class="node-cat">${esc(cat)}</span>
+            <button class="node-mini node-collapse" data-action="toggle-collapse" data-node="${node.id}" title="${node.collapsed ? "Expand node" : "Collapse node"}">${iconFill("chevron")}</button>
             <button class="node-close" data-action="delete-node" data-node="${node.id}" title="Delete node">${iconFill("x")}</button>
         </div>
         <div class="node-body"></div>
     `;
     const body = $(".node-body", el);
 
-    if (node.type === "op") {
+    if (node.collapsed) {
+        // Only the ports are drawn, so the wires stay anchored to the node.
+        el.appendChild(collapsedPorts(node));
+    } else if (node.type === "op") {
         body.appendChild(mainInputRow(node));
         body.appendChild(renderArgs(node));
         body.appendChild(buildPreview(node));
         body.appendChild(buildError(node));
-        el.appendChild(makeOutputPort());
     } else if (node.type === "input") {
         body.appendChild(buildInputNode(node));
-        el.appendChild(makeOutputPort());
     } else if (node.type === "file") {
         body.appendChild(buildFileNode(node));
-        el.appendChild(makeOutputPort());
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
-        el.appendChild(makeOutputPort());
-    } else if (node.type === "output") {
-        body.appendChild(mainInputRow(node, "Input"));
-        body.appendChild(buildPreview(node));
-        body.appendChild(buildError(node));
+    }
+    el.appendChild(makeOutputPort());
+    if (!node.collapsed) {
+        const grip = document.createElement("div");
+        grip.className = "node-resize";
+        grip.title = "Drag to resize";
+        grip.addEventListener("pointerdown", ev => startNodeResize(node, ev));
+        el.appendChild(grip);
     }
 
     el.addEventListener("pointerdown", ev => {
@@ -1073,6 +1129,32 @@ function makeOutputPort() {
     return span;
 }
 
+// Collapsed nodes still need every wired input port in the DOM, otherwise drawEdges
+// cannot find an anchor and the wires would vanish. Only the wired ports are listed.
+function collapsedPorts(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "collapsed-ports";
+    const ports = [];
+    if (node.type === "op") {
+        ports.push({name: "main", label: "In"});
+        (OPS[node.op]?.args || []).forEach((arg, i) => {
+            if (!argTypeWirable(arg.type)) return;
+            if (!edgeInto(node.id, "arg:" + i)) return;
+            ports.push({name: "arg:" + i, label: arg.name});
+        });
+    } else if (node.type === "join") {
+        for (let i = 0; i < node.joinCount; i++) ports.push({name: "join:" + i, label: "In " + (i + 1)});
+    } else {
+        ports.push({name: "main", label: "In"});
+    }
+    wrap.innerHTML = ports.map(p => `<div class="io-row">
+        <span class="port in${edgeInto(node.id, p.name) ? " connected" : ""}" data-port="${esc(p.name)}"></span>
+        <span class="io-label" title="${esc(p.label)}">${esc(p.label)}</span>
+    </div>`).join("");
+    $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
+    return wrap;
+}
+
 function mainInputRow(node, label = "Input") {
     const row = document.createElement("div");
     row.className = "io-row";
@@ -1087,13 +1169,23 @@ function mainInputRow(node, label = "Input") {
     return row;
 }
 
+// A text node is both a source and a sink: it has a port on each side. When something
+// is piped into the left port that wins and the node shows it; otherwise the little box
+// lets you type your own value.
 function buildInputNode(node) {
     const wrap = document.createElement("div");
+    if (edgeInto(node.id, "main")) {
+        wrap.appendChild(mainInputRow(node, "In"));
+        wrap.appendChild(buildPreview(node));
+        wrap.appendChild(buildError(node));
+        return wrap;
+    }
     let bytes = new Uint8Array(0);
     try { bytes = inputNodeBytes(node); } catch { bytes = new Uint8Array(0); }
     wrap.innerHTML = `
-        <div class="io-row" style="justify-content:space-between">
-            <span class="io-label">Text</span>
+        <div class="io-row">
+            <span class="port in" data-port="main" title="Pipe data in (overrides the text below)"></span>
+            <span class="io-label">In</span>
             <select class="control" data-encoding style="width:auto;height:21px;padding:0 4px;font-size:9px;margin-left:auto">
                 <option value="utf8">UTF-8</option>
                 <option value="hex">Hex</option>
@@ -1101,10 +1193,11 @@ function buildInputNode(node) {
                 <option value="latin1">Latin-1</option>
             </select>
         </div>
-        <textarea class="control" data-input-text rows="3" spellcheck="false" style="min-height:68px">${esc(node.text || "")}</textarea>
+        <textarea class="control typed-input" data-input-text rows="3" spellcheck="false" placeholder="Nothing piped in — type your own text here">${esc(node.text || "")}</textarea>
         <div class="node-foot"><span class="bytes" data-bytes>${formatBytes(bytes.length)}</span><span>·</span><span>${node.encoding.toUpperCase()}</span><span style="margin-left:auto" class="bytes">${bytes.length ? "ready" : "empty"}</span></div>
         <div class="error-box" data-node-error style="display:${node._error ? "block" : "none"}">${esc(node._error || "")}</div>
     `;
+    bindInputPort($(".port.in", wrap), node.id, "main");
     $("[data-encoding]", wrap).value = node.encoding;
     $("[data-encoding]", wrap).addEventListener("change", e => {
         node.encoding = e.target.value;
@@ -1130,9 +1223,21 @@ function updateInputBytes(node) {
     $$("[data-bytes]", el).forEach(x => x.textContent = formatBytes(bytes.length));
 }
 
+// Like the text node, a file node takes a pipe on the left and repeats it on the right;
+// with nothing piped in it falls back to the drop zone.
 function buildFileNode(node) {
     const wrap = document.createElement("div");
+    if (edgeInto(node.id, "main")) {
+        wrap.appendChild(mainInputRow(node, "In"));
+        wrap.appendChild(buildPreview(node));
+        wrap.appendChild(buildError(node));
+        return wrap;
+    }
     wrap.innerHTML = `
+        <div class="io-row">
+            <span class="port in" data-port="main" title="Pipe bytes in (overrides the file below)"></span>
+            <span class="io-label">In</span>
+        </div>
         <div class="file-drop" data-file-drop tabindex="0">
             ${node.fileData ? `<div class="file-name">${esc(node.fileName || "File attached")}</div><div class="bytes">${formatBytes(node.fileSize || 0)} · click to replace</div>` : `<div>${iconFill("file")}</div><div>Click or drop a file here</div><div style="color:var(--faint);font-size:8.5px;margin-top:2px">bytes stay in this page</div>`}
         </div>
@@ -1140,6 +1245,7 @@ function buildFileNode(node) {
         <div class="node-foot"><span class="bytes" data-bytes>${formatBytes(node.fileSize || 0)}</span><span style="margin-left:auto" class="bytes">raw bytes</span></div>
         <div class="error-box" data-node-error style="display:${node._error ? "block" : "none"}">${esc(node._error || "")}</div>
     `;
+    bindInputPort($(".port.in", wrap), node.id, "main");
     const input = $("[data-file-input]", wrap);
     const drop = $("[data-file-drop]", wrap);
     drop.addEventListener("click", () => input.click());
@@ -1396,7 +1502,10 @@ function updatePreviewEl(wrap, node) {
     if (isImage) { if (mode !== "raw" && mode !== "hex") mode = "image"; }
     else if (mode !== "hex") mode = "text";
     const imageUrl = (has && isImage && mode === "image") ? imageDataUrlFor(node, bytes, kind) : null;
-    const pv = has ? previewBytes(bytes, mode === "hex" ? "hex" : "text", node.type === "output" ? 1100 : 420) : {text: node.type === "output" ? "Run the graph to see the output." : "Not run yet.", binary: false};
+    // Text and file nodes are the display side of a graph now, so they get the roomier
+    // preview the old Output node had (and its save button, below).
+    const isSink = node.type === "input" || node.type === "file" || node.type === "join";
+    const pv = has ? previewBytes(bytes, mode === "hex" ? "hex" : "text", isSink ? 1100 : 420) : {text: isSink ? "Run the graph to see the output." : "Not run yet.", binary: false};
     wrap.classList.toggle("empty", !has);
     wrap.dataset.kind = kind;
     let body;
@@ -1425,7 +1534,7 @@ function updatePreviewEl(wrap, node) {
             <span class="spacer"></span>
             <span class="seg">${(isImage ? [["image", "Image"], ["raw", "Raw"], ["hex", "Hex"]] : [["text", "Text"], ["hex", "Hex"]]).map(([m, label]) => `<button data-action="preview-mode" data-node="${node.id}" data-mode="${m}" class="${mode === m ? "on" : ""}">${label}</button>`).join("")}</span>
             ${has ? `<button class="mini-btn" data-action="copy-node" data-node="${node.id}" title="Copy output">${iconFill("copy")}</button>` : ""}
-            ${has && node.type === "output" ? `<button class="mini-btn" data-action="save-node" data-node="${node.id}" title="Save output">${iconFill("save")}</button>` : ""}
+            ${has && isSink ? `<button class="mini-btn" data-action="save-node" data-node="${node.id}" title="Save output">${iconFill("save")}</button>` : ""}
         </div>
         ${body}
         ${fileRows}
@@ -1636,10 +1745,12 @@ function connectEdge(fromId, toId, toPort) {
         return;
     }
     const toNode = nodeById(toId);
-    if (!toNode || toNode.type === "input" || toNode.type === "file") return;
-    if (toNode.type === "join" && !/^join:\d+$/.test(toPort)) return;
-    if (toNode.type === "output" && toPort !== "main") return;
-    if (toNode.type === "op" && !(toPort === "main" || /^arg:\d+$/.test(toPort))) return;
+    if (!toNode) return;
+    // Text/file nodes take one "main" pipe (the left-hand port); ops take main or an arg.
+    const accepts = toNode.type === "op"
+        ? (toPort === "main" || /^arg:\d+$/.test(toPort))
+        : toNode.type === "join" ? /^join:\d+$/.test(toPort) : toPort === "main";
+    if (!accepts) return;
     if (toPort.startsWith("arg:")) {
         const idx = Number(toPort.slice(4));
         const arg = OPS[toNode.op]?.args?.[idx];
@@ -1791,6 +1902,48 @@ function startNodeDrag(node, ev) {
     document.addEventListener("pointerup", up, {once: true});
 }
 
+// Resize from the bottom-right grip. The size is stored on the node so it survives
+// saves, and the wires are re-measured while dragging.
+function startNodeResize(node, ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    const el = nodeEl(node.id);
+    if (!el) return;
+    const startX = ev.clientX, startY = ev.clientY;
+    const ow = el.offsetWidth, oh = el.offsetHeight;
+    const prevMin = el.style.minHeight;
+    el.classList.add("resizing", "resized");
+    // Measure the smallest the node can be without hiding any of its content, so the
+    // drag stops there instead of squeezing the card over its own controls. A resized
+    // node shows its full preview, so measure with that styling already applied.
+    el.style.minHeight = "0px";
+    const naturalH = Math.max(120, el.offsetHeight);
+    el.style.minHeight = prevMin;
+    const move = e => {
+        const dw = (e.clientX - startX) / state.view.zoom;
+        const dh = (e.clientY - startY) / state.view.zoom;
+        node.w = Math.max(238, Math.round(ow + dw));
+        node.h = Math.max(naturalH, Math.round(oh + dh));
+        el.style.width = node.w + "px";
+        el.style.minHeight = node.h + "px";
+        scheduleEdges();
+    };
+    const up = () => {
+        document.removeEventListener("pointermove", move);
+        document.removeEventListener("pointerup", up, {once: true});
+        el.classList.remove("resizing");
+        // Store what was actually rendered, so the saved size matches the screen and a
+        // node too small for its content is corrected on the next load.
+        node.w = el.offsetWidth;
+        node.h = Math.max(el.offsetHeight, naturalH);
+        el.style.minHeight = node.h + "px";
+        saveLocalSoon();
+        scheduleEdges();
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up, {once: true});
+}
+
 function startPan(ev) {
     if (ev.button !== 0) return;
     const el = ev.target;
@@ -1936,8 +2089,14 @@ function inputSignature(node, incoming, results) {
         }
         return JSON.stringify([node.op, node.values, main.sig, argSigs.sort()]);
     }
-    if (node.type === "input") return JSON.stringify(["input", node.encoding, node.text]);
-    if (node.type === "file") return JSON.stringify(["file", node.fileSize, node.fileName, fnvBytes(b64ToBytes(node.fileData || ""))]);
+    if (node.type === "input") {
+        const s = sourceBytesForPort(incoming, node.id, "main", results);
+        return JSON.stringify(["input", node.encoding, node.text, s.sig]);
+    }
+    if (node.type === "file") {
+        const s = sourceBytesForPort(incoming, node.id, "main", results);
+        return JSON.stringify(["file", node.fileSize, node.fileName, fnvBytes(b64ToBytes(node.fileData || "")), s.sig]);
+    }
     if (node.type === "join") {
         const parts = [];
         for (let i = 0; i < node.joinCount; i++) {
@@ -1945,10 +2104,6 @@ function inputSignature(node, incoming, results) {
             parts.push(s.sig);
         }
         return JSON.stringify(["join", node.separator, node.joinCount, parts]);
-    }
-    if (node.type === "output") {
-        const s = sourceBytesForPort(incoming, node.id, "main", results);
-        return JSON.stringify(["output", s.sig]);
     }
     return JSON.stringify(node);
 }
@@ -2247,7 +2402,8 @@ async function executeGraph(nodes, edges, opts = {}) {
         let countIt = true;
         let sig = "";
         try {
-            const main = node.type === "op" || node.type === "output"
+            const takesMain = node.type === "op" || node.type === "input" || node.type === "file";
+            const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
             if (main.error) error = "Upstream error: " + main.error;
@@ -2290,13 +2446,19 @@ async function executeGraph(nodes, edges, opts = {}) {
                 }
             } else if (node.type === "input") {
                 sig = sigHash(inputSignature(node, incoming, results));
-                if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
-                else {
-                    out = inputNodeBytes(node);
+                if (!force && node._sig === sig && !error) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    // A piped input overrides the text typed into the node.
+                    out = main.bytes != null ? main.bytes : inputNodeBytes(node);
                 }
             } else if (node.type === "file") {
                 sig = sigHash(inputSignature(node, incoming, results));
-                if (!node.fileData) error = "Choose a file for this node.";
+                if (error) { /* upstream error already recorded */ }
+                else if (main.bytes != null) {
+                    if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
+                    else out = main.bytes;
+                }
+                else if (!node.fileData) error = "Choose a file (or pipe bytes in) for this node.";
                 else if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
                 else out = b64ToBytes(node.fileData);
             } else if (node.type === "join") {
@@ -2316,10 +2478,6 @@ async function executeGraph(nodes, edges, opts = {}) {
                         out = concatBytes(withSeps);
                     }
                 }
-            } else if (node.type === "output") {
-                sig = sigHash(inputSignature(node, incoming, results));
-                if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
-                else out = main.bytes || new Uint8Array(0);
             }
         } catch (err) {
             error = err?.message || String(err);
@@ -2419,6 +2577,30 @@ function setRunStatus(kind, text) {
     if (kind) runStatus.classList.add(kind);
     runStatusText.textContent = text;
 }
+// Total bytes sitting on the graph's outputs right now. Used to tell a real run from a
+// cold pass that reported success while every node came back empty.
+function graphOutputBytes() {
+    let total = 0;
+    for (const node of state?.nodes || []) {
+        // Only engine-backed nodes matter here: text and file nodes always produce
+        // their own bytes, so counting them would hide a pass where no operation ran.
+        if (node.type !== "op" && node.type !== "join") continue;
+        const bytes = nodeOutputBytes(node);
+        if (bytes && bytes.length) total += bytes.length;
+    }
+    return total;
+}
+// Is there anything at all for the graph to work with?
+function graphHadInput() {
+    return (state?.nodes || []).some(node => {
+        if (node.type === "input") {
+            try { return inputNodeBytes(node).length > 0; } catch { return false; }
+        }
+        if (node.type === "file") return Boolean(node.fileData);
+        return false;
+    });
+}
+
 function scheduleRun(force = false, delay = 430) {
     if (!state) return;
     if (!state.autoRun && !force) return;
@@ -2438,10 +2620,8 @@ async function runGraph(force = false) {
     try {
         await engine.start();
         if (generation !== runGeneration) return;
-        const outputs = state.nodes.filter(n => n.type === "output");
         setRunStatus("running", `Running ${state.nodes.length} node${state.nodes.length === 1 ? "" : "s"}…`);
-        const result = await executeGraph(state.nodes, state.edges, {
-            force,
+        const runOpts = {
             onNodeStart: node => {
                 if (generation !== runGeneration) return;
                 setNodeRunning(node, true);
@@ -2451,8 +2631,21 @@ async function runGraph(force = false) {
                 setNodeRunning(node, false);
                 refreshNodePreview(node);
             }
-        });
+        };
+        // While the engine has never yet returned data, an empty pass is a failed pass:
+        // the first run straight after a reload can report success with every node
+        // blank. Ask once more (forced) before telling the user the graph ran.
+        const coldBlank = r => r.errors.length === 0 && !r.cycle.length &&
+            engine.bakesWithData === 0 && graphHadInput() && graphOutputBytes() === 0;
+        let result = await executeGraph(state.nodes, state.edges, {force, ...runOpts});
         if (generation !== runGeneration) return;
+        let blank = coldBlank(result);
+        if (blank) {
+            setRunStatus("running", "Nothing came back — retrying the run…");
+            result = await executeGraph(state.nodes, state.edges, {force: true, ...runOpts});
+            if (generation !== runGeneration) return;
+            blank = coldBlank(result);
+        }
         refreshAllPreviews();
         const errCount = result.errors.length;
         const parts = [`Ran ${result.ran} node${result.ran === 1 ? "" : "s"} in ${Math.max(1, Math.round(result.duration))} ms`];
@@ -2466,6 +2659,10 @@ async function runGraph(force = false) {
             const first = result.errors[0];
             setRunStatus("error", `Error in ${sourceTitle(first.node)}: ${first.error.slice(0, 90)}`);
         }
+        // Never present a cold blank pass as success.
+        if (blank) {
+            setRunStatus("error", `Ran ${result.ran} node${result.ran === 1 ? "" : "s"} but no output came back — press Run to try again.`);
+        }
     } catch (err) {
         setRunStatus("error", err.message || "The graph could not run.");
     } finally {
@@ -2475,6 +2672,8 @@ async function runGraph(force = false) {
             runButton.innerHTML = `${iconFill("play")} Run`;
             if (runPending) scheduleRun(false, 80);
         }
+        // The first completed pass is the last thing the splash was waiting for.
+        hideBoot();
     }
 }
 
@@ -2493,8 +2692,7 @@ function buildPalette() {
     const graphItems = [
         ["input", "Text input", "text"],
         ["file", "File input", "file"],
-        ["join", "Join", "join"],
-        ["output", "Output", "output"]
+        ["join", "Join", "join"]
     ];
     let html = `<div class="palette-section">
         <div class="palette-section-title">Graph</div>
@@ -2608,7 +2806,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", opAccent(payload.op));
         ghost.textContent = payload.op;
     } else {
-        ghost.textContent = {input: "Text input", file: "File input", join: "Join", output: "Output"}[payload.node] || payload.node;
+        ghost.textContent = {input: "Text input", file: "File input", join: "Join"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -2666,10 +2864,6 @@ function addGraphNode(type, x, y) {
         selected = {type: "node", id: node.id};
     } else if (type === "join") {
         const node = makeNode("join", {x: p.x, y: p.y, title: "Join"});
-        state.nodes.push(node);
-        selected = {type: "node", id: node.id};
-    } else if (type === "output") {
-        const node = makeNode("output", {x: p.x, y: p.y, title: "Output"});
         state.nodes.push(node);
         selected = {type: "node", id: node.id};
     }
@@ -3325,7 +3519,8 @@ function graphTestNodes() {
     // Utility for building ephemeral node graphs used by the graph-wiring suite.
     return {
         input: (id, text, x, title = "Text") => makeNode("input", {id, x, y: 100, text, title}),
-        output: (id, x, title = "Output") => makeNode("output", {id, x, y: 100, title}),
+        // Sinks are text nodes now: they take a pipe on the left and repeat it on the right.
+        output: (id, x, title = "Result") => makeNode("input", {id, x, y: 100, title, text: ""}),
         op: (id, op, x, overrides) => makeNode("op", {id, op, x, y: 100, values: nodeValuesWith(op, overrides || {})}),
         edge: (id, from, to, toPort) => ({id: "e" + id, from, to, toPort})
     };
@@ -3494,6 +3689,13 @@ function bindGlobalEvents() {
             zoomAt(ev.clientX, ev.clientY, Math.exp(-ev.deltaY * 0.0014));
         }
     }, {passive: false});
+    // Scrolling inside a scrollable part of a node (the Magic ranking, a preview, a
+    // text box) must scroll that element, not zoom the canvas underneath it.
+    nodesLayer.addEventListener("wheel", ev => {
+        if (ev.target.closest(".magic-list, .preview pre, .file-list, .control, .collapsed-ports")) {
+            ev.stopPropagation();
+        }
+    }, {passive: true});
 
     stage.addEventListener("dragover", ev => {
         if (ev.dataTransfer?.types?.includes("Files")) {
@@ -3538,6 +3740,7 @@ function bindGlobalEvents() {
 
     document.addEventListener("keydown", ev => {
         if (ev.key === "Escape") {
+            if (helpOpen()) { closeHelp(); return; }
             if (! $("#lab").hidden) { closeLab(); return; }
             if (connection) {
                 connection.temp?.remove();
@@ -3664,6 +3867,14 @@ function onNodeActionClick(ev) {
             renderAllNodes();
             onGraphEdited();
         }
+    } else if (action === "toggle-collapse") {
+        ev.stopPropagation();
+        if (node) {
+            // Collapsing only changes the view: edges and the node's data are untouched.
+            node.collapsed = !node.collapsed;
+            renderAllNodes();
+            saveLocalSoon();
+        }
     } else if (action === "preview-mode") {
         ev.stopPropagation();
         if (node) {
@@ -3688,6 +3899,64 @@ function onNodeActionClick(ev) {
     }
 }
 
+/* ================================================================ help */
+function initHelp() {
+    const modal = $("#help");
+    if (!modal) return;
+    $("#helpBtn").innerHTML = iconFill("help");
+    $("#helpClose").innerHTML = iconFill("x");
+    $("#helpBtn").addEventListener("click", () => { modal.hidden = false; });
+    $("#helpClose").addEventListener("click", () => { modal.hidden = true; });
+    modal.addEventListener("click", ev => { if (ev.target === modal) modal.hidden = true; });
+}
+function helpOpen() {
+    const modal = $("#help");
+    return Boolean(modal && !modal.hidden);
+}
+function closeHelp() {
+    const modal = $("#help");
+    if (modal) modal.hidden = true;
+}
+
+/* ================================================================ boot splash
+ * The shell is unusable until the embedded engine has started, so a splash covers it
+ * and reports progress. It fades away once the engine is ready and the first run has
+ * settled; if the engine cannot start it stays put and explains why.
+ */
+const boot = {shownAt: performance.now(), done: false, engineReady: false};
+function bootStatus(text) {
+    const el = $("#bootStatus");
+    if (el && text) el.textContent = text;
+}
+function bootFailed(message) {
+    const el = $("#boot");
+    if (!el || boot.done) return;
+    el.classList.add("error");
+    const err = $("#bootError");
+    if (err) {
+        err.hidden = false;
+        err.textContent = message || "The embedded engine could not start.";
+    }
+    const retry = $("#bootRetry");
+    if (retry && retry.hidden) {
+        retry.hidden = false;
+        retry.addEventListener("click", () => location.reload(), {once: true});
+    }
+    bootStatus("The embedded engine could not start.");
+}
+function hideBoot() {
+    if (boot.done || !boot.engineReady) return;
+    boot.done = true;
+    const el = $("#boot");
+    if (!el) return;
+    // Hold it for a beat so a fast start does not read as a flicker.
+    const wait = Math.max(0, 420 - (performance.now() - boot.shownAt));
+    setTimeout(() => {
+        el.classList.add("done");
+        setTimeout(() => el.remove(), 420);
+    }, wait);
+}
+
 /* ================================================================ init */
 async function init() {
     initTheme();
@@ -3703,6 +3972,7 @@ async function init() {
     renderAllNodes();
     updateAutoSwitch();
     initLab();
+    initHelp();
     bindGlobalEvents();
     applyView();
 
@@ -3719,7 +3989,7 @@ async function init() {
     $("#opCount").textContent = OP_NAMES.length;
     $("#engineLabel").textContent = ENGINE_LABEL;
 
-    engine.onStatus = status => {
+    engine.onStatus = (status, detail) => {
         const dot = $("#engineDot");
         const label = $("#engineStatus");
         dot.className = "engine-dot" + (status === "ready" ? " ready" : status === "error" ? " error" : "");
@@ -3728,6 +3998,12 @@ async function init() {
         else label.innerHTML = `<span style="color:var(--danger)">Engine error</span> · ${esc(engine.lastError || "restarting")}`;
         if (status === "error") {
             setRunStatus("error", "Embedded engine error");
+            bootFailed(engine.lastError || "The embedded engine reported an error.");
+        } else if (status === "ready") {
+            boot.engineReady = true;
+            bootStatus("Ready");
+        } else if (detail) {
+            bootStatus(detail);
         }
     };
 
@@ -3749,10 +4025,14 @@ async function init() {
             requestAnimationFrame(() => fitView());
         }
         setRunStatus("", "Ready");
+        // With auto-run on, the splash waits for the first pass so the canvas is not
+        // shown empty; otherwise there is nothing to wait for.
         if (state.autoRun) scheduleRun(false, 260);
+        else hideBoot();
     }).catch(err => {
         setRunStatus("error", "Embedded engine could not start: " + (err.message || err));
         toast("Embedded engine could not start: " + (err.message || err), "error");
+        bootFailed(err.message || String(err));
     });
 
     // Ensure the initial view is fitted after layout.

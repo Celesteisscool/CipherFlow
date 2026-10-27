@@ -104,6 +104,17 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ecece8">
+<script>
+// Apply the saved theme before the first paint so the loading screen does not flash
+// the wrong colour. initTheme() repeats this once the app boots.
+(function () {
+    try {
+        var t = localStorage.getItem("cipherflow.theme.v1") ||
+            (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.dataset.theme = t;
+    } catch (e) { /* storage unavailable; keep the default */ }
+})();
+</script>
 <title>CipherFlow — node-based CyberChef</title>
 <meta name="description" content="A single-file, offline node editor for chaining CyberChef's operations with multiple inputs.">
 <style>
@@ -112,6 +123,18 @@ ${css}
 </head>
 <body>
 <noscript><p style="padding:24px;font:14px system-ui">CipherFlow needs JavaScript. All processing happens locally in this page.</p></noscript>
+
+<div class="boot" id="boot" role="status" aria-live="polite">
+    <div class="boot-card">
+        <span class="boot-spinner" aria-hidden="true"></span>
+        <div class="boot-title">CipherFlow</div>
+        <div class="boot-sub">Offline node editor — everything runs in this page</div>
+        <div class="boot-status" id="bootStatus">Loading the embedded engine…</div>
+        <div class="boot-bar" aria-hidden="true"><span class="boot-bar-fill"></span></div>
+        <div class="boot-error" id="bootError" hidden></div>
+        <button class="btn-primary boot-retry" id="bootRetry" hidden>Reload</button>
+    </div>
+</div>
 
 <div id="app">
     <main class="stage" id="stage">
@@ -125,6 +148,7 @@ ${css}
             <span class="zoom-value" id="zoomLabel">100%</span>
             <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
             <button class="zoom-btn fit-btn" id="fitBtn" title="Fit graph to view"><span id="fitBtnIcon"></span>Fit</button>
+            <button class="zoom-btn help-btn" id="helpBtn" title="How this works"></button>
         </div>
         <div class="run-status" id="runStatus" title="Last run summary"><span class="status-dot"></span><span id="runStatusText">Loading embedded engine…</span></div>
     </main>
@@ -193,6 +217,57 @@ ${css}
         <div class="lab-summary" id="labSummary"></div>
         <div class="lab-list-wrap"><div class="lab-list" id="labList"></div></div>
         <div class="integration-wrap" id="integrationWrap" hidden></div>
+    </div>
+</div>
+
+<div class="modal" id="help" hidden>
+    <div class="help-card">
+        <div class="help-head">
+            <div>
+                <div class="lab-kicker">CipherFlow</div>
+                <h2 class="lab-title">How this works</h2>
+            </div>
+            <button class="icon-button lab-close" id="helpClose" title="Close"></button>
+        </div>
+        <div class="help-body">
+            <div class="help-section">
+                <h3>Build a graph</h3>
+                <p>Every node is a step. Circles on a node are <b>ports</b>: the one on the right is its output, the ones on the left are inputs. Drag from an output to an input to draw a wire and the data flows along it. Add nodes from the list on the left (click, or drag onto the canvas).</p>
+            </div>
+            <div class="help-section">
+                <h3>Text and file nodes are input <em>and</em> output</h3>
+                <p>Both have a port on each side. With nothing piped into the left port, a text node shows a box for you to type your own value, and a file node shows a drop area. As soon as you pipe data in, that input wins and the node displays it instead — so a text or file node is the end of a chain on its own, with copy and save buttons on its preview. There is no separate Output node to add.</p>
+            </div>
+            <div class="help-section">
+                <h3>Combine two inputs</h3>
+                <p>Operations expose a port for every argument that can be wired — a key, an IV, a password. Type into the control, or wire a second node into that argument's port to feed it. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
+            </div>
+            <div class="help-section">
+                <h3>Magic</h3>
+                <p>Wire data into a <b>Magic</b> node and it runs every operation in the library over that input, scores each result for how much it looks like real, useful output, and ranks the best ten. Click a row to make that result the node's output and send it downstream.</p>
+            </div>
+            <div class="help-section">
+                <h3>Move, resize, collapse</h3>
+                <ul>
+                    <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom.</li>
+                    <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
+                    <li>Drag the bottom-right corner of a node to resize it. Double-click a title to rename it.</li>
+                    <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>Delete a wire</h3>
+                <p>Click a wire to select it — an <b>×</b> appears in the middle. Click the × to remove it (double-clicking the wire works too).</p>
+            </div>
+            <div class="help-section">
+                <h3>Running and saving</h3>
+                <p>With <b>Auto-run</b> on, the graph re-runs as you edit. Use <b>Run</b> to force a fresh pass. <b>Save</b> and <b>Open</b> move a graph as a JSON file, and your work is kept in this browser automatically. Everything runs in this page, offline — no data leaves it.</p>
+            </div>
+            <div class="help-section">
+                <h3>Checking the operations</h3>
+                <p>The <b>flask</b> icon in the sidebar opens the verification lab: known-answer vectors, encode/decode round-trips and graph-wiring checks for every operation.</p>
+            </div>
+        </div>
     </div>
 </div>
 

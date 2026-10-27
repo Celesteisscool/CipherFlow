@@ -1,0 +1,17 @@
+{
+  "name": "e99e60e51dc6f1188e2d40370566688cc021d656bd305a0f877cabaeaa38ee9c",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cyberchef": "^11.5.0",
+    "esbuild": "^0.28.2",
+    "terser": "^5.51.2"
+  }
+}

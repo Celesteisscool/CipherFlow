@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# generated build inputs (reproducible from the cyberchef package)
+dev/modules/
+dev/cc-tests.json
+dev/meta.json
+dev/testplan.json
+dev/worker-test.html
+
+# local run artifacts
+dev/serve.log
+*.log
+
+# OS noise
+.DS_Store
+Thumbs.db

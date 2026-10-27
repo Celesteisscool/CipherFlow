@@ -241,7 +241,7 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Combine two inputs</h3>
-                <p>Every operation carries a box for its own main input, plus a port and a box for every argument that can be wired — a key, an IV, a password. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins — the box dims and shows what is arriving on that wire. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
+                <p>Every operation carries a box for its own main input, and <b>every</b> argument it has gets a port of its own — a key, an IV, a password, but also a number, a switch or a dropdown. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins: the box dims and shows the value arriving on the wire, cut short if it runs long. A wired number is read as a number, a switch as on or off, and a wire into a dropdown picks whichever option it matches. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
             </div>
             <div class="help-section">
                 <h3>Magic</h3>
@@ -254,7 +254,25 @@ ${css}
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
                     <li>Drag the bottom-right corner of a node to resize it. Double-click a title to rename it.</li>
                     <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redoes — adding and deleting nodes, wires, moves, resizes and every value you type. A burst of typing undoes in one step.</li>
                 </ul>
+            </div>
+            <div class="help-section">
+                <h3>Several nodes at once</h3>
+                <ul>
+                    <li><kbd>Shift</kbd>+click a node to add it to the selection, or click it again to take it back out.</li>
+                    <li><kbd>Shift</kbd>+drag on the empty canvas draws a box and selects everything it touches.</li>
+                    <li>Dragging any selected node moves the whole selection, and <kbd>Delete</kbd> removes all of it with its wires.</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>C</kbd>, <kbd>Ctrl</kbd>+<kbd>X</kbd> and <kbd>Ctrl</kbd>+<kbd>V</kbd> copy, cut and paste the selection. The same JSON goes to your system clipboard, so a fragment can be pasted into another tab or a file and pasted back in.</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>Function blocks</h3>
+                <p>A function is a graph of your own: build a body once, then place it like any other node. Press <b>New function</b> at the top of the node list to create one and its editor opens. Inside, the <b>Function input</b> node declares what the function takes — rename each row, give it a sample value, and add as many rows as you need. Wire those into your body, and wire the body into the <b>Function output</b> node, which declares what it hands back. <b>Run test</b> tries the body on its sample values.</p>
+                <p>The editor window has its own <b>node list</b> down the left side, with the same operations and search as the sidebar, so you build the body there. The <b>Nodes</b> button in the header tucks the list away when you want the whole width for the canvas.</p>
+                <p>Press <b>Done</b> and the function appears in the node list: click or drag it onto the canvas to place an instance, which has one input port per declared input and one output port per declared output. Editing the definition updates every instance — double-click an instance (or its pencil in the list) to reopen the editor. A function cannot call itself, and definitions are saved inside the graph file, so a shared file keeps its functions.</p>
+                <p>Each declared input carries a <b>test sample</b>, which is what the body runs on when you press <b>Run test</b>. A sample can be <b>Text</b> you type, a <b>File</b> you attach, or a value <b>piped in</b> from a node in the body — wire something into the port on the sample row and it takes over. That is how a fixture is derived: build the value with nodes, pipe it in, and every instance can fall back to it. A function that works on an image, an archive or any other bytes can be tested on the real thing from inside the editor.</p>
+                <p>Tick <b>Can be typed in</b> on a declared input and every instance of the function grows a box for it, so a constant can be typed straight onto the node instead of needing something wired into the port. The box shows the input's test sample as its <b>default</b>, so you can see the value an untouched instance will run on; typing in the box overrides it, emptying the box puts the default back, and a wire into the port overrides both.</p>
             </div>
             <div class="help-section">
                 <h3>Delete a wire</h3>

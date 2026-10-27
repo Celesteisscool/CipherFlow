@@ -24,6 +24,9 @@
     --shadow-sm: 0 4px 14px rgba(25, 27, 32, 0.07);
     --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, "Liberation Mono", monospace;
     --sans: Inter, "SF Pro Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    /* One width for the node list, wherever it appears — the graph's sidebar and the copy a
+       function editor carries both read this, so the two can never drift apart. */
+    --sidebar-w: 348px;
     color-scheme: light;
 }
 
@@ -147,15 +150,18 @@ button svg { flex: 0 0 auto; }
 /* The shell is exactly one viewport tall and never grows: the canvas, the node list
  * and the lab each scroll internally, so tall content cannot push the page or leave
  * dead space under it. */
+/* The canvas is an inset card; the node list is a flat panel flush to the window's right
+   edge, separated from the canvas by a single hairline. That is the same treatment the list
+   gets inside a function editor, so there is one panel style to reason about and change. */
 #app {
     height: 100vh;
     height: 100dvh;
     max-height: 100dvh;
-    padding: 12px;
+    padding: 12px 0 12px 12px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 348px;
+    grid-template-columns: minmax(0, 1fr) var(--sidebar-w);
     grid-template-rows: minmax(0, 1fr);
-    gap: 12px;
+    gap: 0;
     overflow: hidden;
 }
 
@@ -165,6 +171,8 @@ button svg { flex: 0 0 auto; }
     --grid-x: 0px;
     --grid-y: 0px;
     position: relative;
+    /* Holds the canvas card clear of the panel beside it now that the grid has no gap. */
+    margin-right: 12px;
     min-width: 0;
     min-height: 0;
     /* clip (not hidden): the stage must never become a scroll container, or the
@@ -172,7 +180,8 @@ button svg { flex: 0 0 auto; }
     overflow: clip;
     contain: paint;
     border: 1px solid var(--line);
-    border-radius: 27px;
+    /* Square corners: the canvas is a panel of the window, like the node list beside it. */
+    border-radius: 0;
     background: var(--stage);
     box-shadow: var(--shadow);
     isolation: isolate;
@@ -619,6 +628,19 @@ button svg { flex: 0 0 auto; }
 .arg-label-row .port.in { left: -18px; top: 8px; margin-top: 0; }
 .arg-label-row.connected .arg-name { color: color-mix(in srgb, var(--node-accent) 82%, var(--ink)); }
 .arg-control { margin-top: 3px; }
+/* What a wire is carrying, in one dimmed line under the port it feeds. The placeholder of a
+   wired control says the same thing; this covers the ports that have no control to hold it. */
+.wire-hint {
+    margin: 1px 0 2px 20px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    line-height: 1.4;
+    color: var(--faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
 /* The main-input box sits straight in the node body, not in an .arg-row, so it carries the
  * positioning the connected overlay needs — otherwise that overlay would cover the node. */
 .op-input { position: relative; }
@@ -948,7 +970,11 @@ select.control { padding-right: 4px; }
 .collapsed-ports { display: none; flex-direction: column; gap: 1px; padding: 4px 13px 8px; }
 .node.collapsed .collapsed-ports { display: flex; }
 .collapsed-ports .io-row { min-height: 17px; font-size: 9.5px; }
-.collapsed-ports .io-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A long port name shortens instead of widening the collapsed node out of shape. */
+.collapsed-ports .io-label { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Several outputs sit under a divider, mirroring how the expanded node lists them. */
+.collapsed-ports .io-out-row { margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--line); }
+.collapsed-ports .io-out-row:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 /* The collapsed head sits above the port stub, so it keeps a normal border. */
 .node.collapsed .node-head { border-radius: 13px 13px 0 0; }
 /* And a resized preview wins over the compact caps above. */
@@ -961,10 +987,11 @@ select.control { padding-right: 4px; }
     min-height: 0;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--line);
-    border-radius: 25px;
+    border: none;
+    border-left: 1px solid var(--line);
+    border-radius: 0;
     background: var(--panel);
-    box-shadow: var(--shadow);
+    box-shadow: none;
     overflow: hidden;
     z-index: 40;
 }
@@ -1223,6 +1250,52 @@ select.control { padding-right: 4px; }
 .sidebar-foot b { color: var(--muted); font-weight: 600; }
 .sidebar-close { display: none; }
 
+/* Marquee selection: the translucent box drawn while shift-dragging the canvas. */
+.marquee {
+    position: absolute;
+    z-index: 24;
+    pointer-events: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+/* Selection bar: what is selected, and what can be done with it. */
+.selection-bar {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    z-index: 26;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 5px 4px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--panel) 93%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+    max-width: calc(100% - 24px);
+}
+.selection-bar[hidden] { display: none; }
+.sel-count { font-size: 11px; font-weight: 540; color: var(--muted); white-space: nowrap; }
+.sel-btn {
+    height: 25px;
+    padding: 0 9px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 520;
+    color: var(--ink);
+    white-space: nowrap;
+}
+.sel-btn svg { width: 13px; height: 13px; stroke: currentColor; }
+.sel-btn:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.sel-btn[data-sel-action="delete"]:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+
 .stage-controls {
     position: absolute;
     left: 14px;
@@ -1291,6 +1364,154 @@ select.control { padding-right: 4px; }
     -webkit-backdrop-filter: blur(5px);
 }
 .modal[hidden] { display: none; }
+/* ------------------------------------------------------------------ function editor */
+.modal.fn-editor { padding: 0; background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.fn-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    animation: modal-in 150ms ease both;
+}
+.fn-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex: 0 0 auto;
+    padding: 9px 13px;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel) 94%, transparent);
+}
+.fn-head .spacer { flex: 1 1 auto; }
+.fn-name {
+    height: 30px;
+    min-width: 150px;
+    max-width: 320px;
+    padding: 0 11px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--panel);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 580;
+}
+.fn-name:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); outline: none; }
+.fn-meta { font-size: 10.5px; color: var(--faint); white-space: nowrap; }
+.fn-stage { flex: 1 1 auto; min-height: 0; }
+/* The editor carries its own copy of the node list: the window covers the sidebar, so
+   without it there would be no way to add an operation to a function. */
+/* row-reverse puts the node list on the right, matching where the sidebar sits on the
+   graph: the canvas keeps the left side in both views, so the graph does not appear to
+   jump sideways when a function is opened. */
+.fn-body { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: row-reverse; }
+/* Inside the editor the list is a flex column rather than a grid track, so all it needs is
+   its width and not to shrink; the panel look itself comes from .sidebar. */
+.fn-sidebar { width: var(--sidebar-w); flex: 0 0 auto; }
+.fn-card.nodes-hidden .fn-sidebar { display: none; }
+.fn-nodes-btn { display: inline-flex; align-items: center; gap: 6px; }
+.fn-nodes-btn svg { width: 13px; height: 13px; stroke: currentColor; }
+.fn-hint {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9;
+    max-width: min(760px, 84%);
+    padding: 6px 13px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--panel) 92%, transparent);
+    color: var(--muted);
+    font-size: 10.5px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.fn-hint b { color: var(--ink); font-weight: 600; }
+/* ------------------------------------------------------------------ function nodes */
+.fn-note { margin-bottom: 7px; font-size: 9.5px; line-height: 1.45; color: var(--faint); }
+.fn-missing { font-size: 10px; line-height: 1.45; color: var(--danger); }
+.fn-row { gap: 5px; }
+.fn-port-name { flex: 1 1 auto; min-width: 0; height: 22px; font-size: 10px; }
+.fn-sample { margin: 2px 0 7px; }
+.fn-sample .control { height: 22px; font-size: 10px; }
+.fn-sample select { flex: 0 0 auto; width: auto; }
+/* The test sample is typed text, an attached file, or a value piped in from the body; the
+   row carries a port on the node's left edge. It wraps rather than pushing the Text/File
+   switch off a narrow node. */
+.fn-sample-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; row-gap: 4px; margin-bottom: 3px; }
+.fn-sample-head .port.in { top: 50%; }
+/* A wired sample overrides both controls, so they are dimmed and inert, exactly like the
+   box of a wired argument. */
+.fn-sample-body.connected { opacity: .55; pointer-events: none; }
+.fn-sample-label { flex: 1 1 auto; font-size: 8.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--faint); }
+.fn-sample-kind button { height: 17px; padding: 0 6px; border-radius: 3px; color: var(--faint); font-size: 8.5px; font-weight: 600; }
+.fn-sample-kind button.on { background: color-mix(in srgb, var(--node-accent) 14%, transparent); color: color-mix(in srgb, var(--node-accent) 82%, var(--ink)); }
+.fn-file-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 7px;
+    background: var(--panel-2);
+    color: var(--muted);
+    text-align: left;
+    transition: border-color 120ms ease, background 120ms ease;
+}
+.fn-file-drop b { font-family: inherit; font-size: 10px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.fn-file-drop span { font-size: 8.7px; color: var(--faint); }
+.fn-file-drop:hover, .fn-file-drop.drag { border-color: var(--node-accent); background: color-mix(in srgb, var(--node-accent) 6%, transparent); }
+/* A value typed straight onto a function instance, for the inputs the definition marked as
+   typeable. It behaves like any other input box: a wire into the port overrides it. */
+.fn-typed { margin: 2px 0 7px; }
+.fn-typed .control { height: 22px; font-size: 10px; }
+.fn-typed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 18px;
+    margin: 3px 0 2px;
+    color: var(--muted);
+    font-size: 9.5px;
+    cursor: pointer;
+}
+.fn-typed-toggle:hover { color: var(--ink); }
+.fn-typed-toggle input { width: 12px; height: 12px; margin: 0; flex: 0 0 auto; accent-color: var(--node-accent, var(--accent)); }
+.fn-outs { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); }
+.fn-out-row.on { color: var(--ink); }
+.fn-out-pick {
+    width: 17px; height: 17px;
+    flex: 0 0 auto;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 640;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.fn-out-row.on .fn-out-pick { background: var(--node-accent); color: #fff; }
+/* A port that belongs to a row sits on the node's right border, one per output. */
+.out-slot { position: relative; width: 0; height: 0; margin-left: auto; flex: 0 0 auto; }
+.out-slot .port.out { right: -18px; }
+.fn-item-wrap { display: flex; align-items: center; gap: 4px; }
+.fn-item-wrap .graph-item { flex: 1 1 auto; min-width: 0; }
+.fn-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fn-item-del {
+    width: 22px; height: 22px;
+    flex: 0 0 auto;
+    border-radius: 6px;
+    color: var(--faint);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.fn-item-del svg { width: 13px; height: 13px; }
+.fn-item-del:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
 /* ------------------------------------------------------------------ help */
 .help-card {
     width: min(720px, 96vw);
@@ -1615,22 +1836,39 @@ kbd {
     backdrop-filter: blur(2px);
 }
 @media (max-width: 1050px) {
-    #app { grid-template-columns: minmax(0, 1fr) 310px; }
+    :root { --sidebar-w: 310px; }
     .sidebar-title { font-size: 20px; }
     .node { width: 292px; }
 }
 @media (max-width: 900px) {
     #app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 8px; }
-    .stage { height: 100%; border-radius: 20px; }
+    .stage { height: 100%; margin-right: 0; }
+    /* Inside a function editor the list is a column of the window rather than a drawer,
+       so the fixed-position drawer rules must not apply to it. */
+    .sidebar.fn-sidebar {
+        position: static;
+        inset: auto;
+        width: min(var(--sidebar-w), 54vw);
+        transform: none;
+        border: none;
+        border-left: 1px solid var(--line);
+        border-radius: 0;
+        /* The drawer rule just above gives every .sidebar the card shadow; this list is a
+           column of the window, so it has to take it back. */
+        box-shadow: none;
+    }
+    /* On a narrow screen the list becomes a floating drawer, so it gets its card back. */
     .sidebar {
         position: fixed;
         top: 8px;
         right: 8px;
         bottom: 8px;
-        width: min(358px, calc(100vw - 16px));
+        width: min(var(--sidebar-w), calc(100vw - 16px));
         transform: translateX(calc(100% + 20px));
         transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+        border: 1px solid var(--line);
         border-radius: 20px;
+        box-shadow: var(--shadow);
         z-index: 40;
     }
     .sidebar.open { transform: none; }
@@ -1650,6 +1888,7 @@ kbd {
     .tb-sep { margin: 0 2px; }
     .stage-controls { left: 8px; bottom: 8px; }
     .run-status { right: 8px; bottom: 8px; max-width: calc(100% - 210px); }
+    .selection-bar { bottom: 46px; }
     .lab-head { padding: 14px; }
     .lab-title { font-size: 19px; }
     .lab-tools { padding: 8px 14px; }

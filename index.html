@@ -44,6 +44,9 @@
     --shadow-sm: 0 4px 14px rgba(25, 27, 32, 0.07);
     --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, "Liberation Mono", monospace;
     --sans: Inter, "SF Pro Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    /* One width for the node list, wherever it appears — the graph's sidebar and the copy a
+       function editor carries both read this, so the two can never drift apart. */
+    --sidebar-w: 348px;
     color-scheme: light;
 }
 
@@ -167,15 +170,18 @@ button svg { flex: 0 0 auto; }
 /* The shell is exactly one viewport tall and never grows: the canvas, the node list
  * and the lab each scroll internally, so tall content cannot push the page or leave
  * dead space under it. */
+/* The canvas is an inset card; the node list is a flat panel flush to the window's right
+   edge, separated from the canvas by a single hairline. That is the same treatment the list
+   gets inside a function editor, so there is one panel style to reason about and change. */
 #app {
     height: 100vh;
     height: 100dvh;
     max-height: 100dvh;
-    padding: 12px;
+    padding: 12px 0 12px 12px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 348px;
+    grid-template-columns: minmax(0, 1fr) var(--sidebar-w);
     grid-template-rows: minmax(0, 1fr);
-    gap: 12px;
+    gap: 0;
     overflow: hidden;
 }
 
@@ -185,6 +191,8 @@ button svg { flex: 0 0 auto; }
     --grid-x: 0px;
     --grid-y: 0px;
     position: relative;
+    /* Holds the canvas card clear of the panel beside it now that the grid has no gap. */
+    margin-right: 12px;
     min-width: 0;
     min-height: 0;
     /* clip (not hidden): the stage must never become a scroll container, or the
@@ -192,7 +200,8 @@ button svg { flex: 0 0 auto; }
     overflow: clip;
     contain: paint;
     border: 1px solid var(--line);
-    border-radius: 27px;
+    /* Square corners: the canvas is a panel of the window, like the node list beside it. */
+    border-radius: 0;
     background: var(--stage);
     box-shadow: var(--shadow);
     isolation: isolate;
@@ -639,6 +648,19 @@ button svg { flex: 0 0 auto; }
 .arg-label-row .port.in { left: -18px; top: 8px; margin-top: 0; }
 .arg-label-row.connected .arg-name { color: color-mix(in srgb, var(--node-accent) 82%, var(--ink)); }
 .arg-control { margin-top: 3px; }
+/* What a wire is carrying, in one dimmed line under the port it feeds. The placeholder of a
+   wired control says the same thing; this covers the ports that have no control to hold it. */
+.wire-hint {
+    margin: 1px 0 2px 20px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    line-height: 1.4;
+    color: var(--faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
 /* The main-input box sits straight in the node body, not in an .arg-row, so it carries the
  * positioning the connected overlay needs — otherwise that overlay would cover the node. */
 .op-input { position: relative; }
@@ -968,7 +990,11 @@ select.control { padding-right: 4px; }
 .collapsed-ports { display: none; flex-direction: column; gap: 1px; padding: 4px 13px 8px; }
 .node.collapsed .collapsed-ports { display: flex; }
 .collapsed-ports .io-row { min-height: 17px; font-size: 9.5px; }
-.collapsed-ports .io-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A long port name shortens instead of widening the collapsed node out of shape. */
+.collapsed-ports .io-label { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Several outputs sit under a divider, mirroring how the expanded node lists them. */
+.collapsed-ports .io-out-row { margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--line); }
+.collapsed-ports .io-out-row:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 /* The collapsed head sits above the port stub, so it keeps a normal border. */
 .node.collapsed .node-head { border-radius: 13px 13px 0 0; }
 /* And a resized preview wins over the compact caps above. */
@@ -981,10 +1007,11 @@ select.control { padding-right: 4px; }
     min-height: 0;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--line);
-    border-radius: 25px;
+    border: none;
+    border-left: 1px solid var(--line);
+    border-radius: 0;
     background: var(--panel);
-    box-shadow: var(--shadow);
+    box-shadow: none;
     overflow: hidden;
     z-index: 40;
 }
@@ -1243,6 +1270,52 @@ select.control { padding-right: 4px; }
 .sidebar-foot b { color: var(--muted); font-weight: 600; }
 .sidebar-close { display: none; }
 
+/* Marquee selection: the translucent box drawn while shift-dragging the canvas. */
+.marquee {
+    position: absolute;
+    z-index: 24;
+    pointer-events: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+/* Selection bar: what is selected, and what can be done with it. */
+.selection-bar {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    z-index: 26;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 5px 4px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--panel) 93%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+    max-width: calc(100% - 24px);
+}
+.selection-bar[hidden] { display: none; }
+.sel-count { font-size: 11px; font-weight: 540; color: var(--muted); white-space: nowrap; }
+.sel-btn {
+    height: 25px;
+    padding: 0 9px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 520;
+    color: var(--ink);
+    white-space: nowrap;
+}
+.sel-btn svg { width: 13px; height: 13px; stroke: currentColor; }
+.sel-btn:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.sel-btn[data-sel-action="delete"]:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+
 .stage-controls {
     position: absolute;
     left: 14px;
@@ -1311,6 +1384,154 @@ select.control { padding-right: 4px; }
     -webkit-backdrop-filter: blur(5px);
 }
 .modal[hidden] { display: none; }
+/* ------------------------------------------------------------------ function editor */
+.modal.fn-editor { padding: 0; background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.fn-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    animation: modal-in 150ms ease both;
+}
+.fn-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex: 0 0 auto;
+    padding: 9px 13px;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel) 94%, transparent);
+}
+.fn-head .spacer { flex: 1 1 auto; }
+.fn-name {
+    height: 30px;
+    min-width: 150px;
+    max-width: 320px;
+    padding: 0 11px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--panel);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 580;
+}
+.fn-name:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); outline: none; }
+.fn-meta { font-size: 10.5px; color: var(--faint); white-space: nowrap; }
+.fn-stage { flex: 1 1 auto; min-height: 0; }
+/* The editor carries its own copy of the node list: the window covers the sidebar, so
+   without it there would be no way to add an operation to a function. */
+/* row-reverse puts the node list on the right, matching where the sidebar sits on the
+   graph: the canvas keeps the left side in both views, so the graph does not appear to
+   jump sideways when a function is opened. */
+.fn-body { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: row-reverse; }
+/* Inside the editor the list is a flex column rather than a grid track, so all it needs is
+   its width and not to shrink; the panel look itself comes from .sidebar. */
+.fn-sidebar { width: var(--sidebar-w); flex: 0 0 auto; }
+.fn-card.nodes-hidden .fn-sidebar { display: none; }
+.fn-nodes-btn { display: inline-flex; align-items: center; gap: 6px; }
+.fn-nodes-btn svg { width: 13px; height: 13px; stroke: currentColor; }
+.fn-hint {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9;
+    max-width: min(760px, 84%);
+    padding: 6px 13px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--panel) 92%, transparent);
+    color: var(--muted);
+    font-size: 10.5px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.fn-hint b { color: var(--ink); font-weight: 600; }
+/* ------------------------------------------------------------------ function nodes */
+.fn-note { margin-bottom: 7px; font-size: 9.5px; line-height: 1.45; color: var(--faint); }
+.fn-missing { font-size: 10px; line-height: 1.45; color: var(--danger); }
+.fn-row { gap: 5px; }
+.fn-port-name { flex: 1 1 auto; min-width: 0; height: 22px; font-size: 10px; }
+.fn-sample { margin: 2px 0 7px; }
+.fn-sample .control { height: 22px; font-size: 10px; }
+.fn-sample select { flex: 0 0 auto; width: auto; }
+/* The test sample is typed text, an attached file, or a value piped in from the body; the
+   row carries a port on the node's left edge. It wraps rather than pushing the Text/File
+   switch off a narrow node. */
+.fn-sample-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; row-gap: 4px; margin-bottom: 3px; }
+.fn-sample-head .port.in { top: 50%; }
+/* A wired sample overrides both controls, so they are dimmed and inert, exactly like the
+   box of a wired argument. */
+.fn-sample-body.connected { opacity: .55; pointer-events: none; }
+.fn-sample-label { flex: 1 1 auto; font-size: 8.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--faint); }
+.fn-sample-kind button { height: 17px; padding: 0 6px; border-radius: 3px; color: var(--faint); font-size: 8.5px; font-weight: 600; }
+.fn-sample-kind button.on { background: color-mix(in srgb, var(--node-accent) 14%, transparent); color: color-mix(in srgb, var(--node-accent) 82%, var(--ink)); }
+.fn-file-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 7px;
+    background: var(--panel-2);
+    color: var(--muted);
+    text-align: left;
+    transition: border-color 120ms ease, background 120ms ease;
+}
+.fn-file-drop b { font-family: inherit; font-size: 10px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.fn-file-drop span { font-size: 8.7px; color: var(--faint); }
+.fn-file-drop:hover, .fn-file-drop.drag { border-color: var(--node-accent); background: color-mix(in srgb, var(--node-accent) 6%, transparent); }
+/* A value typed straight onto a function instance, for the inputs the definition marked as
+   typeable. It behaves like any other input box: a wire into the port overrides it. */
+.fn-typed { margin: 2px 0 7px; }
+.fn-typed .control { height: 22px; font-size: 10px; }
+.fn-typed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 18px;
+    margin: 3px 0 2px;
+    color: var(--muted);
+    font-size: 9.5px;
+    cursor: pointer;
+}
+.fn-typed-toggle:hover { color: var(--ink); }
+.fn-typed-toggle input { width: 12px; height: 12px; margin: 0; flex: 0 0 auto; accent-color: var(--node-accent, var(--accent)); }
+.fn-outs { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); }
+.fn-out-row.on { color: var(--ink); }
+.fn-out-pick {
+    width: 17px; height: 17px;
+    flex: 0 0 auto;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 640;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.fn-out-row.on .fn-out-pick { background: var(--node-accent); color: #fff; }
+/* A port that belongs to a row sits on the node's right border, one per output. */
+.out-slot { position: relative; width: 0; height: 0; margin-left: auto; flex: 0 0 auto; }
+.out-slot .port.out { right: -18px; }
+.fn-item-wrap { display: flex; align-items: center; gap: 4px; }
+.fn-item-wrap .graph-item { flex: 1 1 auto; min-width: 0; }
+.fn-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fn-item-del {
+    width: 22px; height: 22px;
+    flex: 0 0 auto;
+    border-radius: 6px;
+    color: var(--faint);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.fn-item-del svg { width: 13px; height: 13px; }
+.fn-item-del:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
 /* ------------------------------------------------------------------ help */
 .help-card {
     width: min(720px, 96vw);
@@ -1635,22 +1856,39 @@ kbd {
     backdrop-filter: blur(2px);
 }
 @media (max-width: 1050px) {
-    #app { grid-template-columns: minmax(0, 1fr) 310px; }
+    :root { --sidebar-w: 310px; }
     .sidebar-title { font-size: 20px; }
     .node { width: 292px; }
 }
 @media (max-width: 900px) {
     #app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 8px; }
-    .stage { height: 100%; border-radius: 20px; }
+    .stage { height: 100%; margin-right: 0; }
+    /* Inside a function editor the list is a column of the window rather than a drawer,
+       so the fixed-position drawer rules must not apply to it. */
+    .sidebar.fn-sidebar {
+        position: static;
+        inset: auto;
+        width: min(var(--sidebar-w), 54vw);
+        transform: none;
+        border: none;
+        border-left: 1px solid var(--line);
+        border-radius: 0;
+        /* The drawer rule just above gives every .sidebar the card shadow; this list is a
+           column of the window, so it has to take it back. */
+        box-shadow: none;
+    }
+    /* On a narrow screen the list becomes a floating drawer, so it gets its card back. */
     .sidebar {
         position: fixed;
         top: 8px;
         right: 8px;
         bottom: 8px;
-        width: min(358px, calc(100vw - 16px));
+        width: min(var(--sidebar-w), calc(100vw - 16px));
         transform: translateX(calc(100% + 20px));
         transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+        border: 1px solid var(--line);
         border-radius: 20px;
+        box-shadow: var(--shadow);
         z-index: 40;
     }
     .sidebar.open { transform: none; }
@@ -1670,6 +1908,7 @@ kbd {
     .tb-sep { margin: 0 2px; }
     .stage-controls { left: 8px; bottom: 8px; }
     .run-status { right: 8px; bottom: 8px; max-width: calc(100% - 210px); }
+    .selection-bar { bottom: 46px; }
     .lab-head { padding: 14px; }
     .lab-title { font-size: 19px; }
     .lab-tools { padding: 8px 14px; }
@@ -1803,7 +2042,7 @@ kbd {
             </div>
             <div class="help-section">
                 <h3>Combine two inputs</h3>
-                <p>Every operation carries a box for its own main input, plus a port and a box for every argument that can be wired — a key, an IV, a password. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins — the box dims and shows what is arriving on that wire. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
+                <p>Every operation carries a box for its own main input, and <b>every</b> argument it has gets a port of its own — a key, an IV, a password, but also a number, a switch or a dropdown. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins: the box dims and shows the value arriving on the wire, cut short if it runs long. A wired number is read as a number, a switch as on or off, and a wire into a dropdown picks whichever option it matches. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
             </div>
             <div class="help-section">
                 <h3>Magic</h3>
@@ -1816,7 +2055,25 @@ kbd {
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
                     <li>Drag the bottom-right corner of a node to resize it. Double-click a title to rename it.</li>
                     <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redoes — adding and deleting nodes, wires, moves, resizes and every value you type. A burst of typing undoes in one step.</li>
                 </ul>
+            </div>
+            <div class="help-section">
+                <h3>Several nodes at once</h3>
+                <ul>
+                    <li><kbd>Shift</kbd>+click a node to add it to the selection, or click it again to take it back out.</li>
+                    <li><kbd>Shift</kbd>+drag on the empty canvas draws a box and selects everything it touches.</li>
+                    <li>Dragging any selected node moves the whole selection, and <kbd>Delete</kbd> removes all of it with its wires.</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>C</kbd>, <kbd>Ctrl</kbd>+<kbd>X</kbd> and <kbd>Ctrl</kbd>+<kbd>V</kbd> copy, cut and paste the selection. The same JSON goes to your system clipboard, so a fragment can be pasted into another tab or a file and pasted back in.</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>Function blocks</h3>
+                <p>A function is a graph of your own: build a body once, then place it like any other node. Press <b>New function</b> at the top of the node list to create one and its editor opens. Inside, the <b>Function input</b> node declares what the function takes — rename each row, give it a sample value, and add as many rows as you need. Wire those into your body, and wire the body into the <b>Function output</b> node, which declares what it hands back. <b>Run test</b> tries the body on its sample values.</p>
+                <p>The editor window has its own <b>node list</b> down the left side, with the same operations and search as the sidebar, so you build the body there. The <b>Nodes</b> button in the header tucks the list away when you want the whole width for the canvas.</p>
+                <p>Press <b>Done</b> and the function appears in the node list: click or drag it onto the canvas to place an instance, which has one input port per declared input and one output port per declared output. Editing the definition updates every instance — double-click an instance (or its pencil in the list) to reopen the editor. A function cannot call itself, and definitions are saved inside the graph file, so a shared file keeps its functions.</p>
+                <p>Each declared input carries a <b>test sample</b>, which is what the body runs on when you press <b>Run test</b>. A sample can be <b>Text</b> you type, a <b>File</b> you attach, or a value <b>piped in</b> from a node in the body — wire something into the port on the sample row and it takes over. That is how a fixture is derived: build the value with nodes, pipe it in, and every instance can fall back to it. A function that works on an image, an archive or any other bytes can be tested on the real thing from inside the editor.</p>
+                <p>Tick <b>Can be typed in</b> on a declared input and every instance of the function grows a box for it, so a constant can be typed straight onto the node instead of needing something wired into the port. The box shows the input's test sample as its <b>default</b>, so you can see the value an untouched instance will run on; typing in the box overrides it, emptying the box puts the default back, and a wire into the port overrides both.</p>
             </div>
             <div class="help-section">
                 <h3>Delete a wire</h3>
@@ -67065,6 +67322,12 @@ const decLatin1 = new TextDecoder("latin1");
 const STORAGE_KEY = "cipherflow.graph.v1";
 const THEME_KEY = "cipherflow.theme.v1";
 const ENGINE_LABEL = "CyberChef 11.5.0";
+// The text and file nodes carry a plug on each side, so their names say so. One constant per
+// node keeps the palette, the defaults, the drag ghost and the title tooltips in step.
+const TEXT_NODE_TITLE = "Text Input / Output";
+const FILE_NODE_TITLE = "File Input / Output";
+// The names these nodes shipped with, renamed on load so an existing graph reads correctly.
+const LEGACY_TITLES = {input: "Text input", file: "File input"};
 
 const CAT_COLORS = {
     "Data format": "#159b89",
@@ -67112,6 +67375,8 @@ const ICONS = {
     alert: '<path d="M8 2.2 14 13H2zM8 6v3.5M8 11.3v.2"/>',
     clock: '<circle cx="8" cy="8" r="5.2"/><path d="M8 5v3.4l2.1 1.2"/>',
     external: '<path d="M9 2h5v5M14 2 7 9M12 9v5H2V4h5"/>',
+    edit: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11.2 2.4l2.4 2.4L6 12.4l-3 .6.6-3z"/><path d="M3 14h10"/></svg>',
+    fn: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10.6 2.7c-1.9 0-2.6 1.2-2.6 2.9v4.2c0 1.7-.6 2.6-2.1 2.9"/><path d="M4.6 8h4.7"/></svg>',
     help: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M6.1 6.2a1.95 1.95 0 1 1 2.7 1.85c-.65.28-.85.65-.85 1.3"/><path d="M8 11.6v.15"/></svg>'
 };
 
@@ -67277,7 +67542,15 @@ function toast(message, kind = "") {
     const el = document.createElement("div");
     el.className = "toast" + (kind ? " " + kind : "");
     el.textContent = message;
-    $("#toasts").appendChild(el);
+    const host = $("#toasts");
+    // Popups belong over the canvas being worked on, not the middle of the window: the
+    // node list takes a column of its own, so the window's centre sits off to one side
+    // of the graph. `stage` is whatever canvas is active — the graph, or a function's.
+    try {
+        const r = stage.getBoundingClientRect();
+        if (r.width) host.style.left = Math.round(r.left + r.width / 2) + "px";
+    } catch { /* before the canvas exists */ }
+    host.appendChild(el);
     setTimeout(() => {
         el.style.opacity = "0";
         el.style.transform = "translateY(4px)";
@@ -67305,10 +67578,88 @@ const CATEGORIES = META.categories
     .filter(c => c.name !== "Flow control")
     .map(c => ({...c, color: CAT_COLORS[c.name] || CAT_COLORS.Other, ops: c.ops.filter(op => !FLOW_OPS.has(op))}));
 const GRAPH_COLOR = CAT_COLORS.Graph;
+// Function blocks get their own accent so an instance reads differently from an operation.
+const FUNCTION_COLOR = "#0f8f8f";
 
+// Every argument a node has can take a wire. The control stays where it is for typing, but
+// a value arriving on the port wins while the wire is connected — a number is parsed, a
+// switch is read as on/off, and a dropdown is matched against its own options. Only a
+// label row has no value to feed.
 function argTypeWirable(type) {
-    return type === "toggleString" || type === "string" || type === "binaryString" ||
-        type === "binaryShortString" || type === "text" || type === "shortString";
+    return type !== "label";
+}
+
+// Does this argument's control have somewhere to show what is arriving on the wire? A
+// number field takes no placeholder, and a dropdown or a switch shows no text at all, so
+// those rows get a line of their own instead.
+function argPreviewField(control) {
+    return [...control.querySelectorAll("input, textarea")].find(f => f.type !== "number") || null;
+}
+
+/* ================================================================ function blocks
+ * A function is a named subgraph with its own canvas: a Function Input node declares the
+ * ports an instance offers on the left, a Function Output node declares the ports it offers
+ * on the right, and whatever is wired between them runs when an instance runs. Definitions
+ * live in the graph file, so a shared graph carries its functions with it.
+ */
+function functionById(id, functions = state?.functions) {
+    return (functions || []).find(f => f.id === id) || null;
+}
+function functionPorts(def) {
+    const source = def?.nodes?.find(n => n.type === "fnin");
+    const sink = def?.nodes?.find(n => n.type === "fnout");
+    return {
+        // `preset` is the definition's test sample as a short label: what the input runs on
+        // when an instance leaves its box alone, shown in that box as the default. A sample
+        // fed by a wire has no fixed value to show, so it is flagged instead of guessed at.
+        inputs: (source?.ports || []).map((p, i) => {
+            const piped = (def?.edges || []).some(e => e.to === source.id && e.toPort === "sample:" + i);
+            return {
+                key: "fn:" + i,
+                name: p.name || `Input ${i + 1}`,
+                typed: Boolean(p.typed),
+                piped,
+                preset: piped ? "" : fnPortDefaultLabel(p)
+            };
+        }),
+        outputs: (sink?.ports || []).map((p, i) => ({key: "out:" + i, name: p.name || `Output ${i + 1}`}))
+    };
+}
+function instancePorts(node, lookup) {
+    const def = (lookup || (id => functionById(id)))(node?.fnId);
+    return def ? functionPorts(def) : {inputs: [], outputs: []};
+}
+// The ports a node takes wires on.
+function nodeInPorts(node, lookup) {
+    switch (node.type) {
+        case "op":
+            return ["main", ...(OPS[node.op]?.args || []).map((a, i) => argTypeWirable(a.type) ? "arg:" + i : null).filter(Boolean)];
+        case "join":
+            return Array.from({length: node.joinCount || 0}, (_, i) => "join:" + i);
+        case "fn":
+            return instancePorts(node, lookup).inputs.map(p => p.key);
+        case "fnout":
+            return (node.ports || []).map((_, i) => "in:" + i);
+        case "fnin":
+            // One port per declared input, for feeding that input's test sample from a node
+            // in the body instead of typing or attaching it.
+            return (node.ports || []).map((_, i) => "sample:" + i);
+        default:
+            return ["main"];
+    }
+}
+// The ports a node hands data out of.
+function nodeOutPorts(node, lookup) {
+    switch (node.type) {
+        case "fnin":
+            return (node.ports || []).map((_, i) => "out:" + i);
+        case "fn":
+            return instancePorts(node, lookup).outputs.map(p => p.key);
+        case "fnout":
+            return [];
+        default:
+            return ["out"];
+    }
 }
 function cloneValue(v) {
     if (v === undefined) return v;
@@ -67656,7 +68007,10 @@ function bakeHasData(response) {
 
 /* ================================================================ state */
 let state = null;
-let selected = null;
+// Selection holds any number of node ids plus at most one selected wire, so shift-click
+// and marquee selection can gather several nodes before a copy, a drag or a delete.
+let selection = new Set();
+let selectedEdge = null;
 let nodeSeq = 1;
 let edgeSeq = 1;
 let runTimer = 0;
@@ -67701,6 +68055,19 @@ function makeNode(type, opts = {}) {
     } else if (type === "join") {
         node.joinCount = opts.joinCount || 2;
         node.separator = opts.separator ?? "";
+    } else if (type === "fnin") {
+        // A function's declared inputs. Each port carries the name shown on every instance
+        // and a sample value, so the definition can be run on its own inside the editor.
+        node.ports = opts.ports ? cloneValue(opts.ports) : [{name: "Input 1", sample: "", encoding: "utf8", sampleMode: "text", typed: false}];
+    } else if (type === "fnout") {
+        node.ports = opts.ports ? cloneValue(opts.ports) : [{name: "Output 1"}];
+    } else if (type === "fn") {
+        // An instance: one input port per declared input, one output port per declared output.
+        node.fnId = opts.fnId || "";
+        node.portPick = Number(opts.portPick) || 0;
+        // Values typed straight onto the instance, keyed by port ("fn:0"); used for any
+        // declared input the definition marked as typeable and nothing is wired into.
+        node.typedInputs = opts.typedInputs ? cloneValue(opts.typedInputs) : {};
     }
     node._output = null;
     node._error = "";
@@ -67719,14 +68086,15 @@ function optsEdgeId() { return "e" + (edgeSeq++); }
 function blankState() {
     nodeSeq = 1;
     edgeSeq = 1;
-    const input = makeNode("input", {id: 1, x: 150, y: 190, text: "Hello, World!", title: "Text input"});
+    const input = makeNode("input", {id: 1, x: 150, y: 190, text: "Hello, World!", title: TEXT_NODE_TITLE});
     // A text node on the other end shows what flows in, so the pair reads the same as
     // the old input → Output layout.
     const sink = makeNode("input", {id: 2, x: 610, y: 210, title: "Result", text: ""});
     return {
         version: 1,
         nodes: [input, sink],
-        edges: [{id: optsEdgeId(), from: 1, to: 2, toPort: "main"}],
+        edges: [{id: optsEdgeId(), from: 1, to: 2, toPort: "main", fromPort: "out"}],
+        functions: [],
         view: {x: 90, y: 110, zoom: 0.9},
         autoRun: true
     };
@@ -67777,19 +68145,26 @@ function exampleState() {
         version: 1,
         nodes: [plain, key, iv, encrypt, decrypt, output],
         edges,
+        functions: [],
         view: {x: 40, y: 50, zoom: 0.58},
         autoRun: true
     };
 }
 
 // Update ID counters when importing arbitrary files.
+// Function definitions share the node and edge id spaces with the graph that carries them,
+// so pasting a definition in can never collide with a node already on the canvas.
 function renumberState(s) {
     let maxNode = 0, maxEdge = 0;
-    for (const n of s.nodes) maxNode = Math.max(maxNode, Number(n.id) || 0);
-    for (const e of s.edges) {
-        const numeric = Number(String(e.id).replace(/^e/, ""));
-        if (Number.isFinite(numeric)) maxEdge = Math.max(maxEdge, numeric);
-    }
+    const scan = (nodes, edges) => {
+        for (const n of nodes || []) maxNode = Math.max(maxNode, Number(n.id) || 0);
+        for (const e of edges || []) {
+            const numeric = Number(String(e.id).replace(/^e/, ""));
+            if (Number.isFinite(numeric)) maxEdge = Math.max(maxEdge, numeric);
+        }
+    };
+    scan(s.nodes, s.edges);
+    for (const def of s.functions || []) scan(def.nodes, def.edges);
     nodeSeq = maxNode + 1;
     edgeSeq = maxEdge + 1;
 }
@@ -67812,6 +68187,10 @@ function cleanNodeForSave(n) {
         mime: n.mime,
         joinCount: n.joinCount,
         separator: n.separator,
+        ports: n.ports ? cloneValue(n.ports) : undefined,
+        fnId: n.fnId,
+        portPick: n.portPick,
+        typedInputs: n.typedInputs ? cloneValue(n.typedInputs) : undefined,
         fileIndex: n.fileIndex || 0,
         previewMode: n.previewMode || "text",
         collapsed: Boolean(n.collapsed),
@@ -67821,36 +68200,74 @@ function cleanNodeForSave(n) {
     };
 }
 
-function serializeGraph() {
+// What a saved graph looks like. The graph is passed in rather than read from `state`
+// because a function's editor temporarily points the canvas at a definition.
+function serializeGraph(graph = state) {
     return {
         app: "CipherFlow",
         version: 1,
         engine: META.version,
         exportedAt: new Date().toISOString(),
-        nodes: state.nodes.map(cleanNodeForSave),
-        edges: state.edges.map(e => ({id: e.id, from: e.from, to: e.to, toPort: e.toPort})),
-        view: {...state.view},
-        autoRun: state.autoRun
+        nodes: graph.nodes.map(cleanNodeForSave),
+        edges: graph.edges.map(e => ({id: e.id, from: e.from, to: e.to, toPort: e.toPort, fromPort: e.fromPort || "out"})),
+        // Function definitions travel with the graph, so a shared file keeps working.
+        functions: (graph.functions || []).map(cleanFunctionForSave),
+        view: {...graph.view},
+        autoRun: graph.autoRun
     };
 }
 
-function normalizeLoaded(data) {
-    if (!data || data.app !== "CipherFlow" && !Array.isArray(data.nodes)) throw new Error("This is not a CipherFlow graph file.");
-    if (!Array.isArray(data.nodes) || !Array.isArray(data.edges)) throw new Error("The graph file is missing nodes or edges.");
-    const nodes = [];
-    for (const raw of data.nodes) {
-        if (!raw) continue;
-        // Output nodes no longer exist. Older graphs migrate their sink to a text node,
-        // which keeps the wire and shows the same value.
-        const wasOutput = raw.type === "output";
-        const type = wasOutput ? "input" : raw.type;
-        if (!["input", "file", "join", "op"].includes(type)) continue;
-        if (type === "op" && (!raw.op || !OPS[raw.op])) continue;
-        const n = makeNode(type, {
-            id: Number(raw.id),
+// The graph to save right now: the canvas graph, or — while a function's editor is open —
+// the graph that carries it. A definition is edited in place, so its latest state is
+// already inside the graph's own functions list.
+function graphToSave() {
+    return editingFunctionId && mainGraph ? mainGraph : state;
+}
+
+function cleanFunctionForSave(def) {
+    return {
+        id: def.id,
+        name: def.name || "Function",
+        view: def.view ? {...def.view} : null,
+        nodes: (def.nodes || []).map(cleanNodeForSave),
+        edges: (def.edges || []).map(e => ({id: e.id, from: e.from, to: e.to, toPort: e.toPort, fromPort: e.fromPort || "out"}))
+    };
+}
+
+// An instance's typed values, keyed by port ("fn:0"), read back from a file or a paste.
+// Anything that is not a string is dropped, so a hand-edited file cannot inject objects.
+function readTypedInputs(raw) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+    const out = {};
+    for (const [key, value] of Object.entries(raw)) {
+        if (/^fn:\d+$/.test(key) && typeof value === "string") out[key] = value;
+    }
+    return Object.keys(out).length ? out : undefined;
+}
+
+// Rebuild one saved node. Shared by Open and by paste, so a pasted fragment is validated
+// by exactly the same rules as a file on disk.
+function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
+    if (!raw) return null;
+    // Output nodes no longer exist. Older graphs migrate their sink to a text node,
+    // which keeps the wire and shows the same value.
+    const wasOutput = raw.type === "output";
+    const type = wasOutput ? "input" : raw.type;
+    if (!["input", "file", "join", "op", "fn", "fnin", "fnout"].includes(type)) return null;
+    if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
+    if (type === "fn" && !raw.fnId) return null;
+    // The text and file nodes were renamed once they grew a port on each side. A saved title
+    // is only rewritten when it is still the old default, so a name the user typed survives.
+    const title = LEGACY_TITLES[type] && raw.title === LEGACY_TITLES[type]
+        ? (type === "input" ? TEXT_NODE_TITLE : FILE_NODE_TITLE)
+        : (raw.title || "");
+    const n = makeNode(type, {
+            // Pasting hands out fresh ids so a copy never collides with what it came from;
+            // a cloned function body gets ids from its own small private range.
+            id: localId ? localId : (freshIds ? undefined : Number(raw.id)),
             x: Number(raw.x) || 40,
             y: Number(raw.y) || 40,
-            title: raw.title || "",
+            title,
             op: raw.op,
             text: wasOutput ? "" : raw.text,
             encoding: raw.encoding,
@@ -67862,17 +68279,57 @@ function normalizeLoaded(data) {
             mime: raw.mime,
             joinCount: clamp(Number(raw.joinCount) || 2, 1, 8),
             separator: raw.separator || "",
+            ports: Array.isArray(raw.ports) && raw.ports.length ? raw.ports.map(p => ({...p})) : undefined,
+            fnId: raw.fnId ? String(raw.fnId) : "",
+            portPick: Number(raw.portPick) || 0,
+            typedInputs: readTypedInputs(raw.typedInputs),
             fileIndex: clamp(Number(raw.fileIndex) || 0, 0, 32),
             previewMode: ["hex", "raw", "image", "text"].includes(raw.previewMode) ? raw.previewMode : "text",
             collapsed: Boolean(raw.collapsed),
             w: Number(raw.w) || 0,
             h: Number(raw.h) || 0
-        });
-        if (raw.values && Array.isArray(raw.values) && raw.values.length === (OPS[raw.op]?.args || []).length) {
-            n.values = cloneValue(raw.values);
-        }
-        nodes.push(n);
+    });
+    if (raw.values && Array.isArray(raw.values) && raw.values.length === (OPS[raw.op]?.args || []).length) {
+        n.values = cloneValue(raw.values);
     }
+    return n;
+}
+
+function normalizeLoaded(data) {
+    if (!data || data.app !== "CipherFlow" && !Array.isArray(data.nodes)) throw new Error("This is not a CipherFlow graph file.");
+    if (!Array.isArray(data.nodes) || !Array.isArray(data.edges)) throw new Error("The graph file is missing nodes or edges.");
+    const nodes = [];
+    for (const raw of data.nodes) {
+        const n = nodeFromRaw(raw);
+        if (n) nodes.push(n);
+    }
+    // Function definitions are read first: an instance's ports depend on the definition it
+    // names, so the wire check below has to know them already.
+    const functions = [];
+    for (const raw of data.functions || []) {
+        if (!raw || !Array.isArray(raw.nodes)) continue;
+        const defNodes = [];
+        for (const n of raw.nodes) {
+            const made = nodeFromRaw(n);
+            if (made) defNodes.push(made);
+        }
+        if (!defNodes.length) continue;
+        const defIds = new Set(defNodes.map(n => n.id));
+        const defEdges = [];
+        for (const e of raw.edges || []) {
+            if (!e || !defIds.has(Number(e.from)) || !defIds.has(Number(e.to))) continue;
+            defEdges.push({id: String(e.id || ("e" + edgeSeq++)), from: Number(e.from), to: Number(e.to),
+                toPort: String(e.toPort), fromPort: String(e.fromPort || "out")});
+        }
+        functions.push({
+            id: String(raw.id || ("f" + (functions.length + 1))),
+            name: String(raw.name || "Function"),
+            view: raw.view ? {x: Number(raw.view.x) || 0, y: Number(raw.view.y) || 0, zoom: clamp(Number(raw.view.zoom) || 0.8, 0.2, 2.2)} : null,
+            nodes: defNodes,
+            edges: defEdges
+        });
+    }
+    const lookup = id => functions.find(f => f.id === id) || null;
     const ids = new Set(nodes.map(n => n.id));
     const edges = [];
     const seenInputs = new Set();
@@ -67881,22 +68338,18 @@ function normalizeLoaded(data) {
         if (raw.from === raw.to) continue;
         const target = nodes.find(n => n.id === Number(raw.to));
         if (!target) continue;
-        if (target.type === "op" && !(raw.toPort === "main" || /^arg:\d+$/.test(raw.toPort))) continue;
-        if (target.type === "join" && !/^join:\d+$/.test(raw.toPort)) continue;
-        // Text and file nodes take a single "main" pipe on their left side; anything
-        // else into them is not a valid connection.
-        if ((target.type === "input" || target.type === "file") && raw.toPort !== "main") continue;
-        if (seenInputs.has(`${raw.to}:${raw.toPort}`)) continue;
-        if (raw.toPort.startsWith("arg:")) {
-            const idx = Number(raw.toPort.slice(4));
-            if (!OPS[target.op]?.args?.[idx] || !argTypeWirable(OPS[target.op].args[idx].type)) continue;
-        }
-        seenInputs.add(`${raw.to}:${raw.toPort}`);
-        edges.push({id: String(raw.id || ("e" + edgeSeq++)), from: Number(raw.from), to: Number(raw.to), toPort: String(raw.toPort)});
+        const toPort = String(raw.toPort);
+        // Each node type accepts a fixed set of input ports: an operation's main pipe or a
+        // wirable argument, a join slot, a function input, a function body's output slot.
+        if (!nodeInPorts(target, lookup).includes(toPort)) continue;
+        if (seenInputs.has(`${raw.to}:${toPort}`)) continue;
+        seenInputs.add(`${raw.to}:${toPort}`);
+        edges.push({id: String(raw.id || ("e" + edgeSeq++)), from: Number(raw.from), to: Number(raw.to), toPort, fromPort: String(raw.fromPort || "out")});
     }
     return {
         nodes,
         edges,
+        functions,
         view: data.view ? {x: Number(data.view.x) || 0, y: Number(data.view.y) || 0, zoom: clamp(Number(data.view.zoom) || 0.8, 0.2, 2.2)} : null,
         autoRun: data.autoRun !== false
     };
@@ -67905,13 +68358,13 @@ function normalizeLoaded(data) {
 function saveLocalNow() {
     if (!state) return;
     try {
-        const payload = JSON.stringify(serializeGraph());
+        const payload = JSON.stringify(serializeGraph(graphToSave()));
         localStorage.setItem(STORAGE_KEY, payload);
         lastSavedAt = Date.now();
     } catch (err) {
         // Large file attachments can exceed localStorage. Keep the graph except file bytes.
         try {
-            const payload = serializeGraph();
+            const payload = serializeGraph(graphToSave());
             payload.nodes = payload.nodes.map(n => n.type === "file" ? {...n, fileData: ""} : n);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
             lastSavedAt = Date.now();
@@ -67932,14 +68385,21 @@ function loadLocalGraph() {
 }
 
 function applyGraph(data, {fit = true} = {}) {
+    // A graph arriving from a file or the example replaces everything, so leave any
+    // function editor first rather than editing a definition that is about to vanish.
+    if (editingFunctionId) closeFunctionEditor();
     state = data;
+    state.functions = state.functions || [];
     state.autoRun = data.autoRun !== false;
     renumberState(state);
     for (const n of state.nodes) {
         n._output = null; n._error = ""; n._sig = ""; n._duration = 0; n._reused = false;
     }
-    selected = null;
+    selection.clear();
+    selectedEdge = null;
     renderAllNodes();
+    // A loaded graph brings its own functions, so the node list has to be rebuilt.
+    buildPalette();
     updateAutoSwitch();
     if (fit) requestAnimationFrame(() => fitView());
     saveLocalNow();
@@ -67947,21 +68407,52 @@ function applyGraph(data, {fit = true} = {}) {
 }
 
 /* ================================================================ DOM refs */
-const stage = $("#stage");
-const world = $("#world");
-const nodesLayer = $("#nodesLayer");
-const edgesSvg = $("#edgesSvg");
-const edgesLayer = $("#edgesLayer");
-const edgeHandlesLayer = $("#edgeHandlesLayer");
-const zoomLabel = $("#zoomLabel");
-const runStatus = $("#runStatus");
-const runStatusText = $("#runStatusText");
+// These six are swappable: a function's editor window is the same canvas pointed at a
+// definition, so every node, wire and gesture works there without a second implementation.
+let stage = $("#stage");
+let world = $("#world");
+let nodesLayer = $("#nodesLayer");
+let edgesSvg = $("#edgesSvg");
+let edgesLayer = $("#edgesLayer");
+let edgeHandlesLayer = $("#edgeHandlesLayer");
+let zoomLabel = $("#zoomLabel");
+let runStatus = $("#runStatus");
+let runStatusText = $("#runStatusText");
 let runButton = null;
 let autoSwitch = null;
-const paletteBody = $("#paletteBody");
-const paletteSearch = $("#paletteSearch");
+// The node list normally lives in the sidebar, but a function's editor window covers the
+// whole page, sidebar included. That window therefore carries its own copy of the list and
+// these two bindings are swapped while it is open, so buildPalette() and the search fill
+// whichever list is on screen. Exactly the same trick as the canvas bindings above.
+const sidebarPalette = {body: $("#paletteBody"), search: $("#paletteSearch")};
+let paletteBody = sidebarPalette.body;
+let paletteSearch = sidebarPalette.search;
 const sidebar = $("#sidebar");
 const sidebarBackdrop = $("#sidebarBackdrop");
+
+function setPaletteTarget(body, search) {
+    paletteBody = body;
+    paletteSearch = search;
+}
+function bindPaletteSearch(input, clear) {
+    const handler = debounce(() => {
+        searchTerm = input.value;
+        renderSearch();
+    }, 70);
+    input.addEventListener("input", handler);
+    clear.addEventListener("click", () => {
+        input.value = "";
+        searchTerm = "";
+        renderSearch();
+        input.focus();
+    });
+}
+// Each list starts clean, so a search typed into one does not follow you into the other.
+function resetPaletteSearch() {
+    searchTerm = "";
+    if (paletteSearch) paletteSearch.value = "";
+    renderSearch();
+}
 
 /* ================================================================ viewport */
 function applyView() {
@@ -68062,19 +68553,26 @@ function nodeById(id) {
 function sourceTitle(node) {
     if (!node) return "Unknown";
     if (node.type === "op") return node.op;
-    if (node.type === "input") return node.title || "Text input";
-    if (node.type === "file") return node.title || node.fileName || "File input";
+    if (node.type === "input") return node.title || TEXT_NODE_TITLE;
+    if (node.type === "file") return node.title || node.fileName || FILE_NODE_TITLE;
     if (node.type === "join") return node.title || "Join";
+    if (node.type === "fn") return node.title || functionById(node.fnId)?.name || "Function";
+    if (node.type === "fnin") return "Function input";
+    if (node.type === "fnout") return "Function output";
     return node.title || node.type;
 }
 function nodeAccent(node) {
     if (node.type === "op") return opAccent(node.op);
+    if (node.type === "fn" || node.type === "fnin" || node.type === "fnout") return FUNCTION_COLOR;
     return GRAPH_COLOR;
 }
 function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
     if (node.type === "join") return "Join";
+    if (node.type === "fn") return "Function";
+    if (node.type === "fnin") return "Fn input";
+    if (node.type === "fnout") return "Fn output";
     return categoryOf(node.op);
 }
 function nodeTypeClass(node) {
@@ -68103,15 +68601,21 @@ function renderAllNodes() {
         const el = buildNode(node);
         nodesLayer.appendChild(el);
     }
-    if (selected?.type === "node" && !nodeById(selected.id)) selected = null;
-    if (selected?.type === "edge" && !state.edges.some(e => e.id === selected.id)) selected = null;
+    for (const id of [...selection]) if (!nodeById(id)) selection.delete(id);
+    if (selectedEdge && !state.edges.some(e => e.id === selectedEdge)) selectedEdge = null;
     syncSelectionClasses();
+    updateSelectionBar();
+    // The editor's header counts what the definition holds, so it follows every change.
+    if (editingFunctionId && fnEditor.meta) {
+        fnEditor.meta.textContent = `${state.nodes.length} node${state.nodes.length === 1 ? "" : "s"}`;
+    }
     scheduleEdges();
 }
 
 function buildNode(node) {
     const el = document.createElement("div");
-    el.className = `node ${nodeTypeClass(node)}${selected?.type === "node" && selected.id === node.id ? " selected" : ""}${node._error ? " has-error" : ""}`;
+    const isFunctionNode = node.type === "fn" || node.type === "fnin" || node.type === "fnout";
+    el.className = `node ${nodeTypeClass(node)}${isFunctionNode ? " fn-node" : ""}${selection.has(node.id) ? " selected" : ""}${node._error ? " has-error" : ""}`;
     el.dataset.id = String(node.id);
     el.style.left = node.x + "px";
     el.style.top = node.y + "px";
@@ -68154,8 +68658,20 @@ function buildNode(node) {
         body.appendChild(buildFileNode(node));
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
+    } else if (node.type === "fn") {
+        body.appendChild(buildFunctionNode(node));
+    } else if (node.type === "fnin") {
+        body.appendChild(buildFnInputNode(node));
+    } else if (node.type === "fnout") {
+        body.appendChild(buildFnOutputNode(node));
     }
-    el.appendChild(makeOutputPort());
+    // Most nodes have a single output on the right edge. A function's input declaration and
+    // an instance of a multi-output function put each port in the row it belongs to instead.
+    for (const portName of nodeOutPorts(node)) {
+        const portEl = makeOutputPort(portName);
+        const slot = $(".out-slot[data-port-slot=\"" + cssEscape(portName) + "\"]", el);
+        (slot || el).appendChild(portEl);
+    }
     if (!node.collapsed) {
         const grip = document.createElement("div");
         grip.className = "node-resize";
@@ -68167,31 +68683,37 @@ function buildNode(node) {
     el.addEventListener("pointerdown", ev => {
         if (ev.target.closest("button") || ev.target.closest("input") || ev.target.closest("select") ||
             ev.target.closest("textarea") || ev.target.closest(".port") || ev.target.isContentEditable) return;
-        selectNode(node.id);
+        // Shift adds to the selection; a plain press on one of several selected nodes keeps
+        // the group together so the drag can move all of them.
+        if (ev.shiftKey) selectNode(node.id, true);
+        else if (!selection.has(node.id)) selectNode(node.id);
     });
     const head = $(".node-head", el);
     head.addEventListener("pointerdown", ev => {
         if (ev.button !== 0 || ev.target.closest("button") || ev.target.isContentEditable) return;
         ev.preventDefault();
         ev.stopPropagation();
-        selectNode(node.id);
+        if (ev.shiftKey) selectNode(node.id, true);
+        else if (!selection.has(node.id)) selectNode(node.id);
         startNodeDrag(node, ev);
     });
     const titleEl = $("[data-node-title]", el);
     titleEl.addEventListener("dblclick", ev => {
         ev.preventDefault();
         ev.stopPropagation();
-        beginTitleEdit(node, titleEl);
+        // Double-clicking a function opens it; anything else renames in place.
+        if (node.type === "fn" && functionById(node.fnId)) openFunctionEditor(functionById(node.fnId));
+        else beginTitleEdit(node, titleEl);
     });
     const close = $(".node-close", el);
     close.innerHTML = `${iconFill("x")}`;
     return el;
 }
 
-function makeOutputPort() {
+function makeOutputPort(name = "out") {
     const span = document.createElement("span");
     span.className = "port out";
-    span.dataset.port = "out";
+    span.dataset.port = name;
     span.title = "Drag to an input";
     span.addEventListener("pointerdown", startConnectionFromOutput);
     return span;
@@ -68212,6 +68734,16 @@ function collapsedPorts(node) {
         });
     } else if (node.type === "join") {
         for (let i = 0; i < node.joinCount; i++) ports.push({name: "join:" + i, label: "In " + (i + 1)});
+    } else if (node.type === "fn") {
+        for (const p of instancePorts(node).inputs) ports.push({name: p.key, label: p.name});
+    } else if (node.type === "fnout") {
+        (node.ports || []).forEach((p, i) => ports.push({name: "in:" + i, label: p.name || `Out ${i + 1}`}));
+    } else if (node.type === "fnin") {
+        // A declared input only hands data outwards; the only wires it takes are the ones
+        // feeding its test samples, and only those need an anchor while it is collapsed.
+        (node.ports || []).forEach((p, i) => {
+            if (edgeInto(node.id, "sample:" + i)) ports.push({name: "sample:" + i, label: `${p.name || `Input ${i + 1}`} sample`});
+        });
     } else {
         ports.push({name: "main", label: "In"});
     }
@@ -68219,6 +68751,22 @@ function collapsedPorts(node) {
         <span class="port in${edgeInto(node.id, p.name) ? " connected" : ""}" data-port="${esc(p.name)}"></span>
         <span class="io-label" title="${esc(p.label)}">${esc(p.label)}</span>
     </div>`).join("");
+    // A collapsed node with several outputs still needs an anchor for each wire, or those
+    // wires would have nowhere to land and would disappear while it is shut. Each row is
+    // named the way the declaration names it — a function's declared output, a definition's
+    // declared input — rather than by its bare port key, which would read as "out:0".
+    const outs = nodeOutPorts(node);
+    if (outs.length > 1) {
+        const named = node.type === "fn"
+            ? instancePorts(node).outputs
+            : node.type === "fnin"
+                ? (node.ports || []).map((p, i) => ({key: "out:" + i, name: p.name || `Input ${i + 1}`}))
+                : outs.map(key => ({key, name: key}));
+        wrap.innerHTML += named.map(o => `<div class="io-row io-out-row" title="${esc(o.name)}">
+            <span class="io-label" style="margin-left:auto">${esc(o.name)}</span>
+            <span class="out-slot" data-port-slot="${esc(o.key)}"></span>
+        </div>`).join("");
+    }
     $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
     return wrap;
 }
@@ -68226,21 +68774,48 @@ function collapsedPorts(node) {
 // An operation's main input gets a box of its own, exactly like its arguments do: you can
 // type a value straight into the node and the run uses it, or wire something into the port
 // and the wire takes over (the box dims, as a wired argument's field does).
-// What the wire is actually delivering, as a one-line taste for the input box's placeholder:
-// enough to recognise the value, cut off when it runs long. Never used for the node's own
-// data — the box keeps the text you typed, this is only what the placeholder shows.
-const OP_INPUT_HINT_CHARS = 32;
-function opInputHint(node) {
-    const edge = edgeInto(node.id, "main");
+// What a wire is actually delivering, as a one-line taste: enough to recognise the value,
+// cut off when it runs long. Never used for the node's own data — a box keeps the text you
+// typed and this is only what its placeholder reads. Every wired port gets this treatment,
+// the operation's own input and each piped argument alike.
+const WIRE_HINT_CHARS = 32;
+function wireHintFor(node, port) {
+    const edge = edgeInto(node.id, port);
     if (!edge) return "";
     const src = nodeById(edge.from);
-    const bytes = src?._output;
+    const bytes = src ? nodeOutputBytes(src) : null;
     if (!bytes) return "Nothing on the wire yet — press Run";
     if (!bytes.length) return "Empty output on the wire";
     if (looksBinary(bytes)) return `Binary data · ${formatBytes(bytes.length)}`;
     const text = dec.decode(bytes).replace(/\s+/g, " ").trim();
     if (!text) return `Blank text · ${formatBytes(bytes.length)}`;
-    return text.length > OP_INPUT_HINT_CHARS ? text.slice(0, OP_INPUT_HINT_CHARS) + "…" : text;
+    return text.length > WIRE_HINT_CHARS ? text.slice(0, WIRE_HINT_CHARS) + "…" : text;
+}
+
+// Give a wired control the same look as the operation's own input box: dimmed, with the
+// incoming value where its placeholder would be. The typed value stays underneath.
+// One dimmed line explaining what a port is being fed, for the rows whose control cannot
+// hold a placeholder.
+function wireHintLine(node, port) {
+    const div = document.createElement("div");
+    div.className = "wire-hint";
+    div.dataset.hintPort = port;
+    div.title = "What this input is carrying";
+    div.textContent = wireHintFor(node, port);
+    return div;
+}
+
+function applyWireHint(control, node, port) {
+    if (!control) return;
+    const hint = wireHintFor(node, port);
+    const fields = control.matches?.("input, textarea") ? [control] : [...control.querySelectorAll("input, textarea")];
+    for (const field of fields) {
+        if (field.type === "number") continue;
+        field.placeholder = hint || "Fed by the wire";
+        field.title = "Coming in on the wire feeding this port — the wire wins while it is connected";
+    }
+    const line = control.parentElement?.querySelector?.(".wire-hint");
+    if (line) line.textContent = hint;
 }
 
 function opInputControl(node) {
@@ -68254,7 +68829,7 @@ function opInputControl(node) {
     input.spellcheck = false;
     input.setAttribute("data-op-input", "");
     input.value = node.inputText || "";
-    input.placeholder = (wired ? opInputHint(node) : "") || (wired ? "Fed by the wire" : "Type input text");
+    input.placeholder = (wired ? wireHintFor(node, "main") : "") || (wired ? "Fed by the wire" : "Type input text");
     input.title = wired ? "Coming in on the wire feeding this port — the wire wins while it is connected" : "Text this node runs on when nothing is wired in";
     input.addEventListener("input", () => {
         node.inputText = input.value;
@@ -68391,6 +68966,28 @@ function buildFileNode(node) {
     return wrap;
 }
 
+// Attach a file to one declared input as its test sample.
+async function readFileToSample(node, port, file) {
+    if (file.size > 24 * 1024 * 1024) {
+        toast("That file is larger than 24 MB. The page keeps samples in memory.", "error");
+        return;
+    }
+    try {
+        const buffer = await file.arrayBuffer();
+        port.sampleMode = "file";
+        port.sampleFileName = file.name;
+        port.sampleFileSize = file.size;
+        port.sampleFileMime = file.type || "application/octet-stream";
+        port.sampleFileData = bytesToB64(new Uint8Array(buffer));
+        node._sig = "";
+        renderAllNodes();
+        onGraphEdited(true);
+        toast(`Test sample: ${file.name}`);
+    } catch (err) {
+        toast("Could not read that file: " + err.message, "error");
+    }
+}
+
 async function readFileToNode(node, file) {
     if (file.size > 24 * 1024 * 1024) {
         toast("That file is larger than 24 MB. The page keeps input in memory.", "error");
@@ -68422,7 +69019,7 @@ function buildJoinNode(node) {
             <span class="io-label">Input ${i + 1}</span>
             <span class="port-label">${edge ? chipHtml(src, edge) : ""}</span>
             ${node.joinCount > 1 && i === node.joinCount - 1 ? `<button class="join-remove" data-action="remove-join" data-node="${node.id}" title="Remove the last input">${iconFill("x")}</button>` : ""}
-        </div>`;
+        </div>${edge ? `<div class="wire-hint" data-hint-port="${port}" title="What this input is carrying">${esc(wireHintFor(node, port))}</div>` : ""}`;
     }
     wrap.innerHTML = `${rows}
         <button class="join-add" data-action="add-join" data-node="${node.id}">${iconFill("plus")}<span>Add input</span></button>
@@ -68436,6 +69033,277 @@ function buildJoinNode(node) {
     $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
     const sep = $("[data-join-separator]", wrap);
     sep.addEventListener("input", () => { node.separator = sep.value; node._sig = ""; onGraphEdited(); });
+    return wrap;
+}
+
+/* ------------------------------------------------------- function nodes */
+// A one-line explanation inside the nodes that only exist while editing a function.
+function fnNote(text) {
+    const div = document.createElement("div");
+    div.className = "fn-note";
+    div.textContent = text;
+    return div;
+}
+
+// An instance: the definition's inputs on the left, its outputs on the right.
+function buildFunctionNode(node) {
+    const wrap = document.createElement("div");
+    const def = functionById(node.fnId);
+    if (!def) {
+        const warn = document.createElement("div");
+        warn.className = "fn-missing";
+        warn.textContent = "This graph has no function by that name. Open the graph that defines it, or delete this node.";
+        wrap.appendChild(warn);
+        return wrap;
+    }
+    const ports = functionPorts(def);
+    wrap.appendChild(fnNote(`${esc(def.name)} · ${ports.inputs.length} in · ${ports.outputs.length} out`));
+    for (const port of ports.inputs) {
+        const edge = edgeInto(node.id, port.key);
+        const src = edge ? edgeSource(edge) : null;
+        const row = document.createElement("div");
+        row.className = "io-row fn-row";
+        row.innerHTML = `
+            <span class="port in${edge ? " connected" : ""}" data-port="${esc(port.key)}"></span>
+            <span class="io-label" title="${esc(port.name)}">${esc(port.name)}</span>
+            <span class="port-label">${edge ? chipHtml(src, edge) : ""}</span>
+        `;
+        bindInputPort($(".port.in", row), node.id, port.key);
+        wrap.appendChild(row);
+        // A declared input can offer a box on every instance, so a value can be typed here
+        // instead of needing a node wired into the port. A wire still wins over the box.
+        if (port.typed) wrap.appendChild(typedInputRow(node, port, edge));
+    }
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    // With more than one output, each gets a row: the number picks which value the preview
+    // shows, and the row anchors that output's port.
+    if (ports.outputs.length > 1) {
+        const outs = document.createElement("div");
+        outs.className = "fn-outs";
+        ports.outputs.forEach((port, i) => {
+            const edge = null;
+            const row = document.createElement("div");
+            row.className = "io-row fn-out-row" + ((node.portPick || 0) === i ? " on" : "");
+            row.innerHTML = `
+                <button class="fn-out-pick" data-action="fn-pick" data-node="${node.id}" data-pick="${i}" title="Show this output in the preview">${i + 1}</button>
+                <span class="io-label" title="${esc(port.name)}">${esc(port.name)}</span>
+                <span class="out-slot" data-port-slot="${esc(port.key)}"></span>
+            `;
+            outs.appendChild(row);
+        });
+        wrap.appendChild(outs);
+    }
+    return wrap;
+}
+
+// What an input runs on when the instance box is left alone: the definition's test sample.
+// Shown in the box as its default, so the value actually in use is visible without having
+// to open the function — while the box itself stays empty, so an untouched box keeps
+// following the definition even if the sample is changed later.
+function fnPortDefaultLabel(port) {
+    if (!port) return "";
+    if (port.sampleMode === "file" && port.sampleFileData) {
+        return `${port.sampleFileName || "attached file"} · ${formatBytes(port.sampleFileSize || 0)}`;
+    }
+    const text = String(port.sample ?? "").replace(/\s+/g, " ").trim();
+    if (!text) return "";
+    return text.length > WIRE_HINT_CHARS ? text.slice(0, WIRE_HINT_CHARS) + "…" : text;
+}
+
+// The typed-value box an instance shows for one declared input. It behaves exactly like an
+// operation's own input box or a text node's: typed text runs the function, a wire into the
+// port overrides it and dims the box, and left alone it shows the function's default.
+function typedInputRow(node, port, edge) {
+    const holder = document.createElement("div");
+    holder.className = "fn-typed";
+    holder.dataset.typedPort = port.key;
+    const control = document.createElement("div");
+    control.className = "arg-control" + (edge ? " connected" : "");
+    const input = document.createElement("input");
+    input.className = "control";
+    input.spellcheck = false;
+    input.value = node.typedInputs?.[port.key] ?? "";
+    // Kept so a refresh can put the box's own wording back once nothing feeds the port.
+    const preset = port.preset || "";
+    input.dataset.ownPlaceholder = preset
+        ? `${preset} · default`
+        : port.piped
+            ? "Fed by a node inside the function · default"
+            : `Type ${port.name.toLowerCase()} here, or pipe it in`;
+    input.dataset.ownTitle = preset
+        ? `Left alone, this input uses the function's default (${preset}). Type here to override it.`
+        : port.piped
+            ? "Left alone, this input takes the value the function pipes into its own test sample. Type here to override it."
+            : `Used when nothing is wired into ${port.name}`;
+    input.placeholder = edge ? wireHintFor(node, port.key) : input.dataset.ownPlaceholder;
+    input.title = edge ? "Coming in on the wire feeding this port — the wire wins while it is connected" : input.dataset.ownTitle;
+    input.addEventListener("input", () => {
+        node.typedInputs = node.typedInputs || {};
+        node.typedInputs[port.key] = input.value;
+        node._sig = "";
+        onGraphEdited();
+    });
+    control.appendChild(input);
+    holder.appendChild(control);
+    if (edge) applyWireHint(control, node, port.key);
+    return holder;
+}
+
+// The definition's inputs: rename them, give each a sample, and wire them into the body.
+function buildFnInputNode(node) {
+    const wrap = document.createElement("div");
+    wrap.appendChild(fnNote("The function's inputs. Each row becomes an input port on every instance of this function."));
+    (node.ports || []).forEach((port, i) => {
+        const row = document.createElement("div");
+        row.className = "io-row fn-row";
+        // The port slot comes last so its dot lands on the node's right edge like every
+        // other output port; ahead of the remove button it sat on top of it instead.
+        row.innerHTML = `
+            <span class="io-label">In ${i + 1}</span>
+            <input class="control fn-port-name" data-port-name="${i}" value="${esc(port.name || "")}" placeholder="Input ${i + 1}" spellcheck="false">
+            ${(node.ports || []).length > 1 ? `<button class="join-remove" data-action="fn-remove-port" data-node="${node.id}" data-index="${i}" title="Remove this input">${iconFill("x")}</button>` : ""}
+            <span class="out-slot" data-port-slot="out:${i}"></span>
+        `;
+        const nameInput = $("[data-port-name]", row);
+        nameInput.addEventListener("input", () => { port.name = nameInput.value; node._sig = ""; onGraphEdited(); });
+        wrap.appendChild(row);
+        // Tick this and every instance of the function grows a text box for this input, so a
+        // constant can be typed on the canvas without a node feeding it.
+        const typed = document.createElement("label");
+        typed.className = "fn-typed-toggle";
+        typed.title = "Show a box on every instance where this input can be typed in, instead of needing a wire";
+        typed.innerHTML = `<input type="checkbox" data-port-typed="${i}"${port.typed ? " checked" : ""}><span>Can be typed in</span>`;
+        $("[data-port-typed]", typed).addEventListener("change", ev => {
+            ev.stopPropagation();
+            port.typed = Boolean(ev.target.checked);
+            node._sig = "";
+            // The ports are part of the definition's stamp, so re-render rather than patch
+            // just this one control by hand.
+            renderAllNodes();
+            onGraphEdited();
+        });
+        wrap.appendChild(typed);
+        // The sample is what this input is fed with when the function is test-run on its
+        // own; an instance that has something wired into the port overrides it. A sample is
+        // either text typed in here or a whole file, so a function that works on images or
+        // archives can still be tested from the editor.
+        const kind = port.sampleMode === "file" ? "file" : "text";
+        // The sample can be typed, attached, or piped in from a node in the body. A wire on
+        // the port takes over from both controls, which is how a derived fixture is made.
+        const fed = edgeInto(node.id, "sample:" + i);
+        const fedSrc = fed ? edgeSource(fed) : null;
+        const sample = document.createElement("div");
+        sample.className = "fn-sample";
+        sample.innerHTML = `
+            <div class="fn-sample-head io-row">
+                <span class="port in${fed ? " connected" : ""}" data-port="sample:${i}" title="Pipe a value in to use as this input's test sample"></span>
+                <span class="fn-sample-label">Test sample</span>
+                ${fed ? `<span class="port-label">${chipHtml(fedSrc, fed)}</span>` : ""}
+                <span class="seg fn-sample-kind">
+                    <button data-sample-mode="text" class="${kind === "text" ? "on" : ""}">Text</button>
+                    <button data-sample-mode="file" class="${kind === "file" ? "on" : ""}">File</button>
+                </span>
+            </div>
+            <div class="fn-sample-body" data-sample-body>
+                <div class="toggle-pair" data-sample-text hidden>
+                    <input class="control" data-sample value="${esc(port.sample || "")}" placeholder="Sample value for a test run" spellcheck="false">
+                    <select class="control" data-sample-encoding>
+                        <option value="utf8">UTF-8</option><option value="hex">Hex</option>
+                        <option value="base64">Base64</option><option value="latin1">Latin-1</option>
+                    </select>
+                </div>
+                <div data-sample-file hidden>
+                    <button class="fn-file-drop" data-sample-drop>${port.sampleFileData
+                        ? `<b>${esc(port.sampleFileName || "File attached")}</b><span>${formatBytes(port.sampleFileSize || 0)} · click to replace</span>`
+                        : `<b>Choose a file</b><span>bytes stay in this page</span>`}</button>
+                    <input type="file" hidden data-sample-input>
+                </div>
+            </div>
+            ${fed ? `<div class="wire-hint" data-hint-port="sample:${i}" title="What the sample is being fed">${esc(wireHintFor(node, "sample:" + i))}</div>` : ""}
+        `;
+        $("[data-sample-text]", sample).hidden = kind !== "text";
+        $("[data-sample-file]", sample).hidden = kind !== "file";
+        $("[data-sample-body]", sample).classList.toggle("connected", Boolean(fed));
+        bindInputPort($(".port.in", sample), node.id, "sample:" + i);
+        const sampleInput = $("[data-sample]", sample);
+        sampleInput.addEventListener("input", () => { port.sample = sampleInput.value; node._sig = ""; onGraphEdited(); });
+        const encoding = $("[data-sample-encoding]", sample);
+        encoding.value = port.encoding || "utf8";
+        encoding.addEventListener("change", () => { port.encoding = encoding.value; node._sig = ""; onGraphEdited(); });
+        for (const btn of $$("[data-sample-mode]", sample)) {
+            btn.addEventListener("click", ev => {
+                ev.stopPropagation();
+                const next = btn.dataset.sampleMode === "file" ? "file" : "text";
+                if (port.sampleMode === next) return;
+                port.sampleMode = next;
+                node._sig = "";
+                // Only the sample matters to a test run, but the definition's stamp covers
+                // the ports, so re-render rather than patching the two boxes by hand.
+                renderAllNodes();
+                onGraphEdited();
+            });
+        }
+        const fileInput = $("[data-sample-input]", sample);
+        const drop = $("[data-sample-drop]", sample);
+        drop.addEventListener("click", ev => { ev.stopPropagation(); fileInput.click(); });
+        fileInput.addEventListener("change", () => {
+            const file = fileInput.files?.[0];
+            if (file) readFileToSample(node, port, file);
+        });
+        drop.addEventListener("dragover", ev => { ev.preventDefault(); drop.classList.add("drag"); });
+        drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+        drop.addEventListener("drop", ev => {
+            ev.preventDefault();
+            drop.classList.remove("drag");
+            const file = ev.dataTransfer?.files?.[0];
+            if (file) readFileToSample(node, port, file);
+        });
+        wrap.appendChild(sample);
+    });
+    const add = document.createElement("button");
+    add.className = "join-add";
+    add.dataset.action = "fn-add-port";
+    add.dataset.node = node.id;
+    add.innerHTML = `${iconFill("plus")}<span>Add input</span>`;
+    wrap.appendChild(add);
+    return wrap;
+}
+
+// The definition's outputs: name each one and wire a body node into it.
+function buildFnOutputNode(node) {
+    const wrap = document.createElement("div");
+    wrap.appendChild(fnNote("Wire body nodes in here. Each row becomes an output port on every instance of this function."));
+    (node.ports || []).forEach((port, i) => {
+        const edge = edgeInto(node.id, "in:" + i);
+        const src = edge ? edgeSource(edge) : null;
+        const row = document.createElement("div");
+        row.className = "io-row fn-row";
+        row.innerHTML = `
+            <span class="port in${edge ? " connected" : ""}" data-port="in:${i}"></span>
+            <span class="io-label">Out ${i + 1}</span>
+            <input class="control fn-port-name" data-port-name="${i}" value="${esc(port.name || "")}" placeholder="Output ${i + 1}" spellcheck="false">
+            <span class="port-label">${edge ? chipHtml(src, edge) : ""}</span>
+            ${(node.ports || []).length > 1 ? `<button class="join-remove" data-action="fn-remove-port" data-node="${node.id}" data-index="${i}" title="Remove this output">${iconFill("x")}</button>` : ""}
+        `;
+        const nameInput = $("[data-port-name]", row);
+        nameInput.addEventListener("input", () => { port.name = nameInput.value; node._sig = ""; onGraphEdited(); });
+        bindInputPort($(".port.in", row), node.id, "in:" + i);
+        wrap.appendChild(row);
+        if (edge) {
+            const hint = document.createElement("div");
+            hint.className = "wire-hint";
+            hint.dataset.hintPort = "in:" + i;
+            hint.textContent = wireHintFor(node, "in:" + i);
+            wrap.appendChild(hint);
+        }
+    });
+    const add = document.createElement("button");
+    add.className = "join-add";
+    add.dataset.action = "fn-add-port";
+    add.dataset.node = node.id;
+    add.innerHTML = `${iconFill("plus")}<span>Add output</span>`;
+    wrap.appendChild(add);
     return wrap;
 }
 
@@ -68460,9 +69328,17 @@ function renderArgs(node) {
             </div>
             <div class="arg-control${connected ? " connected" : ""}"></div>
         `;
+        row.dataset.argPort = portName;
         const control = $(".arg-control", row);
         const value = node.values[i];
         control.appendChild(makeArgControl(node, i, arg, value));
+        // A wired argument reads exactly like the operation's own input box: dimmed, with
+        // what is arriving on the wire where its placeholder would be — or, when the
+        // control has no text of its own to overwrite, on a line just below it.
+        if (connected) {
+            if (!argPreviewField(control)) row.appendChild(wireHintLine(node, portName));
+            applyWireHint(control, node, portName);
+        }
         if (canWire) bindInputPort($(".port.in", row), node.id, portName);
         wrap.appendChild(row);
     });
@@ -68634,7 +69510,7 @@ function updatePreviewEl(wrap, node) {
     const imageUrl = (has && isImage && mode === "image") ? imageDataUrlFor(node, bytes, kind) : null;
     // Text and file nodes are the display side of a graph now, so they get the roomier
     // preview the old Output node had (and its save button, below).
-    const isSink = node.type === "input" || node.type === "file" || node.type === "join";
+    const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "fn";
     const pv = has ? previewBytes(bytes, mode === "hex" ? "hex" : "text", isSink ? 1100 : 420) : {text: isSink ? "Run the graph to see the output." : "Not run yet.", binary: false};
     wrap.classList.toggle("empty", !has);
     wrap.dataset.kind = kind;
@@ -68710,8 +69586,33 @@ function refreshNodePreview(node) {
     // The input box of an operation shows what its wire is carrying, refreshed on every run.
     const opInput = $("[data-op-input]", el);
     if (opInput) {
-        const hint = opInputHint(node);
+        const hint = wireHintFor(node, "main");
         opInput.placeholder = hint || (edgeInto(node.id, "main") ? "Fed by the wire" : "Type input text");
+    }
+    // Every piped argument previews its arriving value too, refreshed on each run. Only the
+    // wired ones: an argument with nothing on its port keeps its own placeholder.
+    for (const row of $$("[data-arg-port]", el)) {
+        if (!edgeInto(node.id, row.dataset.argPort)) continue;
+        applyWireHint($(".arg-control", row), node, row.dataset.argPort);
+    }
+    // A typed box on a function instance follows its wire the same way, and goes back to its
+    // own wording when the wire is taken away.
+    for (const row of $$("[data-typed-port]", el)) {
+        const port = row.dataset.typedPort;
+        const control = $(".arg-control", row);
+        const field = control ? $("input", control) : null;
+        if (!field) continue;
+        const wired = Boolean(edgeInto(node.id, port));
+        control.classList.toggle("connected", wired);
+        if (wired) {
+            applyWireHint(control, node, port);
+        } else {
+            field.placeholder = field.dataset.ownPlaceholder || "";
+            field.title = field.dataset.ownTitle || "";
+        }
+    }
+    for (const line of $$("[data-hint-port]", el)) {
+        line.textContent = wireHintFor(node, line.dataset.hintPort);
     }
     let p = $("[data-preview]", el);
     if (!p) return;
@@ -68829,7 +69730,7 @@ function drawEdges() {
         const from = nodeById(edge.from);
         const to = nodeById(edge.to);
         if (!from || !to) continue;
-        const outEl = nodeEl(from.id)?.querySelector('.port.out');
+        const outEl = nodeEl(from.id)?.querySelector(`.port.out[data-port="${cssEscape(edge.fromPort || "out")}"]`);
         const inEl = nodeEl(to.id)?.querySelector(`.port.in[data-port="${cssEscape(edge.toPort)}"]`);
         if (!outEl || !inEl) continue;
         const a = portCenter(outEl);
@@ -68837,7 +69738,7 @@ function drawEdges() {
         if (!a || !b) continue;
         const color = nodeAccent(from);
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        group.setAttribute("class", "edge-group" + (selected?.type === "edge" && selected.id === edge.id ? " selected" : ""));
+        group.setAttribute("class", "edge-group" + (selectedEdge === edge.id ? " selected" : ""));
         group.style.setProperty("--edge-accent", color);
         const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
         hit.setAttribute("d", pathFor(a, b));
@@ -68857,7 +69758,7 @@ function drawEdges() {
         // The group has to be in the document before the handle position is probed, or
         // elementFromPoint cannot see this wire yet.
         edgesLayer.appendChild(group);
-        if (selected?.type === "edge" && selected.id === edge.id) {
+        if (selectedEdge === edge.id) {
             const mid = handlePointOnEdge(edge, a, b);
             const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
             g.setAttribute("class", "edge-x");
@@ -68894,24 +69795,50 @@ function cssEscape(v) {
     return String(v).replace(/(["\\])/g, "\\$1");
 }
 
-function selectNode(id) {
-    selected = {type: "node", id};
+function selectedNodes() {
+    return state ? state.nodes.filter(n => selection.has(n.id)) : [];
+}
+function onlySelectedNode() {
+    return selection.size === 1 ? nodeById([...selection][0]) : null;
+}
+function setSelection(ids) {
+    selection = new Set(ids.map(Number));
+    selectedEdge = null;
     syncSelectionClasses();
+    updateSelectionBar();
     scheduleEdges();
 }
+function selectNode(id, additive = false) {
+    const n = Number(id);
+    if (additive) {
+        // Shift-click toggles a single node in or out of the selection.
+        if (selection.has(n)) selection.delete(n); else selection.add(n);
+        selectedEdge = null;
+        syncSelectionClasses();
+        updateSelectionBar();
+        scheduleEdges();
+        return;
+    }
+    setSelection([n]);
+}
 function selectEdge(id) {
-    selected = {type: "edge", id};
+    selection.clear();
+    selectedEdge = id;
     syncSelectionClasses();
+    updateSelectionBar();
     scheduleEdges();
 }
 function clearSelection() {
-    selected = null;
+    if (!selection.size && !selectedEdge) return;
+    selection.clear();
+    selectedEdge = null;
     syncSelectionClasses();
+    updateSelectionBar();
     scheduleEdges();
 }
 function syncSelectionClasses() {
     for (const el of $$(".node", nodesLayer)) {
-        el.classList.toggle("selected", selected?.type === "node" && Number(el.dataset.id) === selected.id);
+        el.classList.toggle("selected", selection.has(Number(el.dataset.id)));
     }
 }
 
@@ -68919,36 +69846,149 @@ function removeEdge(id) {
     const before = state.edges.length;
     state.edges = state.edges.filter(e => e.id !== id);
     if (state.edges.length === before) return;
-    if (selected?.type === "edge" && selected.id === id) selected = null;
+    if (selectedEdge === id) selectedEdge = null;
     renderAllNodes();
     onGraphEdited();
 }
 
-function connectEdge(fromId, toId, toPort) {
+function connectEdge(fromId, toId, toPort, fromPort = "out") {
     if (!fromId || !toId || fromId === toId) {
         if (fromId === toId) toast("A node cannot feed directly into itself.", "error");
         return;
     }
     const toNode = nodeById(toId);
     if (!toNode) return;
-    // Text/file nodes take one "main" pipe (the left-hand port); ops take main or an arg.
-    const accepts = toNode.type === "op"
-        ? (toPort === "main" || /^arg:\d+$/.test(toPort))
-        : toNode.type === "join" ? /^join:\d+$/.test(toPort) : toPort === "main";
-    if (!accepts) return;
+    if (!nodeInPorts(toNode).includes(toPort)) {
+        toast("That port cannot take a wire.", "error");
+        return;
+    }
     if (toPort.startsWith("arg:")) {
         const idx = Number(toPort.slice(4));
         const arg = OPS[toNode.op]?.args?.[idx];
         if (!arg || !argTypeWirable(arg.type)) { toast("That argument cannot be wired.", "error"); return; }
     }
     state.edges = state.edges.filter(e => !(e.to === toId && e.toPort === toPort));
-    state.edges.push({id: "e" + (edgeSeq++), from: fromId, to: toId, toPort});
+    state.edges.push({id: "e" + (edgeSeq++), from: fromId, to: toId, toPort, fromPort: fromPort || "out"});
     renderAllNodes();
     onGraphEdited();
 }
 
 function removeChipEdge(id) {
     removeEdge(id);
+}
+
+/* ================================================================ clipboard
+ * Copy takes the selected nodes and every wire that runs between them. The same JSON also
+ * goes to the system clipboard, so a fragment can be pasted into a chat or another tab —
+ * and a fragment produced anywhere can be pasted back in as nodes.
+ */
+const CLIP_KEY = "cipherflow.clipboard.v1";
+let clipboard = null;
+let pasteSteps = 0;
+
+// Filled in with the function blocks below: a copied fragment carries the definitions its
+// instances depend on, so it still runs wherever it is pasted.
+function functionDefsForNodes() { return []; }
+function adoptFunctionDefs() {}
+
+function selectionFragment() {
+    const picked = new Set([...selection]);
+    if (!picked.size) return null;
+    const nodes = state.nodes.filter(n => picked.has(n.id));
+    if (!nodes.length) return null;
+    return {
+        app: "CipherFlow",
+        kind: "fragment",
+        version: 1,
+        nodes: nodes.map(cleanNodeForSave),
+        edges: state.edges
+            .filter(e => picked.has(e.from) && picked.has(e.to))
+            .map(e => ({id: e.id, from: e.from, to: e.to, toPort: e.toPort, fromPort: e.fromPort || "out"})),
+        functions: functionDefsForNodes(nodes)
+    };
+}
+
+function copySelection({cut = false} = {}) {
+    const fragment = selectionFragment();
+    if (!fragment) {
+        toast("Select a node to copy first.", "error");
+        return null;
+    }
+    clipboard = fragment;
+    pasteSteps = 0;
+    try { localStorage.setItem(CLIP_KEY, JSON.stringify(fragment)); } catch {}
+    // Best effort — a blocked clipboard still leaves the in-app copy working.
+    copyText(JSON.stringify(fragment, null, 2));
+    if (cut) deleteSelectedNodes();
+    else toast(`Copied ${fragment.nodes.length} node${fragment.nodes.length === 1 ? "" : "s"}`);
+    return fragment;
+}
+
+function validFragment(data) {
+    return data && Array.isArray(data.nodes) && data.nodes.length ? data : null;
+}
+
+// The in-app copy is checked first, then the copy saved with the page, then whatever else
+// is on the system clipboard — which is how a fragment from another tab comes in.
+async function fragmentForPaste() {
+    const local = validFragment(clipboard);
+    if (local) return local;
+    try {
+        const stored = validFragment(JSON.parse(localStorage.getItem(CLIP_KEY) || "null"));
+        if (stored) return stored;
+    } catch {}
+    try {
+        return validFragment(JSON.parse(await navigator.clipboard.readText()));
+    } catch {
+        return null;
+    }
+}
+
+async function pasteClipboard() {
+    const fragment = await fragmentForPaste();
+    if (!fragment) {
+        toast("Nothing to paste — copy a node or a graph fragment first.", "error");
+        return;
+    }
+    // Land the fragment at the pointer when it is over the canvas, otherwise step each
+    // paste down and right so repeated pastes do not stack on one another.
+    const at = hitStage(evClient.x, evClient.y) ? screenToWorld(evClient.x, evClient.y) : null;
+    pasteFragment(fragment, at);
+}
+
+function pasteFragment(fragment, at) {
+    const idMap = new Map();
+    const placed = [];
+    for (const raw of fragment.nodes || []) {
+        const node = nodeFromRaw(raw, {freshIds: true});
+        if (!node) continue;
+        idMap.set(Number(raw.id), node.id);
+        placed.push(node);
+    }
+    if (!placed.length) {
+        toast("That fragment had nothing this graph understands.", "error");
+        return;
+    }
+    const dx = at ? Math.round(at.x - Math.min(...placed.map(n => n.x))) : (pasteSteps++) * 26;
+    const dy = at ? Math.round(at.y - Math.min(...placed.map(n => n.y))) : (pasteSteps++ - 1) * 26;
+    for (const n of placed) {
+        n.x = Math.round(n.x + dx);
+        n.y = Math.round(n.y + dy);
+    }
+    const edges = [];
+    for (const raw of fragment.edges || []) {
+        const from = idMap.get(Number(raw.from));
+        const to = idMap.get(Number(raw.to));
+        if (!from || !to) continue;
+        edges.push({id: "e" + (edgeSeq++), from, to, toPort: String(raw.toPort), fromPort: String(raw.fromPort || "out")});
+    }
+    adoptFunctionDefs(fragment.functions || []);
+    state.nodes.push(...placed);
+    state.edges.push(...edges);
+    setSelection(placed.map(n => n.id));
+    renderAllNodes();
+    onGraphEdited(true);
+    toast(`Pasted ${placed.length} node${placed.length === 1 ? "" : "s"}`);
 }
 
 /* ================================================================ connections dragging */
@@ -68960,7 +70000,9 @@ function startConnectionFromOutput(ev) {
     const port = ev.currentTarget;
     const node = port.closest(".node");
     if (!node) return;
-    beginConnection({fromId: Number(node.dataset.id), fromPort: "out"}, port);
+    // Which output port the wire leaves from travels with the drag, so a function with
+    // several outputs keeps them apart.
+    beginConnection({fromId: Number(node.dataset.id), fromPort: port.dataset.port || "out"}, port);
 }
 
 function startConnectionFromInput(ev) {
@@ -69034,9 +70076,9 @@ function onConnectionUp(ev) {
         if (targetNode) {
             const targetId = Number(targetNode.dataset.id);
             if (c.fromId !== null && target.classList.contains("in")) {
-                connectEdge(c.fromId, targetId, target.dataset.port);
+                connectEdge(c.fromId, targetId, target.dataset.port, c.fromPort || "out");
             } else if (c.fromId === null && target.classList.contains("out")) {
-                connectEdge(targetId, c.toId, c.toPort);
+                connectEdge(targetId, c.toId, c.toPort, target.dataset.port || "out");
             }
         }
     }
@@ -69060,28 +70102,38 @@ function bindInputPort(portEl, nodeId, port) {
 }
 
 /* ================================================================ drag / pan */
+// Dragging a node carries the whole selection with it, so a group move keeps the graph's
+// shape intact instead of rearranging the wires one node at a time.
 function startNodeDrag(node, ev) {
     const el = nodeEl(node.id);
     if (!el) return;
+    // One undo step per drag: the pending snapshot would otherwise capture a mid-drag
+    // position and split the gesture into two.
+    clearTimeout(historyTimer);
     const startX = ev.clientX, startY = ev.clientY;
-    const ox = node.x, oy = node.y;
+    const moving = selection.has(node.id) && selection.size > 1 ? selectedNodes() : [node];
+    const origins = moving.map(n => ({node: n, el: nodeEl(n.id), x: n.x, y: n.y}));
     let moved = false;
-    el.style.zIndex = "5";
+    for (const o of origins) if (o.el) o.el.style.zIndex = "5";
     const move = e => {
         const dx = (e.clientX - startX) / state.view.zoom;
         const dy = (e.clientY - startY) / state.view.zoom;
         if (Math.abs(dx) + Math.abs(dy) > 1) moved = true;
-        node.x = Math.round(ox + dx);
-        node.y = Math.round(oy + dy);
-        el.style.left = node.x + "px";
-        el.style.top = node.y + "px";
+        for (const o of origins) {
+            o.node.x = Math.round(o.x + dx);
+            o.node.y = Math.round(o.y + dy);
+            if (o.el) {
+                o.el.style.left = o.node.x + "px";
+                o.el.style.top = o.node.y + "px";
+            }
+        }
         scheduleEdges();
     };
     const up = () => {
         document.removeEventListener("pointermove", move);
         document.removeEventListener("pointerup", up, {once: true});
-        el.style.zIndex = "";
-        if (moved) { saveLocalSoon(); scheduleEdges(); }
+        for (const o of origins) if (o.el) o.el.style.zIndex = "";
+        if (moved) { saveLocalSoon(); scheduleEdges(); pushHistory(); }
     };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", up, {once: true});
@@ -69094,6 +70146,7 @@ function startNodeResize(node, ev) {
     ev.stopPropagation();
     const el = nodeEl(node.id);
     if (!el) return;
+    clearTimeout(historyTimer);
     const startX = ev.clientX, startY = ev.clientY;
     const ow = el.offsetWidth, oh = el.offsetHeight;
     const prevMin = el.style.minHeight;
@@ -69124,16 +70177,112 @@ function startNodeResize(node, ev) {
         el.style.minHeight = node.h + "px";
         saveLocalSoon();
         scheduleEdges();
+        pushHistory();
     };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", up, {once: true});
 }
 
+/* Marquee selection: shift-drag on the empty canvas gathers every node the box touches.
+ * It lives in screen space and tests nodes in world space, so it stays correct at any
+ * zoom and never fights the pan handler for the same gesture. */
+let marqueeEl = null;
+function marqueeBox() {
+    if (!marqueeEl || marqueeEl.parentElement !== stage) {
+        marqueeEl?.remove();
+        marqueeEl = document.createElement("div");
+        marqueeEl.className = "marquee";
+        marqueeEl.hidden = true;
+        stage.appendChild(marqueeEl);
+    }
+    return marqueeEl;
+}
+function startMarquee(ev) {
+    ev.preventDefault();
+    const box = marqueeBox();
+    const rect = stage.getBoundingClientRect();
+    const startX = ev.clientX - rect.left, startY = ev.clientY - rect.top;
+    // A shift-drag started on top of a selection adds to it; elsewhere it starts fresh.
+    const base = ev.shiftKey && selection.size ? new Set(selection) : new Set();
+    box.hidden = false;
+    const draw = (x, y) => {
+        box.style.left = Math.min(startX, x) + "px";
+        box.style.top = Math.min(startY, y) + "px";
+        box.style.width = Math.abs(x - startX) + "px";
+        box.style.height = Math.abs(y - startY) + "px";
+    };
+    draw(startX, startY);
+    const move = e => {
+        draw(e.clientX - rect.left, e.clientY - rect.top);
+        const a = screenToWorld(rect.left + startX, rect.top + startY);
+        const b = screenToWorld(e.clientX, e.clientY);
+        const minX = Math.min(a.x, b.x), maxX = Math.max(a.x, b.x);
+        const minY = Math.min(a.y, b.y), maxY = Math.max(a.y, b.y);
+        const hits = [];
+        for (const node of state.nodes) {
+            const el = nodeEl(node.id);
+            const w = el?.offsetWidth || 300, h = el?.offsetHeight || 160;
+            if (node.x + w < minX || node.x > maxX || node.y + h < minY || node.y > maxY) continue;
+            hits.push(node.id);
+        }
+        setSelection([...base, ...hits]);
+    };
+    const up = () => {
+        document.removeEventListener("pointermove", move);
+        document.removeEventListener("pointerup", up, {once: true});
+        box.hidden = true;
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up, {once: true});
+}
+
+/* The selection bar: what is selected, and the things you can do with it. */
+let selBar = null;
+function selectionBar() {
+    if (!selBar || selBar.parentElement !== stage) {
+        selBar?.remove();
+        selBar = document.createElement("div");
+        selBar.className = "selection-bar";
+        selBar.hidden = true;
+        selBar.addEventListener("click", ev => {
+            const btn = ev.target.closest("[data-sel-action]");
+            if (!btn) return;
+            ev.stopPropagation();
+            const action = btn.dataset.selAction;
+            if (action === "copy") copySelection();
+            else if (action === "delete") deleteSelectedNodes();
+            else if (action === "fn") createFunctionFromSelection();
+        });
+        stage.appendChild(selBar);
+    }
+    return selBar;
+}
+function updateSelectionBar() {
+    const bar = selectionBar();
+    if (!selection.size) {
+        bar.hidden = true;
+        bar.innerHTML = "";
+        return;
+    }
+    bar.hidden = false;
+    const nodes = selectedNodes();
+    // Grouping into a function is a graph action, so it is not offered from inside one.
+    const canGroup = !editingFunctionId && nodes.length > 0 && typeof createFunctionFromSelection === "function";
+    bar.innerHTML = `
+        <span class="sel-count">${selection.size} node${selection.size === 1 ? "" : "s"} selected</span>
+        <button class="sel-btn" data-sel-action="copy" title="Copy the selection (Ctrl+C)">${iconFill("copy")} Copy</button>
+        ${canGroup ? `<button class="sel-btn" data-sel-action="fn" title="Move the selection into a new function">${iconFill("flask")} Function</button>` : ""}
+        <button class="sel-btn" data-sel-action="delete" title="Delete the selection (Delete)">${iconFill("trash")} Delete</button>
+    `;
+}
+
 function startPan(ev) {
     if (ev.button !== 0) return;
     const el = ev.target;
-    if (el.closest(".node") || el.closest(".port") || el.closest(".toolbar") ||
-        el.closest(".stage-controls") || el.closest(".run-status") || el.closest(".edge-group")) return;
+    if (el.closest(".node") || el.closest(".port") || el.closest(".toolbar") || el.closest(".marquee") ||
+        el.closest(".selection-bar") || el.closest(".stage-controls") || el.closest(".run-status") || el.closest(".edge-group")) return;
+    // Shift on empty canvas is the marquee gesture, not a pan.
+    if (ev.shiftKey) { startMarquee(ev); return; }
     ev.preventDefault();
     const sx = ev.clientX, sy = ev.clientY;
     const ox = state.view.x, oy = state.view.y;
@@ -69151,7 +70300,7 @@ function startPan(ev) {
         document.removeEventListener("pointerup", up, {once: true});
         stage.classList.remove("panning");
         if (moved) saveLocalSoon();
-        else if (selected) clearSelection();
+        else if (selection.size || selectedEdge) clearSelection();
     };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", up, {once: true});
@@ -69223,7 +70372,93 @@ function sourceBytesForPort(incoming, nodeId, port, results) {
     const r = results.get(e.from);
     if (!r) return {bytes: null, error: "Upstream node has not run.", sig: "missing", source: e.from};
     if (r.error) return {bytes: null, error: r.error, sig: r.sig || "err", source: e.from};
+    // A node with several outputs — a function instance, or a definition's input node —
+    // hands out a different value on each port; every other node has the one.
+    if (r.portOutputs) {
+        const key = e.fromPort || "out";
+        return {bytes: r.portOutputs.get(key) || new Uint8Array(0), error: "", sig: (r.sig || "0") + ":" + key, source: e.from};
+    }
     return {bytes: r.bytes || new Uint8Array(0), error: "", sig: r.sig || "0", source: e.from};
+}
+
+/* ------------------------------------------------------------ running a function */
+// A definition's worth of nodes, copied so a run never disturbs the ones the editor is
+// showing. The copy uses its own small id range, so it cannot be confused with the graph.
+function cloneDefinitionGraph(def) {
+    const idMap = new Map();
+    const nodes = [];
+    let k = 0;
+    for (const raw of def.nodes || []) {
+        const made = nodeFromRaw(cleanNodeForSave(raw), {localId: ++k});
+        if (!made) continue;
+        idMap.set(raw.id, made.id);
+        nodes.push(made);
+    }
+    const edges = [];
+    let m = 0;
+    for (const e of def.edges || []) {
+        const from = idMap.get(e.from);
+        const to = idMap.get(e.to);
+        if (!from || !to) continue;
+        edges.push({id: "e" + (++m), from, to, toPort: e.toPort, fromPort: e.fromPort || "out"});
+    }
+    return {nodes, edges};
+}
+
+// What a definition's content looks like, for the instance signature: editing the body or
+// renaming a port has to re-run every instance, while moving nodes around must not.
+function definitionStamp(def) {
+    if (!def) return "missing";
+    return sigHash(JSON.stringify([
+        (def.nodes || []).map(n => {
+            const {x, y, w, h, collapsed, previewMode, ...rest} = cleanNodeForSave(n);
+            return rest;
+        }),
+        (def.edges || []).map(e => [e.from, e.to, e.toPort, e.fromPort || "out"])
+    ]));
+}
+
+// What a Function Input port hands the body, in order of who wins:
+//  1. the value the instance supplied — its wire, or a value typed on the instance;
+//  2. a value piped into the port's sample port from a node in the body;
+//  3. the sample itself, as text typed in the row or a file attached to it.
+// Steps 2 and 3 are the definition's default, which is what an instance falls back to.
+function fninPortBytes(node, index, seedPorts, piped) {
+    const seed = seedPorts ? seedPorts.get("out:" + index) : null;
+    if (seed) return seed;
+    if (piped != null) return piped;
+    const port = (node.ports || [])[index] || {sample: "", encoding: "utf8"};
+    if (port.sampleMode === "file" && port.sampleFileData) return b64ToBytes(port.sampleFileData);
+    return textBytes(port.sample || "", port.encoding || "utf8");
+}
+
+// Run a function body for one instance and hand back what arrived at its output node.
+async function runFunctionDefinition(def, instance, incoming, results, opts = {}) {
+    const ports = functionPorts(def);
+    const seedPorts = new Map();
+    for (let i = 0; i < ports.inputs.length; i++) {
+        const key = "fn:" + i;
+        const src = sourceBytesForPort(incoming, instance.id, key, results);
+        if (src.error) return {error: "Upstream error: " + src.error, portOutputs: new Map()};
+        if (src.bytes) seedPorts.set("out:" + i, src.bytes);
+        // Nothing on the wire: a value typed on the instance wins over the definition's test
+        // sample. An empty box is not an override — it falls back to the sample, which is
+        // what the box shows as its default, so what you see is always what runs.
+        else if (ports.inputs[i].typed && instance.typedInputs?.[key]) {
+            seedPorts.set("out:" + i, enc.encode(instance.typedInputs[key]));
+        }
+    }
+    const clone = cloneDefinitionGraph(def);
+    const inner = await executeGraph(clone.nodes, clone.edges, {
+        force: true,
+        timeout: opts.timeout,
+        seedPorts,
+        fnStack: [...(opts.fnStack || []), def.id]
+    });
+    const sink = clone.nodes.find(n => n.type === "fnout");
+    const portOutputs = new Map();
+    for (const [key, bytes] of sink?._portOutputs || []) portOutputs.set("out:" + key.slice(3), bytes);
+    return {error: inner.errors[0]?.error || "", portOutputs};
 }
 
 function resolveNodeArgs(node, incoming, results) {
@@ -69239,14 +70474,46 @@ function resolveNodeArgs(node, incoming, results) {
         if (src.error) upstreamError = src.error;
         sigs.push("arg" + i + ":" + src.sig);
         if (!src.bytes) continue;
-        if (arg.type === "toggleString") {
-            values[i] = {string: bytesToHex(src.bytes), option: "Hex"};
-        } else if (arg.type === "string" || arg.type === "binaryString" || arg.type === "binaryShortString" ||
-                   arg.type === "shortString" || arg.type === "text") {
-            values[i] = utf8(src.bytes);
-        }
+        values[i] = wireArgValue(arg, src.bytes);
     }
     return {values: args.map((arg, i) => normalizeArgForRecipe(arg, values[i])), upstreamError, sigs};
+}
+
+// Read one argument's value out of the bytes arriving on its wire. Text-ish arguments take
+// the bytes as text; a number is parsed; a switch reads as on/off; a dropdown is matched
+// against its own options (by value or by label) so a wire can pick a mode as well as
+// supply a key. Anything that matches nothing is handed over as the raw text.
+function wireArgValue(arg, bytes) {
+    const text = utf8(bytes);
+    switch (arg.type) {
+        case "number": {
+            const n = Number(text.trim());
+            return Number.isFinite(n) ? n : 0;
+        }
+        case "boolean": {
+            const v = text.trim().toLowerCase();
+            return !(v === "" || v === "0" || v === "false" || v === "no" || v === "off" || v === "disabled");
+        }
+        case "toggleString":
+            return {string: bytesToHex(bytes), option: "Hex"};
+        case "option":
+        case "argSelector":
+        case "editableOption":
+        case "editableOptionShort":
+        case "populateOption": {
+            const wanted = text.trim().toLowerCase();
+            for (const opt of Array.isArray(arg.value) ? arg.value : []) {
+                const value = typeof opt === "object" ? (opt.value ?? opt.name) : opt;
+                const label = typeof opt === "object" ? (opt.name ?? opt.value) : opt;
+                if (String(value).toLowerCase() === wanted || String(label).toLowerCase() === wanted) {
+                    return String(arg.type === "argSelector" ? label : value);
+                }
+            }
+            return text;
+        }
+        default:
+            return text;
+    }
 }
 
 function normalizeArgForRecipe(arg, value) {
@@ -69271,7 +70538,7 @@ function normalizeArgForRecipe(arg, value) {
     }
 }
 
-function inputSignature(node, incoming, results) {
+function inputSignature(node, incoming, results, opts) {
     if (node.type === "op") {
         const main = sourceBytesForPort(incoming, node.id, "main", results);
         const argSigs = [];
@@ -69298,6 +70565,28 @@ function inputSignature(node, incoming, results) {
             parts.push(s.sig);
         }
         return JSON.stringify(["join", node.separator, node.joinCount, parts]);
+    }
+    if (node.type === "fnin") {
+        // A piped sample changes what the body receives, so its wire is part of the
+        // signature; without this the node would keep handing out the value it cached.
+        const parts = (node.ports || []).map((p, i) => {
+            const seed = opts?.seedPorts?.get("out:" + i);
+            if (seed) return "out:" + i + ":p" + fnvBytes(seed);
+            const fed = sourceBytesForPort(incoming, node.id, "sample:" + i, results);
+            return "out:" + i + ":" + (fed.bytes != null ? "w" + fed.sig : "s" + fnvBytes(fninPortBytes(node, i, null)));
+        });
+        return JSON.stringify(["fnin", parts]);
+    }
+    if (node.type === "fnout") {
+        const parts = [];
+        for (let i = 0; i < (node.ports || []).length; i++) {
+            parts.push("in:" + i + "=" + sourceBytesForPort(incoming, node.id, "in:" + i, results).sig);
+        }
+        return JSON.stringify(["fnout", parts]);
+    }
+    if (node.type === "fn") {
+        const ports = instancePorts(node).inputs.map(p => p.key + "=" + sourceBytesForPort(incoming, node.id, p.key, results).sig);
+        return JSON.stringify(["fn", node.fnId, definitionStamp(functionById(node.fnId)), node.portPick || 0, ports, node.typedInputs || null]);
     }
     return JSON.stringify(node);
 }
@@ -69604,7 +70893,7 @@ async function executeGraph(nodes, edges, opts = {}) {
             if (node.type === "op") {
                 const resolved = resolveNodeArgs(node, incoming, results);
                 if (!error && resolved.upstreamError) error = "Upstream error: " + resolved.upstreamError;
-                sig = sigHash(inputSignature(node, incoming, results) + JSON.stringify(resolved.values));
+                sig = sigHash(inputSignature(node, incoming, results, opts) + JSON.stringify(resolved.values));
                 // Which Magic candidate is selected changes the output, so it is part
                 // of the signature and a new pick re-runs the node.
                 if (node.op === "Magic") sig += ":" + (node.magicChoice ?? 0);
@@ -69640,14 +70929,14 @@ async function executeGraph(nodes, edges, opts = {}) {
                     }
                 }
             } else if (node.type === "input") {
-                sig = sigHash(inputSignature(node, incoming, results));
+                sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig && !error) { out = node._output; reused++; countIt = false; }
                 else if (!error) {
                     // A piped input overrides the text typed into the node.
                     out = main.bytes != null ? main.bytes : inputNodeBytes(node);
                 }
             } else if (node.type === "file") {
-                sig = sigHash(inputSignature(node, incoming, results));
+                sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (error) { /* upstream error already recorded */ }
                 else if (main.bytes != null) {
                     if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
@@ -69657,7 +70946,7 @@ async function executeGraph(nodes, edges, opts = {}) {
                 else if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
                 else out = b64ToBytes(node.fileData);
             } else if (node.type === "join") {
-                sig = sigHash(inputSignature(node, incoming, results));
+                sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
                 else {
                     const parts = [];
@@ -69671,6 +70960,69 @@ async function executeGraph(nodes, edges, opts = {}) {
                         const withSeps = [];
                         parts.forEach((p, i) => { if (i) withSeps.push(sep); withSeps.push(p); });
                         out = concatBytes(withSeps);
+                    }
+                }
+            } else if (node.type === "fnin") {
+                // Declares the function's inputs. One value per port, taking the top of this
+                // order: the value wired into the instance, then a value piped into the
+                // sample port from a node in the body, then the sample typed or attached.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._portOutputs) {
+                    out = node._output;
+                    reused++;
+                    countIt = false;
+                } else {
+                    const outputs = new Map();
+                    for (let i = 0; i < (node.ports || []).length; i++) {
+                        const fed = sourceBytesForPort(incoming, node.id, "sample:" + i, results);
+                        if (fed.error) { error = "Upstream error: " + fed.error; break; }
+                        outputs.set("out:" + i, fninPortBytes(node, i, opts.seedPorts, fed.bytes));
+                    }
+                    if (!error) {
+                        node._portOutputs = outputs;
+                        out = outputs.get("out:0") || new Uint8Array(0);
+                    }
+                }
+            } else if (node.type === "fnout") {
+                // Collects what the body wired in: one value per declared output.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._portOutputs) {
+                    out = node._output;
+                    reused++;
+                    countIt = false;
+                } else {
+                    const outputs = new Map();
+                    for (let i = 0; i < (node.ports || []).length; i++) {
+                        const src = sourceBytesForPort(incoming, node.id, "in:" + i, results);
+                        if (src.error) { error = "Upstream error: " + src.error; break; }
+                        outputs.set("in:" + i, src.bytes || new Uint8Array(0));
+                    }
+                    if (!error) {
+                        node._portOutputs = outputs;
+                        out = outputs.get("in:0") || null;
+                    }
+                }
+            } else if (node.type === "fn") {
+                // An instance: run the definition with the piped values and report what its
+                // output node collected, one value per output port.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && !node._error && node._portOutputs) {
+                    out = node._output;
+                    reused++;
+                    countIt = false;
+                } else {
+                    const def = functionById(node.fnId);
+                    if (!def) {
+                        error = "This graph has no function by that name — open a file that defines it.";
+                    } else if ((opts.fnStack || []).includes(def.id)) {
+                        error = `“${def.name}” cannot use itself.`;
+                    } else {
+                        const run = await runFunctionDefinition(def, node, incoming, results, opts);
+                        node._portOutputs = run.portOutputs;
+                        error = run.error;
+                        const keys = functionPorts(def).outputs.map(p => p.key);
+                        const key = keys[clamp(node.portPick || 0, 0, Math.max(0, keys.length - 1))];
+                        out = key ? (run.portOutputs.get(key) || new Uint8Array(0)) : null;
                     }
                 }
             }
@@ -69687,7 +71039,7 @@ async function executeGraph(nodes, edges, opts = {}) {
         node._reused = !countIt;
         if (!error) ran++;
         if (error) errors.push({node, error});
-        results.set(node.id, createResult(node, node._output, error, sig, {duration, reused: !countIt}));
+        results.set(node.id, createResult(node, node._output, error, sig, {duration, reused: !countIt, portOutputs: node._portOutputs || null}));
         if (opts.onNodeDone) opts.onNodeDone(node, results.get(node.id));
     }
     return {
@@ -69875,6 +71227,7 @@ async function runGraph(force = false) {
 function onGraphEdited(immediate = false) {
     if (!state) return;
     saveLocalSoon();
+    scheduleHistory();
     if (state.autoRun) scheduleRun(immediate, immediate ? 80 : 520);
 }
 function updateAutoSwitch() {
@@ -69882,14 +71235,493 @@ function updateAutoSwitch() {
     autoSwitch.setAttribute("aria-checked", String(Boolean(state.autoRun)));
 }
 
+/* ================================================================ undo / redo
+ * History is kept as whole snapshots of the graph and the functions it carries. That is
+ * what makes it safe: an undo can never leave a definition half-restored or a wire pointing
+ * at a node that came back differently. Only the parts that describe the document take part
+ * in the comparison, so panning and zooming the canvas never count as edits.
+ *
+ * Snapshotting is debounced, and the state *before* a burst is what gets pushed, so typing
+ * a long value into a box undoes in one step rather than one character at a time.
+ */
+const HISTORY_LIMIT = 80;
+const HISTORY_MAX_BYTES = 24 * 1024 * 1024;
+let undoStack = [];
+let redoStack = [];
+let historyBaseline = null;
+let historyTimer = 0;
+
+function historyParts(graph) {
+    return {
+        nodes: graph.nodes.map(cleanNodeForSave),
+        edges: graph.edges.map(e => ({id: e.id, from: e.from, to: e.to, toPort: e.toPort, fromPort: e.fromPort || "out"})),
+        functions: (graph.functions || []).map(cleanFunctionForSave),
+        autoRun: graph.autoRun !== false
+    };
+}
+function historySnapshot() {
+    const graph = graphToSave();
+    if (!graph) return null;
+    const parts = historyParts(graph);
+    // The view rides along so an undo puts the canvas back where it was, but it stays out of
+    // the comparison key.
+    return {key: JSON.stringify(parts), json: JSON.stringify({...parts, view: {...graph.view}})};
+}
+function historyBytes() {
+    let n = 0;
+    for (const snap of undoStack) n += snap.json.length;
+    return n;
+}
+function pushHistory() {
+    const snap = historySnapshot();
+    if (!snap) return false;
+    if (historyBaseline && snap.key === historyBaseline.key) return false;
+    if (historyBaseline) undoStack.push(historyBaseline);
+    // A graph carrying attached files can make each snapshot huge, so old steps are dropped
+    // once the stack gets long enough — by count, and by the memory it is holding.
+    while (undoStack.length > 1 && (undoStack.length > HISTORY_LIMIT || historyBytes() > HISTORY_MAX_BYTES)) {
+        undoStack.shift();
+    }
+    redoStack = [];
+    historyBaseline = snap;
+    return true;
+}
+function scheduleHistory() {
+    clearTimeout(historyTimer);
+    historyTimer = setTimeout(pushHistory, 420);
+}
+// A brand new document starts with a clean history: there is nothing before it to go back to.
+function resetHistory() {
+    clearTimeout(historyTimer);
+    undoStack = [];
+    redoStack = [];
+    historyBaseline = historySnapshot();
+}
+function restoreSnapshot(json) {
+    const keepFunction = editingFunctionId;
+    let data;
+    try {
+        data = normalizeLoaded(JSON.parse(json));
+    } catch {
+        return;
+    }
+    applyGraph(data, {fit: false});
+    // Undoing something done inside a function should leave you in that function.
+    if (keepFunction) {
+        const def = functionById(keepFunction);
+        if (def) openFunctionEditor(def);
+    }
+}
+function undo() {
+    clearTimeout(historyTimer);
+    pushHistory();
+    if (!undoStack.length) {
+        toast("Nothing to undo");
+        return;
+    }
+    const prev = undoStack.pop();
+    if (historyBaseline) redoStack.push(historyBaseline);
+    historyBaseline = prev;
+    restoreSnapshot(prev.json);
+    toast("Undo");
+}
+function redo() {
+    clearTimeout(historyTimer);
+    pushHistory();
+    if (!redoStack.length) {
+        toast("Nothing to redo");
+        return;
+    }
+    const next = redoStack.pop();
+    if (historyBaseline) undoStack.push(historyBaseline);
+    historyBaseline = next;
+    restoreSnapshot(next.json);
+    toast("Redo");
+}
+
+/* ================================================================ function blocks */
+// Read a definition back from a saved file (or a pasted fragment).
+function functionDefFromRaw(raw) {
+    if (!raw || !Array.isArray(raw.nodes)) return null;
+    const defNodes = [];
+    for (const n of raw.nodes) {
+        const made = nodeFromRaw(n);
+        if (made) defNodes.push(made);
+    }
+    if (!defNodes.length) return null;
+    const ids = new Set(defNodes.map(n => n.id));
+    const defEdges = [];
+    for (const e of raw.edges || []) {
+        if (!e || !ids.has(Number(e.from)) || !ids.has(Number(e.to))) continue;
+        defEdges.push({id: String(e.id || ("e" + edgeSeq++)), from: Number(e.from), to: Number(e.to),
+            toPort: String(e.toPort), fromPort: String(e.fromPort || "out")});
+    }
+    return {
+        id: String(raw.id || ("f" + (edgeSeq++))),
+        name: String(raw.name || "Function"),
+        view: raw.view ? {x: Number(raw.view.x) || 0, y: Number(raw.view.y) || 0, zoom: clamp(Number(raw.view.zoom) || 0.8, 0.2, 2.2)} : null,
+        nodes: defNodes,
+        edges: defEdges
+    };
+}
+
+// Bring the definitions a pasted fragment needs into this graph, and report what each one
+// became — a definition whose id is taken by a different function arrives under a new one.
+function adoptFunctionDefs(defs) {
+    const map = new Map();
+    if (!defs?.length) return map;
+    state.functions = state.functions || [];
+    for (const raw of defs) {
+        const def = functionDefFromRaw(raw);
+        if (!def) continue;
+        const existing = functionById(def.id);
+        if (existing) {
+            if (JSON.stringify(cleanFunctionForSave(existing).nodes) === JSON.stringify(cleanFunctionForSave(def).nodes)) {
+                map.set(raw.id, existing.id);
+                continue;
+            }
+            const fresh = "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+            map.set(raw.id, fresh);
+            def.id = fresh;
+        } else {
+            map.set(raw.id, def.id);
+        }
+        state.functions.push(def);
+    }
+    return map;
+}
+
+// A copied instance needs the definition it names, and any definition that one uses.
+function functionDefsForNodes(nodes) {
+    const wanted = new Map();
+    const visit = def => {
+        if (!def || wanted.has(def.id)) return;
+        wanted.set(def.id, def);
+        for (const n of def.nodes || []) if (n.type === "fn") visit(functionById(n.fnId));
+    };
+    for (const n of nodes) if (n.type === "fn") visit(functionById(n.fnId));
+    return [...wanted.values()].map(cleanFunctionForSave);
+}
+
+function createFunction(name) {
+    const def = {
+        id: "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+        name: name || `Function ${(state.functions || []).length + 1}`,
+        view: null,
+        nodes: [
+            makeNode("fnin", {x: 40, y: 140, title: "Function input"}),
+            makeNode("fnout", {x: 640, y: 140, title: "Function output"})
+        ],
+        edges: []
+    };
+    state.functions = [...(state.functions || []), def];
+    return def;
+}
+
+function newFunction() {
+    if (!state) return;
+    const def = createFunction();
+    toast(`Created ${def.name}`);
+    openFunctionEditor(def);
+}
+
+function deleteFunction(id) {
+    const def = functionById(id);
+    if (!def) return;
+    const users = (state.nodes || []).filter(n => n.type === "fn" && n.fnId === id);
+    if (users.length && !window.confirm(`“${def.name}” is used by ${users.length} node${users.length === 1 ? "" : "s"} on the canvas. Delete the function and those nodes too?`)) return;
+    state.functions = (state.functions || []).filter(f => f.id !== id);
+    if (users.length) {
+        const doomed = new Set(users.map(n => n.id));
+        state.nodes = state.nodes.filter(n => !doomed.has(n.id));
+        state.edges = state.edges.filter(e => !doomed.has(e.from) && !doomed.has(e.to));
+    }
+    buildPalette();
+    renderAllNodes();
+    onGraphEdited(true);
+    toast(`Deleted ${def.name}`);
+}
+
+function addFunctionNode(fnId, x, y) {
+    const def = functionById(fnId);
+    if (!def) return;
+    const p = (x === undefined) ? spawnPoint() : {x, y};
+    const node = makeNode("fn", {fnId, x: p.x, y: p.y});
+    state.nodes.push(node);
+    setSelection([node.id]);
+    renderAllNodes();
+    onGraphEdited();
+    requestAnimationFrame(() => ensureNodeVisible(node));
+    if (window.innerWidth <= 900) closeSidebar();
+}
+
+/* ---------------------------------------------------- the editor window
+ * The editor is the same canvas pointed at a definition. Swapping which graph and which
+ * DOM layers the canvas renders is all it takes for every node type, wire and gesture to
+ * work inside a function exactly as it does on the main graph.
+ */
+let mainGraph = null;
+let editingFunctionId = null;
+const mainCanvas = {};
+
+function canvasBindings() {
+    return {stage, world, nodesLayer, edgesSvg, edgesLayer, edgeHandlesLayer, runStatus, runStatusText, zoomLabel};
+}
+function applyCanvasBindings(b) {
+    ({stage, world, nodesLayer, edgesSvg, edgesLayer, edgeHandlesLayer, runStatus, runStatusText, zoomLabel} = b);
+}
+
+const fnEditor = {};
+function functionEditorEl() {
+    if (fnEditor.el) return fnEditor.el;
+    const el = document.createElement("div");
+    el.className = "modal fn-editor";
+    el.hidden = true;
+    el.innerHTML = `
+        <div class="fn-card" id="fnCard">
+            <div class="fn-head">
+                <button class="btn-secondary" id="fnBack">Back to graph</button>
+                <input class="fn-name" id="fnName" spellcheck="false" placeholder="Function name" aria-label="Function name">
+                <span class="fn-meta" id="fnMeta"></span>
+                <span class="spacer"></span>
+                <button class="btn-secondary fn-nodes-btn" id="fnNodesBtn" title="Show or hide the node list">${iconFill("nodes")}<span>Nodes</span></button>
+                <button class="btn-secondary" id="fnFit">Fit</button>
+                <button class="btn-secondary" id="fnRunTest">Run test</button>
+                <button class="btn-primary" id="fnDone">Done</button>
+            </div>
+            <div class="fn-body">
+                <aside class="sidebar fn-sidebar" id="fnSidebar" aria-label="Node list">
+                    <div class="sidebar-head">
+                        <div class="brand"><span class="brand-mark"></span><span>Node list</span></div>
+                        <div class="search-wrap">
+                            <span id="fnSearchIcon"></span>
+                            <input id="fnPaletteSearch" class="search-input" placeholder="Search operations" autocomplete="off" spellcheck="false" aria-label="Search operations">
+                            <button class="search-clear" id="fnSearchClear" title="Clear search"></button>
+                        </div>
+                        <p class="sidebar-hint">Click a node to add it to this function, or drag one onto the canvas. Its <b>Function input</b> and <b>Function output</b> nodes declare the ports every instance gets.</p>
+                    </div>
+                    <div class="sidebar-body" id="fnPaletteBody"></div>
+                </aside>
+                <div class="stage fn-stage" id="fnStage">
+                    <div class="world" id="fnWorld">
+                        <svg class="edges-svg" id="fnEdgesSvg" aria-hidden="true"><g id="fnEdgesLayer"></g></svg>
+                        <div class="nodes-layer" id="fnNodesLayer"></div>
+                        <svg class="edge-handles-svg" id="fnEdgeHandlesSvg" aria-hidden="true"><g id="fnEdgeHandlesLayer"></g></svg>
+                    </div>
+                    <div class="fn-hint">Wire the <b>Function input</b> node into your body, and your body into the <b>Function output</b> node. Use <b>Run test</b> to try the body on its own.</div>
+                    <div class="run-status" id="fnStatus"><span class="status-dot"></span><span id="fnStatusText">Ready</span></div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(el);
+    fnEditor.el = el;
+    fnEditor.card = $("#fnCard", el);
+    fnEditor.sidebar = $("#fnSidebar", el);
+    fnEditor.name = $("#fnName", el);
+    fnEditor.meta = $("#fnMeta", el);
+    fnEditor.stage = $("#fnStage", el);
+    fnEditor.statusText = $("#fnStatusText", el);
+    fnEditor.paletteBody = $("#fnPaletteBody", el);
+    fnEditor.paletteSearch = $("#fnPaletteSearch", el);
+    fnEditor.paletteClear = $("#fnSearchClear", el);
+    $("#fnSearchIcon", el).innerHTML = svg("search");
+    fnEditor.paletteClear.innerHTML = iconFill("x");
+    $(".brand-mark", el).innerHTML = svg("logo");
+    // The copy of the node list inside this window behaves exactly like the sidebar's.
+    bindPaletteSearch(fnEditor.paletteSearch, fnEditor.paletteClear);
+    $("#fnNodesBtn", el).addEventListener("click", () => {
+        fnEditor.card.classList.toggle("nodes-hidden");
+    });
+    bindCanvasEvents(fnEditor.stage, $("#fnNodesLayer", el));
+    fnEditor.name.addEventListener("input", () => {
+        const def = state?.editingFunctionId ? functionById(state.editingFunctionId) : null;
+        if (def) def.name = fnEditor.name.value;
+        renderAllNodes();
+        saveLocalSoon();
+    });
+    $("#fnBack", el).addEventListener("click", closeFunctionEditor);
+    $("#fnDone", el).addEventListener("click", closeFunctionEditor);
+    $("#fnFit", el).addEventListener("click", () => fitView());
+    $("#fnRunTest", el).addEventListener("click", runFunctionTest);
+    return el;
+}
+
+function openFunctionEditor(def) {
+    if (!def || !state) return;
+    functionEditorEl();
+    if (!editingFunctionId) {
+        mainGraph = state;
+        Object.assign(mainCanvas, canvasBindings());
+    }
+    const el = fnEditor.el;
+    applyCanvasBindings({
+        stage: fnEditor.stage,
+        world: $("#fnWorld", el),
+        nodesLayer: $("#fnNodesLayer", el),
+        edgesSvg: $("#fnEdgesSvg", el),
+        edgesLayer: $("#fnEdgesLayer", el),
+        edgeHandlesLayer: $("#fnEdgeHandlesLayer", el),
+        runStatus: $("#fnStatus", el),
+        runStatusText: fnEditor.statusText,
+        // The editor has no zoom readout; give applyView somewhere harmless to write it.
+        zoomLabel: document.createElement("span")
+    });
+    editingFunctionId = def.id;
+    selection.clear();
+    selectedEdge = null;
+    state = {
+        version: 1,
+        nodes: def.nodes,
+        edges: def.edges,
+        functions: mainGraph.functions,
+        autoRun: false,
+        editingFunctionId: def.id,
+        view: def.view ? {...def.view} : {x: 60, y: 60, zoom: 0.8}
+    };
+    el.hidden = false;
+    document.body.classList.add("fn-editing");
+    // On a narrow screen the list would crowd the canvas, so it starts tucked away and the
+    // Nodes button in the header brings it over the top.
+    fnEditor.card.classList.toggle("nodes-hidden", window.innerWidth < 900);
+    fnEditor.name.value = def.name;
+    fnEditor.meta.textContent = `${def.nodes.length} node${def.nodes.length === 1 ? "" : "s"}`;
+    // Point the node list at this window's copy, so operations and the Function port nodes
+    // can be added to the definition even though the sidebar is behind the window.
+    setPaletteTarget(fnEditor.paletteBody, fnEditor.paletteSearch);
+    renderAllNodes();
+    applyView();
+    requestAnimationFrame(() => fitView());
+    resetPaletteSearch();
+    setRunStatus("", "Editing a function — press Run test to try it");
+}
+
+function closeFunctionEditor() {
+    if (!editingFunctionId) return;
+    const def = functionById(editingFunctionId, mainGraph?.functions);
+    if (def) {
+        def.nodes = state.nodes;
+        def.edges = state.edges;
+        def.view = {...state.view};
+        def.name = (fnEditor.name.value || "").trim() || def.name;
+    }
+    state = mainGraph;
+    mainGraph = null;
+    editingFunctionId = null;
+    applyCanvasBindings(mainCanvas);
+    fnEditor.el.hidden = true;
+    // The definition's nodes are objects; their elements go, so nothing stale is left in
+    // the document once the window is shut.
+    for (const sel of ["#fnNodesLayer", "#fnEdgesLayer", "#fnEdgeHandlesLayer"]) $(sel, fnEditor.el).innerHTML = "";
+    document.body.classList.remove("fn-editing");
+    selection.clear();
+    selectedEdge = null;
+    renderAllNodes();
+    applyView();
+    setPaletteTarget(sidebarPalette.body, sidebarPalette.search);
+    resetPaletteSearch();
+    saveLocalNow();
+    // Every instance of the function has a new signature, so the graph re-runs.
+    scheduleRun(true, 60);
+}
+
+// Run the body on its own, using the sample values typed into its input node.
+async function runFunctionTest() {
+    if (!editingFunctionId) return;
+    try {
+        await engine.start();
+        setRunStatus("running", "Running the function on its sample inputs…");
+        const result = await executeGraph(state.nodes, state.edges, {force: true, timeout: 30000});
+        refreshAllPreviews();
+        const count = result.errors.length;
+        const parts = [`Ran ${result.ran} node${result.ran === 1 ? "" : "s"} in ${Math.max(1, Math.round(result.duration))} ms`];
+        if (result.cycle.length) setRunStatus("error", "Cycle detected — break the loop to run.");
+        else if (count) setRunStatus("error", `Error in ${sourceTitle(result.errors[0].node)}: ${result.errors[0].error.slice(0, 90)}`);
+        else setRunStatus("ok", parts.join(" · "));
+    } catch (err) {
+        setRunStatus("error", err.message || "The function could not run.");
+    }
+}
+
+/* ---------------------------------------------------- from a selection */
+// Take the selected nodes into a new function: every wire that entered or left the
+// selection becomes a declared port, and an instance takes their place on the canvas.
+function createFunctionFromSelection() {
+    const nodes = selectedNodes();
+    if (!nodes.length || editingFunctionId) return;
+    const picked = new Set(nodes.map(n => n.id));
+    const entering = state.edges.filter(e => picked.has(e.to) && !picked.has(e.from));
+    const leaving = state.edges.filter(e => picked.has(e.from) && !picked.has(e.to));
+    const def = createFunction();
+    const source = def.nodes[0];
+    const sink = def.nodes[1];
+    const minX = Math.min(...nodes.map(n => n.x));
+    const minY = Math.min(...nodes.map(n => n.y));
+    const shiftX = 300 - minX;
+    const shiftY = 120 - minY;
+    for (const node of nodes) {
+        node.x = Math.round(node.x + shiftX);
+        node.y = Math.round(node.y + shiftY);
+        def.nodes.push(node);
+    }
+    const moved = new Set();
+    for (const e of state.edges) {
+        if (picked.has(e.from) && picked.has(e.to)) {
+            def.edges.push({...e});
+            moved.add(e.id);
+        }
+    }
+    // One declared input per incoming wire, one declared output per outgoing one.
+    const inPorts = [];
+    entering.forEach((e, i) => {
+        const target = nodeById(e.to);
+        const label = e.toPort === "main" ? sourceTitle(target) : (OPS[target.op]?.args?.[Number(e.toPort.slice(4))]?.name || sourceTitle(target));
+        source.ports.push({name: label || `Input ${i + 1}`, sample: "", encoding: "utf8", sampleMode: "text", typed: false});
+        def.edges.push({id: "e" + (edgeSeq++), from: source.id, to: e.to, toPort: e.toPort, fromPort: "out:" + i});
+        inPorts.push(i);
+    });
+    const outPorts = [];
+    leaving.forEach((e, i) => {
+        const from = nodeById(e.from);
+        sink.ports.push({name: sourceTitle(from) || `Output ${i + 1}`});
+        def.edges.push({id: "e" + (edgeSeq++), from: e.from, to: sink.id, toPort: "in:" + i, fromPort: e.fromPort || "out"});
+        outPorts.push(i);
+    });
+    // The instance takes the selection's place in the graph, wired to whatever fed it.
+    const instance = makeNode("fn", {fnId: def.id, x: Math.round(minX), y: Math.round(minY)});
+    const rewired = [];
+    entering.forEach((e, i) => rewired.push({id: "e" + (edgeSeq++), from: e.from, to: instance.id, toPort: "fn:" + i, fromPort: e.fromPort || "out"}));
+    leaving.forEach((e, i) => rewired.push({id: "e" + (edgeSeq++), from: instance.id, fromPort: "out:" + i, to: e.to, toPort: e.toPort}));
+    state.nodes = state.nodes.filter(n => !picked.has(n.id));
+    state.edges = state.edges.filter(e => !picked.has(e.from) && !picked.has(e.to)).concat(rewired);
+    state.nodes.push(instance);
+    renderAllNodes();
+    onGraphEdited(true);
+    toast(`${def.name} created from ${nodes.length} node${nodes.length === 1 ? "" : "s"}`);
+    openFunctionEditor(def);
+}
+
 /* ================================================================ palette */
 function buildPalette() {
     const graphItems = [
-        ["input", "Text input", "text"],
-        ["file", "File input", "file"],
+        ["input", TEXT_NODE_TITLE, "input"],
+        ["file", FILE_NODE_TITLE, "file"],
         ["join", "Join", "join"]
     ];
+    const functions = state?.functions || [];
     let html = `<div class="palette-section">
+        <div class="palette-section-title">Functions</div>
+        <button class="graph-item fn-new" data-new-function><span class="graph-icon">${iconFill("plus")}</span>New function<small>+</small></button>
+        ${functions.map(f => `<div class="fn-item-wrap"><button class="graph-item fn-item" data-fn="${esc(f.id)}" title="Add an instance of ${esc(f.name)}"><span class="graph-icon">${iconFill("fn")}</span><span class="fn-item-name">${esc(f.name)}</span><small>+</small></button><button class="fn-item-del" data-fn-edit="${esc(f.id)}" title="Edit this function">${iconFill("edit")}</button><button class="fn-item-del" data-fn-delete="${esc(f.id)}" title="Delete this function">${iconFill("trash")}</button></div>`).join("")}
+    </div>`;
+    if (editingFunctionId) {
+        html += `<div class="palette-section">
+            <div class="palette-section-title">Function ports</div>
+            <button class="graph-item" data-graph-node="fnin"><span class="graph-icon">${iconFill("input")}</span>Function input<small>+</small></button>
+            <button class="graph-item" data-graph-node="fnout"><span class="graph-icon">${iconFill("output")}</span>Function output<small>+</small></button>
+        </div>`;
+    }
+    html += `<div class="palette-section">
         <div class="palette-section-title">Graph</div>
         ${graphItems.map(([type, label, iconName]) => `<button class="graph-item" data-graph-node="${type}"><span class="graph-icon">${iconFill(iconName)}</span>${esc(label)}<small>+</small></button>`).join("")}
     </div>`;
@@ -69920,7 +71752,10 @@ function bindPaletteEvents() {
     // delegated on the container; attached once in init instead of every render
 }
 function setupPaletteDelegation() {
-    paletteBody.addEventListener("click", ev => {
+    // Delegated on the document rather than on one list, so the sidebar's list and the copy
+    // a function editor carries both work; the guard picks whichever is on screen now.
+    document.addEventListener("click", ev => {
+        if (ev.target.closest?.(".sidebar-body") !== paletteBody) return;
         // A drag that ended on the canvas must not also count as a click-to-add.
         if (paletteDrag?.moved || performance.now() < suppressPaletteClickUntil) { ev.preventDefault(); ev.stopPropagation(); return; }
         const toggle = ev.target.closest("[data-cat-toggle]");
@@ -69936,16 +71771,38 @@ function setupPaletteDelegation() {
             addOperationNode(opItem.dataset.op);
             return;
         }
+        const fnDelete = ev.target.closest("[data-fn-delete]");
+        if (fnDelete) {
+            deleteFunction(fnDelete.dataset.fnDelete);
+            return;
+        }
+        const fnEdit = ev.target.closest("[data-fn-edit]");
+        if (fnEdit) {
+            const def = functionById(fnEdit.dataset.fnEdit);
+            if (def) openFunctionEditor(def);
+            return;
+        }
+        const fnItem = ev.target.closest("[data-fn]");
+        if (fnItem) {
+            addFunctionNode(fnItem.dataset.fn);
+            return;
+        }
+        if (ev.target.closest("[data-new-function]")) {
+            newFunction();
+            return;
+        }
         const graphItem = ev.target.closest("[data-graph-node]");
         if (graphItem) addGraphNode(graphItem.dataset.graphNode);
     });
     // Pointer-driven drag: works the same in every browser, unlike HTML5 drag events.
-    paletteBody.addEventListener("pointerdown", ev => {
+    document.addEventListener("pointerdown", ev => {
         if (ev.button !== 0) return;
-        const item = ev.target.closest("[data-op], [data-graph-node]");
+        if (ev.target.closest?.(".sidebar-body") !== paletteBody) return;
+        const item = ev.target.closest("[data-op], [data-graph-node], [data-fn]");
         if (!item || item.classList.contains("disabled")) return;
         const payload = item.dataset.op
             ? {type: "op", op: item.dataset.op}
+            : item.dataset.fn ? {type: "fn", fnId: item.dataset.fn}
             : {type: "graph", node: item.dataset.graphNode};
         if (payload.type === "op" && OPS[payload.op]?.flowControl) return;
         startPaletteDrag(ev, payload);
@@ -69987,6 +71844,7 @@ function startPaletteDrag(ev, payload) {
         if (!overStage) return;
         const p = screenToWorld(upEv.clientX, upEv.clientY);
         if (drag.payload.type === "op") addOperationNode(drag.payload.op, p.x - 150, p.y - 30);
+        else if (drag.payload.type === "fn") addFunctionNode(drag.payload.fnId, p.x - 140, p.y - 30);
         else addGraphNode(drag.payload.node, p.x - 140, p.y - 30);
     };
     document.addEventListener("pointermove", onMove);
@@ -70000,8 +71858,11 @@ function makeDragGhost(payload) {
         ghost.dataset.accent = opAccent(payload.op);
         ghost.style.setProperty("--node-accent", opAccent(payload.op));
         ghost.textContent = payload.op;
+    } else if (payload.type === "fn") {
+        ghost.style.setProperty("--node-accent", FUNCTION_COLOR);
+        ghost.textContent = functionById(payload.fnId)?.name || "Function";
     } else {
-        ghost.textContent = {input: "Text input", file: "File input", join: "Join"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -70041,7 +71902,7 @@ function addOperationNode(op, x, y) {
     const p = (x === undefined) ? spawnPoint() : {x, y};
     const node = makeNode("op", {op, x: p.x, y: p.y});
     state.nodes.push(node);
-    selected = {type: "node", id: node.id};
+    setSelection([node.id]);
     renderAllNodes();
     onGraphEdited();
     requestAnimationFrame(() => ensureNodeVisible(node));
@@ -70049,19 +71910,26 @@ function addOperationNode(op, x, y) {
 }
 function addGraphNode(type, x, y) {
     const p = (x === undefined) ? spawnPoint() : {x, y};
+    let added = null;
     if (type === "input") {
-        const node = makeNode("input", {x: p.x, y: p.y, title: "Text input", text: "Hello, World!"});
-        state.nodes.push(node);
-        selected = {type: "node", id: node.id};
+        added = makeNode("input", {x: p.x, y: p.y, title: TEXT_NODE_TITLE, text: "Hello, World!"});
+        state.nodes.push(added);
     } else if (type === "file") {
-        const node = makeNode("file", {x: p.x, y: p.y, title: "File input"});
-        state.nodes.push(node);
-        selected = {type: "node", id: node.id};
+        added = makeNode("file", {x: p.x, y: p.y, title: FILE_NODE_TITLE});
+        state.nodes.push(added);
     } else if (type === "join") {
-        const node = makeNode("join", {x: p.x, y: p.y, title: "Join"});
-        state.nodes.push(node);
-        selected = {type: "node", id: node.id};
+        added = makeNode("join", {x: p.x, y: p.y, title: "Join"});
+        state.nodes.push(added);
+    } else if (type === "fnin" || type === "fnout") {
+        // Only meaningful inside a function: these declare the ports of a definition.
+        if (!editingFunctionId) {
+            toast("Function input and output nodes only belong inside a function.", "error");
+            return;
+        }
+        added = makeNode(type, {x: p.x, y: p.y, title: type === "fnin" ? "Function input" : "Function output"});
+        state.nodes.push(added);
     }
+    if (added) setSelection([added.id]);
     renderAllNodes();
     onGraphEdited();
     if (window.innerWidth <= 900) closeSidebar();
@@ -70104,13 +71972,17 @@ function initToolbar() {
 
 function newGraph() {
     if (state.nodes.length && !confirm("Start a new graph? This replaces the currently saved graph.")) return;
+    if (editingFunctionId) closeFunctionEditor();
     applyGraph(blankState(), {fit: true});
+    resetHistory();
     setRunStatus("", "Ready");
     toast("New graph");
 }
 function loadExample() {
     if (state.nodes.length && !confirm("Load the example? This replaces the currently saved graph.")) return;
+    if (editingFunctionId) closeFunctionEditor();
     applyGraph(exampleState(), {fit: true});
+    resetHistory();
     setRunStatus("", "Ready");
     toast("Loaded the AES multi-input example");
 }
@@ -70122,7 +71994,7 @@ function toggleAutoRun() {
     toast(state.autoRun ? "Auto-run on" : "Auto-run off");
 }
 function saveGraphFile() {
-    const data = JSON.stringify(serializeGraph(), null, 2);
+    const data = JSON.stringify(serializeGraph(graphToSave()), null, 2);
     const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
     downloadBlob(new Blob([data], {type: "application/json"}), `cipherflow-${stamp}.json`);
     toast("Graph JSON downloaded");
@@ -70132,6 +72004,7 @@ async function openGraphFile(file, opts = {}) {
         const data = JSON.parse(await file.text());
         const normalized = normalizeLoaded(data);
         applyGraph({...normalized, autoRun: normalized.autoRun}, {fit: !normalized.view && !opts.at});
+        resetHistory();
         setRunStatus("", "Ready");
         toast("Graph loaded");
     } catch (err) {
@@ -70784,8 +72657,361 @@ function integrationDefinitions() {
                 const edges = [B.edge(1, a.id, b.id, "main"), B.edge(2, b.id, a.id, "main"), B.edge(3, b.id, out.id, "main")];
                 return {nodes: [a, b, out], edges, outputId: 3};
             }
+        },
+        {
+            id: "selection",
+            title: "Multi-select and group delete",
+            description: "Shift-click adds to the selection, and deleting a selection removes every chosen node together with the wires that touched them.",
+            run: () => withScratchGraph(async s => {
+                s.nodes.push(
+                    makeNode("input", {id: 1, x: 0, y: 0, text: "a"}),
+                    makeNode("input", {id: 2, x: 320, y: 0, text: "b"}),
+                    makeNode("input", {id: 3, x: 640, y: 0, text: "c"})
+                );
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"}
+                );
+                setSelection([1]);
+                selectNode(2, true);
+                selectNode(3, true);
+                selectNode(3, true); // shift-clicking twice takes it back out
+                const picked = [...selection].sort((a, b) => a - b).join(",");
+                deleteSelectedNodes();
+                const left = [...s.nodes].map(n => n.id).join(",");
+                return {
+                    ok: picked === "1,2" && left === "3" && s.edges.length === 0,
+                    detail: `selection ${picked || "empty"}, left ${left || "nothing"}, wires left ${s.edges.length}`
+                };
+            })
+        },
+        {
+            id: "clipboard",
+            title: "Copy and paste a wired pair",
+            description: "Copy takes the selected nodes and the wire between them; paste hands out fresh ids and the pasted chain runs to the same output.",
+            run: () => withScratchGraph(async s => {
+                s.nodes.push(
+                    makeNode("input", {id: 1, x: 0, y: 0, text: "Hello, World!"}),
+                    makeNode("op", {id: 2, x: 320, y: 0, op: "To Base64"})
+                );
+                s.edges.push({id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"});
+                setSelection([1, 2]);
+                const fragment = selectionFragment();
+                pasteFragment(fragment, {x: 900, y: 500});
+                const pasted = s.nodes.slice(2);
+                const ids = pasted.map(n => n.id);
+                const wires = s.edges.filter(e => ids.includes(e.from) && ids.includes(e.to)).length;
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const sink = pasted.find(n => n.type === "op");
+                const bytes = sink ? res.results.get(sink.id)?.bytes : null;
+                const text = bytes ? utf8(bytes) : "";
+                const fresh = ids.length === 2 && !ids.includes(1) && !ids.includes(2);
+                return {
+                    ok: fresh && wires === 1 && text === "SGVsbG8sIFdvcmxkIQ==",
+                    detail: `${ids.length} node(s) pasted as ${ids.join(",")}, ${wires} wire kept, output ${JSON.stringify(text)}`
+                };
+            })
+        },
+        {
+            id: "wirehint",
+            title: "A piped argument previews its value",
+            description: "A wired key shows what is arriving on the wire as its placeholder, in the same style as an operation's own input box.",
+            run: () => withScratchGraph(async s => {
+                const key = makeNode("input", {id: 1, x: 0, y: 0, text: "hunter2"});
+                const aes = makeNode("op", {id: 2, x: 320, y: 0, op: "AES Encrypt", values: nodeValuesWith("AES Encrypt", {"Input": "Raw", "Output": "Hex"})});
+                s.nodes.push(key, aes);
+                const port = "arg:" + opArgIndex("AES Encrypt", "Key");
+                s.edges.push({id: "e1", from: 1, to: 2, toPort: port, fromPort: "out"});
+                // What a hint reads is the source's last output, so give the key one.
+                key._output = enc.encode("hunter2");
+                const control = document.createElement("div");
+                control.className = "arg-control connected";
+                const field = document.createElement("input");
+                control.appendChild(field);
+                applyWireHint(control, aes, port);
+                const plain = document.createElement("div");
+                plain.className = "arg-control";
+                const plainField = document.createElement("input");
+                plainField.placeholder = "its own";
+                plain.appendChild(plainField);
+                return {
+                    ok: field.placeholder === "hunter2" && plainField.placeholder === "its own",
+                    detail: `wired Key reads ${JSON.stringify(field.placeholder)}; an unwired field keeps ${JSON.stringify(plainField.placeholder)}`
+                };
+            })
+        },
+        {
+            id: "function-run",
+            title: "A function runs its body",
+            description: "An instance feeds its declared input through the definition's body and reports what the output node collected.",
+            run: () => withScratchGraph(async s => {
+                const def = createFunction("Encode");
+                const [source, sink] = def.nodes;
+                const op = makeNode("op", {id: 3, x: 320, y: 140, op: "To Base64"});
+                def.nodes.push(op);
+                def.edges.push(
+                    {id: "e1", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
+                    {id: "e2", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"}
+                );
+                const input = makeNode("input", {id: 101, x: 0, y: 0, text: "hello"});
+                const inst = makeNode("fn", {id: 102, x: 500, y: 0, fnId: def.id});
+                s.nodes.push(input, inst);
+                s.edges.push({id: "e3", from: 101, to: 102, toPort: "fn:0", fromPort: "out"});
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const bytes = res.results.get(102)?.bytes;
+                const text = bytes ? utf8(bytes) : "";
+                return {ok: text === "aGVsbG8=", detail: `“hello” through the function came out as ${JSON.stringify(text)}`};
+            })
+        },
+        {
+            id: "function-outputs",
+            title: "Every function output carries its own value",
+            description: "A function with two declared outputs hands a different value out on each port, and each port can feed a different branch.",
+            run: () => withScratchGraph(async s => {
+                const def = createFunction("Both ways");
+                const [source, sink] = def.nodes;
+                sink.ports.push({name: "Output 2"});
+                const op = makeNode("op", {id: 3, x: 320, y: 140, op: "To Base64"});
+                def.nodes.push(op);
+                def.edges.push(
+                    {id: "e1", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
+                    {id: "e2", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"},
+                    {id: "e3", from: source.id, to: sink.id, toPort: "in:1", fromPort: "out:0"}
+                );
+                const input = makeNode("input", {id: 201, x: 0, y: 0, text: "plain"});
+                const inst = makeNode("fn", {id: 202, x: 420, y: 0, fnId: def.id});
+                const sinkA = makeNode("input", {id: 203, x: 800, y: 0, text: ""});
+                const sinkB = makeNode("input", {id: 204, x: 800, y: 260, text: ""});
+                s.nodes.push(input, inst, sinkA, sinkB);
+                s.edges.push(
+                    {id: "e4", from: 201, to: 202, toPort: "fn:0", fromPort: "out"},
+                    {id: "e5", from: 202, fromPort: "out:0", to: 203, toPort: "main"},
+                    {id: "e6", from: 202, fromPort: "out:1", to: 204, toPort: "main"}
+                );
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const a = res.results.get(203)?.bytes;
+                const b = res.results.get(204)?.bytes;
+                const textA = a ? utf8(a) : "";
+                const textB = b ? utf8(b) : "";
+                return {
+                    ok: textA === "cGxhaW4=" && textB === "plain",
+                    detail: `output 1 = ${JSON.stringify(textA)}, output 2 = ${JSON.stringify(textB)}`
+                };
+            })
+        },
+        {
+            id: "function-recursion",
+            title: "A function cannot call itself",
+            description: "An instance of a function placed inside its own body is refused with a clear error instead of running away.",
+            run: () => withScratchGraph(async s => {
+                const def = createFunction("Loop");
+                const [source, sink] = def.nodes;
+                const inner = makeNode("fn", {id: 3, x: 320, y: 140, fnId: def.id});
+                def.nodes.push(inner);
+                def.edges.push(
+                    {id: "e1", from: source.id, to: inner.id, toPort: "fn:0", fromPort: "out:0"},
+                    {id: "e2", from: inner.id, fromPort: "out:0", to: sink.id, toPort: "in:0"}
+                );
+                const inst = makeNode("fn", {id: 301, x: 400, y: 0, fnId: def.id});
+                s.nodes.push(inst);
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const error = res.results.get(301)?.error || "";
+                return {ok: /cannot use itself/.test(error), detail: error ? `reported: ${error}` : "no error was raised"};
+            })
+        },
+        {
+            id: "argwire",
+            title: "Every argument takes a wire",
+            description: "A number, a switch and a dropdown are each driven from their own port: the amount comes through as a number, \"off\" turns a switch off, and \"Comma\" picks a delimiter out of the dropdown's own options.",
+            run: () => withScratchGraph(async s => {
+                const five = makeNode("input", {id: 1, x: 0, y: 0, text: "5", title: "amount"});
+                const rot = makeNode("op", {id: 2, x: 320, y: 0, op: "ROT13"});
+                rot.inputText = "Hello, World!";
+                const rotSink = makeNode("input", {id: 3, x: 700, y: 0, text: ""});
+                const off = makeNode("input", {id: 4, x: 0, y: 300, text: "off", title: "switch"});
+                const rot2 = makeNode("op", {id: 5, x: 320, y: 300, op: "ROT13"});
+                rot2.inputText = "Hello, World!";
+                const rot2Sink = makeNode("input", {id: 6, x: 700, y: 300, text: ""});
+                const comma = makeNode("input", {id: 7, x: 0, y: 600, text: "Comma", title: "delimiter"});
+                const hex = makeNode("op", {id: 8, x: 320, y: 600, op: "To Hex"});
+                hex.inputText = "Hello";
+                const hexSink = makeNode("input", {id: 9, x: 700, y: 600, text: ""});
+                s.nodes.push(five, rot, rotSink, off, rot2, rot2Sink, comma, hex, hexSink);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "arg:3", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"},
+                    {id: "e3", from: 4, to: 5, toPort: "arg:0", fromPort: "out"},
+                    {id: "e4", from: 1, to: 5, toPort: "arg:3", fromPort: "out"},
+                    {id: "e5", from: 5, to: 6, toPort: "main", fromPort: "out"},
+                    {id: "e6", from: 7, to: 8, toPort: "arg:0", fromPort: "out"},
+                    {id: "e7", from: 8, to: 9, toPort: "main", fromPort: "out"}
+                );
+                // Every argument is offered a port, including the ones with a control of
+                // their own: a main input plus one per argument.
+                const ports = nodeInPorts(hex).length;
+                const wanted = (OPS["To Hex"].args || []).length + 1;
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const text = id => { const b = res.results.get(id)?.bytes; return b ? utf8(b) : ""; };
+                const a = text(3), b = text(6), c = text(9);
+                const ok = ports === wanted && a === "Mjqqt, Btwqi!" && b === "Mello, Borld!" && c === "48,65,6c,6c,6f";
+                return {
+                    ok,
+                    detail: `${ports}/${wanted} ports · number → ${JSON.stringify(a)}, switch → ${JSON.stringify(b)}, dropdown → ${JSON.stringify(c)}`
+                };
+            })
+        },
+        {
+            id: "undoredo",
+            title: "Undo and redo a change",
+            description: "Adding a node is one step back and one step forward again. The check works on the real canvas and puts the graph back exactly as it found it.",
+            run: async () => {
+                const baseline = historySnapshot();
+                const before = state.nodes.length;
+                resetHistory();
+                addOperationNode("To Base64", 40, 600);
+                pushHistory();
+                const added = state.nodes.length;
+                undo();
+                const afterUndo = state.nodes.length;
+                redo();
+                const afterRedo = state.nodes.length;
+                restoreSnapshot(baseline.json);
+                resetHistory();
+                const restored = state.nodes.length;
+                return {
+                    ok: added === before + 1 && afterUndo === before && afterRedo === before + 1 && restored === before,
+                    detail: `${before} nodes → added ${added} → undo ${afterUndo} → redo ${afterRedo}, canvas handed back at ${restored}`
+                };
+            }
+        },
+        {
+            id: "fnsample",
+            title: "A function input can be tested with a file",
+            description: "A declared input carries an attached file as its test sample, and the body receives those exact bytes when the function is run on its own.",
+            run: () => withScratchGraph(async s => {
+                const def = createFunction("From file");
+                const [source, sink] = def.nodes;
+                source.ports[0] = {
+                    name: "Bytes", sample: "", encoding: "utf8", sampleMode: "file",
+                    sampleFileName: "t.bin", sampleFileSize: 4, sampleFileMime: "application/octet-stream",
+                    sampleFileData: bytesToB64(new Uint8Array([0xde, 0xad, 0xbe, 0xef]))
+                };
+                const op = makeNode("op", {id: 3, x: 320, y: 140, op: "To Hex"});
+                def.nodes.push(op);
+                def.edges.push(
+                    {id: "e1", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
+                    {id: "e2", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"}
+                );
+                const inst = makeNode("fn", {id: 402, x: 500, y: 0, fnId: def.id});
+                s.nodes.push(inst);
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const bytes = res.results.get(402)?.bytes;
+                const text = bytes ? utf8(bytes) : "";
+                // A file sample has to survive a save, or a shared graph would test on nothing.
+                const saved = cleanFunctionForSave(def).nodes[0].ports[0];
+                const roundTrips = saved.sampleMode === "file" && saved.sampleFileData === source.ports[0].sampleFileData;
+                return {
+                    ok: text === "de ad be ef" && roundTrips,
+                    detail: `attached 4 bytes came out as ${JSON.stringify(text)}${roundTrips ? ", sample survives a save" : ", sample was lost on save"}`
+                };
+            })
+        },
+        {
+            id: "fntyped",
+            title: "A function input can be typed in without a wire",
+            description: "An input the definition marks as typeable gives every instance a box; typed text reaches the body with nothing wired to the port, and a wire still overrides it.",
+            run: () => withScratchGraph(async s => {
+                const def = createFunction("Constant");
+                const [source, sink] = def.nodes;
+                source.ports[0] = {name: "Value", sample: "preset text", encoding: "utf8", sampleMode: "text", typed: true};
+                const op = makeNode("op", {id: 3, x: 320, y: 140, op: "To Base64"});
+                def.nodes.push(op);
+                def.edges.push(
+                    {id: "e1", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
+                    {id: "e2", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"}
+                );
+                const typed = makeNode("fn", {id: 501, x: 500, y: 0, fnId: def.id});
+                typed.typedInputs = {"fn:0": "hello"};
+                const wired = makeNode("fn", {id: 502, x: 500, y: 300, fnId: def.id});
+                wired.typedInputs = {"fn:0": "ignored"};
+                const feed = makeNode("input", {id: 503, x: 0, y: 300, text: "from wire"});
+                // An emptied box is not an override: it falls back to the default shown in it.
+                const cleared = makeNode("fn", {id: 505, x: 500, y: 600, fnId: def.id});
+                cleared.typedInputs = {"fn:0": ""};
+                s.nodes.push(typed, wired, feed, cleared);
+                s.edges.push({id: "e3", from: 503, to: 502, toPort: "fn:0", fromPort: "out"});
+                // The instance has to actually render the box for a typeable input.
+                const node = makeNode("fn", {id: 504, x: 0, y: 600, fnId: def.id, typedInputs: {"fn:0": "x"}});
+                s.nodes.push(node);
+                const built = buildFunctionNode(node);
+                const boxes = built.querySelectorAll("[data-typed-port] input").length;
+                // The box shows the definition's sample as its default, so the value an
+                // untouched instance will run on is visible without opening the function.
+                const shown = built.querySelector("[data-typed-port] input").placeholder;
+                s.nodes.pop();
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const text = id => { const b = res.results.get(id)?.bytes; return b ? utf8(b) : ""; };
+                const a = text(501), b = text(502), c = text(505);
+                return {
+                    ok: boxes === 1 && shown === "preset text · default" &&
+                        a === "aGVsbG8=" && b === "ZnJvbSB3aXJl" && c === "cHJlc2V0IHRleHQ=",
+                    detail: `${boxes} typed box showing ${JSON.stringify(shown)} · typed "hello" → ${JSON.stringify(a)}, wire beat the typed value → ${JSON.stringify(b)}, emptied box fell back to the default → ${JSON.stringify(c)}`
+                };
+            })
+        },
+        {
+            id: "fnsamplepipe",
+            title: "A function's test sample can be piped in",
+            description: "A node in the body feeds the declared input's sample port, so the input runs on that value instead of the typed sample — and a value typed on the instance still beats it.",
+            run: () => withScratchGraph(async s => {
+                const def = createFunction("Derived");
+                const [source, sink] = def.nodes;
+                // The typed sample says one thing; the wire into the sample port says another.
+                source.ports[0] = {name: "Value", sample: "typed-sample", encoding: "utf8", sampleMode: "text", typed: true};
+                const fixture = makeNode("input", {id: 3, x: 40, y: 320, text: "Piped!"});
+                const op = makeNode("op", {id: 4, x: 430, y: 140, op: "To Base64"});
+                def.nodes.push(fixture, op);
+                def.edges.push(
+                    {id: "e1", from: fixture.id, to: source.id, toPort: "sample:0", fromPort: "out"},
+                    {id: "e2", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
+                    {id: "e3", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"}
+                );
+                const plain = makeNode("fn", {id: 601, x: 500, y: 0, fnId: def.id});
+                const typed = makeNode("fn", {id: 602, x: 500, y: 300, fnId: def.id});
+                typed.typedInputs = {"fn:0": "mine"};
+                s.nodes.push(plain, typed);
+                const built = buildFunctionNode(plain);
+                const shown = built.querySelector("[data-typed-port] input").placeholder;
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const text = id => { const b = res.results.get(id)?.bytes; return b ? utf8(b) : ""; };
+                const a = text(601), b = text(602);
+                return {
+                    ok: a === "UGlwZWQh" && b === "bWluZQ==" && /inside the function/.test(shown),
+                    detail: `piped sample → ${JSON.stringify(a)}, typed value beat it → ${JSON.stringify(b)}, instance box reads ${JSON.stringify(shown)}`
+                };
+            })
         }
     ];
+}
+
+// A scratch graph for the feature checks: they exercise the real editor and the real runner,
+// then hand the canvas back exactly as they found it.
+async function withScratchGraph(fn) {
+    const savedState = state;
+    const savedSelection = selection;
+    const savedEdge = selectedEdge;
+    state = {version: 1, nodes: [], edges: [], functions: [], autoRun: false, view: {...(savedState?.view || {x: 0, y: 0, zoom: 0.8})}};
+    selection = new Set();
+    selectedEdge = null;
+    try {
+        return await fn(state);
+    } finally {
+        state = savedState;
+        selection = savedSelection;
+        selectedEdge = savedEdge;
+        renderAllNodes();
+        applyView();
+    }
 }
 function buildIntegrationCards() {
     lab.integration = integrationDefinitions().map(def => ({...def, status: "pending", detail: "", duration: 0}));
@@ -70793,7 +73019,7 @@ function buildIntegrationCards() {
 }
 function renderIntegration() {
     const wrap = $("#integrationWrap");
-    wrap.innerHTML = `<div class="integration-intro">These checks exercise the node runner itself: typed input/output nodes, fan-out to argument ports, fan-in merging, and cycle protection. They run through the same embedded engine as the canvas.</div>`;
+    wrap.innerHTML = `<div class="integration-intro">These checks exercise the node runner and the editor itself: typed input/output nodes, fan-out to argument ports, fan-in merging, cycle protection, multi-select, the clipboard, wired-value previews, function blocks, wires into numbers, switches and dropdowns, undo/redo, file-backed function test samples, test samples piped in from inside a function, and values typed straight onto a function instance. They run through the same embedded engine as the canvas.</div>`;
     for (const def of lab.integration) {
         const card = document.createElement("div");
         card.className = "integration-card" + (def.status === "pass" || def.status === "fail" ? " ran" : "");
@@ -70829,6 +73055,20 @@ async function runIntegration(id) {
     card.classList.add("ran");
     const t0 = performance.now();
     try {
+        if (def.run) {
+            // Feature checks drive the editor itself and report their own verdict.
+            const res = await def.run();
+            def.duration = performance.now() - t0;
+            def.status = res && res.ok ? "pass" : "fail";
+            def.detail = `${res && res.ok ? "Pass" : "Fail"} — ${res?.detail || ""} · ${Math.round(def.duration)} ms`;
+            const st = card.querySelector("[data-int-status]");
+            st.className = "test-status " + def.status;
+            st.textContent = statusIcon(def.status);
+            resultEl.textContent = def.detail;
+            resultEl.className = "integration-result " + (def.status === "fail" ? "test-error" : "");
+            lab.integrationRunning = false;
+            return;
+        }
         const {nodes, edges, outputId} = def.build();
         const result = await executeGraph(nodes, edges, {force: true, timeout: 20000});
         def.duration = performance.now() - t0;
@@ -70874,9 +73114,11 @@ function toggleSidebar() {
 }
 
 /* ================================================================ events */
-function bindGlobalEvents() {
-    stage.addEventListener("pointerdown", startPan);
-    stage.addEventListener("wheel", ev => {
+// Everything that makes a canvas a canvas: panning, zooming and node actions. The graph
+// and a function's editor are both wired with this.
+function bindCanvasEvents(stageEl, layerEl) {
+    stageEl.addEventListener("pointerdown", startPan);
+    stageEl.addEventListener("wheel", ev => {
         if (ev.ctrlKey || ev.metaKey || Math.abs(ev.deltaY) > 0) {
             ev.preventDefault();
             zoomAt(ev.clientX, ev.clientY, Math.exp(-ev.deltaY * 0.0014));
@@ -70884,11 +73126,16 @@ function bindGlobalEvents() {
     }, {passive: false});
     // Scrolling inside a scrollable part of a node (the Magic ranking, a preview, a
     // text box) must scroll that element, not zoom the canvas underneath it.
-    nodesLayer.addEventListener("wheel", ev => {
+    layerEl.addEventListener("wheel", ev => {
         if (ev.target.closest(".magic-list, .preview pre, .file-list, .control, .collapsed-ports")) {
             ev.stopPropagation();
         }
     }, {passive: true});
+    layerEl.addEventListener("click", onNodeActionClick);
+}
+
+function bindGlobalEvents() {
+    bindCanvasEvents(stage, nodesLayer);
 
     stage.addEventListener("dragover", ev => {
         if (ev.dataTransfer?.types?.includes("Files")) {
@@ -70934,6 +73181,7 @@ function bindGlobalEvents() {
     document.addEventListener("keydown", ev => {
         if (ev.key === "Escape") {
             if (helpOpen()) { closeHelp(); return; }
+            if (editingFunctionId) { closeFunctionEditor(); return; }
             if (! $("#lab").hidden) { closeLab(); return; }
             if (connection) {
                 connection.temp?.remove();
@@ -70949,13 +73197,30 @@ function bindGlobalEvents() {
         const tag = document.activeElement?.tagName;
         const typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || document.activeElement?.isContentEditable;
         if (!typing && (ev.key === "Delete" || ev.key === "Backspace")) {
-            if (selected?.type === "node") {
+            if (selection.size) {
                 ev.preventDefault();
-                deleteNode(selected.id);
-            } else if (selected?.type === "edge") {
+                deleteSelectedNodes();
+            } else if (selectedEdge) {
                 ev.preventDefault();
-                removeEdge(selected.id);
+                removeEdge(selectedEdge);
             }
+        }
+        if (!typing && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "c") {
+            ev.preventDefault();
+            copySelection();
+        }
+        if (!typing && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "x") {
+            ev.preventDefault();
+            copySelection({cut: true});
+        }
+        if (!typing && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "v") {
+            ev.preventDefault();
+            pasteClipboard();
+        }
+        if (!typing && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z") {
+            ev.preventDefault();
+            if (ev.shiftKey) redo(); else undo();
+            return;
         }
         if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
             ev.preventDefault();
@@ -70975,10 +73240,7 @@ function bindGlobalEvents() {
         }
     });
 
-    nodesLayer.addEventListener("click", onNodeActionClick);
-    nodesLayer.addEventListener("dblclick", ev => {
-        // double-click a connected main input chip is not a graph action; handled by buttons
-    });
+    // Node actions are bound per canvas in bindCanvasEvents.
 
     $("#openFileInput").addEventListener("change", ev => {
         const f = ev.target.files?.[0];
@@ -71004,10 +73266,23 @@ function deleteNode(id) {
     if (!node) return;
     state.nodes = state.nodes.filter(n => n.id !== id);
     state.edges = state.edges.filter(e => e.from !== id && e.to !== id);
-    if (selected?.type === "node" && selected.id === id) selected = null;
+    selection.delete(Number(id));
     renderAllNodes();
     onGraphEdited();
     toast(`Removed ${sourceTitle(node)}`);
+}
+
+function deleteSelectedNodes() {
+    const ids = [...selection];
+    if (!ids.length) return;
+    const doomed = new Set(ids);
+    state.nodes = state.nodes.filter(n => !doomed.has(n.id));
+    state.edges = state.edges.filter(e => !doomed.has(e.from) && !doomed.has(e.to));
+    selection.clear();
+    selectedEdge = null;
+    renderAllNodes();
+    onGraphEdited();
+    toast(ids.length === 1 ? "Removed 1 node" : `Removed ${ids.length} nodes`);
 }
 
 function onNodeActionClick(ev) {
@@ -71060,6 +73335,46 @@ function onNodeActionClick(ev) {
             renderAllNodes();
             onGraphEdited();
         }
+    } else if (action === "fn-edit") {
+        ev.stopPropagation();
+        const def = node ? functionById(node.fnId) : null;
+        if (def) openFunctionEditor(def);
+    } else if (action === "fn-pick") {
+        ev.stopPropagation();
+        if (node) {
+            node.portPick = Number(btn.dataset.pick) || 0;
+            node._sig = "";
+            refreshNodePreview(node);
+            renderAllNodes();
+            scheduleRun(true, 60);
+        }
+    } else if (action === "fn-add-port" || action === "fn-remove-port") {
+        ev.stopPropagation();
+        if (node) {
+            const adding = action === "fn-add-port";
+            const index = Number(btn.dataset.index) || 0;
+            const isInput = node.type === "fnin";
+            if (adding) {
+                if ((node.ports || []).length >= 8) { toast("Eight ports is the limit for one function.", "error"); return; }
+                node.ports = [...(node.ports || []), isInput ? {name: `Input ${node.ports.length + 1}`, sample: "", encoding: "utf8", sampleMode: "text", typed: false} : {name: `Output ${node.ports.length + 1}`}];
+            } else {
+                if ((node.ports || []).length <= 1) return;
+                node.ports = node.ports.filter((_, i) => i !== index);
+                // Removing a port takes its wires, and slides the later ports down.
+                const prefix = isInput ? "in:" : "out:";
+                state.edges = state.edges.filter(e => !(e.to === node.id && e.fromPort === prefix + index) && !(e.to === node.id && e.toPort === prefix + index));
+                state.edges = state.edges.map(e => {
+                    const shift = key => {
+                        if (!key || !key.startsWith(prefix)) return key;
+                        const n = Number(key.slice(prefix.length));
+                        return Number.isFinite(n) && n > index ? prefix + (n - 1) : key;
+                    };
+                    return {...e, toPort: shift(e.toPort), fromPort: shift(e.fromPort)};
+                });
+            }
+            renderAllNodes();
+            onGraphEdited();
+        }
     } else if (action === "toggle-collapse") {
         ev.stopPropagation();
         if (node) {
@@ -71067,6 +73382,7 @@ function onNodeActionClick(ev) {
             node.collapsed = !node.collapsed;
             renderAllNodes();
             saveLocalSoon();
+            scheduleHistory();
         }
     } else if (action === "preview-mode") {
         ev.stopPropagation();
@@ -71158,6 +73474,7 @@ async function init() {
     if (!state) state = exampleState();
     if (!state.view) state.view = {x: 40, y: 40, zoom: 0.7};
     renumberState(state);
+    resetHistory();
 
     initToolbar();
     setupPaletteDelegation();
@@ -71200,17 +73517,7 @@ async function init() {
         }
     };
 
-    const searchHandler = debounce(() => {
-        searchTerm = paletteSearch.value;
-        renderSearch();
-    }, 70);
-    paletteSearch.addEventListener("input", searchHandler);
-    $("#searchClear").addEventListener("click", () => {
-        paletteSearch.value = "";
-        searchTerm = "";
-        renderSearch();
-        paletteSearch.focus();
-    });
+    bindPaletteSearch(paletteSearch, $("#searchClear"));
 
     // Start the engine; the example graph waits for it and then runs.
     engine.start().then(async () => {

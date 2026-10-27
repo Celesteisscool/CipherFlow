@@ -142,13 +142,13 @@ ${css}
         <div class="world" id="world">
             <svg class="edges-svg" id="edgesSvg" aria-hidden="true"><g id="edgesLayer"></g></svg>
             <div class="nodes-layer" id="nodesLayer"></div>
+            <svg class="edge-handles-svg" id="edgeHandlesSvg" aria-hidden="true"><g id="edgeHandlesLayer"></g></svg>
         </div>
         <div class="stage-controls">
             <button class="zoom-btn" id="zoomOut" title="Zoom out">−</button>
             <span class="zoom-value" id="zoomLabel">100%</span>
             <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
             <button class="zoom-btn fit-btn" id="fitBtn" title="Fit graph to view"><span id="fitBtnIcon"></span>Fit</button>
-            <button class="zoom-btn help-btn" id="helpBtn" title="How this works"></button>
         </div>
         <div class="run-status" id="runStatus" title="Last run summary"><span class="status-dot"></span><span id="runStatusText">Loading embedded engine…</span></div>
     </main>
@@ -160,6 +160,7 @@ ${css}
                 <h1 class="sidebar-title">Node list</h1>
                 <span class="count-badge"><span id="opCount">0</span> ops</span>
                 <button class="icon-button" id="themeBtn" title="Toggle dark / light mode"></button>
+                <button class="icon-button" id="helpBtn" title="How this works"></button>
                 <button class="icon-button" id="labOpenBtn" title="Open the verification lab"></button>
                 <button class="icon-button sidebar-close" id="sidebarCloseBtn" title="Close node list"></button>
             </div>
@@ -240,7 +241,7 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Combine two inputs</h3>
-                <p>Operations expose a port for every argument that can be wired — a key, an IV, a password. Type into the control, or wire a second node into that argument's port to feed it. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
+                <p>Every operation carries a box for its own main input, plus a port and a box for every argument that can be wired — a key, an IV, a password. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins — the box dims and shows what is arriving on that wire. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
             </div>
             <div class="help-section">
                 <h3>Magic</h3>

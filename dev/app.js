@@ -70,7 +70,19 @@ const ICONS = {
 };
 
 const svg = (name, cls = "") => String(ICONS[name] || "").replace("<svg", `<svg class="${cls}"`);
-const iconFill = name => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+// Every icon ends up as exactly ONE <svg>. Some entries already carry their own <svg>
+// element, so wrapping those again produced a nested svg with no size of its own, which
+// inflated to fill whatever box it sat in. The icon's own attributes win; the shared
+// defaults only fill in what it leaves out.
+const iconFill = name => {
+    const raw = String(ICONS[name] || "").trim();
+    const match = raw.match(/^<svg([^>]*)>([\s\S]*)<\/svg>$/);
+    const attrs = {viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", "stroke-width": "1.8", "stroke-linecap": "round", "stroke-linejoin": "round"};
+    if (match) for (const a of match[1].matchAll(/([\w:-]+)="([^"]*)"/g)) attrs[a[1]] = a[2];
+    const body = match ? match[2] : raw;
+    const attrText = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(" ");
+    return `<svg ${attrText}>${body}</svg>`;
+};
 
 function bytesToHex(bytes, sep = "") {
     let out = "";
@@ -628,6 +640,10 @@ function makeNode(type, opts = {}) {
         node.op = opts.op;
         node.outputType = OPS[opts.op]?.outputType || "string";
         node.values = opts.values ? cloneValue(opts.values) : defaultNodeValues(opts.op);
+        // An operation can carry its own input text, typed straight into the node. It is
+        // used only when nothing is wired into the main port.
+        node.inputText = opts.inputText ?? "";
+        node.inputEncoding = opts.inputEncoding || "utf8";
     } else if (type === "input") {
         node.text = opts.text ?? "Hello, World!";
         node.encoding = opts.encoding || "utf8";
@@ -742,6 +758,8 @@ function cleanNodeForSave(n) {
         title: n.title || "",
         text: n.text,
         encoding: n.encoding,
+        inputText: n.inputText,
+        inputEncoding: n.inputEncoding,
         fileName: n.fileName,
         fileSize: n.fileSize,
         fileData: n.fileData,
@@ -790,6 +808,8 @@ function normalizeLoaded(data) {
             op: raw.op,
             text: wasOutput ? "" : raw.text,
             encoding: raw.encoding,
+            inputText: raw.inputText,
+            inputEncoding: ["utf8", "hex", "base64", "latin1"].includes(raw.inputEncoding) ? raw.inputEncoding : "utf8",
             fileName: raw.fileName,
             fileSize: raw.fileSize,
             fileData: raw.fileData,
@@ -886,6 +906,7 @@ const world = $("#world");
 const nodesLayer = $("#nodesLayer");
 const edgesSvg = $("#edgesSvg");
 const edgesLayer = $("#edgesLayer");
+const edgeHandlesLayer = $("#edgeHandlesLayer");
 const zoomLabel = $("#zoomLabel");
 const runStatus = $("#runStatus");
 const runStatusText = $("#runStatusText");
@@ -1077,6 +1098,7 @@ function buildNode(node) {
         el.appendChild(collapsedPorts(node));
     } else if (node.type === "op") {
         body.appendChild(mainInputRow(node));
+        body.appendChild(opInputControl(node));
         body.appendChild(renderArgs(node));
         body.appendChild(buildPreview(node));
         body.appendChild(buildError(node));
@@ -1153,6 +1175,65 @@ function collapsedPorts(node) {
     </div>`).join("");
     $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
     return wrap;
+}
+
+// An operation's main input gets a box of its own, exactly like its arguments do: you can
+// type a value straight into the node and the run uses it, or wire something into the port
+// and the wire takes over (the box dims, as a wired argument's field does).
+// What the wire is actually delivering, as a one-line taste for the input box's placeholder:
+// enough to recognise the value, cut off when it runs long. Never used for the node's own
+// data — the box keeps the text you typed, this is only what the placeholder shows.
+const OP_INPUT_HINT_CHARS = 32;
+function opInputHint(node) {
+    const edge = edgeInto(node.id, "main");
+    if (!edge) return "";
+    const src = nodeById(edge.from);
+    const bytes = src?._output;
+    if (!bytes) return "Nothing on the wire yet — press Run";
+    if (!bytes.length) return "Empty output on the wire";
+    if (looksBinary(bytes)) return `Binary data · ${formatBytes(bytes.length)}`;
+    const text = dec.decode(bytes).replace(/\s+/g, " ").trim();
+    if (!text) return `Blank text · ${formatBytes(bytes.length)}`;
+    return text.length > OP_INPUT_HINT_CHARS ? text.slice(0, OP_INPUT_HINT_CHARS) + "…" : text;
+}
+
+function opInputControl(node) {
+    const wired = Boolean(edgeInto(node.id, "main"));
+    const box = document.createElement("div");
+    box.className = "arg-control op-input" + (wired ? " connected" : "");
+    const pair = document.createElement("div");
+    pair.className = "toggle-pair";
+    const input = document.createElement("input");
+    input.className = "control";
+    input.spellcheck = false;
+    input.setAttribute("data-op-input", "");
+    input.value = node.inputText || "";
+    input.placeholder = (wired ? opInputHint(node) : "") || (wired ? "Fed by the wire" : "Type input text");
+    input.title = wired ? "Coming in on the wire feeding this port — the wire wins while it is connected" : "Text this node runs on when nothing is wired in";
+    input.addEventListener("input", () => {
+        node.inputText = input.value;
+        node._sig = "";
+        onGraphEdited();
+    });
+    const select = document.createElement("select");
+    select.className = "control";
+    select.title = "How to read the text beside it";
+    for (const [value, label] of [["utf8", "UTF-8"], ["hex", "Hex"], ["base64", "Base64"], ["latin1", "Latin-1"]]) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        select.appendChild(option);
+    }
+    select.value = node.inputEncoding || "utf8";
+    select.addEventListener("change", () => {
+        node.inputEncoding = select.value;
+        node._sig = "";
+        onGraphEdited();
+    });
+    pair.appendChild(input);
+    pair.appendChild(select);
+    box.appendChild(pair);
+    return box;
 }
 
 function mainInputRow(node, label = "Input") {
@@ -1290,19 +1371,22 @@ function buildJoinNode(node) {
         const port = "join:" + i;
         const edge = edgeInto(node.id, port);
         const src = edge ? edgeSource(edge) : null;
-        rows += `<div class="io-row" style="margin-top:4px">
+        rows += `<div class="io-row join-row">
             <span class="port in${edge ? " connected" : ""}" data-port="${port}"></span>
             <span class="io-label">Input ${i + 1}</span>
             <span class="port-label">${edge ? chipHtml(src, edge) : ""}</span>
-            ${node.joinCount > 1 ? `<button class="join-remove" data-action="remove-join" data-node="${node.id}" title="Remove this input">×</button>` : ""}
+            ${node.joinCount > 1 && i === node.joinCount - 1 ? `<button class="join-remove" data-action="remove-join" data-node="${node.id}" title="Remove the last input">${iconFill("x")}</button>` : ""}
         </div>`;
     }
     wrap.innerHTML = `${rows}
-        <button class="join-add" data-action="add-join" data-node="${node.id}">${iconFill("plus")} Add input</button>
+        <button class="join-add" data-action="add-join" data-node="${node.id}">${iconFill("plus")}<span>Add input</span></button>
         <div class="arg-row sep-label"><div class="arg-label-row"><span class="arg-name">Separator</span></div><input class="control" data-join-separator value="${esc(node.separator)}" placeholder="Optional separator (\\n works)"></div>
-        ${buildPreview(node)}
-        ${buildError(node)}
     `;
+    // buildPreview/buildError hand back real elements, so they must be appended rather
+    // than interpolated into the markup above, where a DOM node stringifies to
+    // "[object HTMLDivElement]" and prints that text into the node.
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
     $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
     const sep = $("[data-join-separator]", wrap);
     sep.addEventListener("input", () => { node.separator = sep.value; node._sig = ""; onGraphEdited(); });
@@ -1577,6 +1661,12 @@ function buildError(node) {
 function refreshNodePreview(node) {
     const el = nodeEl(node.id);
     if (!el) return;
+    // The input box of an operation shows what its wire is carrying, refreshed on every run.
+    const opInput = $("[data-op-input]", el);
+    if (opInput) {
+        const hint = opInputHint(node);
+        opInput.placeholder = hint || (edgeInto(node.id, "main") ? "Fed by the wire" : "Type input text");
+    }
     let p = $("[data-preview]", el);
     if (!p) return;
     updatePreviewEl(p, node);
@@ -1650,9 +1740,45 @@ function edgeMidpoint(a, b) {
     return {x, y};
 }
 
+// Where to put the wire's delete handle. The midpoint is the natural spot, but a wire can
+// pass underneath a node card, which paints above the wires and would bury the handle.
+// So walk outwards from the middle looking for a point that is clear of every node, and
+// prefer one where the browser reports the point as this wire. Falls back to a clear
+// point, then to the plain midpoint, if the whole wire is hidden.
+function handlePointOnEdge(edge, a, b) {
+    const mid = edgeMidpoint(a, b);
+    const path = edgesLayer.querySelector(`.edge-hit[data-edge="${cssEscape(edge.id)}"]`);
+    if (!path || typeof path.getTotalLength !== "function") return mid;
+    const total = path.getTotalLength();
+    if (!total) return mid;
+    const svgPoint = edgesSvg.createSVGPoint();
+    const ctm = path.getScreenCTM();
+    if (!ctm) return mid;
+    const R = 16; // keep the whole handle clear of the window edge
+    let clear = null;
+    for (const t of [0.5, 0.45, 0.55, 0.4, 0.6, 0.35, 0.65, 0.3, 0.7, 0.25, 0.75, 0.2, 0.8, 0.15, 0.85, 0.1, 0.9]) {
+        const p = path.getPointAtLength(total * t);
+        svgPoint.x = p.x; svgPoint.y = p.y;
+        const s = svgPoint.matrixTransform(ctm);
+        if (!Number.isFinite(s.x) || !Number.isFinite(s.y)) continue;
+        if (s.x < R || s.y < R || s.x > window.innerWidth - R || s.y > window.innerHeight - R) continue;
+        // A node card paints above the wires, so a handle drawn over one would be buried
+        // and unclickable. Skip any point a node covers.
+        const el = document.elementFromPoint(s.x, s.y);
+        if (el && el.closest && el.closest(".node")) continue;
+        const own = el && el.classList && el.classList.contains("edge-hit") && el.dataset.edge === edge.id;
+        if (own) return {x: p.x, y: p.y};
+        if (!clear) clear = {x: p.x, y: p.y};
+    }
+    // Nothing on the wire is fully visible (it runs under a card); sit it on the part
+    // that is uncovered, or fall back to the true midpoint.
+    return clear || mid;
+}
+
 function drawEdges() {
     if (!state) return;
     edgesLayer.innerHTML = "";
+    edgeHandlesLayer.innerHTML = "";
     for (const edge of state.edges) {
         const from = nodeById(edge.from);
         const to = nodeById(edge.to);
@@ -1682,26 +1808,39 @@ function drawEdges() {
         line.setAttribute("stroke", color);
         group.appendChild(hit);
         group.appendChild(line);
+        // The group has to be in the document before the handle position is probed, or
+        // elementFromPoint cannot see this wire yet.
+        edgesLayer.appendChild(group);
         if (selected?.type === "edge" && selected.id === edge.id) {
-            const mid = edgeMidpoint(a, b);
+            const mid = handlePointOnEdge(edge, a, b);
             const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
             g.setAttribute("class", "edge-x");
             g.setAttribute("transform", `translate(${mid.x} ${mid.y})`);
+            // An invisible disc a little larger than the visible one, so the handle is
+            // comfortable to hit without looking bulky.
+            const hitDisc = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            hitDisc.setAttribute("class", "edge-x-hit");
+            hitDisc.setAttribute("r", String(15 / state.view.zoom));
             const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            const r = 9 / state.view.zoom;
-            circle.setAttribute("r", String(r));
+            circle.setAttribute("class", "edge-x-disc");
+            circle.setAttribute("r", String(9 / state.view.zoom));
             const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
             text.setAttribute("font-size", String(13 / state.view.zoom));
             text.textContent = "×";
+            g.appendChild(hitDisc);
             g.appendChild(circle);
             g.appendChild(text);
-            g.addEventListener("pointerdown", ev => {
+            const drop = ev => {
+                ev.preventDefault();
                 ev.stopPropagation();
                 removeEdge(edge.id);
-            });
-            group.appendChild(g);
+            };
+            g.addEventListener("pointerdown", drop);
+            g.addEventListener("click", ev => ev.stopPropagation());
+            // Drawn last and in its own layer, so it always sits above the wires and
+            // above the nodes: nothing can swallow the click.
+            edgeHandlesLayer.appendChild(g);
         }
-        edgesLayer.appendChild(group);
     }
 }
 
@@ -1973,12 +2112,21 @@ function startPan(ev) {
 }
 
 /* ================================================================ input parsing */
-function inputNodeBytes(node) {
-    const text = node.text ?? "";
-    if (node.encoding === "hex") return hexToBytes(text);
-    if (node.encoding === "base64") return b64ToBytes(text);
-    if (node.encoding === "latin1") return latin1ToBytes(text);
+function textBytes(text, encoding) {
+    if (encoding === "hex") return hexToBytes(text);
+    if (encoding === "base64") return b64ToBytes(text);
+    if (encoding === "latin1") return latin1ToBytes(text);
     return enc.encode(text);
+}
+
+function inputNodeBytes(node) {
+    return textBytes(node.text ?? "", node.encoding);
+}
+
+// The text typed into an operation's own input box, for when no wire feeds it.
+function opInputBytes(node) {
+    const text = node.inputText ?? "";
+    return text ? textBytes(text, node.inputEncoding || "utf8") : new Uint8Array(0);
 }
 
 function joinSeparatorString(text) {
@@ -2087,7 +2235,7 @@ function inputSignature(node, incoming, results) {
                 argSigs.push(port + "=" + s.sig);
             }
         }
-        return JSON.stringify([node.op, node.values, main.sig, argSigs.sort()]);
+        return JSON.stringify([node.op, node.values, node.inputText, node.inputEncoding, main.sig, argSigs.sort()]);
     }
     if (node.type === "input") {
         const s = sourceBytesForPort(incoming, node.id, "main", results);
@@ -2420,7 +2568,8 @@ async function executeGraph(nodes, edges, opts = {}) {
                     reused++;
                     countIt = false;
                 } else if (!error) {
-                    const inputBytes = main.bytes || new Uint8Array(0);
+                    // A wired input wins; otherwise the text typed into the node is used.
+                    const inputBytes = main.bytes != null ? main.bytes : opInputBytes(node);
                     if (node.op === "Magic") {
                         const magic = await runMagicNode(node, inputBytes, resolved.values);
                         if (magic.error && !magic.rows.length) throw new Error(magic.error);
@@ -2888,7 +3037,6 @@ function initToolbar() {
         <span class="tb-sep"></span>
         <button class="tb-switch" data-action="auto" title="Toggle automatic runs"><span class="switch" id="autoSwitch"></span><span class="switch-label">Auto-run</span></button>
         <button class="btn-run" id="runBtn" data-action="run">${iconFill("play")} Run</button>
-        <button class="tb-btn" data-action="theme" title="Toggle dark / light mode">${iconFill("moon")}<span class="tb-label">Theme</span></button>
         <button class="tb-btn tb-mobile" data-action="sidebar" title="Show node list">${iconFill("nodes")}<span class="tb-label">Nodes</span></button>
     `;
     autoSwitch = $("#autoSwitch");
@@ -2905,7 +3053,6 @@ function initToolbar() {
         if (action === "auto") toggleAutoRun();
         if (action === "run") { clearTimeout(runTimer); runGraph(true); }
         if (action === "sidebar") toggleSidebar();
-        if (action === "theme") setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
     });
 }
 

@@ -2209,6 +2209,11 @@ kbd {
                 <p><b>Magic</b> lives in the <b>Graph</b> section of the node list, beside Text, File, Join, Fstring and Switch (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
             </div>
             <div class="help-section">
+                <h3>Steganalysis, all local</h3>
+                <p>The three audits below are in the <b>Multimedia</b> category of the node list, at the top, next to the operations they read bytes for. <b>PNG Chunks</b> reads a PNG's container the way pngcheck does: every chunk with its length and CRC, the IHDR dimensions and colour type, tEXt/zTXt/iTXt text, and anything appended after IEND. <b>PDF Scan</b> is the pdfid/pdfinfo view: header and version, object, stream and page counts, title/author strings, the risky markers (/JS, /OpenAction, /Launch, /EmbeddedFile, /Encrypt…), every %%EOF, and data appended after the last one. <b>Image Info</b> is identify: format, dimensions, bit depth, frames and metadata for PNG, JPEG, GIF, WebP and BMP. Each takes bytes on its left port and hands back one text report.</p>
+                <p>The rest of a sweep is already in the operation list, and these reports pipe into it: <b>Strings</b> for printable runs, <b>Extract LSB</b> and <b>View Bit Plane</b> for hidden bit layers, <b>Extract RGBA</b> and <b>Randomize Colour Palette</b> for channel and palette tricks, <b>Extract EXIF</b> for camera metadata, <b>Scan for Embedded Files</b> for signatures at any offset, and <b>Extract Files</b> for carving. Native tools such as steghide, outguess, zsteg and binwalk are separate programs with no browser equivalent, so they are not bundled — everything above runs in the page, offline, with nothing uploaded.</p>
+            </div>
+            <div class="help-section">
                 <h3>Move, resize, collapse</h3>
                 <ul>
                     <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom.</li>
@@ -68476,7 +68481,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "join", "template", "switch", "op", "fn", "fnin", "fnout"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "op", "fn", "fnin", "fnout"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -68784,6 +68789,9 @@ function sourceTitle(node) {
     if (node.type === "op") return node.op;
     if (node.type === "input") return node.title || TEXT_NODE_TITLE;
     if (node.type === "file") return node.title || node.fileName || FILE_NODE_TITLE;
+    if (node.type === "pngchunks") return node.title || "PNG Chunks";
+    if (node.type === "pdfscan") return node.title || "PDF Scan";
+    if (node.type === "imginfo") return node.title || "Image Info";
     if (node.type === "join") return node.title || "Join";
     if (node.type === "template") return node.title || "Fstring";
     if (node.type === "switch") return node.title || "Switch";
@@ -68795,11 +68803,13 @@ function sourceTitle(node) {
 function nodeAccent(node) {
     if (node.type === "op") return opAccent(node.op);
     if (node.type === "fn" || node.type === "fnin" || node.type === "fnout") return FUNCTION_COLOR;
+    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") return CAT_COLORS.Multimedia;
     return GRAPH_COLOR;
 }
 function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
+    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") return "Multimedia";
     if (node.type === "join") return "Join";
     if (node.type === "template") return "Fstring";
     if (node.type === "switch") return "Switch";
@@ -68887,6 +68897,11 @@ function buildNode(node) {
         body.appendChild(buildInputNode(node));
     } else if (node.type === "file") {
         body.appendChild(buildFileNode(node));
+    } else if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") {
+        // Read-only audits: nothing to set, so the node is its input port and its report.
+        body.appendChild(mainInputRow(node, "In"));
+        body.appendChild(buildPreview(node));
+        body.appendChild(buildError(node));
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
     } else if (node.type === "template") {
@@ -69894,7 +69909,8 @@ function updatePreviewEl(wrap, node) {
     const imageUrl = (has && isImage && mode === "image") ? imageDataUrlFor(node, bytes, kind) : null;
     // Text and file nodes are the display side of a graph now, so they get the roomier
     // preview the old Output node had (and its save button, below).
-    const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "switch" || node.type === "fn";
+    const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "switch" || node.type === "fn" ||
+        node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
     // A text node's "Full" box lifts the preview cut-off so the whole file can be read in
     // place. The limit is a character count, so the byte length is always enough to clear it.
     const full = node.type === "input" && Boolean(node.fullPreview) && mode === "text";
@@ -71037,6 +71053,10 @@ function inputSignature(node, incoming, results, opts) {
         const s = sourceBytesForPort(incoming, node.id, "main", results);
         return JSON.stringify(["file", node.fileSize, node.fileName, fnvBytes(b64ToBytes(node.fileData || "")), s.sig]);
     }
+    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") {
+        const s = sourceBytesForPort(incoming, node.id, "main", results);
+        return JSON.stringify([node.type, s.sig]);
+    }
     if (node.type === "join") {
         const parts = [];
         for (let i = 0; i < node.joinCount; i++) {
@@ -71691,7 +71711,8 @@ async function executeGraph(nodes, edges, opts = {}) {
         let countIt = true;
         let sig = "";
         try {
-            const takesMain = node.type === "op" || node.type === "input" || node.type === "file" || node.type === "switch";
+            const takesMain = node.type === "op" || node.type === "input" || node.type === "file" || node.type === "switch" ||
+                node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
             const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
@@ -71751,6 +71772,27 @@ async function executeGraph(nodes, edges, opts = {}) {
                 else if (!node.fileData) error = "Choose a file (or pipe bytes in) for this node.";
                 else if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
                 else out = b64ToBytes(node.fileData);
+            } else if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") {
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    if (main.bytes == null) {
+                        error = node.type === "pngchunks" ? "Pipe a PNG into this node."
+                            : node.type === "pdfscan" ? "Pipe a PDF into this node."
+                            : "Pipe an image into this node.";
+                    } else {
+                        const report = node.type === "pngchunks" ? await pngReport(main.bytes)
+                            : node.type === "pdfscan" ? pdfReport(main.bytes)
+                            : imageReport(main.bytes);
+                        if (!report) {
+                            error = node.type === "pngchunks" ? "That is not a PNG file."
+                                : node.type === "pdfscan" ? "That is not a PDF."
+                                : "Not a PNG, JPEG, GIF, WebP or BMP image.";
+                        } else {
+                            out = enc.encode(report);
+                        }
+                    }
+                }
             } else if (node.type === "join") {
                 sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
@@ -71978,6 +72020,401 @@ function applyNodeFileSelection(node) {
     node._sig = "";
     refreshNodePreview(node);
     onGraphEdited();
+}
+
+/* ================================================================ local file audits
+ * The steg-analysis half of Aperi'Solve, done entirely in the page: three read-only audits
+ * that replace pngcheck, pdfid/pdfinfo and identify. Each takes bytes on `main` and returns
+ * one text report, so a sweep is a graph of ordinary nodes with no upload and no service.
+ * The heavyweight analyzers (steghide, outguess, zsteg, binwalk, foremost) are native
+ * programs; their browser equivalents already in the library are Strings, Extract LSB,
+ * View Bit Plane, Extract RGBA, Extract EXIF, Scan for Embedded Files and Extract Files.
+ */
+const CRC32_TABLE = (() => {
+    const table = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+        table[i] = c >>> 0;
+    }
+    return table;
+})();
+function crc32Of(bytes, start, end) {
+    let c = 0xffffffff;
+    for (let i = start; i < end; i++) c = CRC32_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+}
+function ascii4(bytes, at) {
+    return String.fromCharCode(bytes[at] || 0, bytes[at + 1] || 0, bytes[at + 2] || 0, bytes[at + 3] || 0);
+}
+// A short hex + printable taste of a byte run, for data that has no text form.
+function peekBytes(bytes, max = 64) {
+    const slice = bytes.subarray(0, max);
+    if (!slice.length) return "(nothing)";
+    const hex = bytesToHex(slice, " ");
+    const text = bytesToLatin1(slice).replace(/[^\x20-\x7e]/g, ".");
+    return `${hex}${bytes.length > max ? " …" : ""}\n${text}`;
+}
+async function inflateZlib(bytes) {
+    if (typeof DecompressionStream !== "function") return null;
+    try {
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+        return new Uint8Array(await new Response(stream).arrayBuffer());
+    } catch {
+        return null;
+    }
+}
+
+/* ---------------------------------------------------------------- PNG (pngcheck) */
+const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const PNG_COLOR = {0: "greyscale", 2: "truecolour", 3: "indexed", 4: "greyscale + alpha", 6: "RGBA"};
+function isPng(bytes) {
+    return bytes.length >= 8 && PNG_SIG.every((b, i) => bytes[i] === b);
+}
+function parsePng(bytes) {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const chunks = [];
+    let at = 8, ihdr = null, endedAt = -1, crcBad = 0, truncated = "";
+    while (at + 8 <= bytes.length) {
+        const len = view.getUint32(at);
+        const type = ascii4(bytes, at + 4);
+        const start = at + 8;
+        const end = start + len;
+        if (end + 4 > bytes.length) {
+            truncated = `${type} at offset ${at} claims ${len} bytes but the file ends first`;
+            break;
+        }
+        const ok = crc32Of(bytes, at + 4, end) === view.getUint32(end);
+        if (!ok) crcBad++;
+        chunks.push({type, len, ok, data: bytes.subarray(start, end)});
+        if (type === "IHDR" && len >= 13) {
+            ihdr = {
+                w: view.getUint32(start),
+                h: view.getUint32(start + 4),
+                depth: bytes[start + 8],
+                color: bytes[start + 9],
+                interlace: bytes[start + 12]
+            };
+        }
+        at = end + 4;
+        if (type === "IEND") { endedAt = at; break; }
+    }
+    return {chunks, ihdr, endedAt, crcBad, truncated};
+}
+
+// The text chunks a PNG can carry: tEXt is Latin-1, zTXt is compressed, iTXt is UTF-8 and
+// may also be compressed. A browser without DecompressionStream still lists the keyword.
+async function pngTexts(chunks) {
+    const rows = [];
+    for (const c of chunks) {
+        if (c.type === "tEXt") {
+            const z = c.data.indexOf(0);
+            if (z < 0) continue;
+            rows.push({kind: "tEXt", keyword: bytesToLatin1(c.data.subarray(0, z)), text: bytesToLatin1(c.data.subarray(z + 1))});
+        } else if (c.type === "zTXt") {
+            const z = c.data.indexOf(0);
+            if (z < 0 || z + 2 > c.data.length) continue;
+            const body = await inflateZlib(c.data.subarray(z + 2));
+            rows.push({kind: "zTXt", keyword: bytesToLatin1(c.data.subarray(0, z)), text: body ? bytesToLatin1(body) : "(compressed; this browser cannot inflate it)"});
+        } else if (c.type === "iTXt") {
+            const z = c.data.indexOf(0);
+            if (z < 0 || z + 3 > c.data.length) continue;
+            const flag = c.data[z + 1];
+            const lang = c.data.indexOf(0, z + 3);
+            if (lang < 0) continue;
+            const translated = c.data.indexOf(0, lang + 1);
+            if (translated < 0) continue;
+            const body = flag ? await inflateZlib(c.data.subarray(translated + 1)) : c.data.subarray(translated + 1);
+            rows.push({kind: "iTXt", keyword: bytesToLatin1(c.data.subarray(0, z)), text: body ? dec.decode(body) : "(compressed)"});
+        }
+    }
+    return rows;
+}
+
+async function pngReport(bytes) {
+    if (!isPng(bytes)) return null;
+    const png = parsePng(bytes);
+    const lines = [`PNG · ${formatBytes(bytes.length)}`];
+    lines.push("Signature: valid PNG");
+    const ihdr = png.ihdr;
+    if (ihdr) {
+        lines.push(`Dimensions: ${ihdr.w} × ${ihdr.h} · ${ihdr.depth}-bit · ${PNG_COLOR[ihdr.color] || `colour type ${ihdr.color}`} · ${ihdr.interlace ? "Adam7 interlaced" : "no interlace"}`);
+    } else {
+        lines.push("IHDR: missing or unreadable");
+    }
+    // Consecutive chunks of one type are one line, so a 60-IDAT image stays readable.
+    const groups = [];
+    for (const c of png.chunks) {
+        const last = groups[groups.length - 1];
+        if (last && last.type === c.type && last.ok === c.ok) {
+            last.count++;
+            last.bytes += c.len;
+        } else {
+            groups.push({type: c.type, count: 1, bytes: c.len, ok: c.ok});
+        }
+    }
+    lines.push(`Chunks: ${png.chunks.length}`);
+    const MAX_GROUPS = 60;
+    for (const g of groups.slice(0, MAX_GROUPS)) {
+        lines.push(`  ${g.type}  ${g.count > 1 ? `×${g.count}  ` : ""}${formatBytes(g.bytes)}  ${g.ok ? "crc ok" : "CRC BAD"}`);
+    }
+    if (groups.length > MAX_GROUPS) lines.push(`  … ${groups.length - MAX_GROUPS} more chunk groups`);
+    const texts = await pngTexts(png.chunks);
+    if (texts.length) {
+        lines.push("");
+        lines.push(`Text chunks (${texts.length}):`);
+        for (const t of texts.slice(0, 20)) {
+            const value = t.text.replace(/\s+/g, " ").trim();
+            lines.push(`  ${t.kind} ${JSON.stringify(t.keyword)}: ${value.length > 240 ? value.slice(0, 240) + "…" : value}`);
+        }
+        if (texts.length > 20) lines.push(`  … ${texts.length - 20} more`);
+    }
+    const extras = [];
+    if (png.chunks.some(c => c.type === "eXIf")) extras.push("EXIF chunk");
+    if (png.chunks.some(c => c.type === "iCCP")) extras.push("ICC profile");
+    if (png.chunks.some(c => c.type === "acTL")) extras.push("animated (APNG)");
+    if (extras.length) lines.push(`Also: ${extras.join(" · ")}`);
+    lines.push("");
+    if (png.crcBad) lines.push(`Warning: ${png.crcBad} chunk${png.crcBad === 1 ? " has" : "s have"} a bad CRC — edited by hand or damaged.`);
+    if (png.truncated) lines.push(`Warning: truncated — ${png.truncated}.`);
+    else if (png.endedAt < 0) lines.push("Warning: no IEND chunk — the file is incomplete.");
+    if (png.endedAt >= 0 && png.endedAt < bytes.length) {
+        const tail = bytes.subarray(png.endedAt);
+        lines.push(`Trailing data: ${formatBytes(tail.length)} after IEND`);
+        lines.push(peekBytes(tail, 64));
+    } else if (png.endedAt >= 0) {
+        lines.push("Trailing data: none");
+    }
+    return lines.join("\n").trimEnd() + "\n";
+}
+
+/* ---------------------------------------------------------------- PDF (pdfid/pdfinfo) */
+// PDF strings echo their escapes, so a Title of "A \(B\)" reads as written.
+function pdfString(text) {
+    return text.replace(/\\([nrtbf()\\]|[0-7]{1,3})/g, (m, e) => {
+        if (/^[0-7]/.test(e)) return String.fromCharCode(parseInt(e, 8));
+        return {n: "\n", r: "\r", t: "\t", b: "\b", f: "\f", "(": "(", ")": ")", "\\": "\\"}[e] ?? e;
+    });
+}
+function pdfReport(bytes) {
+    const raw = bytesToLatin1(bytes);
+    const lines = [`PDF · ${formatBytes(bytes.length)}`];
+    const headerAt = raw.indexOf("%PDF-");
+    const version = headerAt >= 0 ? (raw.slice(headerAt + 5, headerAt + 8).match(/^\d\.\d/) || [""])[0] : "";
+    lines.push(`Header: ${headerAt >= 0 ? `%PDF-${version || "?"} at offset ${headerAt}` : "missing (%PDF- not found)"}`);
+    const eofs = [...raw.matchAll(/%%EOF/g)].map(m => m.index);
+    lines.push(`EOF marker: ${eofs.length ? `${eofs.length} ×, last at offset ${eofs[eofs.length - 1]}` : "missing"}`);
+    const count = re => (raw.match(re) || []).length;
+    lines.push("");
+    // Objects are the `N G obj` declarations, not a /Type — an object stream is counted on
+    // its own line, the way pdfid separates the two.
+    lines.push(`Objects: ${count(/\b\d+\s+\d+\s+obj\b/g)} · Streams: ${count(/\bstream\b/g)} · Object streams: ${count(/\/ObjStm\b/g)}`);
+    const pageCount = count(/\/Type\s*\/Page(?![s])/g);
+    const declared = [...raw.matchAll(/\/Count\s+(\d+)/g)].map(m => Number(m[1]));
+    lines.push(`Pages: ${pageCount}${declared.length ? ` · /Pages Count ${Math.max(...declared)}` : ""}`);
+    lines.push("");
+    const flags = [
+        ["Encrypt", /\/Encrypt\b/g], ["JavaScript", /\/JavaScript\b/g], ["JS", /\/JS\b/g],
+        ["OpenAction", /\/OpenAction\b/g], ["AA", /\/AA\b/g], ["Launch", /\/Launch\b/g],
+        ["EmbeddedFile", /\/EmbeddedFile\b/g], ["URI", /\/URI\b/g], ["AcroForm", /\/AcroForm\b/g],
+        ["XFA", /\/XFA\b/g], ["JBIG2Decode", /\/JBIG2Decode\b/g], ["RichMedia", /\/RichMedia\b/g],
+        ["Linearized", /\/Linearized\b/g]
+    ];
+    const hits = flags.map(([name, re]) => [name, count(re)]).filter(([, n]) => n > 0);
+    lines.push(hits.length
+        ? `Features: ${hits.map(([name, n]) => `${name} ${n}`).join(" · ")}`
+        : "Features: none of the usual markers (/JS, /OpenAction, /Launch, /EmbeddedFile, /Encrypt…)");
+    // A PDF string may contain escaped parentheses, so an escaped pair is consumed before a
+    // bare ) is allowed to close the value.
+    const info = ["Title", "Author", "Subject", "Creator", "Producer", "CreationDate"].map(key => {
+        const m = raw.match(new RegExp(`/${key}\\s*\\(((?:\\\\.|[^)]){0,200})\\)`));
+        return m ? `${key} ${JSON.stringify(pdfString(m[1]))}` : "";
+    }).filter(Boolean);
+    if (info.length) lines.push(`Info: ${info.join(" · ")}`);
+    const warnings = [];
+    if (headerAt > 0) warnings.push(`${headerAt} bytes before the header — a wrapper or a polyglot file`);
+    if (!eofs.length) warnings.push("no %%EOF — truncated, or the marker was stripped");
+    if (eofs.length > 1) warnings.push(`${eofs.length} %%EOF markers — incremental updates are appended`);
+    if (headerAt >= 0 && eofs.length && eofs[eofs.length - 1] < headerAt) warnings.push("the last %%EOF comes before the header");
+    const tailAt = eofs.length ? eofs[eofs.length - 1] + 5 : raw.length;
+    if (tailAt < bytes.length) {
+        const tail = bytes.subarray(tailAt);
+        if (bytesToLatin1(tail).trim()) {
+            warnings.push(`${formatBytes(tail.length)} after the last %%EOF`);
+            lines.push("");
+            lines.push("Appended data:");
+            lines.push(peekBytes(tail, 64));
+        } else {
+            lines.push("Appended data: none");
+        }
+    } else if (eofs.length) {
+        lines.push("Appended data: none");
+    }
+    if (warnings.length) {
+        lines.push("");
+        lines.push("Warnings:");
+        for (const w of warnings) lines.push(`  · ${w}`);
+    }
+    return lines.join("\n").trimEnd() + "\n";
+}
+
+/* ---------------------------------------------------------------- images (identify) */
+function jpegInfo(bytes) {
+    if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return null;
+    const info = {w: 0, h: 0, depth: 0, components: 0, progressive: false, exif: false, xmp: false, icc: false, comments: [], eoiAt: -1};
+    let at = 2;
+    while (at + 4 <= bytes.length) {
+        if (bytes[at] !== 0xff) { at++; continue; }
+        const marker = bytes[at + 1];
+        if (marker === 0xff) { at++; continue; }
+        if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) { at += 2; continue; }
+        if (marker === 0xda) break; // entropy-coded data follows; every header is before it
+        const len = (bytes[at + 2] << 8) | bytes[at + 3];
+        if (len < 2 || at + 2 + len > bytes.length) break;
+        const seg = bytes.subarray(at + 4, at + 2 + len);
+        if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
+            info.depth = seg[0];
+            info.h = (seg[1] << 8) | seg[2];
+            info.w = (seg[3] << 8) | seg[4];
+            info.components = seg[5];
+            info.progressive = [0xc2, 0xc6, 0xca, 0xce].includes(marker);
+        } else if (marker === 0xe1) {
+            const head = bytesToLatin1(seg.subarray(0, Math.min(29, seg.length)));
+            if (head.startsWith("Exif\u0000\u0000")) info.exif = true;
+            else if (head.startsWith("http://ns.adobe.com/xap/1.0/")) info.xmp = true;
+        } else if (marker === 0xe2) {
+            if (bytesToLatin1(seg.subarray(0, Math.min(12, seg.length))).startsWith("ICC_PROFILE")) info.icc = true;
+        } else if (marker === 0xfe) {
+            info.comments.push(bytesToLatin1(seg).slice(0, 200));
+        }
+        at += 2 + len;
+    }
+    for (let i = bytes.length - 2; i >= 2; i--) {
+        if (bytes[i] === 0xff && bytes[i + 1] === 0xd9) { info.eoiAt = i + 2; break; }
+    }
+    return info;
+}
+function gifInfo(bytes) {
+    if (bytes.length < 13) return null;
+    const header = bytesToLatin1(bytes.subarray(0, 6));
+    if (header !== "GIF87a" && header !== "GIF89a") return null;
+    const packed = bytes[10];
+    const globalPalette = Boolean(packed & 0x80);
+    let trailerAt = -1;
+    for (let i = bytes.length - 1; i >= 6; i--) {
+        if (bytes[i] === 0x3b) { trailerAt = i + 1; break; }
+    }
+    let controls = 0;
+    for (let i = 6; i + 1 < bytes.length; i++) if (bytes[i] === 0x21 && bytes[i + 1] === 0xf9) controls++;
+    return {
+        header,
+        w: bytes[6] | (bytes[7] << 8),
+        h: bytes[8] | (bytes[9] << 8),
+        globalPalette,
+        paletteSize: globalPalette ? 2 ** ((packed & 0x07) + 1) : 0,
+        controls,
+        trailerAt,
+        background: bytes[11]
+    };
+}
+function webpInfo(bytes) {
+    if (bytes.length < 16) return null;
+    if (bytesToLatin1(bytes.subarray(0, 4)) !== "RIFF" || bytesToLatin1(bytes.subarray(8, 12)) !== "WEBP") return null;
+    const riffSize = bytes[4] | (bytes[5] << 8) | (bytes[6] << 16) | (bytes[7] << 24);
+    const info = {w: 0, h: 0, kind: "unknown", animated: false, end: 8 + riffSize};
+    let at = 12;
+    while (at + 8 <= bytes.length) {
+        const type = bytesToLatin1(bytes.subarray(at, at + 4));
+        const len = bytes[at + 4] | (bytes[at + 5] << 8) | (bytes[at + 6] << 16) | (bytes[at + 7] << 24);
+        const data = at + 8;
+        if (type === "VP8X" && data + 10 <= bytes.length) {
+            info.kind = "extended";
+            info.w = 1 + (bytes[data + 4] | (bytes[data + 5] << 8) | (bytes[data + 6] << 16));
+            info.h = 1 + (bytes[data + 7] | (bytes[data + 8] << 8) | (bytes[data + 9] << 16));
+            info.animated = Boolean(bytes[data] & 0x02);
+        } else if (type === "VP8 " && data + 10 <= bytes.length) {
+            info.kind = "lossy";
+            const p = data + 3;
+            if (bytes[p] === 0x9d && bytes[p + 1] === 0x01 && bytes[p + 2] === 0x2a) {
+                info.w = (bytes[p + 3] | (bytes[p + 4] << 8)) & 0x3fff;
+                info.h = (bytes[p + 5] | (bytes[p + 6] << 8)) & 0x3fff;
+            }
+        } else if (type === "VP8L" && data + 5 <= bytes.length) {
+            info.kind = "lossless";
+            const bits = bytes[data + 1] | (bytes[data + 2] << 8) | (bytes[data + 3] << 16) | (bytes[data + 4] << 24);
+            info.w = (bits & 0x3fff) + 1;
+            info.h = ((bits >>> 14) & 0x3fff) + 1;
+        } else if (type === "ANIM") {
+            info.animated = true;
+        }
+        at = data + len + (len & 1);
+    }
+    return info;
+}
+function bmpInfo(bytes) {
+    if (bytes.length < 30 || bytesToLatin1(bytes.subarray(0, 2)) !== "BM") return null;
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    return {w: view.getInt32(18, true), h: view.getInt32(22, true), bpp: view.getUint16(28, true), offset: view.getUint32(10, true)};
+}
+function imageReport(bytes) {
+    const lines = [`File · ${formatBytes(bytes.length)}`];
+    if (isPng(bytes)) {
+        const png = parsePng(bytes);
+        const h = png.ihdr || {};
+        lines.push("Format: PNG (image/png)");
+        lines.push(`Dimensions: ${h.w ?? "?"} × ${h.h ?? "?"} · ${h.depth ?? "?"}-bit · ${PNG_COLOR[h.color] || `colour type ${h.color}`}`);
+        lines.push(`Interlace: ${h.interlace ? "Adam7" : "none"}`);
+        lines.push(`Chunks: ${png.chunks.length}${png.crcBad ? ` · ${png.crcBad} bad CRC` : " · CRCs ok"}`);
+        const anim = png.chunks.find(c => c.type === "acTL");
+        if (anim && anim.data.length >= 4) lines.push(`Animation: ${anim.data[0] | (anim.data[1] << 8) | (anim.data[2] << 16) | (anim.data[3] << 24)} frames declared`);
+        const meta = [];
+        if (png.chunks.some(c => c.type === "eXIf")) meta.push("EXIF");
+        if (png.chunks.some(c => c.type === "iCCP")) meta.push("ICC profile");
+        if (png.chunks.some(c => ["tEXt", "zTXt", "iTXt"].includes(c.type))) meta.push("text metadata");
+        if (meta.length) lines.push(`Metadata: ${meta.join(" · ")}`);
+        if (png.endedAt >= 0 && png.endedAt < bytes.length) lines.push(`Trailing data: ${formatBytes(bytes.length - png.endedAt)} after IEND`);
+        return lines.join("\n") + "\n";
+    }
+    const jpeg = jpegInfo(bytes);
+    if (jpeg) {
+        lines.push("Format: JPEG (image/jpeg)");
+        lines.push(`Dimensions: ${jpeg.w} × ${jpeg.h} · ${jpeg.depth}-bit · ${jpeg.components} component${jpeg.components === 1 ? "" : "s"}`);
+        lines.push(`Encoding: ${jpeg.progressive ? "progressive" : "baseline"}`);
+        const meta = [];
+        if (jpeg.exif) meta.push("EXIF");
+        if (jpeg.xmp) meta.push("XMP");
+        if (jpeg.icc) meta.push("ICC profile");
+        if (jpeg.comments.length) meta.push(`${jpeg.comments.length} comment${jpeg.comments.length === 1 ? "" : "s"}`);
+        lines.push(`Metadata: ${meta.length ? meta.join(" · ") : "none found"}`);
+        if (jpeg.comments.length) lines.push(`Comment: ${JSON.stringify(jpeg.comments[0])}`);
+        if (jpeg.eoiAt > 0 && jpeg.eoiAt < bytes.length) lines.push(`Trailing data: ${formatBytes(bytes.length - jpeg.eoiAt)} after EOI`);
+        return lines.join("\n") + "\n";
+    }
+    const gif = gifInfo(bytes);
+    if (gif) {
+        lines.push(`Format: ${gif.header} (image/gif)`);
+        lines.push(`Canvas: ${gif.w} × ${gif.h}`);
+        lines.push(`Palette: ${gif.globalPalette ? `${gif.paletteSize} colours (global), background index ${gif.background}` : "no global palette"}`);
+        lines.push(`Graphic control blocks: ${gif.controls}`);
+        if (gif.trailerAt > 0 && gif.trailerAt < bytes.length) lines.push(`Trailing data: ${formatBytes(bytes.length - gif.trailerAt)} after the trailer`);
+        return lines.join("\n") + "\n";
+    }
+    const webp = webpInfo(bytes);
+    if (webp) {
+        lines.push("Format: WebP (image/webp)");
+        lines.push(`Dimensions: ${webp.w || "?"} × ${webp.h || "?"} · ${webp.kind}`);
+        lines.push(`Animation: ${webp.animated ? "yes" : "no"}`);
+        if (webp.end < bytes.length) lines.push(`Trailing data: ${formatBytes(bytes.length - webp.end)} after the RIFF block`);
+        return lines.join("\n") + "\n";
+    }
+    const bmp = bmpInfo(bytes);
+    if (bmp) {
+        lines.push("Format: BMP (image/bmp)");
+        lines.push(`Dimensions: ${bmp.w} × ${Math.abs(bmp.h)} · ${bmp.bpp}-bit`);
+        lines.push(`Pixel data at offset ${bmp.offset}${bmp.h < 0 ? " · top-down" : ""}`);
+        return lines.join("\n") + "\n";
+    }
+    return null;
 }
 
 /* ================================================================ graph execution UI */
@@ -72581,19 +73018,28 @@ function createFunctionFromSelection() {
 }
 
 /* ================================================================ palette */
-// The canvas-level nodes, offered in the palette's Graph section and found by the search
-// box. `keys` is what the search matches besides the label and description, so "f-string"
-// reaches Fstring and "lookup" reaches Switch.
+// The canvas-level nodes, found by the search box. `keys` is what the search matches
+// besides the label and description, so "f-string" reaches Fstring and "lookup" reaches
+// Switch. An item's `section` says where the palette offers it: the wiring tools sit in
+// Graph, while the three image/document audits belong with the Multimedia operations they
+// read bytes for, so they appear in that category instead.
 const GRAPH_ITEMS = [
     {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
     {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
     {type: "join", label: "Join", icon: "join", keys: "merge combine concatenate append several inputs", about: "Concatenate several inputs into one"},
     {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
-    {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"}
+    {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
+    {type: "pngchunks", label: "PNG Chunks", icon: "file", section: "Multimedia", keys: "pngcheck png chunks crc ihdr text chunk steg metadata inspect image", about: "Validate a PNG's chunks, CRCs, dimensions and text"},
+    {type: "pdfscan", label: "PDF Scan", icon: "doc", section: "Multimedia", keys: "pdfid pdfinfo pdf objects streams javascript embedded scan document steg hidden", about: "Count a PDF's objects, pages and risky features"},
+    {type: "imginfo", label: "Image Info", icon: "search", section: "Multimedia", keys: "identify image dimensions format exif jpeg gif webp bmp png metadata steg", about: "Report an image's format, size, depth and metadata"}
 ];
+// Split once: the Graph section draws only the wiring tools, and the audits are appended to
+// the Multimedia category's item list by buildPalette.
+const WIRING_ITEMS = GRAPH_ITEMS.filter(item => !item.section);
+const MEDIA_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Multimedia");
 function buildPalette() {
-    const graphItems = GRAPH_ITEMS;
+    const graphItems = WIRING_ITEMS;
     const functions = state?.functions || [];
     let html = `<div class="palette-section">
         <div class="palette-section-title">Functions</div>
@@ -72614,14 +73060,18 @@ function buildPalette() {
     html += `<div class="palette-section"><div class="palette-section-title">Operations</div>`;
     for (const cat of CATEGORIES) {
         const color = cat.color;
+        // The image/document audits are graph nodes but read like the Multimedia operations,
+        // so they are listed first in that category rather than in a section of their own.
+        const extra = cat.name === "Multimedia" ? MEDIA_ITEMS : [];
         html += `<div class="cat" data-cat="${esc(cat.name)}" style="--cat-accent:${color}">
             <button class="cat-head" data-cat-toggle="${esc(cat.name)}">
                 <span class="cat-dot"></span>
                 <span class="cat-name">${esc(cat.name)}</span>
-                <span class="cat-count">${cat.ops.length}</span>
+                <span class="cat-count">${cat.ops.length + extra.length}</span>
                 ${iconFill("chevron").replace("<svg", '<svg class="cat-chevron"')}
             </button>
             <div class="cat-items">
+                ${extra.map(item => `<button class="op-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="op-name">${esc(item.label)}</span></button>`).join("")}
                 ${cat.ops.map(op => `<button class="op-item" data-op="${esc(op)}" title="${esc(OPS[op]?.description || op)}"><span class="op-name">${esc(op)}</span></button>`).join("")}
             </div>
         </div>`;
@@ -72748,7 +73198,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", FUNCTION_COLOR);
         ghost.textContent = functionById(payload.fnId)?.name || "Function";
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", switch: "Switch", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", switch: "Switch", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -72780,9 +73230,9 @@ function renderSearch() {
         html += `<div class="search-empty">Nothing matched “${esc(searchTerm)}”.<br>Try a category like “hashing”, or a node like “fstring”.</div>`;
     } else {
         if (graphMatches.length) {
-            html += `<div class="search-meta">Graph nodes</div>`;
+            html += `<div class="search-meta">Nodes</div>`;
             for (const item of graphMatches) {
-                html += `<div class="search-item graph-node-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="si-name">${esc(item.label)}</span><span class="si-cat">Graph</span></div>`;
+                html += `<div class="search-item graph-node-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="si-name">${esc(item.label)}</span><span class="si-cat">${esc(item.section || "Graph")}</span></div>`;
             }
         }
         for (const op of matches.slice(0, 180)) {
@@ -72827,6 +73277,9 @@ function addGraphNode(type, x, y) {
         state.nodes.push(added);
     } else if (type === "switch") {
         added = makeNode("switch", {x: p.x, y: p.y, title: "Switch"});
+        state.nodes.push(added);
+    } else if (type === "pngchunks" || type === "pdfscan" || type === "imginfo") {
+        added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
         state.nodes.push(added);
     } else if (type === "fnin" || type === "fnout") {
         // Only meaningful inside a function: these declare the ports of a definition.

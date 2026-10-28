@@ -45,10 +45,17 @@ const HOOK = `
         if (d.action !== "cipherflowProbe") return;
         const data = d.data || {};
         const results = [];
+        // Every candidate gets its own copy of the input. Operations are allowed to work on
+        // the bytes they are handed, and several do (arithmetic, XOR, bit shifts), so reusing
+        // one buffer let each operation read whatever the one before it left behind — From
+        // Base64 decoded correctly on its own and returned mojibake in the middle of a sweep.
+        const source = data.input instanceof ArrayBuffer
+            ? data.input
+            : (data.input && data.input.buffer ? data.input.buffer.slice(0) : new ArrayBuffer(0));
         for (const candidate of data.candidates || []) {
             const started = Date.now();
             try {
-                const res = await self.chef.bake(data.input, [{op: candidate.op, args: candidate.args || []}], {returnType: "string"});
+                const res = await self.chef.bake(source.slice(0), [{op: candidate.op, args: candidate.args || []}], {returnType: "string"});
                 // Score the raw value, not the presentation: image, archive and chart
                 // operations present themselves as markup, which would otherwise look
                 // like very promising text.
@@ -59,9 +66,11 @@ const HOOK = `
                     try { text = String(await res.dish.get("string")); } catch (err) { text = ""; }
                 }
                 if (!text && res && typeof res.result === "string") text = res.result;
-                results.push({op: candidate.op, ok: true, text: text.slice(0, 1500), length: text.length, kind: res && res.type, ms: Date.now() - started});
+                // The arguments come back with the result: a swept candidate is not always the
+                // operation's default, and the host needs the exact ones to bake the pick.
+                results.push({op: candidate.op, args: candidate.args || [], label: candidate.label || "", ok: true, text: text.slice(0, 1500), length: text.length, kind: res && res.type, ms: Date.now() - started});
             } catch (err) {
-                results.push({op: candidate.op, ok: false, error: String((err && err.message) || err).slice(0, 200), ms: Date.now() - started});
+                results.push({op: candidate.op, args: candidate.args || [], label: candidate.label || "", ok: false, error: String((err && err.message) || err).slice(0, 200), ms: Date.now() - started});
             }
         }
         self.postMessage({action: "cipherflowProbeDone", data: {id: data.id, results: results, ms: Date.now() - (data.started || Date.now())}});
@@ -245,7 +254,7 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Magic</h3>
-                <p>Wire data into a <b>Magic</b> node and it runs every operation in the library over that input, scores each result for how much it looks like real, useful output, and ranks the best ten. Click a row to make that result the node's output and send it downstream.</p>
+                <p>Wire data into a <b>Magic</b> node and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
             </div>
             <div class="help-section">
                 <h3>Move, resize, collapse</h3>

@@ -925,6 +925,7 @@ function cleanFunctionForSave(def) {
     return {
         id: def.id,
         name: def.name || "Function",
+        continueOnError: Boolean(def.continueOnError),
         view: def.view ? {...def.view} : null,
         nodes: (def.nodes || []).map(cleanNodeForSave),
         edges: (def.edges || []).map(e => ({id: e.id, from: e.from, to: e.to, toPort: e.toPort, fromPort: e.fromPort || "out"}))
@@ -1021,6 +1022,7 @@ function normalizeLoaded(data) {
         functions.push({
             id: String(raw.id || ("f" + (functions.length + 1))),
             name: String(raw.name || "Function"),
+            continueOnError: Boolean(raw.continueOnError),
             view: raw.view ? {x: Number(raw.view.x) || 0, y: Number(raw.view.y) || 0, zoom: clamp(Number(raw.view.zoom) || 0.8, 0.2, 2.2)} : null,
             nodes: defNodes,
             edges: defEdges
@@ -1742,6 +1744,11 @@ function fnNote(text) {
     return div;
 }
 
+// How many nodes inside a function failed while it was set to keep going.
+function fnErrorLabel(count) {
+    return `${count} error${count === 1 ? "" : "s"} in function`;
+}
+
 // An instance: the definition's inputs on the left, its outputs on the right.
 function buildFunctionNode(node) {
     const wrap = document.createElement("div");
@@ -1773,6 +1780,16 @@ function buildFunctionNode(node) {
     }
     wrap.appendChild(buildPreview(node));
     wrap.appendChild(buildError(node));
+    // With "keep going on errors" switched on, a body that hit trouble still hands back an
+    // output, so this count is the only sign anything went wrong.
+    if (def.continueOnError) {
+        const badge = document.createElement("div");
+        badge.className = "fn-error-count";
+        badge.dataset.fnErrors = "";
+        badge.textContent = fnErrorLabel(node._fnErrors || 0);
+        badge.hidden = !node._fnErrors;
+        wrap.appendChild(badge);
+    }
     // With more than one output, each gets a row: the number picks which value the preview
     // shows, and the row anchors that output's port.
     if (ports.outputs.length > 1) {
@@ -1852,6 +1869,14 @@ function buildFnInputNode(node) {
     const wrap = document.createElement("div");
     wrap.appendChild(fnNote("The function's inputs. Each row becomes an input port on every instance of this function."));
     (node.ports || []).forEach((port, i) => {
+        // Each declared input is a block of its own — name, typed-in switch, test sample — and
+        // without a break between them the second input reads as part of the first one's
+        // sample. Only between blocks: no trailing line above "Add input".
+        if (i > 0) {
+            const sep = document.createElement("div");
+            sep.className = "fn-sep";
+            wrap.appendChild(sep);
+        }
         const row = document.createElement("div");
         row.className = "io-row fn-row";
         // The port slot comes last so its dot lands on the node's right edge like every
@@ -2252,10 +2277,11 @@ function magicListHtml(node) {
     const best = node._magic[0].score || 1;
     const rows = node._magic.map((row, i) => {
         const width = Math.max(3, Math.round(100 * Math.max(0, row.score) / Math.max(1, Math.max(best, 0))));
-        return `<button class="magic-row${i === (node.magicChoice || 0) ? " on" : ""}" data-magic-pick="${i}" data-node="${node.id}" title="Use ${esc(row.op)} as this node's output">
+        const label = row.label || row.op;
+        return `<button class="magic-row${i === (node.magicChoice || 0) ? " on" : ""}" data-magic-pick="${i}" data-node="${node.id}" title="Use ${esc(label)} as this node's output">
             <span class="magic-rank">${i + 1}</span>
             <span class="magic-main">
-                <span class="magic-op">${esc(row.op)}</span>
+                <span class="magic-op">${esc(label)}</span>
                 <span class="magic-preview">${esc(row.preview || "")}</span>
             </span>
             <span class="magic-score"><span class="magic-bar" style="width:${width}%"></span></span>
@@ -2318,6 +2344,12 @@ function refreshNodePreview(node) {
     if (err) {
         err.textContent = node._error || "";
         err.style.display = node._error ? "block" : "none";
+    }
+    const fnErrors = $("[data-fn-errors]", el);
+    if (fnErrors) {
+        const count = node._fnErrors || 0;
+        fnErrors.textContent = fnErrorLabel(count);
+        fnErrors.hidden = !count;
     }
     el.classList.toggle("has-error", Boolean(node._error));
     updateInputBytes(node);
@@ -3107,6 +3139,7 @@ function cloneDefinitionGraph(def) {
 function definitionStamp(def) {
     if (!def) return "missing";
     return sigHash(JSON.stringify([
+        Boolean(def.continueOnError),
         (def.nodes || []).map(n => {
             const {x, y, w, h, collapsed, previewMode, ...rest} = cleanNodeForSave(n);
             return rest;
@@ -3131,6 +3164,9 @@ function fninPortBytes(node, index, seedPorts, piped) {
 
 // Run a function body for one instance and hand back what arrived at its output node.
 async function runFunctionDefinition(def, instance, incoming, results, opts = {}) {
+    // A definition set to keep going hands each failure down the wire as its message, so the
+    // rest of the body runs and the instance reports how many there were.
+    const continueOnError = Boolean(def.continueOnError);
     const ports = functionPorts(def);
     const seedPorts = new Map();
     for (let i = 0; i < ports.inputs.length; i++) {
@@ -3150,12 +3186,13 @@ async function runFunctionDefinition(def, instance, incoming, results, opts = {}
         force: true,
         timeout: opts.timeout,
         seedPorts,
+        continueOnError,
         fnStack: [...(opts.fnStack || []), def.id]
     });
     const sink = clone.nodes.find(n => n.type === "fnout");
     const portOutputs = new Map();
     for (const [key, bytes] of sink?._portOutputs || []) portOutputs.set("out:" + key.slice(3), bytes);
-    return {error: inner.errors[0]?.error || "", portOutputs};
+    return {error: inner.errors[0]?.error || "", portOutputs, softErrors: inner.softErrors?.length || 0};
 }
 
 function resolveNodeArgs(node, incoming, results) {
@@ -3322,6 +3359,9 @@ const MAGIC_NOISE = new Set([
     "Entropy", "Index of Coincidence", "Frequency distribution", "Scatter chart",
     "Hex Density chart", "Numberwang", "Show Base64 offsets", "Hamming Distance",
     "Convert speed", "Detect File Type", "Scan for Embedded Files", "Render Image",
+    // Every casing, spelling and accent of the input: 2^n entries, so a 60-character input
+    // is a 24-second wait inside the worker and a wall of near-duplicates after it.
+    "Get All Casings",
     "Play Media", "Syntax highlighter", "Generate Lorem Ipsum", "Generate HOTP",
     "Generate TOTP", "Generate UUID", "Generate Image", "Generate QR Code",
     "Generate Barcode", "Magic"
@@ -3329,16 +3369,31 @@ const MAGIC_NOISE = new Set([
 
 const MAGIC_COMMON_WORDS = new Set("the and for you that with this from have not are was but all can her his one our out day get has him its new now old see two way who did let put say she too use man men world time year people days thing part place work week case point number group problem fact attack dawn secret code cipher hello world test flag message data key text meet bridge midnight eagle lands land north south east west left right door open close under over inside outside house room water fire earth air light dark night morning evening today tomorrow yesterday friend friends family mother father sister brother home school money food game play read write speak listen start stop begin end first last next many much more most some any every each other another same different good bad great small large long short high low young early late real sure free full able best better please thanks thank sorry yes answer question story book page word words letter letters name names place places city town country road street river mountain sea boat ship train car plane walk run jump sit stand sleep wake eat drink buy sell give take find think know want need like love hate help show tell ask call wait try turn keep hold bring look feel seem leave move live believe hope wish plan idea team order line list side top bottom front back hour minute second week month year always never often sometimes maybe perhaps really very quite just only even also still yet about above across after against along among around before behind below beside between beyond during except inside into near since through toward under until upon within without would could should might must shall will may does did done being been having had has".split(/\s+/));
 
+// Everyday English beyond the list above, in blocks so it stays readable. Scoring only asks
+// whether a word is in the set, so a word repeated above costs nothing.
+const MAGIC_MORE_WORDS = [
+    "about above across act add after again against age ago agree air allow almost alone along already although always among amount another anyone anything appear apply area argue army around arrive art article ask away baby back bad bag ball bank bar base beat beautiful become bed before behind believe below beyond bill bit black blood blue board body born both box boy break bring brother build burn business call camera capital card care carry catch cause cell center century certain chair chance change charge child choice choose church city civil claim class clear close coach cold college color come common company compare computer concern condition conference consider consumer contain continue cost country couple course court cover create crime culture cup current customer cut dark",
+    "daughter dead deal death debate decade decide decision deep defense degree describe design despite detail determine develop difference difficult dinner direction director discover discuss disease doctor dog down draw dream drive drop drug during early east easy eat economic edge education effect effort eight either election else employee energy enjoy enough enter entire environment especially establish evening event ever everyone everything evidence exactly example experience explain eye face fact factor fail fall family far fast father fear federal feeling few field fight figure fill film final finally financial find fine finger finish fire firm fish five floor fly focus follow food foot force foreign forget form former forward four free friend front full fund future",
+    "game garden general generation girl give glass goal good government great green ground grow growth guess gun guy hair half hand hang happen happy hard head health hear heart heat heavy help herself high himself history hit hold home hope hospital hot hotel hour house however huge human hundred husband idea identify image imagine impact important improve include increase indeed individual industry information inside instead institution interest international interview investment involve issue itself job join keep kid kill kind kitchen know knowledge land language large last late later laugh law lawyer lead leader learn least leave leg legal less letter level lie life light likely line little live local long lose loss love low machine main maintain major manage manager many market material matter maybe mean measure media medical meeting member memory mention method middle might million mind minute miss mission model modern moment money month morning mother mouth move movement movie much music myself",
+    "name nation national natural nature near nearly necessary need network never news newspaper next nice night none north note nothing notice number occur offer office officer official often once only open operation opportunity option order organization other outside owner page pain painting paper parent part particular partner party pass past patient pattern pay peace people perfect perform perhaps period person personal phone physical pick picture piece place plan plant play player point police policy political poor popular population position possible power practice prepare present president pressure pretty prevent price private probably problem process produce product program project property protect prove provide public pull purpose push put quality question quickly quite race radio raise range rate rather reach ready real reality realize reason receive recent recently recognize record reduce reflect region relate relationship religious remain remember remove report represent require research resource respond response rest result return reveal rich right rise risk road rock role room rule safe same save scene school science score sea season seat second section security seek seem sell send senior sense series serious serve service set seven several shake share she shoot short shoulder show side sign significant similar simple simply since sing single sister sit site situation six size skill skin small smile social society soldier somebody someone something sometimes son song soon sort sound source south space speak special specific speech spend sport spring staff stage stand standard star start state statement station stay step still stock stop store story strategy street strong structure student study stuff style subject success such suddenly suffer suggest summer support sure surface system",
+    "table take talk task tax teach teacher team technology television tell ten tend term test than thank themselves theory there these they thing think third those though thought thousand threat three through throughout throw thus time today together tonight too top total tough toward town trade traditional training travel treat treatment tree trial trip trouble true truth try turn two type under understand unit until upon us usually value various very victim view violence visit voice vote wait walk wall want war watch water way weapon wear week weight well west whatever when where whether which while white whole whom whose why wide wife win wind window wish within without woman wonder word work worker world worry would write writer wrong yard year yes yet young yourself",
+    "quick brown fox jumps lazy cat hat bat rat sat ran sun moon sky bird leaf leaves grass hill river ocean stone gold silver copper iron steel sword shield castle king queen prince princess magic spell witch wizard dragon knight horse lock hidden find search look secret message cipher attack dawn midnight eagle lands bridge meet enemy battle fight peace love hate fear hope dream night light fire earth air storm rain snow cloud",
+    "password passphrase hunter admin administrator login logout account access granted denied allowed forbidden permission privileges root sudo terminal command script payload exploit vulnerability secure insecure encryption decryption encrypted decrypted ciphertext plaintext hash salt digest signature certificate token session cookie server client database query table column record field value buffer overflow stack heap memory pointer address register kernel process thread socket packet protocol header footer checksum verify verified correct incorrect true false hidden visible reveal answer question solve solved puzzle challenge score vault safe code combination unlocked locked sealed welcome goodbye congratulations success failure warning alert notice info debug trace clue hint riddle mystery treasure map compass treasure hunt"
+].join(" ").split(/\s+/);
+for (const word of MAGIC_MORE_WORDS) MAGIC_COMMON_WORDS.add(word);
+
 // Words that describe an operation rather than a message: a result built out of these is
 // a warning or a parameter list, not the plaintext a sweep is looking for.
 const MAGIC_TECH_WORDS = new Set("key keys byte bytes header headers input output data file files operation operations valid invalid character characters check checks error errors unsupported requires required expected parameter parameters argument arguments format formats decode encode cipher ciphers sample samples modify setting settings option options type types length size mode padding alphabet stream block blocks offset range bit bits row rows column columns index indices parse parsed delimiter separator terminator encoding".split(/\s+/));
 const MAGIC_BIGRAMS = ["th", "he", "in", "er", "an", "re", "on", "at", "en", "nd", "ti", "es", "or", "te", "of", "ed", "is", "it", "al", "ar", "st", "to", "nt", "ng", "se", "ha", "as", "ou", "io", "le", "ve", "co", "me", "de"];
 const EN_FREQ = {A: 8.167, B: 1.492, C: 2.782, D: 4.253, E: 12.702, F: 2.228, G: 2.015, H: 6.094, I: 6.966, J: 0.153, K: 0.772, L: 4.025, M: 2.406, N: 6.749, O: 7.507, P: 1.929, Q: 0.095, R: 5.987, S: 6.327, T: 9.056, U: 2.758, V: 0.978, W: 2.360, X: 0.150, Y: 1.974, Z: 0.074};
 
-// Cosine similarity between the letter histogram of a result and English letter
-// frequencies. A short decoded word or two already separates English from noise, and
-// the confidence grows with the number of letters present.
-function letterFrequencyCosine(text) {
+/* How English a letter mix is, as 0-1. This is the mean surprise of the letters actually
+ * present, measured against English frequencies — not a cosine of two histograms. A cosine
+ * flatters short strings (a run that happens to avoid rare letters looks close to English),
+ * while surprise charges for every rare letter: real prose costs about 4.2 bits per letter,
+ * J/Q/X/Z-heavy ciphertext costs far more. */
+function monogramScore(text) {
     const counts = Object.create(null);
     let letters = 0;
     for (const ch of text.toUpperCase()) {
@@ -3348,18 +3403,103 @@ function letterFrequencyCosine(text) {
         }
     }
     if (letters < 3) return 0;
-    let dot = 0;
-    let seenSquares = 0;
-    let expectedSquares = 0;
+    let bits = 0;
     for (let i = 0; i < 26; i++) {
         const ch = String.fromCharCode(65 + i);
-        const seen = (counts[ch] || 0) / letters;
-        const expected = EN_FREQ[ch] / 100;
-        dot += seen * expected;
-        seenSquares += seen * seen;
-        expectedSquares += expected * expected;
+        const seen = counts[ch] || 0;
+        if (!seen) continue;
+        bits -= (seen / letters) * Math.log2(EN_FREQ[ch] / 100);
     }
-    return dot / (Math.sqrt(seenSquares) * Math.sqrt(expectedSquares) || 1);
+    // Prose averages 4.0-4.5 bits per letter over a paragraph, but a short sentence that
+    // mentions a quiet fox costs 5.2, and a Caesar shift of the same sentence costs 6.1. So
+    // this stays a corroborating signal with a low weight, mapped over the range that
+    // actually shows up in results rather than trusted as a discriminator on its own.
+    return clamp(1 - (bits - 4.4) / 1.4, 0, 1);
+}
+
+// Words as a reader would see them: runs of letters, so a cipher string is one "word".
+const MAGIC_WORD = /[A-Za-z][A-Za-z']*/g;
+
+/* Whether letters are grouped the way language groups them. English words average about
+ * 4.7 letters and are separated by spaces; a 16-letter run with no break is ciphertext or
+ * an encoded blob, whatever its letters look like. This is the signal a histogram cannot
+ * give, and it is what separates a decoded sentence from random-looking encoder output. */
+function wordShapeScore(tokens, spaces, total) {
+    if (!tokens.length) return 0;
+    const letters = tokens.reduce((sum, token) => sum + token.length, 0);
+    const average = letters / tokens.length;
+    const lengthFit = clamp(1 - Math.abs(average - 4.7) / 6.5, 0, 1);
+    const longRuns = tokens.filter(token => token.length > 13).length;
+    // One word carries no boundary evidence at all: fine for a short answer, weak for a long one.
+    const boundary = tokens.length >= 2
+        ? clamp((spaces / Math.max(1, total)) / 0.09, 0, 1)
+        : (total <= 10 ? 0.6 : 0.2);
+    return clamp(lengthFit * (0.45 + 0.55 * boundary) - longRuns * 0.3, 0, 1);
+}
+
+/* Whether a token is a word a reader would know. A dictionary of base forms still has to
+ * recognise the inflections that carry a sentence — "dogs", "jumped", "quickly" — or a
+ * perfectly good decode gets dismissed as gibberish for no reason but a missing "s". */
+function magicKnownWord(token) {
+    const word = String(token).toLowerCase().replace(/['\u2019]s$/, "");
+    if (word.length < 2) return false;
+    if (MAGIC_COMMON_WORDS.has(word)) return true;
+    const stems = [
+        word.replace(/ies$/, "y"),
+        word.replace(/es$/, ""), word.replace(/s$/, ""),
+        word.replace(/ed$/, ""), word.replace(/ed$/, "e"),
+        word.replace(/ing$/, ""), word.replace(/ing$/, "e"),
+        word.replace(/ly$/, ""), word.replace(/er$/, ""), word.replace(/est$/, ""),
+        word.replace(/([b-df-hj-np-tv-z])\1(?:ed|ing|er|est)$/, "$1")
+    ];
+    return stems.some(stem => stem.length >= 2 && MAGIC_COMMON_WORDS.has(stem));
+}
+
+// The share of words that are real English. This is the strongest single signal there is.
+function wordEvidenceScore(tokens) {
+    if (!tokens.length) return 0;
+    let evidence = 0;
+    for (const token of tokens) {
+        if (magicKnownWord(token)) evidence += token.length >= 4 ? 1 : 0.75;
+        else if (MAGIC_TECH_WORDS.has(token.toLowerCase())) evidence += 0.05;
+        // A run of letters that is not a word anywhere is not neutral: "Hello, Puwld!" is a
+        // substitution that half worked, and it has to read worse than "Hello, World!"
+        // rather than the same. Proper nouns pay this too, so it stays small.
+        else if (token.length >= 3) evidence -= 0.35;
+    }
+    return clamp(evidence / tokens.length, 0, 1);
+}
+
+// What an operation does to its input: reveals it, presents it another way, or neither.
+// A sweep hunting for a hidden message should rank a decoder over an encoder, because an
+// encoder can only ever show the same bytes spelled differently.
+function magicOpClass(name) {
+    const op = String(name || "");
+    if (/^(from|un|de)/i.test(op) || /(decod|decrypt|decompress|unescape|extract|brute)/i.test(op)) return "decode";
+    if (/^(to |convert to )/i.test(op) || /(encod|encrypt|compress|escape)/i.test(op) || /^generate /i.test(op)) return "encode";
+    return "other";
+}
+
+// Does a JSON document carry prose, or only the numbers and hex a parser reports back?
+// `{ "marker": 85 }` is a parser talking about its input, not a message behind it.
+function jsonCarriesProse(text) {
+    let parsed;
+    try {
+        parsed = JSON.parse(text);
+    } catch {
+        return false;
+    }
+    const strings = [];
+    const walk = value => {
+        if (typeof value === "string") strings.push(value);
+        else if (Array.isArray(value)) value.forEach(walk);
+        else if (value && typeof value === "object") Object.values(value).forEach(walk);
+    };
+    walk(parsed);
+    return strings.some(str => {
+        const words = (str.match(MAGIC_WORD) || []).filter(w => w.length >= 3 && MAGIC_COMMON_WORDS.has(w.toLowerCase()));
+        return words.length >= 2;
+    });
 }
 
 function shannonEntropy(text) {
@@ -3375,22 +3515,44 @@ function shannonEntropy(text) {
 
 // Warnings and instructions that operations print instead of data. They are full English
 // sentences, so the statistics alone would rank them highly.
-const MAGIC_MESSAGE = /^(error|sorry|invalid|unknown|cannot|can't|could not|couldn't|unable|failed|malformed|unsupported|no valid|no matches|nothing|you can only|you need|you must|must supply|please|enter |insert |input units|try |the input|the output|the key|the data|unexpected|this operation|file type|pattern|mixed|missing|match|data|input|output|text|key|file|number|not |incorrect|expected|requires?)\b/i;
-const MAGIC_MESSAGE_PHRASE = /\b(could not|cannot|unable to|failed to|must|is not valid|is not a valid|not a valid|not enough|need at least|need \d+|is not in|is not a|each row|out of range|too small|too large|you need|please (enter|provide|specify|supply)|enter the|requires? a|is required|are required|invalid\b|unsupported|malformed|truncated|corrupt|overflow|underflow|mismatch|ambiguous|specify|unknown|not found|not supported|no match|no key|no input|no data|no valid|does not|doesn't|isn't|has no|have no)\b/i;
+const MAGIC_MESSAGE_START = /^(error|sorry|invalid|unknown|cannot|can't|could not|couldn't|unable|failed|malformed|unsupported|no valid|no matches|nothing|you can only|you need|you must|must supply|please|enter |insert |try |unexpected|this operation|incorrect|expected|not |requires?|missing|input|output|the input|the output|the key|the data|the file)\b/i;
+// Phrasing that is only ever an operation talking, so it is rejected at any length — a unit
+// list can run to a thousand characters of perfectly good English and still be a complaint.
+const MAGIC_MESSAGE_ANY = /\b(one of the following|must be one of|is not a valid|not a valid|does not appear to be|must in the format|invalid key length|invalid nonce length|no key (entered|provided)|exceeds the maximum|must be at least|must be at most|must be less than|is not supported|could not be decoded|cannot be decoded|failed to decode)\b/i;
+const MAGIC_MESSAGE_PHRASE = /\b(does not|doesn't|do not|is not in|is not a\b|is not an\b|are not|was not|must be|must in\b|must contain|must match|appear to be|appears to be|not a valid|is not valid|not enough|need at least|need \d+ (bytes|bits|characters|arguments?)|could not|cannot|can't|unable to|failed to|must supply|must use|each row|out of range|too small|too large|please (enter|provide|specify|supply)|is required|are required|is unsupported|not supported|no match|no key|no input|no data|no valid|invalid|unsupported|malformed|truncated|overflow|underflow|ambiguous|not found|unknown|missing|unexpected|0 bytes|\d+ bytes long)\b/i;
 
 // A labelled record ("Date: …", "Path name: …", "Source MAC: …") is a parser's report
 // about the input, not a message behind it.
 const MAGIC_LABEL_PREFIX = /^([A-Z][A-Za-z0-9 _-]{1,28}):\s/;
-const MAGIC_LABEL_WORDS = /\b(date|time|browser|version|path|name|source|destination|type|length|size|checksum|mode|encoding|format|marker|offset|address|protocol|port|flags|status|user|host|scheme|query|fragment|header)\b/i;
+const MAGIC_LABEL_WORDS = /\b(date|time|browser|version|path|name|source|destination|type|length|size|checksum|mode|encoding|format|marker|offset|address|protocol|port|flags|status|user|host|scheme|query|fragment|header|score|scores|keyword|keywords|index|position|count|result|results|output|input|line|column|key|value|values|number|numbers)\b/i;
 
 /* How good a result looks. The score is a 0-100 quality measure instead of a pile of
  * bonuses, so a short clean sentence can beat a long artefact: 38% of it is legibility
  * (how much of the text is letters and spaces) and 62% is how English it reads (letter
  * frequencies, common bigrams, dictionary words). */
-function scoreMagicResult(text, inputText) {
+/* How much each piece of evidence counts, in one place so the ranking can be read and
+ * adjusted as a whole instead of hunting numbers through the function below. */
+const MAGIC_WEIGHTS = {
+    readable: 0.14,   // share of characters a reader can see
+    monogram: 0.08,   // letter mix against English frequencies
+    bigram: 0.18,     // density of common English letter pairs
+    words: 0.34,      // share of tokens that are real words
+    shape: 0.20,      // letters grouped into word-sized runs with spaces between
+    structure: 0.06   // sentence punctuation and capitalisation
+};
+
+function scoreMagicResult(text, inputText, opName = "") {
     const notes = [];
     if (!text) return {score: -999, notes: ["empty"]};
     if (text === inputText) return {score: -500, notes: ["unchanged"]};
+    // A case change, an added line number, a stripped punctuation mark: the same letters,
+    // rearranged by presentation rather than revealed. Scoring those as findings is how a
+    // sweep ends up recommending "To Upper case".
+    if (inputText) {
+        const bare = value => value.toLowerCase().replace(/[^a-z]/g, "");
+        const mine = bare(text), theirs = bare(inputText);
+        if (mine.length >= 4 && mine === theirs) return {score: -500, notes: ["same letters"]};
+    }
     const total = text.length;
     let letters = 0;
     let spaces = 0;
@@ -3420,20 +3582,30 @@ function scoreMagicResult(text, inputText) {
     if (/-----BEGIN [A-Z ]+-----/.test(trimmed)) {
         return {score: -999, notes: ["envelope, not data"]};
     }
-    if (MAGIC_MESSAGE.test(trimmed) || MAGIC_MESSAGE_PHRASE.test(trimmed.slice(0, 90))) {
+    // An operation's complaint ("Invalid key length: 0 bytes. AES uses a key of …") is a
+    // full English sentence, so the statistics alone would rank it highly. The tell is how it
+    // opens — an error names the thing it is objecting to — plus the stock phrasing of a
+    // validation failure. Only short results get the phrase test, so a long decoded message
+    // that happens to say "there is no key" is not mistaken for a warning.
+    if (MAGIC_MESSAGE_START.test(trimmed) || MAGIC_MESSAGE_ANY.test(trimmed)
+        || (trimmed.length < 600 && MAGIC_MESSAGE_PHRASE.test(trimmed.slice(0, 400)))) {
         return {score: -999, notes: ["message, not data"]};
+    }
+    // A slice of the input is not a finding: "Take bytes", "Strip IPv4 header", "Head" all
+    // hand back a piece of what came in, and a piece of a cipher is still a cipher.
+    if (inputText && text.length >= 2 && text.length < inputText.length && inputText.includes(text)) {
+        return {score: -500, notes: ["slice of the input"]};
     }
     const label = MAGIC_LABEL_PREFIX.exec(trimmed);
     if (label && MAGIC_LABEL_WORDS.test(label[1])) {
         return {score: -999, notes: ["parsed record, not data"]};
     }
-    const tokens = text.match(/[A-Za-z]{2,}/g) || [];
+    const tokens = text.match(MAGIC_WORD) || [];
     const techWords = tokens.filter(word => MAGIC_TECH_WORDS.has(word.toLowerCase())).length;
     if (techWords >= 3 || (techWords >= 2 && techWords / Math.max(1, tokens.length) >= 0.4)) {
         return {score: -999, notes: ["message, not data"]};
     }
 
-    const knownWords = tokens.filter(word => MAGIC_COMMON_WORDS.has(word.toLowerCase())).length;
     const lower = text.toLowerCase();
     let bigramHits = 0;
     for (const bigram of MAGIC_BIGRAMS) {
@@ -3441,20 +3613,37 @@ function scoreMagicResult(text, inputText) {
         while ((at = lower.indexOf(bigram, at + 1)) >= 0) bigramHits++;
     }
 
-    const legibility = clamp((letters + Math.min(spaces, letters * 0.6)) / Math.max(1, total), 0, 1);
-    const frequency = clamp((letterFrequencyCosine(text) - 0.6) / 0.35, 0, 1);
+    // Six independent signals, weighted, so no single lucky measurement can carry a result:
+    // readable characters, an English letter mix, common letter pairs, real words, letters
+    // grouped into words at all, and sentence shape.
+    const readable = clamp(printable / total, 0, 1);
+    const monogram = monogramScore(text);
     const bigramDensity = clamp(bigramHits / Math.max(6, letters) / 0.32, 0, 1);
-    const wordDensity = tokens.length >= 2 ? knownWords / tokens.length : (knownWords ? 0.4 : 0);
+    const words = wordEvidenceScore(tokens);
+    const shape = wordShapeScore(tokens, spaces, total);
+    const structure = clamp(
+        (tokens.length >= 2 ? 0.4 : 0) +
+        (tokens.length >= 2 && spaces >= tokens.length - 1 ? 0.2 : 0) +
+        (/[.!?]/.test(trimmed) ? 0.2 : 0) +
+        (/^[A-Z][a-z]/.test(trimmed) || /[.!?]\s+[A-Z]/.test(trimmed) ? 0.2 : 0), 0, 1);
     const digitPenalty = clamp(1 - (digits / Math.max(1, total)) * 1.8, 0, 1);
-    const english = (0.42 * frequency + 0.32 * bigramDensity + 0.26 * wordDensity) * digitPenalty;
 
-    let score = 100 * (0.38 * legibility + 0.62 * english);
+    let score = 100 * (
+        MAGIC_WEIGHTS.readable * readable +
+        MAGIC_WEIGHTS.monogram * monogram +
+        MAGIC_WEIGHTS.bigram * bigramDensity +
+        MAGIC_WEIGHTS.words * words +
+        MAGIC_WEIGHTS.shape * shape +
+        MAGIC_WEIGHTS.structure * structure
+    ) * digitPenalty;
 
     // Real words are the strongest evidence, so longer dictionary words count more.
-    const longWords = tokens.filter(word => word.length >= 4 && MAGIC_COMMON_WORDS.has(word.toLowerCase())).length;
+    const longWords = tokens.filter(word => word.length >= 4 && magicKnownWord(word)).length;
     score += Math.min(longWords * 4, 10);
-    if (/^[A-Z ]{8,}$/.test(trimmed)) {
-        score += 4;
+    // Shouting is evidence only when it is several words: one long run of capitals is a
+    // cipher string, not a headline.
+    if (/^[A-Z ]{8,}$/.test(trimmed) && tokens.length >= 2) {
+        score += 3;
         notes.push("uppercase text");
     }
     if (control > total * 0.1) score -= 60;
@@ -3463,19 +3652,62 @@ function scoreMagicResult(text, inputText) {
     const entropy = shannonEntropy(text.slice(0, 400));
     if (entropy > 4.5) score -= (entropy - 4.5) * 12;
 
-    // Structured formats are worth suggesting even when they are not prose.
-    if (total >= 20 && /^\s*[[{]/.test(text)) {
-        try {
-            JSON.parse(text);
-            score += 14;
-            notes.push("valid JSON");
-        } catch { /* not JSON after all */ }
+    // A JSON document is worth suggesting when it carries prose. One built only from
+    // numbers, flags and hex is a parser reporting on its input, which is noise here.
+    // A recognisable structure counts as evidence in its own right: a URL or a timestamp is
+    // often the answer even when it holds no English word.
+    let structural = false;
+    if (trimmed.length >= 8 && /^[[{]/.test(trimmed)) {
+        if (!jsonCarriesProse(text)) return {score: -999, notes: ["parsed record, not data"]};
+        score += 8;
+        structural = true;
+        notes.push("JSON");
     }
-    if (/^https?:\/\/[^\s]+$/i.test(text.trim())) { score += 10; notes.push("URL"); }
-    if (/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(text.trim())) { score += 10; notes.push("email"); }
-    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(text.trim())) { score += 10; notes.push("IPv4 address"); }
-    if (/^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?)?Z?$/.test(text.trim())) { score += 10; notes.push("timestamp"); }
-    return {score, notes};
+    if (/^https?:\/\/[^\s]+$/i.test(trimmed)) { score += 10; structural = true; notes.push("URL"); }
+    if (/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(trimmed)) { score += 10; structural = true; notes.push("email"); }
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(trimmed)) { score += 10; structural = true; notes.push("IPv4 address"); }
+    if (/^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?)?Z?$/.test(trimmed)) { score += 10; structural = true; notes.push("timestamp"); }
+
+    // A result much longer than the input is usually a listing or an expansion — NATO
+    // spelling, a brute-force table, an escaped dump — rather than a message that was
+    // hiding in it. Capped, so a genuinely expanded decompression still ranks.
+    if (inputText) {
+        const expansion = total / Math.max(1, inputText.length);
+        if (expansion > 1.5) score -= Math.min(30, 14 * Math.log2(expansion / 1.5));
+    }
+    // Encoders present the same bytes another way and can never reveal a message, so a
+    // sweep that hunts for one ranks them below the decoders.
+    if (magicOpClass(opName) === "encode") score -= 12;
+
+    // Real words are what makes a result worth offering. Letters that contain not one English
+    // word of three letters or more are a shape, not a message: "Rntsu, Bsune!" has perfect
+    // word structure and letter frequencies and says nothing. Such a result cannot outrank
+    // text that actually reads.
+    const knownWords = tokens.filter(token => token.length >= 3 && magicKnownWord(token)).length;
+    if (!knownWords) {
+        score = Math.min(score, letters >= 12 ? 45 : 35);
+        notes.push("no real words");
+    } else if (knownWords >= 2) {
+        notes.push(`${knownWords} real words`);
+    }
+    // A handful of characters cannot be a hidden message, whatever it happens to spell;
+    // "NaN" and "08:30" were outranking real decodes on nothing but legibility.
+    if (trimmed.length < 8) score = Math.min(score, 20);
+    return {score, notes, knownWords, structural};
+}
+
+// ROT13 with another amount is a Caesar shift, and the amount is exactly the part its author
+// picks. Sweeping 1-25 as well as the default is what lets Magic actually crack one, instead
+// of only ever trying the 13 that happens to be the default.
+function magicShiftVariants(name, meta) {
+    if (name !== "ROT13") return [];
+    const defaults = meta.defaults || [];
+    const out = [];
+    for (let amount = 1; amount <= 25; amount++) {
+        if (amount === Number(defaults[3])) continue;
+        out.push({op: name, args: [defaults[0], defaults[1], defaults[2], amount], label: `${name} (shift ${amount})`});
+    }
+    return out;
 }
 
 function magicCandidates(scope, includeSlow) {
@@ -3484,31 +3716,70 @@ function magicCandidates(scope, includeSlow) {
     for (const [name, meta] of Object.entries(OPS)) {
         if (meta.flowControl) continue;
         if (MAGIC_NOISE.has(name)) continue;
+        // "… Brute Force" and Substitute print a table of every possibility. Magic is the
+        // brute force here, and such a table is never the answer it is looking for.
+        if (/brute.?force/i.test(name) || name === "Substitute") continue;
         if (!includeSlow && MAGIC_SKIP.has(name)) continue;
         if (scope === "Core module only" && meta.module !== "Default") continue;
         if (scope === "Loaded modules only" && !loaded.has(meta.module)) continue;
         out.push({op: name, args: meta.defaults || []});
+        out.push(...magicShiftVariants(name, meta));
     }
     return out;
 }
 
+// A candidate has to read better than the input it came from to count as a find; anything
+// that only presents the same bytes another way scores at or below it.
+const MAGIC_MIN_GAIN = 2;
+
+// The input's own quality, measured the same way as a result. An input that is itself noise
+// (a message, markup) scores below zero there, and is treated as zero rather than handing
+// every candidate a free pass.
+function magicInputQuality(inputText) {
+    const {score} = scoreMagicResult(inputText, "", "");
+    return score > -400 ? score : 0;
+}
+
 function rankMagicResults(results, inputText) {
-    const ranked = [];
+    const baseline = magicInputQuality(inputText);
+    const best = new Map();
     for (const result of results) {
         if (!result.ok || !result.text) continue;
-        const {score, notes} = scoreMagicResult(String(result.text), inputText);
+        const text = String(result.text);
+        const {score, notes, knownWords, structural} = scoreMagicResult(text, inputText, result.op);
         if (score <= -400) continue;
-        ranked.push({
+        // Different operations routinely land on the same text — two base64 dialects, a decode
+        // and its twin. One row per distinct result, keeping whichever scored highest.
+        const key = text.trim().replace(/\s+/g, " ").toLowerCase();
+        const row = {
             op: result.op,
-            args: OPS[result.op]?.defaults || [],
+            label: result.label || result.op,
+            args: result.args || OPS[result.op]?.defaults || [],
             score,
+            gain: score - baseline,
             notes,
+            // A result with a real word, or a recognisable shape, is a finding. One with
+            // neither is a shape that happens to look like language, so it only fills in
+            // when there is nothing better to show.
+            solid: knownWords > 0 || structural,
             ms: result.ms,
-            preview: String(result.text).replace(/\s+/g, " ").slice(0, 120)
-        });
+            preview: text.replace(/\s+/g, " ").slice(0, 120)
+        };
+        const seen = best.get(key);
+        if (!seen || seen.score < score) best.set(key, row);
     }
-    ranked.sort((a, b) => b.score - a.score);
-    return ranked;
+    const ranked = [...best.values()].sort((a, b) => b.score - a.score || a.ms - b.ms);
+    // Findings first: results that read better than their input and carry some evidence of
+    // being language. Below them the runners-up still earn a place — a list that stops after
+    // the two operations that happened to contain a dictionary word tells the user less than
+    // one that also shows what came close. Scores stay honest, so the order is still visible.
+    const findings = ranked.filter(row => row.solid && row.gain >= MAGIC_MIN_GAIN);
+    const alsoRan = ranked.filter(row => !row.solid && row.gain >= MAGIC_MIN_GAIN);
+    // Runners-up are worth listing only while they are close enough to be interesting; a 30
+    // beside an 83 is noise with a rank number in front of it.
+    const nearMisses = alsoRan.filter(row => row.score >= 30 && row.preview.length >= 10).slice(0, 6);
+    const list = findings.length ? findings.concat(nearMisses) : alsoRan;
+    return list.length ? list : ranked.slice(0, 6);
 }
 
 async function runMagicNode(node, inputBytes, argValues) {
@@ -3563,6 +3834,9 @@ async function executeGraph(nodes, edges, opts = {}) {
     const started = performance.now();
     let reused = 0, ran = 0;
     const errors = [];
+    // Failures a definition was told to carry on past: still recorded on their node, but they
+    // do not stop the graph and do not block the nodes downstream of them.
+    const softErrors = [];
     const cycleIds = new Set(cycle.map(n => n.id));
 
     for (const node of nodes) {
@@ -3710,12 +3984,16 @@ async function executeGraph(nodes, edges, opts = {}) {
                 } else {
                     const def = functionById(node.fnId);
                     if (!def) {
+                        node._fnErrors = 0;
                         error = "This graph has no function by that name — open a file that defines it.";
                     } else if ((opts.fnStack || []).includes(def.id)) {
+                        node._fnErrors = 0;
                         error = `“${def.name}” cannot use itself.`;
                     } else {
                         const run = await runFunctionDefinition(def, node, incoming, results, opts);
                         node._portOutputs = run.portOutputs;
+                        // How many nodes inside kept going on an error; shown under the node.
+                        node._fnErrors = run.softErrors || 0;
                         error = run.error;
                         const keys = functionPorts(def).outputs.map(p => p.key);
                         const key = keys[clamp(node.portPick || 0, 0, Math.max(0, keys.length - 1))];
@@ -3729,18 +4007,26 @@ async function executeGraph(nodes, edges, opts = {}) {
         }
         const duration = performance.now() - t0;
         node._sig = sig;
-        node._output = error ? null : out;
-        if (error) node._files = null;
+        // Continue-on-error: the message a node failed with becomes its output text, so the
+        // nodes after it still have something to work on. The node keeps its error to show,
+        // and results carry no error, which is what lets the rest of the graph run.
+        const soft = Boolean(error) && Boolean(opts.continueOnError);
+        if (soft) {
+            out = enc.encode(error);
+            softErrors.push({node, error});
+        }
+        node._output = error && !soft ? null : out;
+        if (error && !soft) node._files = null;
         node._error = error;
         node._duration = duration;
         node._reused = !countIt;
         if (!error) ran++;
-        if (error) errors.push({node, error});
-        results.set(node.id, createResult(node, node._output, error, sig, {duration, reused: !countIt, portOutputs: node._portOutputs || null}));
+        if (error && !soft) errors.push({node, error});
+        results.set(node.id, createResult(node, node._output, soft ? "" : error, sig, {duration, reused: !countIt, portOutputs: node._portOutputs || null}));
         if (opts.onNodeDone) opts.onNodeDone(node, results.get(node.id));
     }
     return {
-        results, order, cycle, errors,
+        results, order, cycle, errors, softErrors,
         reused, ran,
         duration: performance.now() - started
     };
@@ -4056,6 +4342,7 @@ function functionDefFromRaw(raw) {
     return {
         id: String(raw.id || ("f" + (edgeSeq++))),
         name: String(raw.name || "Function"),
+        continueOnError: Boolean(raw.continueOnError),
         view: raw.view ? {x: Number(raw.view.x) || 0, y: Number(raw.view.y) || 0, zoom: clamp(Number(raw.view.zoom) || 0.8, 0.2, 2.2)} : null,
         nodes: defNodes,
         edges: defEdges
@@ -4104,6 +4391,7 @@ function createFunction(name) {
     const def = {
         id: "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
         name: name || `Function ${(state.functions || []).length + 1}`,
+        continueOnError: false,
         view: null,
         nodes: [
             makeNode("fnin", {x: 40, y: 140, title: "Function input"}),
@@ -4181,6 +4469,9 @@ function functionEditorEl() {
                 <input class="fn-name" id="fnName" spellcheck="false" placeholder="Function name" aria-label="Function name">
                 <span class="fn-meta" id="fnMeta"></span>
                 <span class="spacer"></span>
+                <label class="fn-continue" title="When a node in the body fails, pass its error message down the wire as text and keep running, instead of stopping the function">
+                    <input type="checkbox" id="fnContinue"><span>Keep going on errors</span>
+                </label>
                 <button class="btn-secondary fn-nodes-btn" id="fnNodesBtn" title="Show or hide the node list">${iconFill("nodes")}<span>Nodes</span></button>
                 <button class="btn-secondary" id="fnFit">Fit</button>
                 <button class="btn-secondary" id="fnRunTest">Run test</button>
@@ -4237,6 +4528,15 @@ function functionEditorEl() {
         renderAllNodes();
         saveLocalSoon();
     });
+    fnEditor.continueBox = $("#fnContinue", el);
+    fnEditor.continueBox.addEventListener("change", () => {
+        const def = state?.editingFunctionId ? functionById(state.editingFunctionId) : null;
+        if (!def) return;
+        def.continueOnError = fnEditor.continueBox.checked;
+        // The flag is part of the definition's stamp, so every instance re-runs when the
+        // window is shut rather than keeping an output produced under the old setting.
+        saveLocalSoon();
+    });
     $("#fnBack", el).addEventListener("click", closeFunctionEditor);
     $("#fnDone", el).addEventListener("click", closeFunctionEditor);
     $("#fnFit", el).addEventListener("click", () => fitView());
@@ -4282,6 +4582,7 @@ function openFunctionEditor(def) {
     // Nodes button in the header brings it over the top.
     fnEditor.card.classList.toggle("nodes-hidden", window.innerWidth < 900);
     fnEditor.name.value = def.name;
+    fnEditor.continueBox.checked = Boolean(def.continueOnError);
     fnEditor.meta.textContent = `${def.nodes.length} node${def.nodes.length === 1 ? "" : "s"}`;
     // Point the node list at this window's copy, so operations and the Function port nodes
     // can be added to the definition even though the sidebar is behind the window.
@@ -4328,10 +4629,17 @@ async function runFunctionTest() {
     try {
         await engine.start();
         setRunStatus("running", "Running the function on its sample inputs…");
-        const result = await executeGraph(state.nodes, state.edges, {force: true, timeout: 30000});
+        const def = functionById(editingFunctionId);
+        const result = await executeGraph(state.nodes, state.edges, {
+            force: true,
+            timeout: 30000,
+            continueOnError: Boolean(def?.continueOnError)
+        });
         refreshAllPreviews();
         const count = result.errors.length;
+        const soft = result.softErrors.length;
         const parts = [`Ran ${result.ran} node${result.ran === 1 ? "" : "s"} in ${Math.max(1, Math.round(result.duration))} ms`];
+        if (soft) parts.push(`${soft} error${soft === 1 ? "" : "s"} carried through`);
         if (result.cycle.length) setRunStatus("error", "Cycle detected — break the loop to run.");
         else if (count) setRunStatus("error", `Error in ${sourceTitle(result.errors[0].node)}: ${result.errors[0].error.slice(0, 90)}`);
         else setRunStatus("ok", parts.join(" · "));
@@ -5687,6 +5995,36 @@ function integrationDefinitions() {
                     detail: `piped sample → ${JSON.stringify(a)}, typed value beat it → ${JSON.stringify(b)}, instance box reads ${JSON.stringify(shown)}`
                 };
             })
+        },
+        {
+            id: "magic",
+            title: "Magic ranks the answer first",
+            description: "Three inputs a sweep should crack — a Caesar shift, base64 and hex — must each put the right operation at the top with the plaintext as the node's output, and a brute-force table must never be offered as the answer.",
+            run: async () => {
+                const cases = [
+                    // A Caesar shift is named by the rotation that undoes it, so the number
+                    // itself is not the contract — the plaintext it produces is.
+                    {input: "Khoor, Zruog!", expect: "Hello, World!", top: /^ROT13 \(shift \d+\)$/},
+                    {input: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=", expect: "The quick brown fox jumps over 13 lazy dogs.", top: /^From Base64$/},
+                    {input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!", top: /^From Hex$/}
+                ];
+                const report = [];
+                for (const item of cases) {
+                    const nodes = [B.input(1, item.input, 0), B.op(2, "Magic", 500)];
+                    const edges = [B.edge(1, 1, 2, "main")];
+                    await executeGraph(nodes, edges, {force: true, timeout: 120000});
+                    const rows = nodes[1]._magic || [];
+                    const label = rows[0] ? (rows[0].label || rows[0].op) : "none";
+                    const out = nodes[1]._output ? utf8(nodes[1]._output) : "";
+                    const table = rows.some(row => /brute.?force/i.test(row.op));
+                    const ok = item.top.test(label) && out === item.expect && !table;
+                    // The ranking itself is the diagnosis when this fails, so always report it.
+                    const listed = rows.slice(0, 5).map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ");
+                    report.push(`${ok ? "ok" : "no"} ${JSON.stringify(label)} → ${JSON.stringify(out.slice(0, 40))} [${listed}]`);
+                    if (!ok) return {ok: false, detail: report.join(" · ")};
+                }
+                return {ok: true, detail: report.join(" · ")};
+            }
         }
     ];
 }

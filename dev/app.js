@@ -77,7 +77,7 @@ const ICONS = {
     input: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 8h8M7 5l3 3-3 3M12 3v10"/></svg>',
     output: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M14 8H6M9 5 6 8l3 3M4 3v10"/></svg>',
     join: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h4M2 12h4M6 4v8M6 8h7"/><path d="m10.7 5.7 2.5 2.3-2.5 2.3"/></svg>',
-    // Curly braces for the Template node: the {inputN} slots it fills in.
+    // Curly braces for the Fstring node: the {inputN} slots it fills in.
     template: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.1 2.4c-1.3 0-1.6.9-1.6 2v2.1c0 .9-.4 1.5-1.3 1.5.9 0 1.3.6 1.3 1.5v2.1c0 1.1.3 2 1.6 2"/><path d="M9.9 2.4c1.3 0 1.6.9 1.6 2v2.1c0 .9.4 1.5 1.3 1.5-.9 0-1.3.6-1.3 1.5v2.1c0 1.1-.3 2-1.6 2"/></svg>',
     // Two branches for the Switch node: one input, one of several outputs.
     switch: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 8h3.4"/><path d="M5.2 8c2.4 0 2.2-4 4.6-4h2.4M5.2 8c2.4 0 2.2 4 4.6 4h2.4"/><path d="m10.6 2.3 1.7 1.7-1.7 1.7M10.6 9.7l1.7 1.7-1.7 1.7"/></svg>',
@@ -746,7 +746,7 @@ let searchTerm = "";
 let sidebarOpen = false;
 let fitAfterRender = false;
 
-// How many inputs a Template node offers, kept inside the same 1-8 the other nodes use.
+// How many inputs an Fstring node offers, kept inside the same 1-8 the other nodes use.
 function templatePorts(node) {
     return clamp(Number(node?.portCount) || 2, 1, 8);
 }
@@ -1317,7 +1317,7 @@ function sourceTitle(node) {
     if (node.type === "input") return node.title || TEXT_NODE_TITLE;
     if (node.type === "file") return node.title || node.fileName || FILE_NODE_TITLE;
     if (node.type === "join") return node.title || "Join";
-    if (node.type === "template") return node.title || "Template";
+    if (node.type === "template") return node.title || "Fstring";
     if (node.type === "switch") return node.title || "Switch";
     if (node.type === "fn") return node.title || functionById(node.fnId)?.name || "Function";
     if (node.type === "fnin") return "Function input";
@@ -1333,7 +1333,7 @@ function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
     if (node.type === "join") return "Join";
-    if (node.type === "template") return "Template";
+    if (node.type === "template") return "Fstring";
     if (node.type === "switch") return "Switch";
     if (node.type === "fn") return "Function";
     if (node.type === "fnin") return "Fn input";
@@ -1833,7 +1833,7 @@ function buildTemplateNode(node) {
             ${count > 1 && i === count - 1 ? `<button class="join-remove" data-action="template-remove-port" data-node="${node.id}" title="Remove the last input">${iconFill("x")}</button>` : ""}
         </div>${edge ? `<div class="wire-hint" data-hint-port="${port}" title="What this input is carrying">${esc(wireHintFor(node, port))}</div>` : ""}`;
     }
-    wrap.innerHTML = `<div class="arg-row"><div class="arg-label-row"><span class="arg-name">Template</span></div>
+    wrap.innerHTML = `<div class="arg-row"><div class="arg-label-row"><span class="arg-name">Fstring</span></div>
             <textarea class="control typed-input" data-template-text rows="3" spellcheck="false" placeholder="Hello {input1} — key {input2}">${esc(node.text || "")}</textarea>
         </div>
         ${rows}
@@ -5088,12 +5088,12 @@ function createFunctionFromSelection() {
 /* ================================================================ palette */
 // The canvas-level nodes, offered in the palette's Graph section and found by the search
 // box. `keys` is what the search matches besides the label and description, so "f-string"
-// reaches Template and "lookup" reaches Switch.
+// reaches Fstring and "lookup" reaches Switch.
 const GRAPH_ITEMS = [
     {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
     {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
     {type: "join", label: "Join", icon: "join", keys: "merge combine concatenate append several inputs", about: "Concatenate several inputs into one"},
-    {type: "template", label: "Template", icon: "template", keys: "format f-string fstring interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
+    {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"}
 ];
@@ -5253,7 +5253,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", FUNCTION_COLOR);
         ghost.textContent = functionById(payload.fnId)?.name || "Function";
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Template", switch: "Switch", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", switch: "Switch", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -5282,7 +5282,7 @@ function renderSearch() {
     const total = graphMatches.length + matches.length;
     let html = `<div class="search-results"><div class="search-meta">${total} match${total === 1 ? "" : "es"}</div>`;
     if (!total) {
-        html += `<div class="search-empty">Nothing matched “${esc(searchTerm)}”.<br>Try a category like “hashing”, or a node like “template”.</div>`;
+        html += `<div class="search-empty">Nothing matched “${esc(searchTerm)}”.<br>Try a category like “hashing”, or a node like “fstring”.</div>`;
     } else {
         if (graphMatches.length) {
             html += `<div class="search-meta">Graph nodes</div>`;
@@ -5328,7 +5328,7 @@ function addGraphNode(type, x, y) {
         added = makeNode("join", {x: p.x, y: p.y, title: "Join"});
         state.nodes.push(added);
     } else if (type === "template") {
-        added = makeNode("template", {x: p.x, y: p.y, title: "Template", text: "{input1}"});
+        added = makeNode("template", {x: p.x, y: p.y, title: "Fstring", text: "{input1}"});
         state.nodes.push(added);
     } else if (type === "switch") {
         added = makeNode("switch", {x: p.x, y: p.y, title: "Switch"});
@@ -6845,7 +6845,7 @@ function onNodeActionClick(ev) {
         if (node) {
             const count = templatePorts(node);
             if (action === "template-add-port") {
-                if (count >= 8) { toast("Eight inputs is the limit for one template.", "error"); return; }
+                if (count >= 8) { toast("Eight inputs is the limit for one f-string.", "error"); return; }
                 node.portCount = count + 1;
             } else {
                 if (count <= 1) return;

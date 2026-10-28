@@ -1122,23 +1122,23 @@ function applyGraph(data, {fit = true} = {}) {
 }
 
 /* ================================================================ DOM refs */
-// These six are swappable: a function's editor window is the same canvas pointed at a
-// definition, so every node, wire and gesture works there without a second implementation.
-let stage = $("#stage");
-let world = $("#world");
-let nodesLayer = $("#nodesLayer");
-let edgesSvg = $("#edgesSvg");
-let edgesLayer = $("#edgesLayer");
-let edgeHandlesLayer = $("#edgeHandlesLayer");
-let zoomLabel = $("#zoomLabel");
-let runStatus = $("#runStatus");
-let runStatusText = $("#runStatusText");
+// One canvas for the whole app. The function editor moves this same stage into its
+// window, so every node, wire and gesture works there without a second implementation.
+const stage = $("#stage");
+const world = $("#world");
+const nodesLayer = $("#nodesLayer");
+const edgesSvg = $("#edgesSvg");
+const edgesLayer = $("#edgesLayer");
+const edgeHandlesLayer = $("#edgeHandlesLayer");
+const zoomLabel = $("#zoomLabel");
+const runStatus = $("#runStatus");
+const runStatusText = $("#runStatusText");
 let runButton = null;
 let autoSwitch = null;
 // The node list normally lives in the sidebar, but a function's editor window covers the
 // whole page, sidebar included. That window therefore carries its own copy of the list and
 // these two bindings are swapped while it is open, so buildPalette() and the search fill
-// whichever list is on screen. Exactly the same trick as the canvas bindings above.
+// whichever list is on screen.
 const sidebarPalette = {body: $("#paletteBody"), search: $("#paletteSearch")};
 let paletteBody = sidebarPalette.body;
 let paletteSearch = sidebarPalette.search;
@@ -4582,20 +4582,14 @@ function addFunctionNode(fnId, x, y) {
 }
 
 /* ---------------------------------------------------- the editor window
- * The editor is the same canvas pointed at a definition. Swapping which graph and which
- * DOM layers the canvas renders is all it takes for every node type, wire and gesture to
- * work inside a function exactly as it does on the main graph.
+ * The editor is the same canvas pointed at a definition. The stage element itself moves
+ * into the window, so every node type, wire, gesture and control (Fit, Snap, zoom) is the
+ * same code and the same DOM as the main graph — only the graph it is pointed at changes.
  */
 let mainGraph = null;
 let editingFunctionId = null;
-const mainCanvas = {};
-
-function canvasBindings() {
-    return {stage, world, nodesLayer, edgesSvg, edgesLayer, edgeHandlesLayer, runStatus, runStatusText, zoomLabel};
-}
-function applyCanvasBindings(b) {
-    ({stage, world, nodesLayer, edgesSvg, edgesLayer, edgeHandlesLayer, runStatus, runStatusText, zoomLabel} = b);
-}
+// Where the stage came from, so closing the editor puts it back in the same place.
+let stageHome = null;
 
 const fnEditor = {};
 function functionEditorEl() {
@@ -4614,14 +4608,10 @@ function functionEditorEl() {
                     <input type="checkbox" id="fnContinue"><span>Keep going on errors</span>
                 </label>
                 <button class="btn-secondary fn-nodes-btn" id="fnNodesBtn" title="Show or hide the node list">${iconFill("nodes")}<span>Nodes</span></button>
-                <!-- The main Snap control is under this full-screen modal, so the function body
-                     needs its own reachable Snap; this is the only one while the editor is open. -->
-                <button class="btn-secondary" id="fnSnap" title="Snap every node in this function to the grid">Snap</button>
-                <button class="btn-secondary" id="fnFit">Fit</button>
                 <button class="btn-secondary" id="fnRunTest">Run test</button>
                 <button class="btn-primary" id="fnDone">Done</button>
             </div>
-            <div class="fn-body">
+            <div class="fn-body" id="fnBody">
                 <aside class="sidebar fn-sidebar" id="fnSidebar" aria-label="Node list">
                     <div class="sidebar-head">
                         <div class="brand"><span class="brand-mark"></span><span>Node list</span></div>
@@ -4634,26 +4624,20 @@ function functionEditorEl() {
                     </div>
                     <div class="sidebar-body" id="fnPaletteBody"></div>
                 </aside>
-                <div class="stage fn-stage" id="fnStage">
-                    <div class="world" id="fnWorld">
-                        <svg class="edges-svg" id="fnEdgesSvg" aria-hidden="true"><g id="fnEdgesLayer"></g></svg>
-                        <div class="nodes-layer" id="fnNodesLayer"></div>
-                        <svg class="edge-handles-svg" id="fnEdgeHandlesSvg" aria-hidden="true"><g id="fnEdgeHandlesLayer"></g></svg>
-                    </div>
-                    <div class="fn-hint">Wire the <b>Function input</b> node into your body, and your body into the <b>Function output</b> node. Use <b>Run test</b> to try the body on its own.</div>
-                    <div class="run-status" id="fnStatus"><span class="status-dot"></span><span id="fnStatusText">Ready</span></div>
-                </div>
+                <!-- This moves into the reused stage while the editor is open, so it sits over
+                     the function canvas exactly where the hint used to sit over its own one. -->
+                <div class="fn-hint" id="fnHint">Wire the <b>Function input</b> node into your body, and your body into the <b>Function output</b> node. Use <b>Run test</b> to try the body on its own.</div>
             </div>
         </div>
     `;
     document.body.appendChild(el);
     fnEditor.el = el;
     fnEditor.card = $("#fnCard", el);
+    fnEditor.body = $("#fnBody", el);
     fnEditor.sidebar = $("#fnSidebar", el);
     fnEditor.name = $("#fnName", el);
     fnEditor.meta = $("#fnMeta", el);
-    fnEditor.stage = $("#fnStage", el);
-    fnEditor.statusText = $("#fnStatusText", el);
+    fnEditor.hint = $("#fnHint", el);
     fnEditor.paletteBody = $("#fnPaletteBody", el);
     fnEditor.paletteSearch = $("#fnPaletteSearch", el);
     fnEditor.paletteClear = $("#fnSearchClear", el);
@@ -4665,7 +4649,6 @@ function functionEditorEl() {
     $("#fnNodesBtn", el).addEventListener("click", () => {
         fnEditor.card.classList.toggle("nodes-hidden");
     });
-    bindCanvasEvents(fnEditor.stage, $("#fnNodesLayer", el));
     fnEditor.name.addEventListener("input", () => {
         const def = state?.editingFunctionId ? functionById(state.editingFunctionId) : null;
         if (def) def.name = fnEditor.name.value;
@@ -4683,8 +4666,6 @@ function functionEditorEl() {
     });
     $("#fnBack", el).addEventListener("click", closeFunctionEditor);
     $("#fnDone", el).addEventListener("click", closeFunctionEditor);
-    $("#fnSnap", el).addEventListener("click", snapNodesToGrid);
-    $("#fnFit", el).addEventListener("click", () => fitView());
     $("#fnRunTest", el).addEventListener("click", runFunctionTest);
     return el;
 }
@@ -4692,23 +4673,18 @@ function functionEditorEl() {
 function openFunctionEditor(def) {
     if (!def || !state) return;
     functionEditorEl();
+    const el = fnEditor.el;
     if (!editingFunctionId) {
         mainGraph = state;
-        Object.assign(mainCanvas, canvasBindings());
+        // Move the one canvas into the editor instead of building a second one. Its DOM,
+        // event listeners and render code stay exactly as they are; only `state` below
+        // changes which graph they act on.
+        stageHome = {parent: stage.parentNode, next: stage.nextSibling};
+        stage.classList.add("fn-stage");
+        fnEditor.body.appendChild(stage);
+        stage.appendChild(fnEditor.hint);
+        fnEditor.mainStatus = {className: runStatus.className, text: runStatusText.textContent};
     }
-    const el = fnEditor.el;
-    applyCanvasBindings({
-        stage: fnEditor.stage,
-        world: $("#fnWorld", el),
-        nodesLayer: $("#fnNodesLayer", el),
-        edgesSvg: $("#fnEdgesSvg", el),
-        edgesLayer: $("#fnEdgesLayer", el),
-        edgeHandlesLayer: $("#fnEdgeHandlesLayer", el),
-        runStatus: $("#fnStatus", el),
-        runStatusText: fnEditor.statusText,
-        // The editor has no zoom readout; give applyView somewhere harmless to write it.
-        zoomLabel: document.createElement("span")
-    });
     editingFunctionId = def.id;
     selection.clear();
     selectedEdge = null;
@@ -4748,15 +4724,26 @@ function closeFunctionEditor() {
         def.view = {...state.view};
         def.name = (fnEditor.name.value || "").trim() || def.name;
     }
+    fnEditor.el.hidden = true;
+    document.body.classList.remove("fn-editing");
+    fnEditor.hint.remove();
+    // Put the canvas back where it was. Its listeners never left it, and rendering the main
+    // graph below puts its nodes and wires back into the same layers.
+    const home = stageHome;
+    stageHome = null;
+    if (home) {
+        stage.classList.remove("fn-stage");
+        if (home.next && home.next.parentNode === home.parent) home.parent.insertBefore(stage, home.next);
+        else home.parent.appendChild(stage);
+    }
+    if (fnEditor.mainStatus) {
+        runStatus.className = fnEditor.mainStatus.className;
+        runStatusText.textContent = fnEditor.mainStatus.text;
+        fnEditor.mainStatus = null;
+    }
     state = mainGraph;
     mainGraph = null;
     editingFunctionId = null;
-    applyCanvasBindings(mainCanvas);
-    fnEditor.el.hidden = true;
-    // The definition's nodes are objects; their elements go, so nothing stale is left in
-    // the document once the window is shut.
-    for (const sel of ["#fnNodesLayer", "#fnEdgesLayer", "#fnEdgeHandlesLayer"]) $(sel, fnEditor.el).innerHTML = "";
-    document.body.classList.remove("fn-editing");
     selection.clear();
     selectedEdge = null;
     renderAllNodes();

@@ -1456,7 +1456,10 @@ select.control { padding-right: 4px; }
 }
 .fn-name:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); outline: none; }
 .fn-meta { font-size: 10.5px; color: var(--faint); white-space: nowrap; }
-.fn-stage { flex: 1 1 auto; min-height: 0; }
+/* The editor reuses the main stage, so the canvas keeps its own toolbar out of the way
+   and simply fills the space beside the editor's node list. */
+.stage.fn-stage { flex: 1 1 auto; min-width: 0; min-height: 0; }
+.stage.fn-stage .toolbar { display: none; }
 /* The editor carries its own copy of the node list: the window covers the sidebar, so
    without it there would be no way to add an operation to a function. */
 /* row-reverse puts the node list on the right, matching where the sidebar sits on the
@@ -2120,7 +2123,7 @@ kbd {
                     <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom.</li>
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename it.</li>
-                    <li><b>Snap</b>, beside Fit in the bottom-left controls, puts every node on the graph back on the nearest grid dot. Inside a function, the Snap button in the editor header does the same for that function's nodes — the main canvas controls sit behind that editor.</li>
+                    <li><b>Snap</b>, beside Fit in the bottom-left controls, puts every node on the graph back on the nearest grid dot. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
                     <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redoes — adding and deleting nodes, wires, moves, resizes and every value you type. A burst of typing undoes in one step.</li>
                 </ul>
@@ -2137,7 +2140,7 @@ kbd {
             <div class="help-section">
                 <h3>Function blocks</h3>
                 <p>A function is a graph of your own: build a body once, then place it like any other node. Press <b>New function</b> at the top of the node list to create one and its editor opens. Inside, the <b>Function input</b> node declares what the function takes — rename each row, give it a sample value, and add as many rows as you need. Wire those into your body, and wire the body into the <b>Function output</b> node, which declares what it hands back. <b>Run test</b> tries the body on its sample values.</p>
-                <p>The editor window has its own <b>node list</b> down the left side, with the same operations and search as the sidebar, so you build the body there. The <b>Nodes</b> button in the header tucks the list away when you want the whole width for the canvas.</p>
+                <p>The editor window is the <b>same canvas</b> pointed at the definition, with its own <b>node list</b> down the right side — the same operations, search and gestures as the sidebar. The <b>Nodes</b> button in the header tucks the list away when you want the whole width for the canvas.</p>
                 <p>Press <b>Done</b> and the function appears in the node list: click or drag it onto the canvas to place an instance, which has one input port per declared input and one output port per declared output. Editing the definition updates every instance — double-click an instance (or its pencil in the list) to reopen the editor. A function cannot call itself, and definitions are saved inside the graph file, so a shared file keeps its functions.</p>
                 <p>Each declared input carries a <b>test sample</b>, which is what the body runs on when you press <b>Run test</b>. A sample can be <b>Text</b> you type, a <b>File</b> you attach, or a value <b>piped in</b> from a node in the body — wire something into the port on the sample row and it takes over. That is how a fixture is derived: build the value with nodes, pipe it in, and every instance can fall back to it. A function that works on an image, an archive or any other bytes can be tested on the real thing from inside the editor.</p>
                 <p>Tick <b>Can be typed in</b> on a declared input and every instance of the function grows a box for it, so a constant can be typed straight onto the node instead of needing something wired into the port. The box shows the input's test sample as its <b>default</b>, so you can see the value an untouched instance will run on; typing in the box overrides it, emptying the box puts the default back, and a wire into the port overrides both.</p>
@@ -68495,23 +68498,23 @@ function applyGraph(data, {fit = true} = {}) {
 }
 
 /* ================================================================ DOM refs */
-// These six are swappable: a function's editor window is the same canvas pointed at a
-// definition, so every node, wire and gesture works there without a second implementation.
-let stage = $("#stage");
-let world = $("#world");
-let nodesLayer = $("#nodesLayer");
-let edgesSvg = $("#edgesSvg");
-let edgesLayer = $("#edgesLayer");
-let edgeHandlesLayer = $("#edgeHandlesLayer");
-let zoomLabel = $("#zoomLabel");
-let runStatus = $("#runStatus");
-let runStatusText = $("#runStatusText");
+// One canvas for the whole app. The function editor moves this same stage into its
+// window, so every node, wire and gesture works there without a second implementation.
+const stage = $("#stage");
+const world = $("#world");
+const nodesLayer = $("#nodesLayer");
+const edgesSvg = $("#edgesSvg");
+const edgesLayer = $("#edgesLayer");
+const edgeHandlesLayer = $("#edgeHandlesLayer");
+const zoomLabel = $("#zoomLabel");
+const runStatus = $("#runStatus");
+const runStatusText = $("#runStatusText");
 let runButton = null;
 let autoSwitch = null;
 // The node list normally lives in the sidebar, but a function's editor window covers the
 // whole page, sidebar included. That window therefore carries its own copy of the list and
 // these two bindings are swapped while it is open, so buildPalette() and the search fill
-// whichever list is on screen. Exactly the same trick as the canvas bindings above.
+// whichever list is on screen.
 const sidebarPalette = {body: $("#paletteBody"), search: $("#paletteSearch")};
 let paletteBody = sidebarPalette.body;
 let paletteSearch = sidebarPalette.search;
@@ -71955,20 +71958,14 @@ function addFunctionNode(fnId, x, y) {
 }
 
 /* ---------------------------------------------------- the editor window
- * The editor is the same canvas pointed at a definition. Swapping which graph and which
- * DOM layers the canvas renders is all it takes for every node type, wire and gesture to
- * work inside a function exactly as it does on the main graph.
+ * The editor is the same canvas pointed at a definition. The stage element itself moves
+ * into the window, so every node type, wire, gesture and control (Fit, Snap, zoom) is the
+ * same code and the same DOM as the main graph — only the graph it is pointed at changes.
  */
 let mainGraph = null;
 let editingFunctionId = null;
-const mainCanvas = {};
-
-function canvasBindings() {
-    return {stage, world, nodesLayer, edgesSvg, edgesLayer, edgeHandlesLayer, runStatus, runStatusText, zoomLabel};
-}
-function applyCanvasBindings(b) {
-    ({stage, world, nodesLayer, edgesSvg, edgesLayer, edgeHandlesLayer, runStatus, runStatusText, zoomLabel} = b);
-}
+// Where the stage came from, so closing the editor puts it back in the same place.
+let stageHome = null;
 
 const fnEditor = {};
 function functionEditorEl() {
@@ -71987,14 +71984,10 @@ function functionEditorEl() {
                     <input type="checkbox" id="fnContinue"><span>Keep going on errors</span>
                 </label>
                 <button class="btn-secondary fn-nodes-btn" id="fnNodesBtn" title="Show or hide the node list">${iconFill("nodes")}<span>Nodes</span></button>
-                <!-- The main Snap control is under this full-screen modal, so the function body
-                     needs its own reachable Snap; this is the only one while the editor is open. -->
-                <button class="btn-secondary" id="fnSnap" title="Snap every node in this function to the grid">Snap</button>
-                <button class="btn-secondary" id="fnFit">Fit</button>
                 <button class="btn-secondary" id="fnRunTest">Run test</button>
                 <button class="btn-primary" id="fnDone">Done</button>
             </div>
-            <div class="fn-body">
+            <div class="fn-body" id="fnBody">
                 <aside class="sidebar fn-sidebar" id="fnSidebar" aria-label="Node list">
                     <div class="sidebar-head">
                         <div class="brand"><span class="brand-mark"></span><span>Node list</span></div>
@@ -72007,26 +72000,20 @@ function functionEditorEl() {
                     </div>
                     <div class="sidebar-body" id="fnPaletteBody"></div>
                 </aside>
-                <div class="stage fn-stage" id="fnStage">
-                    <div class="world" id="fnWorld">
-                        <svg class="edges-svg" id="fnEdgesSvg" aria-hidden="true"><g id="fnEdgesLayer"></g></svg>
-                        <div class="nodes-layer" id="fnNodesLayer"></div>
-                        <svg class="edge-handles-svg" id="fnEdgeHandlesSvg" aria-hidden="true"><g id="fnEdgeHandlesLayer"></g></svg>
-                    </div>
-                    <div class="fn-hint">Wire the <b>Function input</b> node into your body, and your body into the <b>Function output</b> node. Use <b>Run test</b> to try the body on its own.</div>
-                    <div class="run-status" id="fnStatus"><span class="status-dot"></span><span id="fnStatusText">Ready</span></div>
-                </div>
+                <!-- This moves into the reused stage while the editor is open, so it sits over
+                     the function canvas exactly where the hint used to sit over its own one. -->
+                <div class="fn-hint" id="fnHint">Wire the <b>Function input</b> node into your body, and your body into the <b>Function output</b> node. Use <b>Run test</b> to try the body on its own.</div>
             </div>
         </div>
     `;
     document.body.appendChild(el);
     fnEditor.el = el;
     fnEditor.card = $("#fnCard", el);
+    fnEditor.body = $("#fnBody", el);
     fnEditor.sidebar = $("#fnSidebar", el);
     fnEditor.name = $("#fnName", el);
     fnEditor.meta = $("#fnMeta", el);
-    fnEditor.stage = $("#fnStage", el);
-    fnEditor.statusText = $("#fnStatusText", el);
+    fnEditor.hint = $("#fnHint", el);
     fnEditor.paletteBody = $("#fnPaletteBody", el);
     fnEditor.paletteSearch = $("#fnPaletteSearch", el);
     fnEditor.paletteClear = $("#fnSearchClear", el);
@@ -72038,7 +72025,6 @@ function functionEditorEl() {
     $("#fnNodesBtn", el).addEventListener("click", () => {
         fnEditor.card.classList.toggle("nodes-hidden");
     });
-    bindCanvasEvents(fnEditor.stage, $("#fnNodesLayer", el));
     fnEditor.name.addEventListener("input", () => {
         const def = state?.editingFunctionId ? functionById(state.editingFunctionId) : null;
         if (def) def.name = fnEditor.name.value;
@@ -72056,8 +72042,6 @@ function functionEditorEl() {
     });
     $("#fnBack", el).addEventListener("click", closeFunctionEditor);
     $("#fnDone", el).addEventListener("click", closeFunctionEditor);
-    $("#fnSnap", el).addEventListener("click", snapNodesToGrid);
-    $("#fnFit", el).addEventListener("click", () => fitView());
     $("#fnRunTest", el).addEventListener("click", runFunctionTest);
     return el;
 }
@@ -72065,23 +72049,18 @@ function functionEditorEl() {
 function openFunctionEditor(def) {
     if (!def || !state) return;
     functionEditorEl();
+    const el = fnEditor.el;
     if (!editingFunctionId) {
         mainGraph = state;
-        Object.assign(mainCanvas, canvasBindings());
+        // Move the one canvas into the editor instead of building a second one. Its DOM,
+        // event listeners and render code stay exactly as they are; only `state` below
+        // changes which graph they act on.
+        stageHome = {parent: stage.parentNode, next: stage.nextSibling};
+        stage.classList.add("fn-stage");
+        fnEditor.body.appendChild(stage);
+        stage.appendChild(fnEditor.hint);
+        fnEditor.mainStatus = {className: runStatus.className, text: runStatusText.textContent};
     }
-    const el = fnEditor.el;
-    applyCanvasBindings({
-        stage: fnEditor.stage,
-        world: $("#fnWorld", el),
-        nodesLayer: $("#fnNodesLayer", el),
-        edgesSvg: $("#fnEdgesSvg", el),
-        edgesLayer: $("#fnEdgesLayer", el),
-        edgeHandlesLayer: $("#fnEdgeHandlesLayer", el),
-        runStatus: $("#fnStatus", el),
-        runStatusText: fnEditor.statusText,
-        // The editor has no zoom readout; give applyView somewhere harmless to write it.
-        zoomLabel: document.createElement("span")
-    });
     editingFunctionId = def.id;
     selection.clear();
     selectedEdge = null;
@@ -72121,15 +72100,26 @@ function closeFunctionEditor() {
         def.view = {...state.view};
         def.name = (fnEditor.name.value || "").trim() || def.name;
     }
+    fnEditor.el.hidden = true;
+    document.body.classList.remove("fn-editing");
+    fnEditor.hint.remove();
+    // Put the canvas back where it was. Its listeners never left it, and rendering the main
+    // graph below puts its nodes and wires back into the same layers.
+    const home = stageHome;
+    stageHome = null;
+    if (home) {
+        stage.classList.remove("fn-stage");
+        if (home.next && home.next.parentNode === home.parent) home.parent.insertBefore(stage, home.next);
+        else home.parent.appendChild(stage);
+    }
+    if (fnEditor.mainStatus) {
+        runStatus.className = fnEditor.mainStatus.className;
+        runStatusText.textContent = fnEditor.mainStatus.text;
+        fnEditor.mainStatus = null;
+    }
     state = mainGraph;
     mainGraph = null;
     editingFunctionId = null;
-    applyCanvasBindings(mainCanvas);
-    fnEditor.el.hidden = true;
-    // The definition's nodes are objects; their elements go, so nothing stale is left in
-    // the document once the window is shut.
-    for (const sel of ["#fnNodesLayer", "#fnEdgesLayer", "#fnEdgeHandlesLayer"]) $(sel, fnEditor.el).innerHTML = "";
-    document.body.classList.remove("fn-editing");
     selection.clear();
     selectedEdge = null;
     renderAllNodes();

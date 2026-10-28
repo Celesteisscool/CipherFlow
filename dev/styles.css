@@ -1433,7 +1433,10 @@ select.control { padding-right: 4px; }
 }
 .fn-name:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); outline: none; }
 .fn-meta { font-size: 10.5px; color: var(--faint); white-space: nowrap; }
-.fn-stage { flex: 1 1 auto; min-height: 0; }
+/* The editor reuses the main stage, so the canvas keeps its own toolbar out of the way
+   and simply fills the space beside the editor's node list. */
+.stage.fn-stage { flex: 1 1 auto; min-width: 0; min-height: 0; }
+.stage.fn-stage .toolbar { display: none; }
 /* The editor carries its own copy of the node list: the window covers the sidebar, so
    without it there would be no way to add an operation to a function. */
 /* row-reverse puts the node list on the right, matching where the sidebar sits on the

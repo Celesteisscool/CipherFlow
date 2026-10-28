@@ -256,8 +256,9 @@ reverted and the final build was rerun.
 - **Magic stays single-operation by design.** Cases that inherently need two steps
   (base64 → gunzip) and parsed-record outputs (a JWT payload with no prose) were left out of
   the benchmark rather than scored as failures.
-- The function editor's Snap lives in its header; the main Snap button is behind the modal
-  while the editor is open.
+-The function editor's Snap used to live in its header; the 2026-10-28 follow-up below removes
+that control and the separate canvas, so the bottom-left strip now serves whichever graph
+is open.
 
 ## Files
 
@@ -273,3 +274,20 @@ reverted and the final build was rerun.
 and were deliberately left out of the commit. The list-hygiene and residue passes were
 committed together; this benchmark-independence pass is a separate local commit. Nothing
 was pushed.
+
+## Follow-up (2026-10-28): function editor reuses the main canvas
+
+- `dev/app.js`: removed the editor's second canvas (`#fnStage`, its world, node and edge
+  layers, and its own run status). `openFunctionEditor()` now moves the one `#stage` into
+  the editor and records its original parent/next sibling; closing moves it back. The
+  editor header's duplicate **Snap** and **Fit** buttons are gone because the shared
+  bottom-left controls are now reachable and act on whichever graph is open. The function
+  hint is moved into the reused stage while editing.
+- `dev/styles.css`: `.stage.fn-stage` makes the reused stage fill the editor body and hides
+  only the main toolbar; the editor keeps its own node list, which is necessary because the
+  full-screen window covers the sidebar.
+- Verification on the built page: there is always exactly one `.stage`; opening a function
+  moves it under `#fnBody`, the function's nodes render in the same `#nodesLayer`, adding,
+  dragging, wiring, **Run test**, **Fit** and **Snap** all work there, and closing returns the
+  stage to `#app` with the main graph's six nodes and seven wires intact. `node --check`,
+  the build and `dev/dcode/selftest.mjs` (116/116) all pass.

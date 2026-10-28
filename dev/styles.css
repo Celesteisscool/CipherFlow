@@ -855,6 +855,15 @@ select.control { padding-right: 4px; }
 .magic-value { flex: 0 0 auto; width: 22px; text-align: right; font-size: 8.2px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .magic-notes { margin-top: 4px; color: var(--faint); font-size: 8.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .magic-warning { margin-top: 6px; color: var(--danger); font-size: 8.6px; overflow-wrap: anywhere; }
+/* A node's output is text you may want a piece of, so it reads like text: select it and
+   copy it the ordinary way. The rest of the node stays unselectable, which is what stops a
+   drag from smearing a selection across the canvas. */
+.preview pre,
+.preview pre * {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+}
 .preview pre {
     margin: 4px 0 0;
     padding: 6px 7px;

@@ -6169,6 +6169,16 @@ function bindCanvasEvents(stageEl, layerEl) {
     layerEl.addEventListener("click", onNodeActionClick);
 }
 
+// Whether the user has a stretch of text selected inside a node's output. Copy, cut and
+// delete belong to that selection, so the graph's shortcuts stand aside for it.
+function previewTextSelected() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim()) return false;
+    const anchor = sel.anchorNode;
+    const el = anchor?.nodeType === 1 ? anchor : anchor?.parentElement;
+    return Boolean(el?.closest?.(".preview pre"));
+}
+
 function bindGlobalEvents() {
     bindCanvasEvents(stage, nodesLayer);
 
@@ -6231,7 +6241,10 @@ function bindGlobalEvents() {
         }
         const tag = document.activeElement?.tagName;
         const typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || document.activeElement?.isContentEditable;
-        if (!typing && (ev.key === "Delete" || ev.key === "Backspace")) {
+        // A stretch of output the user has selected belongs to them, not to the graph: copy,
+        // cut and delete should act on that text, never on the nodes behind it.
+        const textSelected = !typing && previewTextSelected();
+        if (!typing && !textSelected && (ev.key === "Delete" || ev.key === "Backspace")) {
             if (selection.size) {
                 ev.preventDefault();
                 deleteSelectedNodes();
@@ -6240,15 +6253,15 @@ function bindGlobalEvents() {
                 removeEdge(selectedEdge);
             }
         }
-        if (!typing && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "c") {
+        if (!typing && !textSelected && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "c") {
             ev.preventDefault();
             copySelection();
         }
-        if (!typing && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "x") {
+        if (!typing && !textSelected && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "x") {
             ev.preventDefault();
             copySelection({cut: true});
         }
-        if (!typing && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "v") {
+        if (!typing && !textSelected && (ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "v") {
             ev.preventDefault();
             pasteClipboard();
         }

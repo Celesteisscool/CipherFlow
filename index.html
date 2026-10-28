@@ -806,6 +806,27 @@ select.control { padding-right: 4px; }
     min-height: 19px;
 }
 .preview-head .spacer { flex: 1; }
+/* The head is one nowrap row, so a narrow node shortens the size label rather than pushing
+ * the FULL box and the mode switch out of the card. */
+.preview-head .bytes { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* "Full" on a text node: preview the whole output instead of its first stretch. */
+.preview-full {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex: none;
+    color: var(--faint);
+    font-size: 8.7px;
+    cursor: pointer;
+}
+.preview-full:hover { color: var(--ink); }
+.preview-full input {
+    width: 10px;
+    height: 10px;
+    margin: 0;
+    accent-color: var(--node-accent);
+    cursor: pointer;
+}
 /* Extracted-file list (Split Colour Channels, Unzip, Untar, Extract Files): the chosen
  * row is the payload that flows into the next node. */
 .file-list {
@@ -1020,6 +1041,69 @@ select.control { padding-right: 4px; }
 }
 .join-remove svg { width: 10px; height: 10px; stroke: currentColor; }
 .join-remove:hover {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 13%, transparent);
+}
+/* A switch case: a small heading, then the value it matches and the value it hands on. Both
+ * halves take a wire, so each one's port sits on the card's left edge like any other input.
+ * The fields are mono so a cipher value reads the same here as it does on the wire. */
+.switch-case {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
+}
+.switch-case:first-child { margin-top: 4px; padding-top: 0; border-top: none; }
+.switch-case-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 14px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+.switch-case-name { flex: 1 1 auto; }
+.switch-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+}
+.switch-field-label {
+    flex: 0 0 34px;
+    color: var(--faint);
+    font-size: 8.8px;
+    font-weight: 540;
+}
+.switch-field .arg-control {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-top: 0;
+}
+.switch-field .control {
+    height: 22px;
+    padding: 0 6px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+}
+.switch-default { margin-top: 10px; }
+.switch-remove {
+    flex: 0 0 auto;
+    margin-left: auto;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--faint);
+}
+.switch-remove svg { width: 10px; height: 10px; stroke: currentColor; }
+.switch-remove:hover {
     color: var(--danger);
     background: color-mix(in srgb, var(--danger) 13%, transparent);
 }
@@ -2112,10 +2196,11 @@ kbd {
             <div class="help-section">
                 <h3>Combine two inputs</h3>
                 <p>Every operation carries a box for its own main input, and <b>every</b> argument it has gets a port of its own — a key, an IV, a password, but also a number, a switch or a dropdown. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins: the box dims and shows the value arriving on the wire, cut short if it runs long. A wired number is read as a number, a switch as on or off, and a wire into a dropdown picks whichever option it matches. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
+                <p><b>Template</b> builds one string out of several: type a shape like <code>Hello {input1}, key {input2}</code> and each slot is filled from that numbered port — an f-string whose variables are wires. <b>Switch</b> is a lookup table: wire a value into it, add a case per key with the value to hand on, and give an <em>otherwise</em> value for when nothing matches. Both halves of a case and the otherwise value take wires too — the wire wins while it is connected. With no otherwise at all (nothing wired and nothing typed) the input is passed straight through. Keys match exactly once trimmed of surrounding spaces.</p>
             </div>
             <div class="help-section">
                 <h3>Magic</h3>
-                <p><b>Magic</b> lives in the <b>Graph</b> section of the node list, beside Text, File and Join (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
+                <p><b>Magic</b> lives in the <b>Graph</b> section of the node list, beside Text, File, Join, Template and Switch (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
             </div>
             <div class="help-section">
                 <h3>Move, resize, collapse</h3>
@@ -67453,6 +67538,10 @@ const ICONS = {
     input: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 8h8M7 5l3 3-3 3M12 3v10"/></svg>',
     output: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M14 8H6M9 5 6 8l3 3M4 3v10"/></svg>',
     join: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h4M2 12h4M6 4v8M6 8h7"/><path d="m10.7 5.7 2.5 2.3-2.5 2.3"/></svg>',
+    // Curly braces for the Template node: the {inputN} slots it fills in.
+    template: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.1 2.4c-1.3 0-1.6.9-1.6 2v2.1c0 .9-.4 1.5-1.3 1.5.9 0 1.3.6 1.3 1.5v2.1c0 1.1.3 2 1.6 2"/><path d="M9.9 2.4c1.3 0 1.6.9 1.6 2v2.1c0 .9.4 1.5 1.3 1.5-.9 0-1.3.6-1.3 1.5v2.1c0 1.1-.3 2-1.6 2"/></svg>',
+    // Two branches for the Switch node: one input, one of several outputs.
+    switch: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 8h3.4"/><path d="M5.2 8c2.4 0 2.2-4 4.6-4h2.4M5.2 8c2.4 0 2.2 4 4.6 4h2.4"/><path d="m10.6 2.3 1.7 1.7-1.7 1.7M10.6 9.7l1.7 1.7-1.7 1.7"/></svg>',
     file: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.8h5l3 3v9.4H4z"/><path d="M9 1.8v3h3M6.5 8.5h3M8 7v3"/></svg>',
     check: '<path d="m3.5 8.2 3 3 6-6.5"/>',
     alert: '<path d="M8 2.2 14 13H2zM8 6v3.5M8 11.3v.2"/>',
@@ -67725,6 +67814,11 @@ function nodeInPorts(node, lookup) {
             return ["main", ...(OPS[node.op]?.args || []).map((a, i) => argTypeWirable(a.type) ? "arg:" + i : null).filter(Boolean)];
         case "join":
             return Array.from({length: node.joinCount || 0}, (_, i) => "join:" + i);
+        case "template":
+            return Array.from({length: templatePorts(node)}, (_, i) => "in:" + i);
+        case "switch":
+            // The value to look up, both halves of every case, then the fallback.
+            return ["main", ...(node.cases || []).flatMap((_, i) => ["key:" + i, "value:" + i]), "default"];
         case "fn":
             return instancePorts(node, lookup).inputs.map(p => p.key);
         case "fnout":
@@ -68113,6 +68207,11 @@ let searchTerm = "";
 let sidebarOpen = false;
 let fitAfterRender = false;
 
+// How many inputs a Template node offers, kept inside the same 1-8 the other nodes use.
+function templatePorts(node) {
+    return clamp(Number(node?.portCount) || 2, 1, 8);
+}
+
 function makeNode(type, opts = {}) {
     const node = {
         id: opts.id ?? nodeSeq++,
@@ -68136,6 +68235,9 @@ function makeNode(type, opts = {}) {
     } else if (type === "input") {
         node.text = opts.text ?? "Hello, World!";
         node.encoding = opts.encoding || "utf8";
+        // Off by default: a long result shows its first stretch, and the box switches to the
+        // whole thing when the user asks for it.
+        node.fullPreview = Boolean(opts.fullPreview);
     } else if (type === "file") {
         node.fileName = opts.fileName || "";
         node.fileSize = opts.fileSize || 0;
@@ -68144,6 +68246,15 @@ function makeNode(type, opts = {}) {
     } else if (type === "join") {
         node.joinCount = opts.joinCount || 2;
         node.separator = opts.separator ?? "";
+    } else if (type === "template") {
+        // The shape being built, with {input1}, {input2}… marking where each port lands.
+        node.text = opts.text ?? "";
+        node.portCount = templatePorts(opts);
+    } else if (type === "switch") {
+        // Key/value pairs matched against the input, plus what to hand back when none match.
+        node.text = opts.text ?? "";
+        node.cases = Array.isArray(opts.cases) && opts.cases.length ? cloneValue(opts.cases) : [{key: "", value: ""}];
+        node.switchDefault = opts.switchDefault ?? "";
     } else if (type === "fnin") {
         // A function's declared inputs. Each port carries the name shown on every instance
         // and a sample value, so the definition can be run on its own inside the editor.
@@ -68276,12 +68387,16 @@ function cleanNodeForSave(n) {
         mime: n.mime,
         joinCount: n.joinCount,
         separator: n.separator,
+        portCount: n.portCount,
+        cases: n.cases ? cloneValue(n.cases) : undefined,
+        switchDefault: n.switchDefault,
         ports: n.ports ? cloneValue(n.ports) : undefined,
         fnId: n.fnId,
         portPick: n.portPick,
         typedInputs: n.typedInputs ? cloneValue(n.typedInputs) : undefined,
         fileIndex: n.fileIndex || 0,
         previewMode: n.previewMode || "text",
+        fullPreview: n.fullPreview ? true : undefined,
         collapsed: Boolean(n.collapsed),
         w: Math.round(n.w || 0),
         h: Math.round(n.h || 0),
@@ -68335,6 +68450,17 @@ function readTypedInputs(raw) {
     return Object.keys(out).length ? out : undefined;
 }
 
+// A switch's case list, read back from a file or a paste. Both sides must be strings, and
+// a hand-edited file cannot smuggle anything else in through them.
+function readSwitchCases(raw) {
+    if (!Array.isArray(raw) || !raw.length) return undefined;
+    const cases = raw.slice(0, 32).filter(c => c && typeof c === "object").map(c => ({
+        key: typeof c.key === "string" ? c.key : String(c.key ?? ""),
+        value: typeof c.value === "string" ? c.value : String(c.value ?? "")
+    }));
+    return cases.length ? cases : undefined;
+}
+
 // Rebuild one saved node. Shared by Open and by paste, so a pasted fragment is validated
 // by exactly the same rules as a file on disk.
 function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
@@ -68343,7 +68469,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "join", "op", "fn", "fnin", "fnout"].includes(type)) return null;
+    if (!["input", "file", "join", "template", "switch", "op", "fn", "fnin", "fnout"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -68369,12 +68495,16 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             mime: raw.mime,
             joinCount: clamp(Number(raw.joinCount) || 2, 1, 8),
             separator: raw.separator || "",
+            portCount: clamp(Number(raw.portCount) || 2, 1, 8),
+            cases: readSwitchCases(raw.cases),
+            switchDefault: typeof raw.switchDefault === "string" ? raw.switchDefault : "",
             ports: Array.isArray(raw.ports) && raw.ports.length ? raw.ports.map(p => ({...p})) : undefined,
             fnId: raw.fnId ? String(raw.fnId) : "",
             portPick: Number(raw.portPick) || 0,
             typedInputs: readTypedInputs(raw.typedInputs),
             fileIndex: clamp(Number(raw.fileIndex) || 0, 0, 32),
             previewMode: ["hex", "raw", "image", "text"].includes(raw.previewMode) ? raw.previewMode : "text",
+            fullPreview: Boolean(raw.fullPreview),
             collapsed: Boolean(raw.collapsed),
             w: Number(raw.w) || 0,
             h: Number(raw.h) || 0
@@ -68648,6 +68778,8 @@ function sourceTitle(node) {
     if (node.type === "input") return node.title || TEXT_NODE_TITLE;
     if (node.type === "file") return node.title || node.fileName || FILE_NODE_TITLE;
     if (node.type === "join") return node.title || "Join";
+    if (node.type === "template") return node.title || "Template";
+    if (node.type === "switch") return node.title || "Switch";
     if (node.type === "fn") return node.title || functionById(node.fnId)?.name || "Function";
     if (node.type === "fnin") return "Function input";
     if (node.type === "fnout") return "Function output";
@@ -68662,6 +68794,8 @@ function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
     if (node.type === "join") return "Join";
+    if (node.type === "template") return "Template";
+    if (node.type === "switch") return "Switch";
     if (node.type === "fn") return "Function";
     if (node.type === "fnin") return "Fn input";
     if (node.type === "fnout") return "Fn output";
@@ -68748,6 +68882,10 @@ function buildNode(node) {
         body.appendChild(buildFileNode(node));
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
+    } else if (node.type === "template") {
+        body.appendChild(buildTemplateNode(node));
+    } else if (node.type === "switch") {
+        body.appendChild(buildSwitchNode(node));
     } else if (node.type === "fn") {
         body.appendChild(buildFunctionNode(node));
     } else if (node.type === "fnin") {
@@ -68824,6 +68962,16 @@ function collapsedPorts(node) {
         });
     } else if (node.type === "join") {
         for (let i = 0; i < node.joinCount; i++) ports.push({name: "join:" + i, label: "In " + (i + 1)});
+    } else if (node.type === "template") {
+        for (let i = 0; i < templatePorts(node); i++) ports.push({name: "in:" + i, label: "In " + (i + 1)});
+    } else if (node.type === "switch") {
+        // Every port a case can be wired on gets an anchor, so its wire survives collapsing.
+        ports.push({name: "main", label: "In"});
+        (node.cases || []).forEach((_, i) => {
+            ports.push({name: "key:" + i, label: `Case ${i + 1} match`});
+            ports.push({name: "value:" + i, label: `Case ${i + 1} output`});
+        });
+        ports.push({name: "default", label: "Otherwise"});
     } else if (node.type === "fn") {
         for (const p of instancePorts(node).inputs) ports.push({name: p.key, label: p.name});
     } else if (node.type === "fnout") {
@@ -69123,6 +69271,122 @@ function buildJoinNode(node) {
     $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
     const sep = $("[data-join-separator]", wrap);
     sep.addEventListener("input", () => { node.separator = sep.value; node._sig = ""; onGraphEdited(); });
+    return wrap;
+}
+
+/* A template node builds one string out of several. The text typed into it is the shape,
+ * and every {input1}, {input2}… in it is replaced by what that numbered port is carrying —
+ * a Python f-string whose variables are wires. A slot with no wire becomes nothing, so a
+ * half-wired node still runs; a slot beyond the node's inputs is left as typed, which is
+ * how a typo shows itself instead of vanishing. */
+function buildTemplateNode(node) {
+    const wrap = document.createElement("div");
+    const count = templatePorts(node);
+    let rows = "";
+    for (let i = 0; i < count; i++) {
+        const port = "in:" + i;
+        const edge = edgeInto(node.id, port);
+        const src = edge ? edgeSource(edge) : null;
+        rows += `<div class="io-row join-row">
+            <span class="port in${edge ? " connected" : ""}" data-port="${port}"></span>
+            <span class="io-label">Input ${i + 1}</span>
+            <span class="port-label">${edge ? chipHtml(src, edge) : `<span class="bytes">{input${i + 1}}</span>`}</span>
+            ${count > 1 && i === count - 1 ? `<button class="join-remove" data-action="template-remove-port" data-node="${node.id}" title="Remove the last input">${iconFill("x")}</button>` : ""}
+        </div>${edge ? `<div class="wire-hint" data-hint-port="${port}" title="What this input is carrying">${esc(wireHintFor(node, port))}</div>` : ""}`;
+    }
+    wrap.innerHTML = `<div class="arg-row"><div class="arg-label-row"><span class="arg-name">Template</span></div>
+            <textarea class="control typed-input" data-template-text rows="3" spellcheck="false" placeholder="Hello {input1} — key {input2}">${esc(node.text || "")}</textarea>
+        </div>
+        ${rows}
+        <button class="join-add" data-action="template-add-port" data-node="${node.id}">${iconFill("plus")}<span>Add input</span></button>`;
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
+    const ta = $("[data-template-text]", wrap);
+    ta.addEventListener("input", () => { node.text = ta.value; node._sig = ""; onGraphEdited(); });
+    return wrap;
+}
+
+// What the template's placeholders turn into, given the values on its ports in order.
+function renderTemplate(text, values) {
+    return String(text || "").replace(/\{input(\d+)\}/gi, (whole, digits) => {
+        const index = Number(digits) - 1;
+        return index >= 0 && index < values.length ? values[index] : whole;
+    });
+}
+
+/* A switch node is a lookup table: the value on its input is compared with each case's key
+ * and the matching case's value is handed on. Keys match exactly once trimmed of spaces,
+ * so a stray newline off a cipher does not miss; a case with an empty key never matches.
+ * Both halves of a case, and the "otherwise" value, take a wire — the wire wins while it is
+ * connected. With a genuinely empty otherwise (nothing wired, nothing typed) the input is
+ * handed straight through, so a switch can sit in a chain as a do-nothing default. */
+function buildSwitchNode(node) {
+    const wrap = document.createElement("div");
+    const edge = edgeInto(node.id, "main");
+    const head = document.createElement("div");
+    head.className = "io-row";
+    head.innerHTML = `<span class="port in${edge ? " connected" : ""}" data-port="main" title="The value to look up"></span>
+        <span class="io-label">In</span>
+        <span class="port-label">${edge ? chipHtml(edgeSource(edge), edge) : ""}</span>`;
+    bindInputPort($(".port.in", head), node.id, "main");
+    wrap.appendChild(head);
+    // With nothing wired in, the node takes its own typed value so it can be tried alone.
+    if (!edge) {
+        const box = document.createElement("textarea");
+        box.className = "control typed-input";
+        box.rows = 2;
+        box.spellcheck = false;
+        box.placeholder = "Value to look up — or wire one into In";
+        box.value = node.text || "";
+        box.addEventListener("input", () => { node.text = box.value; node._sig = ""; onGraphEdited(); });
+        wrap.appendChild(box);
+    }
+    // One wirable field: a port on the left edge, a short name, then the box. A wired field
+    // dims and shows what is arriving, exactly like an operation's own arguments.
+    const field = (port, label, value, placeholder, title) => {
+        const fed = edgeInto(node.id, port);
+        return `<div class="switch-field" data-arg-port="${port}">
+            <span class="port in${fed ? " connected" : ""}" data-port="${port}" title="${esc(title)}"></span>
+            <span class="switch-field-label">${esc(label)}</span>
+            <div class="arg-control${fed ? " connected" : ""}">
+                <input class="control" data-switch-field="${port}" value="${esc(value ?? "")}" placeholder="${esc(fed ? wireHintFor(node, port) : placeholder)}" spellcheck="false">
+            </div>
+        </div>`;
+    };
+    const cases = Array.isArray(node.cases) ? node.cases : (node.cases = [{key: "", value: ""}]);
+    const caseHtml = cases.map((c, i) => `<div class="switch-case">
+            <div class="switch-case-head">
+                <span class="switch-case-name">Case ${i + 1}</span>
+                ${cases.length > 1 ? `<button class="switch-remove" data-action="switch-remove-case" data-node="${node.id}" data-index="${i}" title="Remove this case">${iconFill("x")}</button>` : ""}
+            </div>
+            ${field("key:" + i, "Match", c.key, "when the input is…", "Wire the value to match, or type it here")}
+            ${field("value:" + i, "Output", c.value, "what to hand on", "Wire the value to hand on, or type it here")}
+        </div>`).join("");
+    wrap.insertAdjacentHTML("beforeend", `${caseHtml}
+        <button class="join-add" data-action="switch-add-case" data-node="${node.id}">${iconFill("plus")}<span>Add case</span></button>
+        <div class="switch-case switch-default">
+            <div class="switch-case-head"><span class="switch-case-name">Otherwise</span></div>
+            ${field("default", "Output", node.switchDefault, "pass the input through if left empty", "Wire the value to hand on when nothing matches, or type it here")}
+        </div>`);
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
+    wrap.addEventListener("input", ev => {
+        const box = ev.target.closest("[data-switch-field]");
+        if (!box) return;
+        const port = box.dataset.switchField;
+        node._sig = "";
+        if (port === "default") {
+            node.switchDefault = box.value;
+        } else {
+            const [kind, index] = port.split(":");
+            const target = cases[Number(index)];
+            if (!target) return;
+            target[kind === "key" ? "key" : "value"] = box.value;
+        }
+        onGraphEdited();
+    });
     return wrap;
 }
 
@@ -69623,8 +69887,12 @@ function updatePreviewEl(wrap, node) {
     const imageUrl = (has && isImage && mode === "image") ? imageDataUrlFor(node, bytes, kind) : null;
     // Text and file nodes are the display side of a graph now, so they get the roomier
     // preview the old Output node had (and its save button, below).
-    const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "fn";
-    const pv = has ? previewBytes(bytes, mode === "hex" ? "hex" : "text", isSink ? 1100 : 420) : {text: isSink ? "Run the graph to see the output." : "Not run yet.", binary: false};
+    const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "switch" || node.type === "fn";
+    // A text node's "Full" box lifts the preview cut-off so the whole file can be read in
+    // place. The limit is a character count, so the byte length is always enough to clear it.
+    const full = node.type === "input" && Boolean(node.fullPreview) && mode === "text";
+    const limit = full ? Math.max(1100, bytes ? bytes.length : 0) : (isSink ? 1100 : 420);
+    const pv = has ? previewBytes(bytes, mode === "hex" ? "hex" : "text", limit) : {text: isSink ? "Run the graph to see the output." : "Not run yet.", binary: false};
     wrap.classList.toggle("empty", !has);
     wrap.dataset.kind = kind;
     let body;
@@ -69644,6 +69912,8 @@ function updatePreviewEl(wrap, node) {
         const ran = node._magicRan == null ? node._magic.length : node._magicRan;
         fileLabel = `${node._magic.length} ranked · ${ran}/${probed} ran · `;
     }
+    // A switch says which case it took, since the output alone does not show that.
+    if (node.type === "switch" && node._switchLabel) fileLabel = `${node._switchLabel} · `;
     const fileRows = files
         ? `<div class="file-list" title="Pick the file that flows into the next node">${files.map((f, i) => `<button class="file-row${i === selected ? " on" : ""}" data-file-pick="${i}" data-node="${node.id}"><span class="file-name">${esc(f.name)}</span><span class="file-size">${formatBytes(f.size)}</span></button>`).join("")}</div>`
         : "";
@@ -69651,6 +69921,7 @@ function updatePreviewEl(wrap, node) {
         <div class="preview-head">
             <span class="bytes">${fileLabel}${has ? formatBytes(bytes.length) : (node._error ? "error" : "—")}</span>
             <span class="spacer"></span>
+            ${node.type === "input" ? `<label class="preview-full" title="Preview the whole output instead of its first stretch"><input type="checkbox" data-action="preview-full" data-node="${node.id}"${node.fullPreview ? " checked" : ""}>Full</label>` : ""}
             <span class="seg">${(isImage ? [["image", "Image"], ["raw", "Raw"], ["hex", "Hex"]] : [["text", "Text"], ["hex", "Hex"]]).map(([m, label]) => `<button data-action="preview-mode" data-node="${node.id}" data-mode="${m}" class="${mode === m ? "on" : ""}">${label}</button>`).join("")}</span>
             ${has ? `<button class="mini-btn" data-action="copy-node" data-node="${node.id}" title="Copy output">${iconFill("copy")}</button>` : ""}
             ${has && isSink ? `<button class="mini-btn" data-action="save-node" data-node="${node.id}" title="Save output">${iconFill("save")}</button>` : ""}
@@ -70581,7 +70852,7 @@ function definitionStamp(def) {
     return sigHash(JSON.stringify([
         Boolean(def.continueOnError),
         (def.nodes || []).map(n => {
-            const {x, y, w, h, collapsed, previewMode, ...rest} = cleanNodeForSave(n);
+            const {x, y, w, h, collapsed, previewMode, fullPreview, ...rest} = cleanNodeForSave(n);
             return rest;
         }),
         (def.edges || []).map(e => [e.from, e.to, e.toPort, e.fromPort || "out"])
@@ -70739,6 +71010,19 @@ function inputSignature(node, incoming, results, opts) {
             parts.push(s.sig);
         }
         return JSON.stringify(["join", node.separator, node.joinCount, parts]);
+    }
+    if (node.type === "template") {
+        const parts = [];
+        for (let i = 0; i < templatePorts(node); i++) {
+            parts.push(sourceBytesForPort(incoming, node.id, "in:" + i, results).sig);
+        }
+        return JSON.stringify(["template", node.text, parts]);
+    }
+    if (node.type === "switch") {
+        const parts = ["main", "default"];
+        for (let i = 0; i < (node.cases || []).length; i++) parts.push("key:" + i, "value:" + i);
+        const sigs = parts.map(port => port + "=" + sourceBytesForPort(incoming, node.id, port, results).sig);
+        return JSON.stringify(["switch", node.text, node.cases, node.switchDefault, sigs]);
     }
     if (node.type === "fnin") {
         // A piped sample changes what the body receives, so its wire is part of the
@@ -71373,7 +71657,7 @@ async function executeGraph(nodes, edges, opts = {}) {
         let countIt = true;
         let sig = "";
         try {
-            const takesMain = node.type === "op" || node.type === "input" || node.type === "file";
+            const takesMain = node.type === "op" || node.type === "input" || node.type === "file" || node.type === "switch";
             const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
@@ -71448,6 +71732,54 @@ async function executeGraph(nodes, edges, opts = {}) {
                         const withSeps = [];
                         parts.forEach((p, i) => { if (i) withSeps.push(sep); withSeps.push(p); });
                         out = concatBytes(withSeps);
+                    }
+                }
+            } else if (node.type === "template") {
+                // Every port is read, wired or not, then the shape is filled in once.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
+                else {
+                    const values = [];
+                    for (let i = 0; i < templatePorts(node); i++) {
+                        const src = sourceBytesForPort(incoming, node.id, "in:" + i, results);
+                        if (src.error) { error = "Upstream error: " + src.error; break; }
+                        values.push(src.bytes ? utf8(src.bytes) : "");
+                    }
+                    if (!error) out = enc.encode(renderTemplate(node.text, values));
+                }
+            } else if (node.type === "switch") {
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    const inputBytes = main.bytes != null ? main.bytes : textBytes(node.text || "", "utf8");
+                    const probe = utf8(inputBytes).trim();
+                    const cases = node.cases || [];
+                    let picked = null;
+                    let label = "";
+                    for (let i = 0; i < cases.length; i++) {
+                        // Either half of a case can arrive on a wire, and a wire wins over the box.
+                        const keySrc = sourceBytesForPort(incoming, node.id, "key:" + i, results);
+                        if (keySrc.error) { error = "Upstream error: " + keySrc.error; break; }
+                        const key = (keySrc.bytes ? utf8(keySrc.bytes) : String(cases[i]?.key ?? "")).trim();
+                        if (!key || key !== probe) continue;
+                        const valueSrc = sourceBytesForPort(incoming, node.id, "value:" + i, results);
+                        if (valueSrc.error) { error = "Upstream error: " + valueSrc.error; break; }
+                        picked = valueSrc.bytes ? valueSrc.bytes : textBytes(String(cases[i].value ?? ""), "utf8");
+                        label = `case ${i + 1}`;
+                        break;
+                    }
+                    if (!error && picked == null) {
+                        // Nothing matched: the wired or typed otherwise, and failing both, the
+                        // input itself — an empty otherwise is a pass-through, not a blank.
+                        const fallback = sourceBytesForPort(incoming, node.id, "default", results);
+                        if (fallback.error) error = "Upstream error: " + fallback.error;
+                        else if (fallback.bytes && fallback.bytes.length) { picked = fallback.bytes; label = "otherwise"; }
+                        else if (node.switchDefault) { picked = textBytes(node.switchDefault, "utf8"); label = "otherwise"; }
+                        else { picked = inputBytes; label = "pass-through"; }
+                    }
+                    if (!error) {
+                        node._switchLabel = label;
+                        out = picked || new Uint8Array(0);
                     }
                 }
             } else if (node.type === "fnin") {
@@ -72215,13 +72547,19 @@ function createFunctionFromSelection() {
 }
 
 /* ================================================================ palette */
+// The canvas-level nodes, offered in the palette's Graph section and found by the search
+// box. `keys` is what the search matches besides the label and description, so "f-string"
+// reaches Template and "lookup" reaches Switch.
+const GRAPH_ITEMS = [
+    {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
+    {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
+    {type: "join", label: "Join", icon: "join", keys: "merge combine concatenate append several inputs", about: "Concatenate several inputs into one"},
+    {type: "template", label: "Template", icon: "template", keys: "format f-string fstring interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
+    {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
+    {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"}
+];
 function buildPalette() {
-    const graphItems = [
-        ["input", TEXT_NODE_TITLE, "input"],
-        ["file", FILE_NODE_TITLE, "file"],
-        ["join", "Join", "join"],
-        ["magic", "Magic", "wand"]
-    ];
+    const graphItems = GRAPH_ITEMS;
     const functions = state?.functions || [];
     let html = `<div class="palette-section">
         <div class="palette-section-title">Functions</div>
@@ -72237,7 +72575,7 @@ function buildPalette() {
     }
     html += `<div class="palette-section">
         <div class="palette-section-title">Graph</div>
-        ${graphItems.map(([type, label, iconName]) => `<button class="graph-item" data-graph-node="${type}" title="${type === "magic" ? "Rank every operation in the library for this input" : `Add a ${esc(label)} node`}"><span class="graph-icon">${iconFill(iconName)}</span>${esc(label)}<small>+</small></button>`).join("")}
+        ${graphItems.map(item => `<button class="graph-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="graph-icon">${iconFill(item.icon)}</span>${esc(item.label)}<small>+</small></button>`).join("")}
     </div>`;
     html += `<div class="palette-section"><div class="palette-section-title">Operations</div>`;
     for (const cat of CATEGORIES) {
@@ -72376,7 +72714,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", FUNCTION_COLOR);
         ghost.textContent = functionById(payload.fnId)?.name || "Function";
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Template", switch: "Switch", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -72393,15 +72731,26 @@ function renderSearch() {
         buildPalette();
         return;
     }
+    // The canvas nodes are searchable alongside the operations, so "join" or "f-string"
+    // is one query away instead of a scroll to the Graph section.
+    const graphMatches = GRAPH_ITEMS.filter(item =>
+        item.label.toLowerCase().includes(q) || item.keys.includes(q) || item.about.toLowerCase().includes(q));
     const matches = OP_NAMES.filter(op => {
         if (FLOW_OPS.has(op)) return false;
         const m = OPS[op];
         return op.toLowerCase().includes(q) || m.category.toLowerCase().includes(q) || (m.description || "").toLowerCase().includes(q);
     });
-    let html = `<div class="search-results"><div class="search-meta">${matches.length} match${matches.length === 1 ? "" : "es"}</div>`;
-    if (!matches.length) {
-        html += `<div class="search-empty">Nothing matched “${esc(searchTerm)}”.<br>Try a category like “hashing”.</div>`;
+    const total = graphMatches.length + matches.length;
+    let html = `<div class="search-results"><div class="search-meta">${total} match${total === 1 ? "" : "es"}</div>`;
+    if (!total) {
+        html += `<div class="search-empty">Nothing matched “${esc(searchTerm)}”.<br>Try a category like “hashing”, or a node like “template”.</div>`;
     } else {
+        if (graphMatches.length) {
+            html += `<div class="search-meta">Graph nodes</div>`;
+            for (const item of graphMatches) {
+                html += `<div class="search-item graph-node-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="si-name">${esc(item.label)}</span><span class="si-cat">Graph</span></div>`;
+            }
+        }
         for (const op of matches.slice(0, 180)) {
             html += `<div class="search-item" data-op="${esc(op)}"><span class="si-name">${esc(op)}</span><span class="si-cat">${esc(OPS[op].category)}</span></div>`;
         }
@@ -72438,6 +72787,12 @@ function addGraphNode(type, x, y) {
         state.nodes.push(added);
     } else if (type === "join") {
         added = makeNode("join", {x: p.x, y: p.y, title: "Join"});
+        state.nodes.push(added);
+    } else if (type === "template") {
+        added = makeNode("template", {x: p.x, y: p.y, title: "Template", text: "{input1}"});
+        state.nodes.push(added);
+    } else if (type === "switch") {
+        added = makeNode("switch", {x: p.x, y: p.y, title: "Switch"});
         state.nodes.push(added);
     } else if (type === "fnin" || type === "fnout") {
         // Only meaningful inside a function: these declare the ports of a definition.
@@ -73946,6 +74301,50 @@ function onNodeActionClick(ev) {
             renderAllNodes();
             onGraphEdited();
         }
+    } else if (action === "template-add-port" || action === "template-remove-port") {
+        ev.stopPropagation();
+        if (node) {
+            const count = templatePorts(node);
+            if (action === "template-add-port") {
+                if (count >= 8) { toast("Eight inputs is the limit for one template.", "error"); return; }
+                node.portCount = count + 1;
+            } else {
+                if (count <= 1) return;
+                // Taking away the last input takes whatever was wired into it with it.
+                node.portCount = count - 1;
+                state.edges = state.edges.filter(e => !(e.to === node.id && e.toPort === "in:" + (count - 1)));
+            }
+            node._sig = "";
+            renderAllNodes();
+            onGraphEdited();
+        }
+    } else if (action === "switch-add-case" || action === "switch-remove-case") {
+        ev.stopPropagation();
+        if (node) {
+            const cases = Array.isArray(node.cases) ? node.cases : (node.cases = [{key: "", value: ""}]);
+            if (action === "switch-add-case") {
+                if (cases.length >= 16) { toast("Sixteen cases is the limit for one switch.", "error"); return; }
+                cases.push({key: "", value: ""});
+            } else {
+                if (cases.length <= 1) return;
+                const index = clamp(Number(btn.dataset.index) || 0, 0, cases.length - 1);
+                cases.splice(index, 1);
+                // The removed case takes its two wires with it, and the later cases slide down
+                // one, so their wires follow them instead of pointing past the end.
+                const shift = port => {
+                    const m = /^(key|value):(\d+)$/.exec(port || "");
+                    if (!m) return port;
+                    const n = Number(m[2]);
+                    return n === index ? null : n > index ? `${m[1]}:${n - 1}` : port;
+                };
+                state.edges = state.edges
+                    .filter(e => !(e.to === node.id && (e.toPort === "key:" + index || e.toPort === "value:" + index)))
+                    .map(e => e.to === node.id ? {...e, toPort: shift(e.toPort)} : e);
+            }
+            node._sig = "";
+            renderAllNodes();
+            onGraphEdited();
+        }
     } else if (action === "fn-edit") {
         ev.stopPropagation();
         const def = node ? functionById(node.fnId) : null;
@@ -73994,6 +74393,13 @@ function onNodeActionClick(ev) {
             renderAllNodes();
             saveLocalSoon();
             scheduleHistory();
+        }
+    } else if (action === "preview-full") {
+        ev.stopPropagation();
+        if (node) {
+            node.fullPreview = Boolean(btn.checked);
+            refreshNodePreview(node);
+            saveLocalSoon();
         }
     } else if (action === "preview-mode") {
         ev.stopPropagation();

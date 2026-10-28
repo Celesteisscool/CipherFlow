@@ -783,6 +783,27 @@ select.control { padding-right: 4px; }
     min-height: 19px;
 }
 .preview-head .spacer { flex: 1; }
+/* The head is one nowrap row, so a narrow node shortens the size label rather than pushing
+ * the FULL box and the mode switch out of the card. */
+.preview-head .bytes { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* "Full" on a text node: preview the whole output instead of its first stretch. */
+.preview-full {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex: none;
+    color: var(--faint);
+    font-size: 8.7px;
+    cursor: pointer;
+}
+.preview-full:hover { color: var(--ink); }
+.preview-full input {
+    width: 10px;
+    height: 10px;
+    margin: 0;
+    accent-color: var(--node-accent);
+    cursor: pointer;
+}
 /* Extracted-file list (Split Colour Channels, Unzip, Untar, Extract Files): the chosen
  * row is the payload that flows into the next node. */
 .file-list {
@@ -997,6 +1018,69 @@ select.control { padding-right: 4px; }
 }
 .join-remove svg { width: 10px; height: 10px; stroke: currentColor; }
 .join-remove:hover {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 13%, transparent);
+}
+/* A switch case: a small heading, then the value it matches and the value it hands on. Both
+ * halves take a wire, so each one's port sits on the card's left edge like any other input.
+ * The fields are mono so a cipher value reads the same here as it does on the wire. */
+.switch-case {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
+}
+.switch-case:first-child { margin-top: 4px; padding-top: 0; border-top: none; }
+.switch-case-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 14px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+.switch-case-name { flex: 1 1 auto; }
+.switch-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+}
+.switch-field-label {
+    flex: 0 0 34px;
+    color: var(--faint);
+    font-size: 8.8px;
+    font-weight: 540;
+}
+.switch-field .arg-control {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-top: 0;
+}
+.switch-field .control {
+    height: 22px;
+    padding: 0 6px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+}
+.switch-default { margin-top: 10px; }
+.switch-remove {
+    flex: 0 0 auto;
+    margin-left: auto;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--faint);
+}
+.switch-remove svg { width: 10px; height: 10px; stroke: currentColor; }
+.switch-remove:hover {
     color: var(--danger);
     background: color-mix(in srgb, var(--danger) 13%, transparent);
 }

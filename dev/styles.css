@@ -527,12 +527,30 @@ button svg { flex: 0 0 auto; }
 .node.type-input .preview,
 .node.type-file .preview,
 .node.type-join .preview { flex: 1 1 auto; }
-/* A resized node hands its spare height to the preview. */
-.node.resized .preview { flex: 1 1 auto; min-height: 0; }
-.node.resized .preview > pre { max-height: none; flex: 1 1 auto; }
-.node.resized .preview-media { flex: 1 1 auto; min-height: 80px; }
+/* A resized node is a fixed box. Its spare height goes to the preview, and when there is
+ * less room than the output needs the preview scrolls inside the box rather than the node
+ * growing back to the size of its text. The resize floor is measured from the node's own
+ * controls, so the preview can shrink away without cutting anything else off. */
+.node.resized .node-body {
+    display: flex;
+    flex-direction: column;
+}
+/* Input, file, join and function nodes build their body inside a wrapper, so the chain has
+ * to continue through it: without this the preview is not a flex child of the body and keeps
+ * its full content height, spilling out of the fixed-size card. */
+.node.resized:is(.type-input, .type-file, .type-join, .fn-node) .node-body > div {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.node.resized .preview { flex: 1 1 0; min-height: 72px; overflow: hidden; }
+/* "safe" centring keeps short output in the middle but stops a long result being clipped
+ * above the scroll area, which is what plain centring does once the text is taller. */
+.node.resized .preview > pre { max-height: none; min-height: 0; flex: 1 1 auto; overflow: auto; align-items: safe center; }
+.node.resized .preview-media { flex: 1 1 auto; min-height: 60px; overflow: hidden; }
 .node.resized .preview-img { max-height: 100%; }
-.node.resized .preview-frame { height: 100%; min-height: 150px; }
+.node.resized .preview-frame { height: 100%; min-height: 110px; }
 .node.resized .magic-list { max-height: none; }
 .node.resized .file-list { max-height: 40vh; }
 .node-sub {
@@ -986,10 +1004,11 @@ select.control { padding-right: 4px; }
 .collapsed-ports .io-out-row:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 /* The collapsed head sits above the port stub, so it keeps a normal border. */
 .node.collapsed .node-head { border-radius: 13px 13px 0 0; }
-/* And a resized preview wins over the compact caps above. */
-.node.resized .preview > pre { max-height: none; }
-.node.resized .preview-img { max-height: 100%; }
-.node.resized .preview-frame { height: 100%; }
+/* And a resized node's fixed box wins over the compact caps above, so its preview is the
+ * thing that scrolls — not the card growing back to the height of its output. */
+.node.resized .node-body .preview > pre { max-height: none; min-height: 0; }
+.node.resized .node-body .preview-img { max-height: 100%; }
+.node.resized .node-body .preview-frame { height: 100%; }
 
 /* ----------------------------------------------------------------- sidebar */
 .sidebar {

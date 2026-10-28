@@ -23,6 +23,14 @@ const ENGINE_LABEL = "CyberChef 11.5.0";
 // node keeps the palette, the defaults, the drag ghost and the title tooltips in step.
 const TEXT_NODE_TITLE = "Text Input / Output";
 const FILE_NODE_TITLE = "File Input / Output";
+// Canvas geometry, in world pixels. The dot grid is drawn on this pitch and the Snap button
+// moves every node onto it, so the two must share one constant.
+const GRID_SIZE = 22;
+// The smallest a node may be dragged. A resized node is a fixed box: its preview scrolls
+// inside it instead of the node growing to fit its own output, so long text (or a big image)
+// can never pin a node open at the size of its content.
+const NODE_MIN_W = 220;
+const NODE_MIN_H = 140;
 // The names these nodes shipped with, renamed on load so an existing graph reads correctly.
 const LEGACY_TITLES = {input: "Text input", file: "File input"};
 
@@ -48,6 +56,10 @@ const CAT_COLORS = {
 
 const ICONS = {
     logo: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="4" cy="3" r="1.6"/><circle cx="12" cy="8" r="1.6"/><circle cx="4" cy="13" r="1.6"/><path d="M5.5 3.8 10.4 7M5.5 12.2 10.4 9"/></svg>',
+    // A wand for Magic: a tapered stick with three sparks, drawn like the other 16px icons.
+    wand: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 13.4 9.2 6.8M9.9 6.1l1-1"/><path d="M12.4 2.2v2.6M11.1 3.5h2.6M5 2.4v2.1M3.95 3.45h2.1M13.1 8.2v1.8M12.2 9.1h1.8"/></svg>',
+    // A dot grid for the Snap button, echoing the canvas dots it lines nodes up with.
+    snap: '<svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><circle cx="3" cy="3" r="1.15"/><circle cx="8" cy="3" r="1.15"/><circle cx="13" cy="3" r="1.15"/><circle cx="3" cy="8" r="1.15"/><circle cx="8" cy="8" r="1.15"/><circle cx="13" cy="8" r="1.15"/><circle cx="3" cy="13" r="1.15"/><circle cx="8" cy="13" r="1.15"/><circle cx="13" cy="13" r="1.15"/></svg>',
     search: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.2"/><path d="m10.2 10.2 3.1 3.1"/></svg>',
     x: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg>',
     chevron: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>',
@@ -271,9 +283,12 @@ const OP_NAMES = Object.keys(OPS);
 const FLOW_OPS = new Set(OP_NAMES.filter(n => OPS[n].flowControl));
 // CipherFlow wires graphs itself, so CyberChef's flow-control ops (jumps, labels, fork,
 // merge…) are left out of the palette entirely rather than shown as dead entries.
+// Magic is not listed among the operations: it is a graph-level tool, offered with Text,
+// File and Join in the palette's Graph section. Search still finds it by name.
+const MAGIC_OP = "Magic";
 const CATEGORIES = META.categories
     .filter(c => c.name !== "Flow control")
-    .map(c => ({...c, color: CAT_COLORS[c.name] || CAT_COLORS.Other, ops: c.ops.filter(op => !FLOW_OPS.has(op))}));
+    .map(c => ({...c, color: CAT_COLORS[c.name] || CAT_COLORS.Other, ops: c.ops.filter(op => !FLOW_OPS.has(op) && op !== MAGIC_OP)}));
 const GRAPH_COLOR = CAT_COLORS.Graph;
 // Function blocks get their own accent so an instance reads differently from an operation.
 const FUNCTION_COLOR = "#0f8f8f";
@@ -1156,9 +1171,10 @@ function resetPaletteSearch() {
 /* ================================================================ viewport */
 function applyView() {
     world.style.transform = `translate(${state.view.x}px, ${state.view.y}px) scale(${state.view.zoom})`;
-    stage.style.setProperty("--grid-size", `${22 * state.view.zoom}px`);
-    stage.style.setProperty("--grid-x", `${state.view.x % (22 * state.view.zoom)}px`);
-    stage.style.setProperty("--grid-y", `${state.view.y % (22 * state.view.zoom)}px`);
+    const pitch = GRID_SIZE * state.view.zoom;
+    stage.style.setProperty("--grid-size", `${pitch}px`);
+    stage.style.setProperty("--grid-x", `${state.view.x % pitch}px`);
+    stage.style.setProperty("--grid-y", `${state.view.y % pitch}px`);
     zoomLabel.textContent = Math.round(state.view.zoom * 100) + "%";
     scheduleEdges();
 }
@@ -1322,12 +1338,10 @@ function buildNode(node) {
 
     const title = node.type === "op" ? node.op : (node.title || sourceTitle(node));
     const cat = nodeCategoryLabel(node);
-    // A resized node keeps its width even when collapsed, but drops its height so the
-    // collapsed card stays compact; expanding restores it.
-    // The saved height is a floor, never a fixed size: the node still grows to fit its
-    // content, so shrinking one can no longer cut controls or a preview off.
+    // A resized node is a fixed box, kept on the node so it survives saves. Collapsing drops
+    // the height so the card stays compact; expanding brings it back.
     if (node.w) el.style.width = node.w + "px";
-    if (node.h && !node.collapsed) el.style.minHeight = node.h + "px";
+    if (node.h && !node.collapsed) el.style.height = node.h + "px";
     if ((node.w || node.h) && !node.collapsed) el.classList.add("resized");
     el.classList.toggle("collapsed", Boolean(node.collapsed));
     el.innerHTML = `
@@ -2878,38 +2892,76 @@ function startNodeResize(node, ev) {
     clearTimeout(historyTimer);
     const startX = ev.clientX, startY = ev.clientY;
     const ow = el.offsetWidth, oh = el.offsetHeight;
-    const prevMin = el.style.minHeight;
     el.classList.add("resizing", "resized");
-    // Measure the smallest the node can be without hiding any of its content, so the
-    // drag stops there instead of squeezing the card over its own controls. A resized
-    // node shows its full preview, so measure with that styling already applied.
-    el.style.minHeight = "0px";
-    const naturalH = Math.max(120, el.offsetHeight);
-    el.style.minHeight = prevMin;
+    // The floor is what the node's own controls need — header, rows, a typed box — measured
+    // with the preview hidden. Output no longer pins the card open at the height of its text,
+    // but the things above the preview can never be squeezed off the bottom either. The extra
+    // room is the preview's own minimum, so a couple of lines stay readable at the floor.
+    const preview = $(".preview", el);
+    const prevDisplay = preview ? preview.style.display : "";
+    if (preview) preview.style.display = "none";
+    el.style.height = "auto";
+    const minH = Math.max(NODE_MIN_H, el.offsetHeight + 82);
+    if (preview) preview.style.display = prevDisplay;
+    // The node is a fixed box while it is resized, so the preview scrolls inside it.
+    el.style.height = `${oh}px`;
     const move = e => {
         const dw = (e.clientX - startX) / state.view.zoom;
         const dh = (e.clientY - startY) / state.view.zoom;
-        node.w = Math.max(238, Math.round(ow + dw));
-        node.h = Math.max(naturalH, Math.round(oh + dh));
+        node.w = Math.max(NODE_MIN_W, Math.round(ow + dw));
+        node.h = Math.max(minH, Math.round(oh + dh));
         el.style.width = node.w + "px";
-        el.style.minHeight = node.h + "px";
+        el.style.height = node.h + "px";
         scheduleEdges();
     };
     const up = () => {
         document.removeEventListener("pointermove", move);
         document.removeEventListener("pointerup", up, {once: true});
         el.classList.remove("resizing");
-        // Store what was actually rendered, so the saved size matches the screen and a
-        // node too small for its content is corrected on the next load.
-        node.w = el.offsetWidth;
-        node.h = Math.max(el.offsetHeight, naturalH);
-        el.style.minHeight = node.h + "px";
+        // Store what was actually rendered, clamped to the same floor, so the saved size
+        // matches the screen and a reload restores exactly this box.
+        node.w = Math.max(NODE_MIN_W, el.offsetWidth);
+        node.h = Math.max(minH, el.offsetHeight);
+        el.style.width = node.w + "px";
+        el.style.height = node.h + "px";
         saveLocalSoon();
         scheduleEdges();
         pushHistory();
     };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", up, {once: true});
+}
+
+// Snap every node in the open graph onto the nearest dot of the canvas grid. Positions are
+// plain world coordinates and the dots are drawn on the same pitch, so this needs no view
+// maths and stays aligned at any zoom. While the function editor is open, `state` is that
+// definition's body, so only the function's own nodes move — the main graph is untouched.
+function snapNodesToGrid() {
+    if (!state) return;
+    const moved = [];
+    for (const node of state.nodes) {
+        const x = Math.round(node.x / GRID_SIZE) * GRID_SIZE;
+        const y = Math.round(node.y / GRID_SIZE) * GRID_SIZE;
+        if (x === node.x && y === node.y) continue;
+        node.x = x;
+        node.y = y;
+        moved.push(node);
+    }
+    if (!moved.length) {
+        toast("Every node is already on the grid");
+        return;
+    }
+    for (const node of moved) {
+        const el = nodeEl(node.id);
+        if (!el) continue;
+        el.style.left = node.x + "px";
+        el.style.top = node.y + "px";
+    }
+    scheduleEdges();
+    saveLocalSoon();
+    // One history entry for the whole snap, so a single undo puts every node back.
+    pushHistory();
+    toast(`Snapped ${moved.length} node${moved.length === 1 ? "" : "s"} to the grid`);
 }
 
 /* Marquee selection: shift-drag on the empty canvas gathers every node the box touches.
@@ -3549,9 +3601,20 @@ function scoreMagicResult(text, inputText, opName = "") {
     // rearranged by presentation rather than revealed. Scoring those as findings is how a
     // sweep ends up recommending "To Upper case".
     if (inputText) {
-        const bare = value => value.toLowerCase().replace(/[^a-z]/g, "");
+        // Entity names are spelling, not letters: "&period" must not make the encoded copy of
+        // a sentence look different from the sentence it came from.
+        const bare = value => value.toLowerCase()
+            .replace(/&[a-z#0-9]{1,10};?/g, "")
+            .replace(/[^a-z]/g, "");
         const mine = bare(text), theirs = bare(inputText);
         if (mine.length >= 4 && mine === theirs) return {score: -500, notes: ["same letters"]};
+        // Repeats, power sets and "wrap the input" operations hand back what came in with
+        // extra words around it. Seeing the whole input inside the result is not a decode.
+        const flat = value => value.replace(/\s+/g, " ").trim().toLowerCase();
+        const inFlat = flat(inputText), outFlat = flat(text);
+        if (inFlat.length >= 8 && outFlat.length > inFlat.length && outFlat.includes(inFlat)) {
+            return {score: -500, notes: ["contains the input"]};
+        }
     }
     const total = text.length;
     let letters = 0;
@@ -3589,6 +3652,11 @@ function scoreMagicResult(text, inputText, opName = "") {
     // that happens to say "there is no key" is not mistaken for a warning.
     if (MAGIC_MESSAGE_START.test(trimmed) || MAGIC_MESSAGE_ANY.test(trimmed)
         || (trimmed.length < 600 && MAGIC_MESSAGE_PHRASE.test(trimmed.slice(0, 400)))) {
+        return {score: -999, notes: ["message, not data"]};
+    }
+    // A thrown exception is never output: "BSONError: buffer length 88 must === bson size 123"
+    // is a full legible sentence starting with a class name, so the patterns above miss it.
+    if (/\b[A-Za-z]*Error\b|\bException\b|\bstack trace\b/i.test(trimmed.slice(0, 200))) {
         return {score: -999, notes: ["message, not data"]};
     }
     // A slice of the input is not a finding: "Take bytes", "Strip IPv4 header", "Head" all
@@ -3675,24 +3743,44 @@ function scoreMagicResult(text, inputText, opName = "") {
         const expansion = total / Math.max(1, inputText.length);
         if (expansion > 1.5) score -= Math.min(30, 14 * Math.log2(expansion / 1.5));
     }
-    // Encoders present the same bytes another way and can never reveal a message, so a
-    // sweep that hunts for one ranks them below the decoders.
-    if (magicOpClass(opName) === "encode") score -= 12;
+    // Encoders present the same bytes another way and can never reveal a message, so a sweep
+    // that hunts for one keeps them below every real decode. "To HTML Entity" on plain text
+    // used to outrank everything simply because the output is legible English-like symbols.
+    if (magicOpClass(opName) === "encode") {
+        score = Math.min(score, 30);
+        notes.push("encoder, not a decode");
+    }
 
     // Real words are what makes a result worth offering. Letters that contain not one English
     // word of three letters or more are a shape, not a message: "Rntsu, Bsune!" has perfect
     // word structure and letter frequencies and says nothing. Such a result cannot outrank
     // text that actually reads.
     const knownWords = tokens.filter(token => token.length >= 3 && magicKnownWord(token)).length;
+    const knownRatio = tokens.length ? tokens.filter(token => magicKnownWord(token)).length / tokens.length : 0;
     if (!knownWords) {
         score = Math.min(score, letters >= 12 ? 45 : 35);
         notes.push("no real words");
     } else if (knownWords >= 2) {
         notes.push(`${knownWords} real words`);
     }
+    // Words are what separates a decode from a scrambler's near-miss: "Her Wlldolo!" has the
+    // letter statistics of English but half its words are not words at all, so it cannot
+    // outrank text that reads. One proper noun in a sentence is fine; a majority is not.
+    if (tokens.length >= 3 && knownRatio < 0.55) {
+        score = Math.min(score, 45);
+        notes.push("words do not read");
+    } else if (tokens.length === 2 && knownRatio < 0.6) {
+        score = Math.min(score, 52);
+        notes.push("words do not read");
+    } else if (tokens.length >= 2 && knownRatio >= 0.85) {
+        score += 4;
+        notes.push("every word reads");
+    }
     // A handful of characters cannot be a hidden message, whatever it happens to spell;
     // "NaN" and "08:30" were outranking real decodes on nothing but legibility.
     if (trimmed.length < 8) score = Math.min(score, 20);
+    // The cap is re-applied after the bonuses above, so an encoder can never climb back up.
+    if (magicOpClass(opName) === "encode") score = Math.min(score, 30);
     return {score, notes, knownWords, structural};
 }
 
@@ -3760,8 +3848,8 @@ function rankMagicResults(results, inputText) {
             notes,
             // A result with a real word, or a recognisable shape, is a finding. One with
             // neither is a shape that happens to look like language, so it only fills in
-            // when there is nothing better to show.
-            solid: knownWords > 0 || structural,
+            // when there is nothing better to show. An encoder is never a finding.
+            solid: (knownWords > 0 || structural) && magicOpClass(result.op) !== "encode",
             ms: result.ms,
             preview: text.replace(/\s+/g, " ").slice(0, 120)
         };
@@ -3781,6 +3869,27 @@ function rankMagicResults(results, inputText) {
     const list = findings.length ? findings.concat(nearMisses) : alsoRan;
     return list.length ? list : ranked.slice(0, 6);
 }
+
+/* A fixed set of inputs Magic must get right, kept beside the scorer so it is obvious what
+ * "better" means when the weights change. The lab runs this as one check; every case is a
+ * single decoding step, because that is what Magic offers. The two last entries have no
+ * answer on purpose: they must produce the low-confidence warning rather than a confident
+ * wrong one. */
+const MAGIC_BENCHMARK = [
+    {name: "base64", input: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=", expect: "The quick brown fox jumps over 13 lazy dogs."},
+    {name: "base64url", input: "QXR0YWNrIGF0IGRhd24hIE1lZXQgbWUgYnkgdGhlIG9sZCBicmlkZ2Uu", expect: "Attack at dawn! Meet me by the old bridge."},
+    {name: "hex", input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!"},
+    {name: "decimal bytes", input: "72 101 108 108 111 44 32 87 111 114 108 100 33", expect: "Hello, World!"},
+    {name: "binary", input: "01001000 01100101 01101100 01101100 01101111 00101100 00100000 01010111 01101111 01110010 01101100 01100100 00100001", expect: "Hello, World!"},
+    {name: "url encoded", input: "Caf%C3%A9%20au%20lait%20is%20ready%20at%20nine", expect: "Café au lait is ready at nine"},
+    {name: "caesar 3", input: "Khoor, Zruog!", expect: "Hello, World!"},
+    {name: "caesar 7", input: "Olssv, dvysk!", expect: "Hello, world!"},
+    {name: "atbash", input: "Svool, Dliow!", expect: "Hello, World!"},
+    {name: "base32", input: "JBSWY3DPEBLW64TMMQQQ", expect: "Hello World!"},
+    {name: "morse", input: ".... . .-.. .-.. ---\n.-- --- .-. .-.. -..", expect: "HELLO WORLD"},
+    {name: "plain english", input: "The quick brown fox jumps over the lazy dog.", expect: null},
+    {name: "gibberish", input: "qzxvbnm plkjhgf wxyzzy", expect: null}
+];
 
 async function runMagicNode(node, inputBytes, argValues) {
     const topN = clamp(Math.round(Number(argValues[0]) || 10), 1, 40);
@@ -4473,6 +4582,7 @@ function functionEditorEl() {
                     <input type="checkbox" id="fnContinue"><span>Keep going on errors</span>
                 </label>
                 <button class="btn-secondary fn-nodes-btn" id="fnNodesBtn" title="Show or hide the node list">${iconFill("nodes")}<span>Nodes</span></button>
+                <button class="btn-secondary" id="fnSnap" title="Snap every node in this function to the grid">Snap</button>
                 <button class="btn-secondary" id="fnFit">Fit</button>
                 <button class="btn-secondary" id="fnRunTest">Run test</button>
                 <button class="btn-primary" id="fnDone">Done</button>
@@ -4539,6 +4649,7 @@ function functionEditorEl() {
     });
     $("#fnBack", el).addEventListener("click", closeFunctionEditor);
     $("#fnDone", el).addEventListener("click", closeFunctionEditor);
+    $("#fnSnap", el).addEventListener("click", snapNodesToGrid);
     $("#fnFit", el).addEventListener("click", () => fitView());
     $("#fnRunTest", el).addEventListener("click", runFunctionTest);
     return el;
@@ -4711,7 +4822,8 @@ function buildPalette() {
     const graphItems = [
         ["input", TEXT_NODE_TITLE, "input"],
         ["file", FILE_NODE_TITLE, "file"],
-        ["join", "Join", "join"]
+        ["join", "Join", "join"],
+        ["magic", "Magic", "wand"]
     ];
     const functions = state?.functions || [];
     let html = `<div class="palette-section">
@@ -4728,7 +4840,7 @@ function buildPalette() {
     }
     html += `<div class="palette-section">
         <div class="palette-section-title">Graph</div>
-        ${graphItems.map(([type, label, iconName]) => `<button class="graph-item" data-graph-node="${type}"><span class="graph-icon">${iconFill(iconName)}</span>${esc(label)}<small>+</small></button>`).join("")}
+        ${graphItems.map(([type, label, iconName]) => `<button class="graph-item" data-graph-node="${type}" title="${type === "magic" ? "Rank every operation in the library for this input" : `Add a ${esc(label)} node`}"><span class="graph-icon">${iconFill(iconName)}</span>${esc(label)}<small>+</small></button>`).join("")}
     </div>`;
     html += `<div class="palette-section"><div class="palette-section-title">Operations</div>`;
     for (const cat of CATEGORIES) {
@@ -4867,7 +4979,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", FUNCTION_COLOR);
         ghost.textContent = functionById(payload.fnId)?.name || "Function";
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -4916,7 +5028,12 @@ function addOperationNode(op, x, y) {
 function addGraphNode(type, x, y) {
     const p = (x === undefined) ? spawnPoint() : {x, y};
     let added = null;
-    if (type === "input") {
+    if (type === "magic") {
+        // Magic is an operation, but it is offered as a graph tool: it sweeps the library for
+        // the input rather than being one step of it.
+        added = makeNode("op", {op: MAGIC_OP, x: p.x, y: p.y});
+        state.nodes.push(added);
+    } else if (type === "input") {
         added = makeNode("input", {x: p.x, y: p.y, title: TEXT_NODE_TITLE, text: "Hello, World!"});
         state.nodes.push(added);
     } else if (type === "file") {
@@ -6006,7 +6123,10 @@ function integrationDefinitions() {
                     // itself is not the contract — the plaintext it produces is.
                     {input: "Khoor, Zruog!", expect: "Hello, World!", top: /^ROT13 \(shift \d+\)$/},
                     {input: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=", expect: "The quick brown fox jumps over 13 lazy dogs.", top: /^From Base64$/},
-                    {input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!", top: /^From Hex$/}
+                    // Two decoders legitimately turn hex digits into characters, and Magic
+                    // credits whichever it met first when their text and score are identical:
+                    // the contract is the plaintext, not which of the pair wears the label.
+                    {input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!", top: /^(From Hex|From Charcode)$/}
                 ];
                 const report = [];
                 for (const item of cases) {
@@ -6021,6 +6141,31 @@ function integrationDefinitions() {
                     // The ranking itself is the diagnosis when this fails, so always report it.
                     const listed = rows.slice(0, 5).map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ");
                     report.push(`${ok ? "ok" : "no"} ${JSON.stringify(label)} → ${JSON.stringify(out.slice(0, 40))} [${listed}]`);
+                    if (!ok) return {ok: false, detail: report.join(" · ")};
+                }
+                return {ok: true, detail: report.join(" · ")};
+            }
+        },
+        {
+            id: "magic-benchmark",
+            title: "Magic benchmark across encodings",
+            description: "Thirteen inputs: base64, base64url, hex, decimal bytes, binary, URL encoding, two Caesar shifts, Atbash, base32, Morse and two inputs with no answer. Every decode must put its plaintext first, and the two undecodable inputs must warn instead of confidently answering.",
+            run: async () => {
+                const report = [];
+                for (const item of MAGIC_BENCHMARK) {
+                    const nodes = [B.input(1, item.input, 0), B.op(2, MAGIC_OP, 500)];
+                    const edges = [B.edge(1, 1, 2, "main")];
+                    await executeGraph(nodes, edges, {force: true, timeout: 120000});
+                    const rows = nodes[1]._magic || [];
+                    const label = rows[0] ? (rows[0].label || rows[0].op) : "none";
+                    const out = nodes[1]._output ? utf8(nodes[1]._output) : "";
+                    const warning = nodes[1]._magicWarning || "";
+                    // A decode passes when its own output is the expected plaintext; a case with
+                    // no answer passes when Magic admits it is not convinced.
+                    const ok = item.expect
+                        ? out.trim().startsWith(item.expect)
+                        : Boolean(warning);
+                    report.push(`${ok ? "ok" : "no"} ${item.name} → ${label} ${JSON.stringify(out.slice(0, 60))}${item.expect ? "" : warning ? " (warned)" : " (no warning)"}`);
                     if (!ok) return {ok: false, detail: report.join(" · ")};
                 }
                 return {ok: true, detail: report.join(" · ")};
@@ -6219,6 +6364,7 @@ function bindGlobalEvents() {
     $("#zoomOut").addEventListener("click", () => zoomAt(stage.getBoundingClientRect().left + stage.clientWidth / 2, stage.getBoundingClientRect().top + stage.clientHeight / 2, 1 / 1.18));
     $("#zoomIn").addEventListener("click", () => zoomAt(stage.getBoundingClientRect().left + stage.clientWidth / 2, stage.getBoundingClientRect().top + stage.clientHeight / 2, 1.18));
     $("#fitBtn").addEventListener("click", fitView);
+    $("#snapBtn").addEventListener("click", snapNodesToGrid);
     $("#themeBtn").addEventListener("click", () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
     $("#sidebarCloseBtn").addEventListener("click", closeSidebar);
     sidebarBackdrop.addEventListener("click", closeSidebar);
@@ -6539,6 +6685,7 @@ async function init() {
     $("#searchIcon").innerHTML = svg("search");
     $("#searchClear").innerHTML = svg("x");
     $("#fitBtnIcon").innerHTML = svg("fit");
+    $("#snapBtnIcon").innerHTML = svg("snap");
     $("#themeBtn").innerHTML = iconFill(document.documentElement.dataset.theme === "dark" ? "sun" : "moon");
     $("#labOpenBtn").innerHTML = iconFill("flask");
     $("#sidebarCloseBtn").innerHTML = iconFill("x");

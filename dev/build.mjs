@@ -107,12 +107,26 @@ function chunks(b64, width = 200) {
 const engineB64 = chunks(gzB64(worker));
 const moduleTags = modules.map(m => `<script type="text/plain" id="moduleGzip-${m.name}" data-module-gzip="${m.name}">\n${chunks(gzB64(m.source))}\n</script>`).join("\n");
 
+// The favicon is the sidebar's node-graph mark, inline as an SVG data URI: no extra file to
+// ship, no request, and it still works when index.html is opened straight off disk or served
+// from Pages. The brand mark inverts with the theme, so the dark-scheme link overrides the
+// light default below it.
+const faviconSvg = (bg, fg) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">` +
+    `<rect width="16" height="16" rx="4.5" fill="${bg}"/>` +
+    `<g fill="none" stroke="${fg}" stroke-width="1.5" stroke-linecap="round">` +
+    `<circle cx="4" cy="3.2" r="1.55"/><circle cx="12" cy="8" r="1.55"/><circle cx="4" cy="12.8" r="1.55"/>` +
+    `<path d="M5.5 3.9 10.4 7.1M5.5 12.1 10.4 8.9"/></g></svg>`;
+const faviconHref = (bg, fg) => "data:image/svg+xml," + encodeURIComponent(faviconSvg(bg, fg));
+
 const html = `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#ecece8">
+<meta name="theme-color" content="#ecece8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="${faviconHref("#17181a", "#f8f8f5")}">
+<link rel="icon" type="image/svg+xml" href="${faviconHref("#eef0f4", "#14171c")}" media="(prefers-color-scheme: dark)">
 <script>
 // Apply the saved theme before the first paint so the loading screen does not flash
 // the wrong colour. initTheme() repeats this once the app boots.
@@ -158,6 +172,7 @@ ${css}
             <span class="zoom-value" id="zoomLabel">100%</span>
             <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
             <button class="zoom-btn fit-btn" id="fitBtn" title="Fit graph to view"><span id="fitBtnIcon"></span>Fit</button>
+            <button class="zoom-btn fit-btn" id="snapBtn" title="Snap all nodes to the grid"><span id="snapBtnIcon"></span>Snap</button>
         </div>
         <div class="run-status" id="runStatus" title="Last run summary"><span class="status-dot"></span><span id="runStatusText">Loading embedded engine…</span></div>
     </main>
@@ -254,14 +269,15 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Magic</h3>
-                <p>Wire data into a <b>Magic</b> node and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
+                <p><b>Magic</b> lives in the <b>Graph</b> section of the node list, beside Text, File and Join (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
             </div>
             <div class="help-section">
                 <h3>Move, resize, collapse</h3>
                 <ul>
                     <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom.</li>
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
-                    <li>Drag the bottom-right corner of a node to resize it. Double-click a title to rename it.</li>
+                    <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename it.</li>
+                    <li><b>Snap</b>, beside Fit in the bottom-left controls, puts every node on the graph back on the nearest grid dot. Inside a function it snaps just that function's nodes.</li>
                     <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redoes — adding and deleting nodes, wires, moves, resizes and every value you type. A burst of typing undoes in one step.</li>
                 </ul>

@@ -3901,23 +3901,24 @@ function rankMagicResults(results, inputText) {
 
 /* A fixed set of inputs Magic must get right, kept beside the scorer so it is obvious what
  * "better" means when the weights change. The lab runs this as one check; every case is a
- * single decoding step, because that is what Magic offers. A solved case also asserts that
- * the list below the answer contains no non-reading rows, so a clean decode cannot quietly
- * collect a permissions table or a scramble again. The two last entries have no answer on
- * purpose: they must produce the low-confidence warning rather than a confident wrong one. */
+ * single decoding step, because that is what Magic offers. A confident solved case names the
+ * exact number of visible rows it must leave, so a clean decode cannot quietly collect a
+ * permissions table or a scramble again; that count comes from the fixed case, not from the
+ * ranker's own "reads" flag. The two last entries have no answer on purpose: they must
+ * produce the low-confidence warning rather than a confident wrong one. */
 const MAGIC_BENCHMARK = [
-    {name: "base64", input: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=", expect: "The quick brown fox jumps over 13 lazy dogs."},
-    {name: "base64url", input: "QXR0YWNrIGF0IGRhd24hIE1lZXQgbWUgYnkgdGhlIG9sZCBicmlkZ2Uu", expect: "Attack at dawn! Meet me by the old bridge."},
-    {name: "hex", input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!"},
-    {name: "decimal bytes", input: "72 101 108 108 111 44 32 87 111 114 108 100 33", expect: "Hello, World!"},
-    {name: "binary", input: "01001000 01100101 01101100 01101100 01101111 00101100 00100000 01010111 01101111 01110010 01101100 01100100 00100001", expect: "Hello, World!"},
-    {name: "octal", input: "110 145 154 154 157 54 40 127 157 162 154 144 41", expect: "Hello, World!"},
+    {name: "base64", input: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=", expect: "The quick brown fox jumps over 13 lazy dogs.", visible: 1},
+    {name: "base64url", input: "QXR0YWNrIGF0IGRhd24hIE1lZXQgbWUgYnkgdGhlIG9sZCBicmlkZ2Uu", expect: "Attack at dawn! Meet me by the old bridge.", visible: 1},
+    {name: "hex", input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!", visible: 1},
+    {name: "decimal bytes", input: "72 101 108 108 111 44 32 87 111 114 108 100 33", expect: "Hello, World!", visible: 1},
+    {name: "binary", input: "01001000 01100101 01101100 01101100 01101111 00101100 00100000 01010111 01101111 01110010 01101100 01100100 00100001", expect: "Hello, World!", visible: 1},
+    {name: "octal", input: "110 145 154 154 157 54 40 127 157 162 154 144 41", expect: "Hello, World!", visible: 1},
     {name: "url encoded", input: "Caf%C3%A9%20au%20lait%20is%20ready%20at%20nine", expect: "Café au lait is ready at nine"},
-    {name: "caesar 3", input: "Khoor, Zruog!", expect: "Hello, World!"},
-    {name: "caesar 7", input: "Olssv, dvysk!", expect: "Hello, world!"},
-    {name: "atbash", input: "Svool, Dliow!", expect: "Hello, World!"},
-    {name: "base32", input: "JBSWY3DPEBLW64TMMQQQ", expect: "Hello World!"},
-    {name: "morse", input: ".... . .-.. .-.. ---\n.-- --- .-. .-.. -..", expect: "HELLO WORLD"},
+    {name: "caesar 3", input: "Khoor, Zruog!", expect: "Hello, World!", visible: 1},
+    {name: "caesar 7", input: "Olssv, dvysk!", expect: "Hello, world!", visible: 1},
+    {name: "atbash", input: "Svool, Dliow!", expect: "Hello, World!", visible: 1},
+    {name: "base32", input: "JBSWY3DPEBLW64TMMQQQ", expect: "Hello World!", visible: 1},
+    {name: "morse", input: ".... . .-.. .-.. ---\n.-- --- .-. .-.. -..", expect: "HELLO WORLD", visible: 1},
     {name: "plain english", input: "The quick brown fox jumps over the lazy dog.", expect: null},
     {name: "gibberish", input: "qzxvbnm plkjhgf wxyzzy", expect: null}
 ];
@@ -6182,7 +6183,7 @@ function integrationDefinitions() {
         {
             id: "magic-benchmark",
             title: "Magic benchmark across encodings",
-            description: "Fourteen inputs: base64, base64url, hex, decimal bytes, binary, octal, URL encoding, two Caesar shifts, Atbash, base32, Morse and two inputs with no answer. Every decode must put its plaintext first and leave no non-reading rows beneath it; a reading second-best must survive. The two undecodable inputs must warn instead of confidently answering.",
+            description: "Fourteen inputs: base64, base64url, hex, decimal bytes, binary, octal, URL encoding, two Caesar shifts, Atbash, base32, Morse and two inputs with no answer. Every confident solve must put its plaintext first and leave exactly its expected visible rows; a reading second-best must survive. The two undecodable inputs must warn instead of confidently answering.",
             run: async () => {
                 // Ranking contract first, without the engine: a confident decode plus another
                 // decode that reads plus a no-word scramble. Both reads belong in the list;
@@ -6192,12 +6193,13 @@ function integrationDefinitions() {
                     {op: "From Hex", ok: true, text: "Attack at dawn! Meet me by the old bridge.", args: []},
                     {op: "Enigma", ok: true, text: "RWTDD JDXEH VXHKC PAGDD JNTJW PBDBU SQCMK WWCAL JWYZZ DFIGT ATMF", args: []}
                 ], "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=");
-                const second = ranking.find(row => row.op === "From Hex");
-                const scramble = ranking.find(row => row.op === "Enigma");
-                if (!second || scramble) {
-                    return {ok: false, detail: `ranking contract failed — reading second-best kept: ${Boolean(second)}, no-word scramble kept: ${Boolean(scramble)} · ${ranking.map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ")}`};
+                const kept = ranking.map(row => row.label || row.op);
+                const second = kept[1] === "From Hex";
+                const scrambleGone = !kept.includes("Enigma");
+                if (kept.length !== 2 || !second || !scrambleGone) {
+                    return {ok: false, detail: `ranking contract failed — reading second-best kept: ${Boolean(second)}, no-word scramble dropped: ${scrambleGone} · ${ranking.map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ")}`};
                 }
-                const report = [`ranking contract: kept ${ranking.length} answers, dropped the scramble`];
+                const report = [`ranking contract: kept ${kept.join(" + ")}, dropped the scramble`];
                 for (const item of MAGIC_BENCHMARK) {
                     const nodes = [B.input(1, item.input, 0), B.op(2, MAGIC_OP, 500)];
                     const edges = [B.edge(1, 1, 2, "main")];
@@ -6208,16 +6210,16 @@ function integrationDefinitions() {
                     const warning = nodes[1]._magicWarning || "";
                     // A decode passes when its own output is the expected plaintext; a case with
                     // no answer passes when Magic admits it is not convinced. A confident top
-                    // must be a reading answer, and nothing non-reading may sit beneath it.
+                    // must leave exactly the fixed number of rows this case declares — a count
+                    // independent of the ranker's own `reads` judgement, so a junk row labelled
+                    // as reading cannot slip through and a real second-best cannot vanish.
                     const top = rows[0];
-                    const noise = top && top.score >= MAGIC_CONFIDENT_SCORE
-                        ? rows.slice(1).filter(row => !row.reads)
-                        : [];
-                    const clean = !top || top.score < MAGIC_CONFIDENT_SCORE || (top.reads && !noise.length);
+                    const confident = Boolean(top && top.score >= MAGIC_CONFIDENT_SCORE);
+                    const clean = !confident || (item.visible > 0 && rows.length === item.visible);
                     const ok = (item.expect
                         ? out.trim().startsWith(item.expect)
                         : Boolean(warning)) && clean;
-                    report.push(`${ok ? "ok" : "no"} ${item.name} → ${label} ${JSON.stringify(out.slice(0, 60))}${item.expect ? "" : warning ? " (warned)" : " (no warning)"}${clean ? "" : ` · noise ${noise.map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ")}`}`);
+                    report.push(`${ok ? "ok" : "no"} ${item.name} → ${label} ${JSON.stringify(out.slice(0, 60))}${item.expect ? "" : warning ? " (warned)" : " (no warning)"}${clean ? "" : ` · ${rows.length} visible, expected ${item.visible}`}`);
                     if (!ok) return {ok: false, detail: report.join(" · ")};
                 }
                 return {ok: true, detail: report.join(" · ")};

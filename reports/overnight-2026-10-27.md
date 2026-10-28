@@ -2,7 +2,7 @@
 
 Five tasks from the approved plan, run unattended. Sources in `dev/` were edited and
 `index.html` rebuilt from them; the built file was exercised in a real browser and in the
-in-page Verification lab. One local commit only — nothing was pushed.
+in-page Verification lab. Local commits only — nothing was pushed.
 
 ## What changed
 
@@ -37,6 +37,11 @@ Verified after the refactor: a text sink holding 1,100 characters still shrank t
 220px wide, with a scrolling preview and no clipped controls; an AES node still stopped at
 its 570px controls floor at 220px wide. Collapse/expand, undo, persistence and the earlier
 image-preview check still hold.
+
+The preview viewport is deliberately 82px with no top margin, replacing the old 72px
+preview plus 9px margin. The node floors and the 82px reserve are unchanged (162px text,
+354px image, 570px many-control); the preview simply receives the full reserve as scroll
+area and starts 9px higher. This is an accepted, documented change, not a second floor.
 
 ### 2. Magic moved into the Graph section, with a wand icon
 
@@ -142,7 +147,7 @@ Junk in the lists:
 | Power Set / input-echo rows | 2 | 0 |
 
 Timing per sweep stayed ~1.7s for most inputs; hex is the outlier at ~14.9s (the sweep runs
-the same ~556 operations either way). The full lab check now takes ~17.0s for 14 cases.
+the same ~556 operations either way). The full lab check now takes ~15.7–16.3s for 14 cases.
 
 ### Held-out cases (invented after tuning)
 
@@ -177,32 +182,55 @@ Measured on the built page with `Magic` at its defaults, same inputs before and 
   scramble. It asserts both decodes survive and the scramble does not. The measured old
   lists contain that same scramble, so the contract fails on exactly that state; it passes
   now, and the lab reports “ranking contract: kept 2 answers, dropped the scramble”.
-- **Benchmark extension:** octal is now the fourteenth fixed case, and every solved case
-  asserts that no non-reading row sits beneath a confident top. Current lab result:
-  **14/14 (19.58s on the final run, 16.97s on an earlier run)**. The previous 13-case
-  benchmark passed while these lists were noisy because it only checked row 1; the new
-  assertion fails on the measured before lists.
+- **Benchmark extension:** octal is now the fourteenth fixed case. Each confident solved
+  case declares a fixed `visible` row count; the lab asserts `rows.length` equals that
+  number. This is independent of the ranker's `reads` flag, so a row wrongly labelled as
+  reading still fails, and a genuine second-best row cannot disappear without the count
+  changing. Current lab result: **14/14 (16.3s on the final run)**. The previous 13-case
+  benchmark passed while these lists were noisy because it only checked row 1.
+
+### Benchmark independence and mutation evidence
+
+The per-case `clean` assertion no longer calls `reads`. A confident case must leave exactly
+the fixed number of visible rows declared in `MAGIC_BENCHMARK` (`visible: 1` for the eleven
+high-confidence solves); the low-confidence no-answer cases are still allowed to list
+guesses. The synthetic ranking contract now asserts the exact labels
+`From Base64` + `From Hex` and that Enigma is absent, instead of looking up rows by the
+ranker's own judgement.
+
+Two throwaway mutations were run against the built page, then reverted:
+
+| mutation | lab result |
+|---|---|
+| over-filter: `confident ? findings.slice(0, 1)` | **Fail** — `reading second-best kept: false, no-word scramble dropped: true · From Base64 87` |
+| no filter: `confident ? findings.concat(nearMisses)` | **Fail** — `reading second-best kept: true, no-word scramble dropped: false · From Base64 87, From Hex 86, Enigma 44` |
+
+The first shows a real second-best decode is not silently hidden; the second shows the
+contract catches the noise the per-case counts are meant to prevent. Both mutations were
+reverted and the final build was rerun.
 
 ## Checks actually run
 
 - `node --check dev/app.js` — clean.
 - `node dev/dcode/selftest.mjs` — `all 116 checks passed`.
-- `node dev/build.mjs` — `wrote …/index.html 13.58 MB`, `worker 4786735 modules 24`;
-  rebuilt after the list-hygiene follow-up and again after the residue pass (fresh
-  `node --check dev/app.js` clean; build reproducible).
+- `node dev/build.mjs` — `wrote …/index.html 13.59 MB`, `worker 4786735 modules 24`;
+  rebuilt after the list-hygiene follow-up and again after the residue and benchmark
+  passes (fresh `node --check dev/app.js` clean; build reproducible).
 - Verification lab, **Operations** tab (all checks): 647 checks — **487 passed, 136 live
   probes, 0 failed, 3 blocked upstream, 21 not auto-run**.
 - Verification lab, **Graph wiring**:
-  - "Magic ranks the answer first" — pass (12.8s) after the follow-up.
-  - "Magic benchmark across encodings" — pass, **14/14** (19.58s on the final run),
-    including the ranking contract that keeps a reading second-best and drops a no-word
-    scramble.
+  - "Magic ranks the answer first" — pass (15.1s) on the final build.
+  - "Magic benchmark across encodings" — pass, **14/14** (16.3s), including the ranking
+    contract that keeps `From Base64` + `From Hex` and drops the Enigma scramble.
+  - Benchmark mutation checks: over-filter and no-filter builds both fail; final restored
+    build passes (see the table above).
 - Manual preview checks listed under each task above (resize, collapse, undo, persistence,
   image scaling, Magic click/drag/search/function palette, snap in both canvases, favicon).
 - Residue checks: the palette has no `CipherFlow · Magic` category; the floor variables
-  resolve to 220px / 140px / 82px and the text/AES floors remain 162px / 570px; the main
-  stage controls are covered by `#fnStage` while the editor is open, and `#fnSnap` snapped
-  the function's two nodes onto the 22px grid.
+  resolve to 220px / 140px / 82px and the text/image/AES floors remain 162px / 354px /
+  570px; the preview viewport is the accepted 82px (was 72px + 9px margin); the main stage
+  controls are covered by `#fnStage` while the editor is open, and `#fnSnap` snapped the
+  function's two nodes onto the 22px grid.
 - Confirmation prompts: the built file still contains the "Load the example? This replaces
   the currently saved graph." and "Start a new graph? …" confirms, and no test override.
   Testing used `window.confirm = () => true` injected into the incognito tab only; nothing
@@ -242,5 +270,6 @@ Measured on the built page with `Magic` at its defaults, same inputs before and 
 - `reports/overnight-2026-10-27.md` — this report.
 
 `check-all-ciphers.json` and `screenshots/` were already untracked when the mission started
-and were deliberately left out of the commit. The list-hygiene follow-up and the residue
-pass above were committed together as a local commit. Nothing was pushed.
+and were deliberately left out of the commit. The list-hygiene and residue passes were
+committed together; this benchmark-independence pass is a separate local commit. Nothing
+was pushed.

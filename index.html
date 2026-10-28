@@ -1460,6 +1460,12 @@ select.control { padding-right: 4px; }
     font-size: 15px;
 }
 .zoom-btn:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+/* Snap is a toggle rather than a one-shot action, so it shows when it is holding. */
+.zoom-btn.active {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+}
+.zoom-btn.active:hover { background: color-mix(in srgb, var(--accent) 24%, transparent); color: var(--accent); }
 .zoom-btn svg { width: 13px; height: 13px; stroke: currentColor; }
 .zoom-value { min-width: 45px; text-align: center; color: var(--muted); font-size: 9.5px; font-variant-numeric: tabular-nums; }
 .fit-btn { padding: 0 8px; width: auto; font-size: 9.5px; gap: 5px; }
@@ -2102,7 +2108,7 @@ kbd {
             <span class="zoom-value" id="zoomLabel">100%</span>
             <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
             <button class="zoom-btn fit-btn" id="fitBtn" title="Fit graph to view"><span id="fitBtnIcon"></span>Fit</button>
-            <button class="zoom-btn fit-btn" id="snapBtn" title="Snap all nodes to the grid"><span id="snapBtnIcon"></span>Snap</button>
+            <button class="zoom-btn fit-btn" id="snapBtn" title="Snap is off: click to keep every node on the grid" aria-pressed="false"><span id="snapBtnIcon"></span>Snap</button>
         </div>
         <div class="run-status" id="runStatus" title="Last run summary"><span class="status-dot"></span><span id="runStatusText">Loading embedded engine…</span></div>
     </main>
@@ -2208,7 +2214,7 @@ kbd {
                     <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom.</li>
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename it.</li>
-                    <li><b>Snap</b>, beside Fit in the bottom-left controls, puts every node on the graph back on the nearest grid dot. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
+                    <li><b>Snap</b>, beside Fit in the bottom-left controls, is a toggle. Turning it on puts every node on the graph back on the nearest grid dot and then keeps them there: dragged nodes track the grid as they move. It lights up while it is holding and the setting is remembered, so a reload comes back snapped. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
                     <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redoes — adding and deleting nodes, wires, moves, resizes and every value you type. A burst of typing undoes in one step.</li>
                 </ul>
@@ -67479,6 +67485,7 @@ const dec = new TextDecoder("utf-8", {fatal: false});
 const decLatin1 = new TextDecoder("latin1");
 const STORAGE_KEY = "cipherflow.graph.v1";
 const THEME_KEY = "cipherflow.theme.v1";
+const SNAP_KEY = "cipherflow.snap.v1";
 const ENGINE_LABEL = "CyberChef 11.5.0";
 // The text and file nodes carry a plug on each side, so their names say so. One constant per
 // node keeps the palette, the defaults, the drag ghost and the title tooltips in step.
@@ -70511,8 +70518,11 @@ function startNodeDrag(node, ev) {
         const dy = (e.clientY - startY) / state.view.zoom;
         if (Math.abs(dx) + Math.abs(dy) > 1) moved = true;
         for (const o of origins) {
-            o.node.x = Math.round(o.x + dx);
-            o.node.y = Math.round(o.y + dy);
+            const nx = o.x + dx, ny = o.y + dy;
+            // With Snap on, the dragged node tracks the grid as it goes rather than only
+            // tidying up on release, so wires stay visually square the whole way.
+            o.node.x = snapEnabled ? snapToGrid(nx) : Math.round(nx);
+            o.node.y = snapEnabled ? snapToGrid(ny) : Math.round(ny);
             if (o.el) {
                 o.el.style.left = o.node.x + "px";
                 o.el.style.top = o.node.y + "px";
@@ -70591,23 +70601,47 @@ function startNodeResize(node, ev) {
     document.addEventListener("pointerup", up, {once: true});
 }
 
+// The Snap toggle. Off by default; when on, every dragged node lands on the dot grid and
+// turning it on tidies the graph once. The choice survives reloads.
+let snapEnabled = false;
+function snapToGrid(value) {
+    return Math.round(value / GRID_SIZE) * GRID_SIZE;
+}
+function setSnap(on, {apply = true, quiet = false} = {}) {
+    snapEnabled = !!on;
+    localStorage.setItem(SNAP_KEY, snapEnabled ? "1" : "0");
+    const btn = $("#snapBtn");
+    if (btn) {
+        btn.classList.toggle("active", snapEnabled);
+        btn.setAttribute("aria-pressed", snapEnabled ? "true" : "false");
+        btn.title = snapEnabled
+            ? "Snap is on: nodes stay on the grid (click to turn off)"
+            : "Snap is off: click to keep every node on the grid";
+    }
+    if (snapEnabled && apply) snapNodesToGrid({quiet});
+    if (!quiet) toast(snapEnabled ? "Snap on: nodes stay on the grid" : "Snap off: nodes move freely");
+}
+function initSnap() {
+    setSnap(localStorage.getItem(SNAP_KEY) === "1", {apply: false, quiet: true});
+}
+
 // Snap every node in the open graph onto the nearest dot of the canvas grid. Positions are
 // plain world coordinates and the dots are drawn on the same pitch, so this needs no view
 // maths and stays aligned at any zoom. While the function editor is open, `state` is that
 // definition's body, so only the function's own nodes move — the main graph is untouched.
-function snapNodesToGrid() {
+function snapNodesToGrid({quiet = false} = {}) {
     if (!state) return;
     const moved = [];
     for (const node of state.nodes) {
-        const x = Math.round(node.x / GRID_SIZE) * GRID_SIZE;
-        const y = Math.round(node.y / GRID_SIZE) * GRID_SIZE;
+        const x = snapToGrid(node.x);
+        const y = snapToGrid(node.y);
         if (x === node.x && y === node.y) continue;
         node.x = x;
         node.y = y;
         moved.push(node);
     }
     if (!moved.length) {
-        toast("Every node is already on the grid");
+        if (!quiet) toast("Every node is already on the grid");
         return;
     }
     for (const node of moved) {
@@ -70620,7 +70654,7 @@ function snapNodesToGrid() {
     saveLocalSoon();
     // One history entry for the whole snap, so a single undo puts every node back.
     pushHistory();
-    toast(`Snapped ${moved.length} node${moved.length === 1 ? "" : "s"} to the grid`);
+    if (!quiet) toast(`Snapped ${moved.length} node${moved.length === 1 ? "" : "s"} to the grid`);
 }
 
 /* Marquee selection: shift-drag on the empty canvas gathers every node the box touches.
@@ -74136,7 +74170,7 @@ function bindGlobalEvents() {
     $("#zoomOut").addEventListener("click", () => zoomAt(stage.getBoundingClientRect().left + stage.clientWidth / 2, stage.getBoundingClientRect().top + stage.clientHeight / 2, 1 / 1.18));
     $("#zoomIn").addEventListener("click", () => zoomAt(stage.getBoundingClientRect().left + stage.clientWidth / 2, stage.getBoundingClientRect().top + stage.clientHeight / 2, 1.18));
     $("#fitBtn").addEventListener("click", fitView);
-    $("#snapBtn").addEventListener("click", snapNodesToGrid);
+    $("#snapBtn").addEventListener("click", () => setSnap(!snapEnabled));
     $("#themeBtn").addEventListener("click", () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
     $("#sidebarCloseBtn").addEventListener("click", closeSidebar);
     sidebarBackdrop.addEventListener("click", closeSidebar);
@@ -74509,6 +74543,7 @@ async function init() {
     $("#searchClear").innerHTML = svg("x");
     $("#fitBtnIcon").innerHTML = svg("fit");
     $("#snapBtnIcon").innerHTML = svg("snap");
+    initSnap();
     $("#themeBtn").innerHTML = iconFill(document.documentElement.dataset.theme === "dark" ? "sun" : "moon");
     $("#labOpenBtn").innerHTML = iconFill("flask");
     $("#sidebarCloseBtn").innerHTML = iconFill("x");

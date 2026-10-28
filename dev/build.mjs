@@ -172,7 +172,7 @@ ${css}
             <span class="zoom-value" id="zoomLabel">100%</span>
             <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
             <button class="zoom-btn fit-btn" id="fitBtn" title="Fit graph to view"><span id="fitBtnIcon"></span>Fit</button>
-            <button class="zoom-btn fit-btn" id="snapBtn" title="Snap all nodes to the grid"><span id="snapBtnIcon"></span>Snap</button>
+            <button class="zoom-btn fit-btn" id="snapBtn" title="Snap is off: click to keep every node on the grid" aria-pressed="false"><span id="snapBtnIcon"></span>Snap</button>
         </div>
         <div class="run-status" id="runStatus" title="Last run summary"><span class="status-dot"></span><span id="runStatusText">Loading embedded engine…</span></div>
     </main>
@@ -278,7 +278,7 @@ ${css}
                     <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom.</li>
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename it.</li>
-                    <li><b>Snap</b>, beside Fit in the bottom-left controls, puts every node on the graph back on the nearest grid dot. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
+                    <li><b>Snap</b>, beside Fit in the bottom-left controls, is a toggle. Turning it on puts every node on the graph back on the nearest grid dot and then keeps them there: dragged nodes track the grid as they move. It lights up while it is holding and the setting is remembered, so a reload comes back snapped. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
                     <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redoes — adding and deleting nodes, wires, moves, resizes and every value you type. A burst of typing undoes in one step.</li>
                 </ul>

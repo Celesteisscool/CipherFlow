@@ -1437,6 +1437,12 @@ select.control { padding-right: 4px; }
     font-size: 15px;
 }
 .zoom-btn:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+/* Snap is a toggle rather than a one-shot action, so it shows when it is holding. */
+.zoom-btn.active {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+}
+.zoom-btn.active:hover { background: color-mix(in srgb, var(--accent) 24%, transparent); color: var(--accent); }
 .zoom-btn svg { width: 13px; height: 13px; stroke: currentColor; }
 .zoom-value { min-width: 45px; text-align: center; color: var(--muted); font-size: 9.5px; font-variant-numeric: tabular-nums; }
 .fit-btn { padding: 0 8px; width: auto; font-size: 9.5px; gap: 5px; }

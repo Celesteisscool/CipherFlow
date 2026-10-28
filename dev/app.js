@@ -18,6 +18,7 @@ const dec = new TextDecoder("utf-8", {fatal: false});
 const decLatin1 = new TextDecoder("latin1");
 const STORAGE_KEY = "cipherflow.graph.v1";
 const THEME_KEY = "cipherflow.theme.v1";
+const SNAP_KEY = "cipherflow.snap.v1";
 const ENGINE_LABEL = "CyberChef 11.5.0";
 // The text and file nodes carry a plug on each side, so their names say so. One constant per
 // node keeps the palette, the defaults, the drag ghost and the title tooltips in step.
@@ -3050,8 +3051,11 @@ function startNodeDrag(node, ev) {
         const dy = (e.clientY - startY) / state.view.zoom;
         if (Math.abs(dx) + Math.abs(dy) > 1) moved = true;
         for (const o of origins) {
-            o.node.x = Math.round(o.x + dx);
-            o.node.y = Math.round(o.y + dy);
+            const nx = o.x + dx, ny = o.y + dy;
+            // With Snap on, the dragged node tracks the grid as it goes rather than only
+            // tidying up on release, so wires stay visually square the whole way.
+            o.node.x = snapEnabled ? snapToGrid(nx) : Math.round(nx);
+            o.node.y = snapEnabled ? snapToGrid(ny) : Math.round(ny);
             if (o.el) {
                 o.el.style.left = o.node.x + "px";
                 o.el.style.top = o.node.y + "px";
@@ -3130,23 +3134,47 @@ function startNodeResize(node, ev) {
     document.addEventListener("pointerup", up, {once: true});
 }
 
+// The Snap toggle. Off by default; when on, every dragged node lands on the dot grid and
+// turning it on tidies the graph once. The choice survives reloads.
+let snapEnabled = false;
+function snapToGrid(value) {
+    return Math.round(value / GRID_SIZE) * GRID_SIZE;
+}
+function setSnap(on, {apply = true, quiet = false} = {}) {
+    snapEnabled = !!on;
+    localStorage.setItem(SNAP_KEY, snapEnabled ? "1" : "0");
+    const btn = $("#snapBtn");
+    if (btn) {
+        btn.classList.toggle("active", snapEnabled);
+        btn.setAttribute("aria-pressed", snapEnabled ? "true" : "false");
+        btn.title = snapEnabled
+            ? "Snap is on: nodes stay on the grid (click to turn off)"
+            : "Snap is off: click to keep every node on the grid";
+    }
+    if (snapEnabled && apply) snapNodesToGrid({quiet});
+    if (!quiet) toast(snapEnabled ? "Snap on: nodes stay on the grid" : "Snap off: nodes move freely");
+}
+function initSnap() {
+    setSnap(localStorage.getItem(SNAP_KEY) === "1", {apply: false, quiet: true});
+}
+
 // Snap every node in the open graph onto the nearest dot of the canvas grid. Positions are
 // plain world coordinates and the dots are drawn on the same pitch, so this needs no view
 // maths and stays aligned at any zoom. While the function editor is open, `state` is that
 // definition's body, so only the function's own nodes move — the main graph is untouched.
-function snapNodesToGrid() {
+function snapNodesToGrid({quiet = false} = {}) {
     if (!state) return;
     const moved = [];
     for (const node of state.nodes) {
-        const x = Math.round(node.x / GRID_SIZE) * GRID_SIZE;
-        const y = Math.round(node.y / GRID_SIZE) * GRID_SIZE;
+        const x = snapToGrid(node.x);
+        const y = snapToGrid(node.y);
         if (x === node.x && y === node.y) continue;
         node.x = x;
         node.y = y;
         moved.push(node);
     }
     if (!moved.length) {
-        toast("Every node is already on the grid");
+        if (!quiet) toast("Every node is already on the grid");
         return;
     }
     for (const node of moved) {
@@ -3159,7 +3187,7 @@ function snapNodesToGrid() {
     saveLocalSoon();
     // One history entry for the whole snap, so a single undo puts every node back.
     pushHistory();
-    toast(`Snapped ${moved.length} node${moved.length === 1 ? "" : "s"} to the grid`);
+    if (!quiet) toast(`Snapped ${moved.length} node${moved.length === 1 ? "" : "s"} to the grid`);
 }
 
 /* Marquee selection: shift-drag on the empty canvas gathers every node the box touches.
@@ -6675,7 +6703,7 @@ function bindGlobalEvents() {
     $("#zoomOut").addEventListener("click", () => zoomAt(stage.getBoundingClientRect().left + stage.clientWidth / 2, stage.getBoundingClientRect().top + stage.clientHeight / 2, 1 / 1.18));
     $("#zoomIn").addEventListener("click", () => zoomAt(stage.getBoundingClientRect().left + stage.clientWidth / 2, stage.getBoundingClientRect().top + stage.clientHeight / 2, 1.18));
     $("#fitBtn").addEventListener("click", fitView);
-    $("#snapBtn").addEventListener("click", snapNodesToGrid);
+    $("#snapBtn").addEventListener("click", () => setSnap(!snapEnabled));
     $("#themeBtn").addEventListener("click", () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
     $("#sidebarCloseBtn").addEventListener("click", closeSidebar);
     sidebarBackdrop.addEventListener("click", closeSidebar);
@@ -7048,6 +7076,7 @@ async function init() {
     $("#searchClear").innerHTML = svg("x");
     $("#fitBtnIcon").innerHTML = svg("fit");
     $("#snapBtnIcon").innerHTML = svg("snap");
+    initSnap();
     $("#themeBtn").innerHTML = iconFill(document.documentElement.dataset.theme === "dark" ? "sun" : "moon");
     $("#labOpenBtn").innerHTML = iconFill("flask");
     $("#sidebarCloseBtn").innerHTML = iconFill("x");

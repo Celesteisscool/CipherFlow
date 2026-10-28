@@ -26,11 +26,9 @@ const FILE_NODE_TITLE = "File Input / Output";
 // Canvas geometry, in world pixels. The dot grid is drawn on this pitch and the Snap button
 // moves every node onto it, so the two must share one constant.
 const GRID_SIZE = 22;
-// The smallest a node may be dragged. A resized node is a fixed box: its preview scrolls
-// inside it instead of the node growing to fit its own output, so long text (or a big image)
-// can never pin a node open at the size of its content.
-const NODE_MIN_W = 220;
-const NODE_MIN_H = 140;
+// The resize floor is defined once in dev/styles.css (--node-min-w/--node-min-h and
+// --node-preview-floor); startNodeResize reads it back from the computed root style so a
+// floor change never has to be made in two files.
 // The names these nodes shipped with, renamed on load so an existing graph reads correctly.
 const LEGACY_TITLES = {input: "Text input", file: "File input"};
 
@@ -286,9 +284,12 @@ const FLOW_OPS = new Set(OP_NAMES.filter(n => OPS[n].flowControl));
 // Magic is not listed among the operations: it is a graph-level tool, offered with Text,
 // File and Join in the palette's Graph section. Search still finds it by name.
 const MAGIC_OP = "Magic";
+// A category left with no operations (Magic used to be one) is not rendered: an empty
+// "CipherFlow · Magic" row would only open onto nothing now that Magic lives in Graph.
 const CATEGORIES = META.categories
     .filter(c => c.name !== "Flow control")
-    .map(c => ({...c, color: CAT_COLORS[c.name] || CAT_COLORS.Other, ops: c.ops.filter(op => !FLOW_OPS.has(op) && op !== MAGIC_OP)}));
+    .map(c => ({...c, color: CAT_COLORS[c.name] || CAT_COLORS.Other, ops: c.ops.filter(op => !FLOW_OPS.has(op) && op !== MAGIC_OP)}))
+    .filter(c => c.ops.length);
 const GRAPH_COLOR = CAT_COLORS.Graph;
 // Function blocks get their own accent so an instance reads differently from an operation.
 const FUNCTION_COLOR = "#0f8f8f";
@@ -2882,6 +2883,13 @@ function startNodeDrag(node, ev) {
     document.addEventListener("pointerup", up, {once: true});
 }
 
+// The node floor lives in CSS custom properties so the stylesheet and the drag handler
+// cannot drift. Read them at drag time rather than caching a second copy in JavaScript.
+function cssPixels(name) {
+    const value = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+    return Number.isFinite(value) ? value : 0;
+}
+
 // Resize from the bottom-right grip. The size is stored on the node so it survives
 // saves, and the wires are re-measured while dragging.
 function startNodeResize(node, ev) {
@@ -2901,14 +2909,18 @@ function startNodeResize(node, ev) {
     const prevDisplay = preview ? preview.style.display : "";
     if (preview) preview.style.display = "none";
     el.style.height = "auto";
-    const minH = Math.max(NODE_MIN_H, el.offsetHeight + 82);
+    // A resized preview reserves --node-preview-floor with no top margin (see CSS), so the
+    // controls' measured height plus that one value is the whole floor.
+    const minW = cssPixels("--node-min-w");
+    const previewFloor = preview ? cssPixels("--node-preview-floor") : 0;
+    const minH = Math.max(cssPixels("--node-min-h"), el.offsetHeight + previewFloor);
     if (preview) preview.style.display = prevDisplay;
     // The node is a fixed box while it is resized, so the preview scrolls inside it.
     el.style.height = `${oh}px`;
     const move = e => {
         const dw = (e.clientX - startX) / state.view.zoom;
         const dh = (e.clientY - startY) / state.view.zoom;
-        node.w = Math.max(NODE_MIN_W, Math.round(ow + dw));
+        node.w = Math.max(minW, Math.round(ow + dw));
         node.h = Math.max(minH, Math.round(oh + dh));
         el.style.width = node.w + "px";
         el.style.height = node.h + "px";
@@ -2920,7 +2932,7 @@ function startNodeResize(node, ev) {
         el.classList.remove("resizing");
         // Store what was actually rendered, clamped to the same floor, so the saved size
         // matches the screen and a reload restores exactly this box.
-        node.w = Math.max(NODE_MIN_W, el.offsetWidth);
+        node.w = Math.max(minW, el.offsetWidth);
         node.h = Math.max(minH, el.offsetHeight);
         el.style.width = node.w + "px";
         el.style.height = node.h + "px";
@@ -3781,7 +3793,11 @@ function scoreMagicResult(text, inputText, opName = "") {
     if (trimmed.length < 8) score = Math.min(score, 20);
     // The cap is re-applied after the bonuses above, so an encoder can never climb back up.
     if (magicOpClass(opName) === "encode") score = Math.min(score, 30);
-    return {score, notes, knownWords, structural};
+    // "Solid" is not the same as "reads": a permissions table can contain five dictionary
+    // words and still be a description of the input. A result is fit to stand beside a
+    // confident answer only when its words mostly read, or it has a real structure.
+    const reads = structural || (knownWords >= 2 && knownRatio >= 0.55);
+    return {score, notes, knownWords, structural, reads};
 }
 
 // ROT13 with another amount is a Caesar shift, and the amount is exactly the part its author
@@ -3819,6 +3835,9 @@ function magicCandidates(scope, includeSlow) {
 // A candidate has to read better than the input it came from to count as a find; anything
 // that only presents the same bytes another way scores at or below it.
 const MAGIC_MIN_GAIN = 2;
+// The bar at which the node stops saying "nothing looks convincing". A top finding that
+// clears it and actually reads turns the list into answers rather than guesses.
+const MAGIC_CONFIDENT_SCORE = 55;
 
 // The input's own quality, measured the same way as a result. An input that is itself noise
 // (a message, markup) scores below zero there, and is treated as zero rather than handing
@@ -3834,7 +3853,7 @@ function rankMagicResults(results, inputText) {
     for (const result of results) {
         if (!result.ok || !result.text) continue;
         const text = String(result.text);
-        const {score, notes, knownWords, structural} = scoreMagicResult(text, inputText, result.op);
+        const {score, notes, knownWords, structural, reads} = scoreMagicResult(text, inputText, result.op);
         if (score <= -400) continue;
         // Different operations routinely land on the same text — two base64 dialects, a decode
         // and its twin. One row per distinct result, keeping whichever scored highest.
@@ -3850,6 +3869,7 @@ function rankMagicResults(results, inputText) {
             // neither is a shape that happens to look like language, so it only fills in
             // when there is nothing better to show. An encoder is never a finding.
             solid: (knownWords > 0 || structural) && magicOpClass(result.op) !== "encode",
+            reads,
             ms: result.ms,
             preview: text.replace(/\s+/g, " ").slice(0, 120)
         };
@@ -3866,21 +3886,32 @@ function rankMagicResults(results, inputText) {
     // Runners-up are worth listing only while they are close enough to be interesting; a 30
     // beside an 83 is noise with a rank number in front of it.
     const nearMisses = alsoRan.filter(row => row.score >= 30 && row.preview.length >= 10).slice(0, 6);
-    const list = findings.length ? findings.concat(nearMisses) : alsoRan;
+    // A confident answer makes this a list of answers, not guesses. `solid` alone is not
+    // enough: "Parse UNIX file permissions" carries five dictionary words and scores 38 under
+    // a clean octal decode. Only results that read (or have a real structure) stay; a genuine
+    // second-best decode reads and is kept, so this is not a blanket score threshold.
+    const confident = findings.length > 0
+        && findings[0].reads
+        && findings[0].score >= MAGIC_CONFIDENT_SCORE;
+    const list = confident
+        ? findings.filter(row => row.reads)
+        : findings.concat(nearMisses);
     return list.length ? list : ranked.slice(0, 6);
 }
 
 /* A fixed set of inputs Magic must get right, kept beside the scorer so it is obvious what
  * "better" means when the weights change. The lab runs this as one check; every case is a
- * single decoding step, because that is what Magic offers. The two last entries have no
- * answer on purpose: they must produce the low-confidence warning rather than a confident
- * wrong one. */
+ * single decoding step, because that is what Magic offers. A solved case also asserts that
+ * the list below the answer contains no non-reading rows, so a clean decode cannot quietly
+ * collect a permissions table or a scramble again. The two last entries have no answer on
+ * purpose: they must produce the low-confidence warning rather than a confident wrong one. */
 const MAGIC_BENCHMARK = [
     {name: "base64", input: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=", expect: "The quick brown fox jumps over 13 lazy dogs."},
     {name: "base64url", input: "QXR0YWNrIGF0IGRhd24hIE1lZXQgbWUgYnkgdGhlIG9sZCBicmlkZ2Uu", expect: "Attack at dawn! Meet me by the old bridge."},
     {name: "hex", input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!"},
     {name: "decimal bytes", input: "72 101 108 108 111 44 32 87 111 114 108 100 33", expect: "Hello, World!"},
     {name: "binary", input: "01001000 01100101 01101100 01101100 01101111 00101100 00100000 01010111 01101111 01110010 01101100 01100100 00100001", expect: "Hello, World!"},
+    {name: "octal", input: "110 145 154 154 157 54 40 127 157 162 154 144 41", expect: "Hello, World!"},
     {name: "url encoded", input: "Caf%C3%A9%20au%20lait%20is%20ready%20at%20nine", expect: "Café au lait is ready at nine"},
     {name: "caesar 3", input: "Khoor, Zruog!", expect: "Hello, World!"},
     {name: "caesar 7", input: "Olssv, dvysk!", expect: "Hello, world!"},
@@ -3925,7 +3956,7 @@ async function runMagicNode(node, inputBytes, argValues) {
     node.magicChoice = choice;
     const best = ranked[choice];
     // Say so when nothing looks like real output, instead of presenting noise as an answer.
-    const warning = ranked[0].score < 55 ? "Nothing looks convincing: these are the closest matches" : "";
+    const warning = ranked[0].score < MAGIC_CONFIDENT_SCORE ? "Nothing looks convincing: these are the closest matches" : "";
     const response = await engine.bakeOp(best.op, best.args, buffer, {returnType: "ArrayBuffer", timeout: 30000});
     if (response?.error) return {error: response.error.displayStr || String(response.error), rows: ranked, warning};
     const files = await dishFiles(response?.dish);
@@ -4582,6 +4613,8 @@ function functionEditorEl() {
                     <input type="checkbox" id="fnContinue"><span>Keep going on errors</span>
                 </label>
                 <button class="btn-secondary fn-nodes-btn" id="fnNodesBtn" title="Show or hide the node list">${iconFill("nodes")}<span>Nodes</span></button>
+                <!-- The main Snap control is under this full-screen modal, so the function body
+                     needs its own reachable Snap; this is the only one while the editor is open. -->
                 <button class="btn-secondary" id="fnSnap" title="Snap every node in this function to the grid">Snap</button>
                 <button class="btn-secondary" id="fnFit">Fit</button>
                 <button class="btn-secondary" id="fnRunTest">Run test</button>
@@ -6149,9 +6182,22 @@ function integrationDefinitions() {
         {
             id: "magic-benchmark",
             title: "Magic benchmark across encodings",
-            description: "Thirteen inputs: base64, base64url, hex, decimal bytes, binary, URL encoding, two Caesar shifts, Atbash, base32, Morse and two inputs with no answer. Every decode must put its plaintext first, and the two undecodable inputs must warn instead of confidently answering.",
+            description: "Fourteen inputs: base64, base64url, hex, decimal bytes, binary, octal, URL encoding, two Caesar shifts, Atbash, base32, Morse and two inputs with no answer. Every decode must put its plaintext first and leave no non-reading rows beneath it; a reading second-best must survive. The two undecodable inputs must warn instead of confidently answering.",
             run: async () => {
-                const report = [];
+                // Ranking contract first, without the engine: a confident decode plus another
+                // decode that reads plus a no-word scramble. Both reads belong in the list;
+                // the scramble is the regression this check exists to catch.
+                const ranking = rankMagicResults([
+                    {op: "From Base64", ok: true, text: "The quick brown fox jumps over 13 lazy dogs.", args: []},
+                    {op: "From Hex", ok: true, text: "Attack at dawn! Meet me by the old bridge.", args: []},
+                    {op: "Enigma", ok: true, text: "RWTDD JDXEH VXHKC PAGDD JNTJW PBDBU SQCMK WWCAL JWYZZ DFIGT ATMF", args: []}
+                ], "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=");
+                const second = ranking.find(row => row.op === "From Hex");
+                const scramble = ranking.find(row => row.op === "Enigma");
+                if (!second || scramble) {
+                    return {ok: false, detail: `ranking contract failed — reading second-best kept: ${Boolean(second)}, no-word scramble kept: ${Boolean(scramble)} · ${ranking.map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ")}`};
+                }
+                const report = [`ranking contract: kept ${ranking.length} answers, dropped the scramble`];
                 for (const item of MAGIC_BENCHMARK) {
                     const nodes = [B.input(1, item.input, 0), B.op(2, MAGIC_OP, 500)];
                     const edges = [B.edge(1, 1, 2, "main")];
@@ -6161,11 +6207,17 @@ function integrationDefinitions() {
                     const out = nodes[1]._output ? utf8(nodes[1]._output) : "";
                     const warning = nodes[1]._magicWarning || "";
                     // A decode passes when its own output is the expected plaintext; a case with
-                    // no answer passes when Magic admits it is not convinced.
-                    const ok = item.expect
+                    // no answer passes when Magic admits it is not convinced. A confident top
+                    // must be a reading answer, and nothing non-reading may sit beneath it.
+                    const top = rows[0];
+                    const noise = top && top.score >= MAGIC_CONFIDENT_SCORE
+                        ? rows.slice(1).filter(row => !row.reads)
+                        : [];
+                    const clean = !top || top.score < MAGIC_CONFIDENT_SCORE || (top.reads && !noise.length);
+                    const ok = (item.expect
                         ? out.trim().startsWith(item.expect)
-                        : Boolean(warning);
-                    report.push(`${ok ? "ok" : "no"} ${item.name} → ${label} ${JSON.stringify(out.slice(0, 60))}${item.expect ? "" : warning ? " (warned)" : " (no warning)"}`);
+                        : Boolean(warning)) && clean;
+                    report.push(`${ok ? "ok" : "no"} ${item.name} → ${label} ${JSON.stringify(out.slice(0, 60))}${item.expect ? "" : warning ? " (warned)" : " (no warning)"}${clean ? "" : ` · noise ${noise.map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ")}`}`);
                     if (!ok) return {ok: false, detail: report.join(" · ")};
                 }
                 return {ok: true, detail: report.join(" · ")};

@@ -13,26 +13,30 @@ expanded) and clamp the node to it, so a long output pinned the node open. Now a
 node is a fixed-size box with a real floor, and its preview scrolls inside that box.
 
 - `dev/app.js`
-  - New constants: `GRID_SIZE = 22`, `NODE_MIN_W = 220`, `NODE_MIN_H = 140`.
+  - New constant: `GRID_SIZE = 22` (shared with the dot grid and Snap).
   - `buildNode()` sets a fixed `height` for a resized node (was `minHeight`), still dropping
     it while collapsed so the collapsed card stays compact.
   - `startNodeResize()` measures the floor from the node's own controls with the preview
-    hidden (`max(NODE_MIN_H, controls + 82px)`), then clamps the drag and the saved size to
-    it. Content height no longer participates.
+    hidden, adds the preview's reserved height, then clamps the drag and the saved size to
+    it. Content height no longer participates. It reads the values back from CSS.
 - `dev/styles.css`
-  - `.node.resized` makes the body a flex column and gives the preview a 72px minimum with
-    internal scrolling; the input/file/join/function wrapper is included in the flex chain
-    (without it the preview kept its content height and spilled out of the card).
+  - `.node.resized` makes the body a flex column and gives the preview the
+    `--node-preview-floor` minimum (82px, no top margin) with internal scrolling; the
+    input/file/join/function wrapper is included in the flex chain (without it the preview
+    kept its content height and spilled out of the card).
   - The preview `<pre>` uses `align-items: safe center`, so short output stays vertically
     centred but a long result is not clipped above the scroll area.
-  - Type-specific caps for sink nodes were overridden with a more specific selector so a
-    resized sink does not grow back to its 250px preview.
+  - The resize floor values now have one owner: `--node-min-w`, `--node-min-h`,
+    `--node-preview-floor`, `--node-preview-media-min-h` and `--node-preview-frame-min-h`
+    are declared once in `:root` and consumed by both the stylesheet and `startNodeResize`.
+  - The resized-node block was moved after the per-type preview caps, so it wins on source
+    order; the second, more-specific `.node.resized .node-body .preview` override block is
+    gone.
 
-Verified in the preview: a text sink holding 1,100 characters shrank from 366px to 162px,
-its preview became a 45px scroll area with 401px of content, wires stayed attached, collapse
-dropped it to 69px and expanding restored 162px, undo restored the previous size, and the
-size survived a reload (`localStorage` held the new height). An image preview scaled from
-200px to 95px inside the same floor instead of overflowing.
+Verified after the refactor: a text sink holding 1,100 characters still shrank to 162px at
+220px wide, with a scrolling preview and no clipped controls; an AES node still stopped at
+its 570px controls floor at 220px wide. Collapse/expand, undo, persistence and the earlier
+image-preview check still hold.
 
 ### 2. Magic moved into the Graph section, with a wand icon
 
@@ -40,8 +44,10 @@ size survived a reload (`localStorage` held the new height). An image preview sc
   - Added `ICONS.wand` (16×16 stroke style, matching the other icons).
   - The Graph palette section now lists Text / File / Join / **Magic**; `addGraphNode("magic")`
     adds an op node whose op is `Magic`; the palette drag ghost names it too.
-  - Magic is filtered out of the Operations categories (`CATEGORIES`), so it is not offered
-    twice. Search still finds it and still adds it (`OP_NAMES` unchanged).
+  - Magic is filtered out of the Operations categories (`CATEGORIES`), and categories left
+    with zero operations are dropped, so the old `CipherFlow · Magic` row is gone rather
+    than opening onto an empty list. Search still finds Magic and still adds it (`OP_NAMES`
+    unchanged).
   - The function editor's palette uses the same builder, so Magic is available there as well.
 - `dev/build.mjs`: the in-app help now says Magic lives in the Graph section beside Text,
   File and Join (wand icon) and explains it is not one step in a chain.
@@ -68,9 +74,13 @@ decoded SVG parses as `<svg>` with the rounded rect and node circles.
     saves, records **one** history entry and toasts how many moved. An already aligned graph
     only toasts.
   - Button in the main stage controls (`#snapBtn`) and a matching **Snap** button in the
-    function editor header (`#fnSnap`) — the main controls sit behind the editor, so a
-    function needs its own control.
-- `dev/build.mjs`: the button with a dot-grid icon, plus a help entry.
+    function editor header (`#fnSnap`). The editor is a full-screen `.modal.fn-editor`
+    (`z-index: 100`); measured at the main button's centre while editing, `elementFromPoint`
+    returns `#fnStage`, so the bottom-left strip is genuinely covered. The header Snap is
+    the only reachable control for the open function graph, and is retained for that reason;
+    the help text says so.
+- `dev/build.mjs`: the button with a dot-grid icon, plus a help entry that distinguishes the
+  main strip from the function editor's header control.
 
 Verified: 10 nodes off-grid snapped in one click (`Snapped 10 nodes to the grid`), one undo
 restored them, positions persisted to `localStorage`, and inside the function editor snapping
@@ -79,8 +89,9 @@ four nodes kept their coordinates.
 
 ### 5. Magic quality
 
-Work was measured, not guessed: a fixed 13-case benchmark was added, run against the
-committed build and against the new one, then four fresh held-out cases were tried.
+Work was measured, not guessed: a fixed benchmark (13 cases in the first pass, 14 after the
+list-hygiene follow-up below) was added, run against the committed build and against the new
+one, then four fresh held-out cases were tried.
 
 Scoring changes in `dev/app.js`:
 
@@ -131,7 +142,7 @@ Junk in the lists:
 | Power Set / input-echo rows | 2 | 0 |
 
 Timing per sweep stayed ~1.7s for most inputs; hex is the outlier at ~14.9s (the sweep runs
-the same ~556 operations either way). The full 13-case lab check takes ~18.7s.
+the same ~556 operations either way). The full lab check now takes ~17.0s for 14 cases.
 
 ### Held-out cases (invented after tuning)
 
@@ -142,18 +153,56 @@ the same ~556 operations either way). The full 13-case lab check takes ~18.7s.
 | reversed "!dlroW ,olleH" | Reverse 103 — correct | pass |
 | base64 with line breaks | From Base64 86 — correct | pass |
 
+## Follow-up — honest visible lists
+
+The first pass cleaned the top of each list but still appended up to six non-reading
+runners-up. The follow-up changes the ranker and its fixed benchmark only: when the top
+finding both reads and clears the existing 55-point confidence bar, the list contains
+reading findings (or structural answers) only. A second decode that reads is kept — this is
+not "top row only", and no score threshold is applied to findings themselves.
+
+Measured on the built page with `Magic` at its defaults, same inputs before and after:
+
+| case | before: rows listed | after: rows listed |
+|---|---|---|
+| base64 (`The quick brown fox…`) | 6 — From Base64 87, Enigma 45, Fractionated Morse Decode 43, Typex 42, Pollux Cipher Decode 35, Convert to NATO alphabet 30 | 1 — From Base64 87 |
+| octal (`Hello, World!`) | 6 — From Octal 103, Parse UNIX file permissions 38, Lorenz 9, Pollux Cipher Decode 45, ROT47 35, Convert to NATO alphabet 30 | 1 — From Octal 103 |
+| ranking contract (synthetic) | 3 — From Base64, From Hex, Enigma | 2 — From Base64, From Hex |
+
+- **Visible noise: 10 non-reading rows → 0** across the two measured cases (five each). The
+  top scores are unchanged (87 and 103); this is an evidence/visibility change, not a raised
+  score threshold.
+- **Genuine second-best: kept.** The synthetic contract feeds the ranker a confident base64
+  result, a second real decode (`From Hex`, “Attack at dawn!…”) and a no-word Enigma
+  scramble. It asserts both decodes survive and the scramble does not. The measured old
+  lists contain that same scramble, so the contract fails on exactly that state; it passes
+  now, and the lab reports “ranking contract: kept 2 answers, dropped the scramble”.
+- **Benchmark extension:** octal is now the fourteenth fixed case, and every solved case
+  asserts that no non-reading row sits beneath a confident top. Current lab result:
+  **14/14 (19.58s on the final run, 16.97s on an earlier run)**. The previous 13-case
+  benchmark passed while these lists were noisy because it only checked row 1; the new
+  assertion fails on the measured before lists.
+
 ## Checks actually run
 
 - `node --check dev/app.js` — clean.
 - `node dev/dcode/selftest.mjs` — `all 116 checks passed`.
-- `node dev/build.mjs` — `wrote …/index.html 13.58 MB`, `worker 4786735 modules 24`.
+- `node dev/build.mjs` — `wrote …/index.html 13.58 MB`, `worker 4786735 modules 24`;
+  rebuilt after the list-hygiene follow-up and again after the residue pass (fresh
+  `node --check dev/app.js` clean; build reproducible).
 - Verification lab, **Operations** tab (all checks): 647 checks — **487 passed, 136 live
   probes, 0 failed, 3 blocked upstream, 21 not auto-run**.
 - Verification lab, **Graph wiring**:
-  - "Magic ranks the answer first" — pass (13.4s).
-  - "Magic benchmark across encodings" — pass, 13/13 (18.7s).
+  - "Magic ranks the answer first" — pass (12.8s) after the follow-up.
+  - "Magic benchmark across encodings" — pass, **14/14** (19.58s on the final run),
+    including the ranking contract that keeps a reading second-best and drops a no-word
+    scramble.
 - Manual preview checks listed under each task above (resize, collapse, undo, persistence,
   image scaling, Magic click/drag/search/function palette, snap in both canvases, favicon).
+- Residue checks: the palette has no `CipherFlow · Magic` category; the floor variables
+  resolve to 220px / 140px / 82px and the text/AES floors remain 162px / 570px; the main
+  stage controls are covered by `#fnStage` while the editor is open, and `#fnSnap` snapped
+  the function's two nodes onto the 22px grid.
 - Confirmation prompts: the built file still contains the "Load the example? This replaces
   the currently saved graph." and "Start a new graph? …" confirms, and no test override.
   Testing used `window.confirm = () => true` injected into the incognito tab only; nothing
@@ -184,11 +233,14 @@ the same ~556 operations either way). The full 13-case lab check takes ~18.7s.
 
 ## Files
 
-- `dev/app.js` — resize, Magic placement, wand/snap icons, snap action, benchmark, scorer.
-- `dev/styles.css` — fixed-box resized nodes with scrolling previews.
+- `dev/app.js` — resize, Magic placement, wand/snap icons, snap action, benchmark, scorer,
+  and the reading/confidence filter for visible Magic lists.
+- `dev/styles.css` — fixed-box resized nodes with scrolling previews and the single CSS
+  definition of the floor; no new UI in the list-hygiene follow-up.
 - `dev/build.mjs` — favicon links, dark theme-color, Snap button, help text.
 - `index.html` — rebuilt from the above.
 - `reports/overnight-2026-10-27.md` — this report.
 
 `check-all-ciphers.json` and `screenshots/` were already untracked when the mission started
-and were deliberately left out of the commit. Nothing was pushed.
+and were deliberately left out of the commit. The list-hygiene follow-up and the residue
+pass above were committed together as a local commit. Nothing was pushed.

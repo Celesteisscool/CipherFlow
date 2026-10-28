@@ -277,7 +277,7 @@ ${css}
                     <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom.</li>
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename it.</li>
-                    <li><b>Snap</b>, beside Fit in the bottom-left controls, puts every node on the graph back on the nearest grid dot. Inside a function it snaps just that function's nodes.</li>
+                    <li><b>Snap</b>, beside Fit in the bottom-left controls, puts every node on the graph back on the nearest grid dot. Inside a function, the Snap button in the editor header does the same for that function's nodes — the main canvas controls sit behind that editor.</li>
                     <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redoes — adding and deleting nodes, wires, moves, resizes and every value you type. A burst of typing undoes in one step.</li>
                 </ul>

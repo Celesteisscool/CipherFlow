@@ -4378,6 +4378,60 @@ const MAGIC_WEIGHTS = {
     structure: 0.06   // sentence punctuation and capitalisation
 };
 
+/* Small, explicit nudges for single operations, applied once after scoring and before the
+ * caps are re-applied — never instead of them. Four points is a tie-breaker: it can lift a
+ * decode above a parser that happened to contain a few dictionary words, and it can push an
+ * analysis table below a real sentence, but it cannot turn a 45 into a confident answer.
+ * Positive: operations that reveal a message by construction. Negative: operations that
+ * describe, list or draw their input rather than uncovering anything. */
+const MAGIC_OP_PRIOR = new Map([
+    ["Spelling Alphabet Decode", 4],   // one word per letter: a readable result is a decode
+    ["A1Z26 Cipher Decode", 3],         // numbers to letters, nothing else to explain
+    ["Vigenère Decode", 3],             // a keyed decode that only lands on text when it worked
+    ["Fractionated Morse Decode", 2],   // deterministic table decode
+    ["From Morse Code", 2],             // deterministic table decode
+    ["UnMorse Decode", 2],              // same, from the alternate Morse table
+    ["Morse Decode", 2],                // same, CacheSleuth spelling of the table
+    ["Bacon Cipher Decode", 2],         // five-bit groups to letters, no presentation tricks
+    ["Baudot Decode", 2],               // deterministic five-bit table decode
+    ["Atbash Cipher", 1],               // always yields letters; only text should survive
+    ["ROT13", 1],                       // the shift sweep is the point; ties go to the decode
+    ["Parse UNIX file permissions", -2],// a permissions table describes the input, not a message
+    ["Render Markdown", -2],            // markup shows the input, it does not decode it
+    ["Extract URLs", -2],               // a list of what the input already contains
+    ["Extract domains", -2],            // same, one field out of the input
+    ["Extract email addresses", -2],    // same
+    ["Extract IP addresses", -2],       // same
+    ["Extract hashes", -2],             // same
+    ["Extract MAC addresses", -2],      // same
+    ["Extract dates", -2],              // same
+    ["Extract file paths", -2],         // same
+    ["Extract EXIF", -2],               // metadata dump
+    ["Extract Audio Metadata", -2],     // metadata dump
+    ["Extract ID3", -2],                // metadata dump
+    ["Parse URI", -2],                  // a breakdown of the input
+    ["Parse User Agent", -2],           // a breakdown of the input
+    ["Parse DateTime", -2],             // a presentation of the input
+    ["Parse colour code", -2],          // a presentation of the input
+    ["Show on map", -2],                // draws the input
+    ["Generate all checksums", -2],     // a listing of derived values
+    ["Generate all hashes", -2]         // a listing of derived values
+]);
+
+// The caps a prior is not allowed to lift, re-applied after the nudge. Same rules and same
+// order as scoreMagicResult(), so a result can only move to where its content already earns.
+function magicApplyCaps(score, {opName, text, knownWords, knownRatio, tokens}) {
+    if (magicOpClass(opName) === "encode") score = Math.min(score, 30);
+    if (!knownWords) {
+        const letters = (text.match(/[A-Za-z]/g) || []).length;
+        score = Math.min(score, letters >= 12 ? 45 : 35);
+    }
+    if (tokens >= 3 && knownRatio < 0.55) score = Math.min(score, 45);
+    else if (tokens === 2 && knownRatio < 0.6) score = Math.min(score, 52);
+    if (text.trim().length < 8) score = Math.min(score, 20);
+    return score;
+}
+
 function scoreMagicResult(text, inputText, opName = "") {
     const notes = [];
     if (!text) return {score: -999, notes: ["empty"]};
@@ -4570,7 +4624,7 @@ function scoreMagicResult(text, inputText, opName = "") {
     // words and still be a description of the input. A result is fit to stand beside a
     // confident answer only when its words mostly read, or it has a real structure.
     const reads = structural || (knownWords >= 2 && knownRatio >= 0.55);
-    return {score, notes, knownWords, structural, reads};
+    return {score, notes, knownWords, knownRatio, structural, reads};
 }
 
 // ROT13 with another amount is a Caesar shift, and the amount is exactly the part its author
@@ -4626,8 +4680,23 @@ function rankMagicResults(results, inputText) {
     for (const result of results) {
         if (!result.ok || !result.text) continue;
         const text = String(result.text);
-        const {score, notes, knownWords, structural, reads} = scoreMagicResult(text, inputText, result.op);
-        if (score <= -400) continue;
+        const scored = scoreMagicResult(text, inputText, result.op);
+        if (scored.score <= -400) continue;
+        const {notes, knownWords, structural, reads} = scored;
+        // One nudge per operation, then the same caps, so the prior can only reorder results
+        // that were already close and can never lift a capped result above its ceiling.
+        const prior = MAGIC_OP_PRIOR.get(result.op) || 0;
+        let score = scored.score;
+        if (prior) {
+            score = magicApplyCaps(score + prior, {
+                opName: result.op,
+                text,
+                knownWords,
+                knownRatio: scored.knownRatio || 0,
+                tokens: (text.match(MAGIC_WORD) || []).length
+            });
+            if (score !== scored.score) notes.push(`prior ${prior > 0 ? "+" : ""}${prior}`);
+        }
         // Different operations routinely land on the same text — two base64 dialects, a decode
         // and its twin. One row per distinct result, keeping whichever scored highest.
         const key = text.trim().replace(/\s+/g, " ").toLowerCase();
@@ -4692,6 +4761,15 @@ const MAGIC_BENCHMARK = [
     {name: "atbash", input: "Svool, Dliow!", expect: "Hello, World!", visible: 1},
     {name: "base32", input: "JBSWY3DPEBLW64TMMQQQ", expect: "Hello World!", visible: 1},
     {name: "morse", input: ".... . .-.. .-.. ---\n.-- --- .-. .-.. -..", expect: "HELLO WORLD", visible: 1},
+    {name: "nato sentence", input: "Hotel Echo Lima Lima Oscar (space) Whiskey Oscar Romeo Lima Delta", expect: "HELLO WORLD", visible: 1, top: /Spelling Alphabet Decode/},
+    // A bare "Alfa Bravo Charlie" is left out of the pass/fail set on purpose: its answer is
+    // three letters, and the sub-8-character cap holds any such result at 20 while a junk
+    // decode sits at 45, so it cannot rank first without breaking that guardrail. The ICAO
+    // alphabet is tested through a phrase long enough to read instead.
+    {name: "icao", input: "Alfa Bravo Charlie (space) Tango Hotel Echo (space) Delta Alfa Whiskey November", expect: "ABC THE DAWN", visible: 1, top: /Spelling Alphabet Decode/},
+    {name: "nato aliases", input: "Tango Hotel Echo (space) Alpha Lima Papa Hotel Alfa (space) Juliet Uniform Mike Papa Sierra (space) Foxtrot Oscar Xray", expect: "THE ALPHA JUMPS FOX", visible: 1, top: /Spelling Alphabet Decode/},
+    {name: "nato encoder output", input: "Hotel Echo Lima Lima Oscar  Whiskey Oscar Romeo Lima Delta ", expect: "HELLO WORLD", visible: 1, top: /Spelling Alphabet Decode/},
+    {name: "morse encoder output", input: ".- - - .- -.-. -.-\n.- -\n-.. .- .-- -.", expect: "ATTACK AT DAWN", visible: 1, top: /From Morse Code/},
     {name: "plain english", input: "The quick brown fox jumps over the lazy dog.", expect: null},
     {name: "gibberish", input: "qzxvbnm plkjhgf wxyzzy", expect: null}
 ];
@@ -4732,8 +4810,14 @@ async function runMagicNode(node, inputBytes, argValues) {
     const choice = clamp(Number(node.magicChoice) || 0, 0, ranked.length - 1);
     node.magicChoice = choice;
     const best = ranked[choice];
-    // Say so when nothing looks like real output, instead of presenting noise as an answer.
-    const warning = ranked[0].score < MAGIC_CONFIDENT_SCORE ? "Nothing looks convincing: these are the closest matches" : "";
+    // Say so when nothing is genuinely a find, instead of presenting noise as an answer. A
+    // high absolute score is not enough: plain English scores high against itself, so a
+    // decoder that only scrambled it by a letter has a negative gain even at 90. Only a
+    // result that beats its input, reads, and clears the confidence bar is an answer.
+    const bestRow = ranked[0];
+    const convincing = Boolean(bestRow) && bestRow.score >= MAGIC_CONFIDENT_SCORE
+        && bestRow.reads && bestRow.solid && bestRow.gain >= MAGIC_MIN_GAIN;
+    const warning = convincing ? "" : "Nothing looks convincing: these are the closest matches";
     const response = await engine.bakeOp(best.op, best.args, buffer, {returnType: "ArrayBuffer", timeout: 30000});
     if (response?.error) return {error: response.error.displayStr || String(response.error), rows: ranked, warning};
     const files = await dishFiles(response?.dish);
@@ -8118,7 +8202,7 @@ function integrationDefinitions() {
         {
             id: "magic-benchmark",
             title: "Magic benchmark across encodings",
-            description: "Fourteen inputs: base64, base64url, hex, decimal bytes, binary, octal, URL encoding, two Caesar shifts, Atbash, base32, Morse and two inputs with no answer. Every confident solve must put its plaintext first and leave exactly its expected visible rows; a reading second-best must survive. The two undecodable inputs must warn instead of confidently answering.",
+            description: "Nineteen inputs: base64, base64url, hex, decimal bytes, binary, octal, URL encoding, two Caesar shifts, Atbash, base32, Morse, a NATO sentence, ICAO spellings, alias spellings, NATO and Morse encoder output fed back in, and two inputs with no answer. Every confident solve must put its plaintext first and leave exactly its expected visible rows; a reading second-best must survive. The two undecodable inputs must warn instead of confidently answering.",
             run: async () => {
                 // Ranking contract first, without the engine: a confident decode plus another
                 // decode that reads plus a no-word scramble. Both reads belong in the list;
@@ -8135,6 +8219,8 @@ function integrationDefinitions() {
                     return {ok: false, detail: `ranking contract failed — reading second-best kept: ${Boolean(second)}, no-word scramble dropped: ${scrambleGone} · ${ranking.map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ")}`};
                 }
                 const report = [`ranking contract: kept ${kept.join(" + ")}, dropped the scramble`];
+                const rowsOut = [];
+                let hits = 0;
                 for (const item of MAGIC_BENCHMARK) {
                     const nodes = [B.input(1, item.input, 0), B.op(2, MAGIC_OP, 500)];
                     const edges = [B.edge(1, 1, 2, "main")];
@@ -8150,14 +8236,24 @@ function integrationDefinitions() {
                     // as reading cannot slip through and a real second-best cannot vanish.
                     const top = rows[0];
                     const confident = Boolean(top && top.score >= MAGIC_CONFIDENT_SCORE);
-                    const clean = !confident || (item.visible > 0 && rows.length === item.visible);
-                    const ok = (item.expect
+                    // The row count is a property of a confident solve. A case with no answer
+                    // has nothing to count; its contract is the warning above.
+                    const clean = !item.expect || !confident || (item.visible > 0 && rows.length === item.visible);
+                    const right = item.expect
                         ? out.trim().startsWith(item.expect)
-                        : Boolean(warning)) && clean;
-                    report.push(`${ok ? "ok" : "no"} ${item.name} → ${label} ${JSON.stringify(out.slice(0, 60))}${item.expect ? "" : warning ? " (warned)" : " (no warning)"}${clean ? "" : ` · ${rows.length} visible, expected ${item.visible}`}`);
-                    if (!ok) return {ok: false, detail: report.join(" · ")};
+                        : Boolean(warning);
+                    const via = !item.top || item.top.test(label);
+                    const ok = right && via && clean;
+                    if (ok) hits++;
+                    // Per-case rows, always in the same shape, so a run can be read as a table
+                    // and compared with an earlier build without guessing at the scores.
+                    rowsOut.push(`${ok ? "ok" : "no"} ${item.name} → ${label} ${Math.round(top?.score ?? -999)} ${JSON.stringify(out.slice(0, 60))}`
+                        + `${item.expect ? "" : warning ? " (warned)" : " (no warning)"}`
+                        + `${via ? "" : " · wrong operation"}${clean ? "" : ` · ${rows.length} visible, expected ${item.visible}`}`);
                 }
-                return {ok: true, detail: report.join(" · ")};
+                report.push(`top-1 ${hits}/${MAGIC_BENCHMARK.length}`);
+                const failed = rowsOut.filter(line => line.startsWith("no "));
+                return {ok: failed.length === 0, detail: report.concat(rowsOut).join(" · ")};
             }
         },
         {

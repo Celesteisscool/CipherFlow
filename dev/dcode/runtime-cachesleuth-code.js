@@ -373,15 +373,43 @@ var CS_SPELLING = {
     "APCO / Police": "Adam Boy Charles David Edward Frank George Henry Ida John King Lincoln Mary Nora Ocean Paul Queen Robert Sam Tom Union Victor William X-ray Young Zebra",
     "US Joint Army/Navy": "Able Baker Charlie Dog Easy Fox George How Item Jig King Love Mike Nan Oboe Peter Queen Roger Sugar Tare Uncle Victor William X-ray Yoke Zebra"
 };
+// The spellings people actually type: Alpha for Alfa, Juliet for Juliett, Whisky for
+// Whiskey, and X-ray / Xray both strip to the same key. Only applied when the canonical
+// word belongs to the selected alphabet, so one alphabet's spelling never leaks into another.
+var CS_SPELLING_ALIASES = { "alpha": "alfa", "juliet": "juliett", "whisky": "whiskey" };
 function csSpellingRun(text, alphabet, decode) {
     const name = cfOption(alphabet, Object.keys(CS_SPELLING), "NATO / ICAO");
     const words = CS_SPELLING[name].split(" ");
     if (decode) {
         const map = new Map(words.map((word, i) => [word.toLowerCase().replace(/[^a-z]/g, ""), CF_ALPHABET[i]]));
-        return String(text).trim().split(/\s+/).filter(Boolean).map(word => {
-            if (/^\(space\)$/i.test(word)) return " ";
-            return map.get(word.toLowerCase().replace(/[^a-z]/g, "")) || "?";
-        }).join("");
+        const lookup = key => {
+            if (map.has(key)) return map.get(key);
+            const canonical = CS_SPELLING_ALIASES[key];
+            return canonical && map.has(canonical) ? map.get(canonical) : null;
+        };
+        // A single space separates spelling words; a run of two or more is where the
+        // original text had a space (CyberChef's Convert to NATO alphabet leaves the literal
+        // space while spelling the letters around it, which is exactly this shape).
+        const out = [];
+        for (const part of String(text).trim().split(/(\s{2,})/)) {
+            if (!part) continue;
+            if (/^\s{2,}$/.test(part)) { out.push(" "); continue; }
+            for (const word of part.split(/\s+/)) {
+                if (!word) continue;
+                if (/^\(space\)$/i.test(word)) { out.push(" "); continue; }
+                const key = word.toLowerCase().replace(/[^a-z]/g, "");
+                const exact = lookup(key);
+                if (exact) { out.push(exact); continue; }
+                // Hyphen-separated spellings (Hotel-Echo-Lima) are the same words with a
+                // different separator; split only when every part resolves, so a stray hyphen
+                // in prose cannot turn into a confident decode.
+                const pieces = word.includes("-")
+                    ? word.split("-").filter(Boolean).map(piece => lookup(piece.toLowerCase().replace(/[^a-z]/g, "")))
+                    : [];
+                out.push(pieces.length > 1 && pieces.every(Boolean) ? pieces.join("") : "?");
+            }
+        }
+        return out.join("");
     }
     const out = [];
     for (const ch of String(text).toUpperCase()) {

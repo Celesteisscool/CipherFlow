@@ -298,7 +298,7 @@ export const ops = [
     {
         name: "Spelling Alphabet Decode",
         group: GROUP,
-        description: "Reads spelling-alphabet words back to letters. Case and hyphens are ignored, and (space) becomes a space.",
+        description: "Reads spelling-alphabet words back to letters. Case and hyphens are ignored, the common spellings Alpha/Juliett/Juliet/Whisky/X-ray/Xray are accepted, hyphen-separated words decode, and (space) becomes a space.",
         args: [
             {name: "Alphabet", type: "option", value: SPELLING_ALPHABETS}
         ],
@@ -688,6 +688,10 @@ export const checks = [
     {name: "Enclosed Areas", input: "B8", args: {"4": FOUR_OPTIONS[0]}, expected: "2 2\n\nGrand Total: 4"},
     {name: "Spelling Alphabet Encode", input: "ABC", args: {Alphabet: SPELLING_ALPHABETS[0]}, expected: "Alfa Bravo Charlie"},
     {name: "Spelling Alphabet Decode", input: "Alfa Bravo Charlie", args: {Alphabet: SPELLING_ALPHABETS[0]}, expected: "ABC"},
+    {name: "Spelling Alphabet Decode", input: "Alpha Bravo Charlie (space) Juliet X-ray Yankee", args: {Alphabet: SPELLING_ALPHABETS[0]}, expected: "ABC JXY"},
+    {name: "Spelling Alphabet Decode", input: "Hotel-Echo-Lima-Lima-Oscar", args: {Alphabet: SPELLING_ALPHABETS[0]}, expected: "HELLO"},
+    {name: "Spelling Alphabet Decode", input: "Whisky Alfa Xray", args: {Alphabet: SPELLING_ALPHABETS[0]}, expected: "WAX"},
+    {name: "Spelling Alphabet Decode", input: "Hotel Echo Lima Lima Oscar  Whiskey Oscar Romeo Lima Delta", args: {Alphabet: SPELLING_ALPHABETS[0]}, expected: "HELLO WORLD"},
     {name: "Baudot Encode", input: "ABC", args: {Variant: "Baudot-Murray (ITA2)"}, expected: "00011 11001 01110"},
     {name: "Baudot Decode", input: "00011 11001 01110", args: {Variant: "Baudot-Murray (ITA2)"}, expected: "ABC"},
     {name: "Baudot Encode", input: "AB", args: {Variant: "Baudot (ITA1)"}, expected: "00001 01100"},

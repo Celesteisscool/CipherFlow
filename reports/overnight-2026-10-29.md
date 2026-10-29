@@ -581,3 +581,78 @@ were supplied and `dev/gen-meta.mjs` rerun; a tracked tree without those inputs 
 which is the pre-existing dependency recorded in the README. On a fresh reload with the tab
 left idle, the one-click wiring suite reported **27 passed · 0 failed · 57.8 s**, and
 `magic-benchmark` reported **top-1 19/19**.
+
+## Correction 2 — pager completion and mission slop prune
+
+The two findings in the previous correction remain as written; this section extends them. The
+previous correction's `b9b1699` statements stand. `9606ed8` ("Give the bundle pager one state
+owner and a complete signature") completed the same pager work, and `dda30b8` ("Share Magic's
+cap rules and drop unreachable priors") removed the three slop items the design audit named.
+
+### Pager completion — `9606ed8`
+
+- `bundleSignature()` now hashes **every entry**, not only the first eight. A change to entry
+  9 or later with the value count unchanged is detected, so the page index and all-mode reset
+  with any bundle change.
+- `bundleView()` is the single owner of pager view state. It resets page/all-mode on a changed
+  signature, clamps the page once, and returns the current page, all-mode, count and shown
+  value. Render, the arrows, the counter click and Copy all read that one page value; Copy no
+  longer re-derives or truncates it.
+
+Browser proof on the rebuilt page (12-entry Compact node, fresh incognito tab): changing entry
+10 while at `3 / 12` with all-mode on returned the header to `‹ 1 / 12 ›` with all-mode off;
+adding a 13th entry returned `1 / 13`; removing it returned `1 / 12`; shrinking 12 → 9 returned
+`1 / 9`; reordering the first two entries returned `1 / 12`. Copy matched the rendered preview
+in Text, Raw and Hex, in single-entry and all-entries modes, under both light and dark themes
+(all twelve comparisons equal).
+
+### Slop prune — `dda30b8`
+
+- `magicCap()` is now the one definition of the encoder, no-words, ratio and short-output cap
+  rules. `scoreMagicResult()` calls it at the original points and `magicApplyCaps()` re-applies
+  the same rules in the same order after a prior, so the no-words-before-every-word boundary is
+  preserved.
+- The unused `chunks` field was removed from `probeMagic()`'s return.
+- Three `MAGIC_OP_PRIOR` entries were removed because their outputs are rejected before the
+  prior is consulted: `Render Markdown`, `Parse DateTime` and `Parse colour code`.
+
+No score or check changed. The Magic benchmark's before/after per-case scores were identical:
+
+| case | before | after |
+|---|---:|---:|
+| base64 | 87 | 87 |
+| base64url | 86 | 86 |
+| hex | 103 | 103 |
+| decimal bytes | 103 | 103 |
+| binary | 103 | 103 |
+| octal | 103 | 103 |
+| url encoded | 45 | 45 |
+| caesar 3 | 104 | 104 |
+| caesar 7 | 104 | 104 |
+| atbash | 104 | 104 |
+| base32 | 104 | 104 |
+| morse | 107 | 107 |
+| nato sentence | 109 | 109 |
+| icao | 80 | 80 |
+| nato aliases | 83 | 83 |
+| nato encoder output | 109 | 109 |
+| morse encoder output | 88 | 88 |
+| plain english | 90 | 90 |
+| gibberish | 45 | 45 |
+
+Both runs reported **top-1 19/19**. The one-click wiring suite was **27 passed · 0 failed**
+before (58.9 s) and after (59.1 s); no check was edited or weakened. The Operations lab totals
+were identical before and after: **688 passed, 111 probes, 0 failed, 3 blocked upstream, 21
+skipped** of 823 planned checks. No pager regression card was added.
+
+### Full mission/report commit list on main
+
+- `de86c3a` — Page bundled previews, run Magic in parallel chunks and prove the wiring suite
+- `73d4211` — Teach Magic small per-operation priors and make its confidence warning truthful
+- `b9b1699` — Make bundle copies match the screen and reset all mode on a new bundle
+- `b431fd3` — Record the bundle pager audit correction and follow-up fix
+- `9606ed8` — Give the bundle pager one state owner and a complete signature
+- `dda30b8` — Share Magic's cap rules and drop unreachable priors
+
+This report-only commit is the final entry on top of `dda30b8`. Nothing was pushed; local
+`main` remains ahead of `origin/main`.

@@ -281,7 +281,7 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Magic</h3>
-                <p><b>Magic</b> lives in the <b>Graph</b> section of the node list (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
+                <p><b>Magic</b> lives in the <b>Graph</b> section of the node list (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks them. Set <b>Show top</b> to choose how many rows the node lists: it returns exactly that many, with findings first and less likely results filling the tail. Operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
             </div>
             <div class="help-section">
                 <h3>Steganalysis, all local</h3>

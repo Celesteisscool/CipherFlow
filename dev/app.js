@@ -4715,7 +4715,7 @@ function magicInputQuality(inputText) {
     return score > -400 ? score : 0;
 }
 
-function rankMagicResults(results, inputText) {
+function rankMagicResults(results, inputText, limit = Infinity) {
     const baseline = magicInputQuality(inputText);
     const best = new Map();
     for (const result of results) {
@@ -4779,38 +4779,52 @@ function rankMagicResults(results, inputText) {
     const list = confident
         ? findings.filter(row => row.reads)
         : findings.concat(nearMisses);
-    return list.length ? list : ranked.slice(0, 6);
+    // The list is a quality order first, not a quality filter. A node asked for N rows
+    // fills the rest from the remaining ranked results, so it always shows the requested
+    // count even when nothing else looks convincing; real findings still sit above them.
+    // The benchmark's ranking contract calls this without a limit and keeps the old
+    // findings/near-miss list, where dropping a no-word scramble is the point.
+    if (!Number.isFinite(limit)) return list.length ? list : ranked.slice(0, 6);
+    const out = list.slice(0, limit);
+    if (out.length < limit) {
+        const chosen = new Set(out);
+        for (const row of ranked) {
+            if (out.length >= limit) break;
+            if (!chosen.has(row)) out.push(row);
+        }
+    }
+    return out;
 }
 
 /* A fixed set of inputs Magic must get right, kept beside the scorer so it is obvious what
  * "better" means when the weights change. The lab runs this as one check; every case is a
- * single decoding step, because that is what Magic offers. A confident solved case names the
- * exact number of visible rows it must leave, so a clean decode cannot quietly collect a
- * permissions table or a scramble again; that count comes from the fixed case, not from the
- * ranker's own "reads" flag. The two last entries have no answer on purpose: they must
- * produce the low-confidence warning rather than a confident wrong one. */
+ * single decoding step, because that is what Magic offers. Every case runs through the
+ * node's default Show top (10), which must return exactly ten rows whether or not the tail
+ * is convincing; the first row is still the answer, and the two last entries have no answer
+ * on purpose: they must produce the low-confidence warning rather than a confident wrong
+ * one. */
 const MAGIC_BENCHMARK = [
-    {name: "base64", input: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=", expect: "The quick brown fox jumps over 13 lazy dogs.", visible: 1},
-    {name: "base64url", input: "QXR0YWNrIGF0IGRhd24hIE1lZXQgbWUgYnkgdGhlIG9sZCBicmlkZ2Uu", expect: "Attack at dawn! Meet me by the old bridge.", visible: 1},
-    {name: "hex", input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!", visible: 1},
-    {name: "decimal bytes", input: "72 101 108 108 111 44 32 87 111 114 108 100 33", expect: "Hello, World!", visible: 1},
-    {name: "binary", input: "01001000 01100101 01101100 01101100 01101111 00101100 00100000 01010111 01101111 01110010 01101100 01100100 00100001", expect: "Hello, World!", visible: 1},
-    {name: "octal", input: "110 145 154 154 157 54 40 127 157 162 154 144 41", expect: "Hello, World!", visible: 1},
+    {name: "base64", input: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4=", expect: "The quick brown fox jumps over 13 lazy dogs."},
+    {name: "base64url", input: "QXR0YWNrIGF0IGRhd24hIE1lZXQgbWUgYnkgdGhlIG9sZCBicmlkZ2Uu", expect: "Attack at dawn! Meet me by the old bridge."},
+    {name: "hex", input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!"},
+    {name: "decimal bytes", input: "72 101 108 108 111 44 32 87 111 114 108 100 33", expect: "Hello, World!"},
+    {name: "binary", input: "01001000 01100101 01101100 01101100 01101111 00101100 00100000 01010111 01101111 01110010 01101100 01100100 00100001", expect: "Hello, World!"},
+    {name: "octal", input: "110 145 154 154 157 54 40 127 157 162 154 144 41", expect: "Hello, World!"},
     {name: "url encoded", input: "Caf%C3%A9%20au%20lait%20is%20ready%20at%20nine", expect: "Café au lait is ready at nine"},
-    {name: "caesar 3", input: "Khoor, Zruog!", expect: "Hello, World!", visible: 1},
-    {name: "caesar 7", input: "Olssv, dvysk!", expect: "Hello, world!", visible: 1},
-    {name: "atbash", input: "Svool, Dliow!", expect: "Hello, World!", visible: 1},
-    {name: "base32", input: "JBSWY3DPEBLW64TMMQQQ", expect: "Hello World!", visible: 1},
-    {name: "morse", input: ".... . .-.. .-.. ---\n.-- --- .-. .-.. -..", expect: "HELLO WORLD", visible: 1},
-    {name: "nato sentence", input: "Hotel Echo Lima Lima Oscar (space) Whiskey Oscar Romeo Lima Delta", expect: "HELLO WORLD", visible: 1, top: /Spelling Alphabet Decode/},
+    {name: "caesar 3", input: "Khoor, Zruog!", expect: "Hello, World!"},
+    {name: "caesar 7", input: "Olssv, dvysk!", expect: "Hello, world!"},
+    {name: "atbash", input: "Svool, Dliow!", expect: "Hello, World!"},
+    {name: "base32", input: "JBSWY3DPEBLW64TMMQQQ", expect: "Hello World!"},
+    {name: "morse", input: ".... . .-.. .-.. ---\n.-- --- .-. .-.. -..", expect: "HELLO WORLD"},
+    {name: "nato sentence", input: "Hotel Echo Lima Lima Oscar (space) Whiskey Oscar Romeo Lima Delta", expect: "HELLO WORLD", top: /Spelling Alphabet Decode/},
     // A bare "Alfa Bravo Charlie" is left out of the pass/fail set on purpose: its answer is
     // three letters, and the sub-8-character cap holds any such result at 20 while a junk
     // decode sits at 45, so it cannot rank first without breaking that guardrail. The ICAO
     // alphabet is tested through a phrase long enough to read instead.
-    {name: "icao", input: "Alfa Bravo Charlie (space) Tango Hotel Echo (space) Delta Alfa Whiskey November", expect: "ABC THE DAWN", visible: 1, top: /Spelling Alphabet Decode/},
-    {name: "nato aliases", input: "Tango Hotel Echo (space) Alpha Lima Papa Hotel Alfa (space) Juliet Uniform Mike Papa Sierra (space) Foxtrot Oscar Xray", expect: "THE ALPHA JUMPS FOX", visible: 1, top: /Spelling Alphabet Decode/},
-    {name: "nato encoder output", input: "Hotel Echo Lima Lima Oscar  Whiskey Oscar Romeo Lima Delta ", expect: "HELLO WORLD", visible: 1, top: /Spelling Alphabet Decode/},
-    {name: "morse encoder output", input: ".- - - .- -.-. -.-\n.- -\n-.. .- .-- -.", expect: "ATTACK AT DAWN", visible: 1, top: /From Morse Code/},
+    {name: "icao", input: "Alfa Bravo Charlie (space) Tango Hotel Echo (space) Delta Alfa Whiskey November", expect: "ABC THE DAWN", top: /Spelling Alphabet Decode/},
+    {name: "nato aliases", input: "Tango Hotel Echo (space) Alpha Lima Papa Hotel Alfa (space) Juliet Uniform Mike Papa Sierra (space) Foxtrot Oscar Xray", expect: "THE ALPHA JUMPS FOX", top: /Spelling Alphabet Decode/},
+    {name: "nato encoder output", input: "Hotel Echo Lima Lima Oscar  Whiskey Oscar Romeo Lima Delta ", expect: "HELLO WORLD", top: /Spelling Alphabet Decode/},
+    {name: "morse encoder output", input: ".- - - .- -.-. -.-\n.- -\n-.. .- .-- -.", expect: "ATTACK AT DAWN", top: /From Morse Code/},
     {name: "plain english", input: "The quick brown fox jumps over the lazy dog.", expect: null},
     {name: "gibberish", input: "qzxvbnm plkjhgf wxyzzy", expect: null}
 ];
@@ -4840,7 +4854,7 @@ async function runMagicNode(node, inputBytes, argValues) {
         ? `Magic is testing ${candidates.length} operations in ${chunks} chunks…`
         : `Magic is testing ${candidates.length} operations…`);
     const probe = await probeMagic(buffer, candidates, modules, chunks);
-    const ranked = rankMagicResults(probe.results || [], inputText).slice(0, topN);
+    const ranked = rankMagicResults(probe.results || [], inputText, topN);
     node._magicProbed = candidates.length;
     node._magicRan = (probe.results || []).length;
     if (!ranked.length) {
@@ -8221,20 +8235,23 @@ function integrationDefinitions() {
                 const report = [];
                 for (const item of cases) {
                     const nodes = [B.input(1, item.input, 0), B.op(2, "Magic", 500)];
+                    nodes[1].values[0] = 4;
                     const edges = [B.edge(1, 1, 2, "main")];
                     await executeGraph(nodes, edges, {force: true, timeout: 120000});
                     const rows = nodes[1]._magic || [];
                     const label = rows[0] ? (rows[0].label || rows[0].op) : "none";
                     const out = nodes[1]._output ? utf8(nodes[1]._output) : "";
                     const table = rows.some(row => /brute.?force/i.test(row.op));
-                    const ok = item.top.test(label) && out === item.expect && !table;
+                    // Show top is a row count, not a best-effort maximum: four must mean four.
+                    const countOk = rows.length === 4;
+                    const ok = item.top.test(label) && out === item.expect && !table && countOk;
                     // The ranking itself is the diagnosis when this fails, so always report it,
                     // along with how much of the sweep actually ran and any error it hit.
                     const listed = rows.slice(0, 5).map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ");
                     const trail = `${nodes[1]._magicRan ?? "?"}/${nodes[1]._magicProbed ?? "?"} probed` +
                         (nodes[1]._error ? ` · ${nodes[1]._error}` : "") +
                         (nodes[1]._magicWarning ? ` · ${nodes[1]._magicWarning}` : "");
-                    report.push(`${ok ? "ok" : "no"} ${JSON.stringify(label)} → ${JSON.stringify(out.slice(0, 40))} [${listed}] (${trail})`);
+                    report.push(`${ok ? "ok" : "no"} ${JSON.stringify(label)} → ${JSON.stringify(out.slice(0, 40))} [${listed}]${countOk ? "" : ` · ${rows.length} rows, expected 4`} (${trail})`);
                     if (!ok) return {ok: false, detail: report.join(" · ")};
                 }
                 return {ok: true, detail: report.join(" · ")};
@@ -8243,7 +8260,7 @@ function integrationDefinitions() {
         {
             id: "magic-benchmark",
             title: "Magic benchmark across encodings",
-            description: "Nineteen inputs: base64, base64url, hex, decimal bytes, binary, octal, URL encoding, two Caesar shifts, Atbash, base32, Morse, a NATO sentence, ICAO spellings, alias spellings, NATO and Morse encoder output fed back in, and two inputs with no answer. Every confident solve must put its plaintext first and leave exactly its expected visible rows; a reading second-best must survive. The two undecodable inputs must warn instead of confidently answering.",
+            description: "Nineteen inputs: base64, base64url, hex, decimal bytes, binary, octal, URL encoding, two Caesar shifts, Atbash, base32, Morse, a NATO sentence, ICAO spellings, alias spellings, NATO and Morse encoder output fed back in, and two inputs with no answer. Every case must put the right plaintext first and show exactly the ten rows the node asks for; a reading second-best must survive. The two undecodable inputs must warn instead of confidently answering.",
             run: async () => {
                 // Ranking contract first, without the engine: a confident decode plus another
                 // decode that reads plus a no-word scramble. Both reads belong in the list;
@@ -8276,10 +8293,13 @@ function integrationDefinitions() {
                     // independent of the ranker's own `reads` judgement, so a junk row labelled
                     // as reading cannot slip through and a real second-best cannot vanish.
                     const top = rows[0];
-                    const confident = Boolean(top && top.score >= MAGIC_CONFIDENT_SCORE);
-                    // The row count is a property of a confident solve. A case with no answer
-                    // has nothing to count; its contract is the warning above.
-                    const clean = !item.expect || !confident || (item.visible > 0 && rows.length === item.visible);
+                    // Show top is a row count, not a best-effort maximum. Every case must
+                    // return the requested ten rows; low-likelihood results fill the tail.
+                    // Scores must still descend, so padding cannot scramble the ranking.
+                    const wanted = 10;
+                    const countOk = rows.length === wanted;
+                    const ordered = rows.every((row, i) => i === 0 || rows[i - 1].score >= row.score);
+                    const clean = countOk && ordered;
                     const right = item.expect
                         ? out.trim().startsWith(item.expect)
                         : Boolean(warning);
@@ -8290,7 +8310,7 @@ function integrationDefinitions() {
                     // and compared with an earlier build without guessing at the scores.
                     rowsOut.push(`${ok ? "ok" : "no"} ${item.name} → ${label} ${Math.round(top?.score ?? -999)} ${JSON.stringify(out.slice(0, 60))}`
                         + `${item.expect ? "" : warning ? " (warned)" : " (no warning)"}`
-                        + `${via ? "" : " · wrong operation"}${clean ? "" : ` · ${rows.length} visible, expected ${item.visible}`}`);
+                        + `${via ? "" : " · wrong operation"}${clean ? "" : ` · ${rows.length} rows, expected ${wanted}${ordered ? "" : ", out of score order"}`}`);
                 }
                 report.push(`top-1 ${hits}/${MAGIC_BENCHMARK.length}`);
                 const failed = rowsOut.filter(line => line.startsWith("no "));

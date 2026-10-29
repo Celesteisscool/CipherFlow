@@ -384,6 +384,75 @@ const PROBES = {
     "Untar": { input: TAR_B64, binary: true, expectedContains: "sample.txt" },
 };
 
+/* Known answers for probe-only operations, added so those rows can pass or fail instead of
+ * only reporting that the engine ran them. Every expectation comes from the operation's
+ * documented behaviour, its source formula, or a hand computation — never from copying the
+ * output the operation happens to produce today. That keeps the check able to catch a
+ * regression. */
+Object.assign(PROBES, {
+    // Plain string transforms.
+    "To Upper case": {...PROBES["To Upper case"], expected: "HELLO WORLD"},
+    "To Lower case": {...PROBES["To Lower case"], expected: "hello world"},
+    "Reverse": {...PROBES["Reverse"], expected: "dlrow olleh"},
+    "Remove null bytes": {...PROBES["Remove null bytes"], expected: "Hello, World!"},
+    "Expand alphabet range": {...PROBES["Expand alphabet range"], expected: "abcdefghijklmnopqrstuvwxyz"},
+    "Split": {...PROBES["Split"], expected: "red\ngreen\nblue"},
+    "Unique": {
+        input: "one two one three two",
+        args: { "Delimiter": "Space" },
+        expected: "one two three"
+    },
+    "Take bytes": {...PROBES["Take bytes"], expected: "Hello"},
+    "Pad lines": {...PROBES["Pad lines"], expected: "        alpha\n        beta"},
+    "Count occurrences": {...PROBES["Count occurrences"], expected: "2"},
+    "Add line numbers": {...PROBES["Add line numbers"], expected: "1 first line\n2 second line\n3 third line"},
+
+    // Byte and character encodings whose answers are fixed by their definitions.
+    // SNORT hex-content format: To Hex Content (All chars) wraps the bytes in pipes, and
+    // From Hex Content is documented to turn |3d| back into the raw byte.
+    "From Hex Content": { input: "|48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21|", expected: "Hello, World!" },
+    "To Hex Content": {
+        input: "Hello, World!",
+        args: { "Convert": "All chars" },
+        expected: "|48656c6c6f2c20576f726c6421|"
+    },
+    "To Decimal": {...PROBES["To Decimal"], expected: "72 101 108 108 111 44 32 87 111 114 108 100 33"},
+    "To Braille": {...PROBES["To Braille"], expected: "⠓⠑⠇⠇⠕"},
+    // The six-dot Braille table maps to uppercase ASCII; Braille itself has no case.
+    "From Braille": {...PROBES["From Braille"], expected: "HELLO"},
+    // The engine hands string inputs to ArrayBuffer operations as Latin-1 bytes, so the
+    // `é` is the single byte 0xE9 and QP escapes it as =E9 (RFC 2045: = followed by the
+    // byte's hex). `=` itself is not in the printable range list, so it becomes =3D.
+    "To Quoted Printable": {...PROBES["To Quoted Printable"], expected: "Hello=3DWorld, caf=E9!"},
+    "From Quoted Printable": {...PROBES["From Quoted Printable"], expected: "Hello=World, café!"},
+    // Input bytes 48 65 6c 6c | 6f, four-byte words, padded with zeros, then each word is
+    // reversed: 6c 6c 65 48 | 00 00 00 6f. toHex joins bytes with its default space.
+    "Swap endianness": {...PROBES["Swap endianness"], expected: "6c 6c 65 48 00 00 00 6f"},
+
+    // Checksums: computed from the published algorithms (Adler-32 mod 65521, Fletcher-8
+    // mod 15 nibbles), independently of the operation.
+    "Adler-32 Checksum": {...PROBES["Adler-32 Checksum"], expected: "1f9e046a"},
+    "Fletcher-8 Checksum": {...PROBES["Fletcher-8 Checksum"], expected: "b4"},
+
+    // Numbers and arithmetic.
+    "Sum": {...PROBES["Sum"], expected: "10"},
+    "Mean": {...PROBES["Mean"], expected: "2.5"},
+
+    // Extractors: the expected lines are the matches in the fixture, in reading order.
+    "Extract domains": {...PROBES["Extract domains"], expected: "example.com\ndocs.example.org"},
+    "Extract URLs": {...PROBES["Extract URLs"], expected: "https://example.com/a?b=1\nhttp://test.local/x"},
+    "Defang URL": {...PROBES["Defang URL"], expected: "hxxps[://]example[.]com/path?q=1&x=2"},
+    "Fang URL": {
+        input: "hxxps[://]example[.]com/path",
+        args: { "Restore [.]": true, "Restore hxxp": true, "Restore ://": true },
+        expected: "https://example.com/path"
+    },
+
+    // Identifier and naming formats.
+    "Hex to Object Identifier": {...PROBES["Hex to Object Identifier"], expected: "1.2.840.113549.1.1.1"},
+    "Object Identifier to Hex": {...PROBES["Object Identifier to Hex"], expected: "2a864886f70d010101"}
+});
+
 const MISSING_INPUT = {
     default: "The quick brown fox jumps over 13 lazy dogs.",
 };
@@ -623,7 +692,10 @@ fs.writeFileSync("dev/testplan.json", JSON.stringify({
     version: VERSION,
     official: tests.filter(t => t.kind === "official").length,
     dcode: tests.filter(t => t.kind === "dcode").length,
-    probes: tests.filter(t => t.kind === "probe" && !t.skip).length,
+    // A probe with an expectation is a real pass/fail check now, so it is counted apart
+    // from the rows that can still only report that the engine ran them.
+    probes: tests.filter(t => t.kind === "probe" && !t.skip && t.expected === undefined && t.expectedContains === undefined).length,
+    probeExpected: tests.filter(t => t.kind === "probe" && !t.skip && (t.expected !== undefined || t.expectedContains !== undefined)).length,
     skipped: tests.filter(t => t.skip).length,
     roundtrips: roundtripTests,
     textRoundtrips: textRoundtripTests,
@@ -637,7 +709,8 @@ const sizes = {
     official: tests.filter(t => t.kind === "official").length,
     dcode: tests.filter(t => t.kind === "dcode").length,
     dcodeOps: DCODE.length,
-    probes: tests.filter(t => t.kind === "probe" && !t.skip).length,
+    probes: tests.filter(t => t.kind === "probe" && !t.skip && t.expected === undefined && t.expectedContains === undefined).length,
+    probeExpected: tests.filter(t => t.kind === "probe" && !t.skip && (t.expected !== undefined || t.expectedContains !== undefined)).length,
     skipped: tests.filter(t => t.skip).length,
     total: tests.length,
 };

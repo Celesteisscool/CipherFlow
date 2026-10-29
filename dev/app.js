@@ -488,6 +488,9 @@ function opAccent(op) {
 }
 
 /* ================================================================ engine */
+// The inline worker source is the same for every engine, and unpacks to several megabytes.
+// Decode it once: the Magic pool starts three more engines from it.
+let engineSourceCache = null;
 class ChefEngine {
     constructor() {
         this.worker = null;
@@ -601,9 +604,38 @@ class ChefEngine {
     }
 
     async source() {
+        if (engineSourceCache) return engineSourceCache;
         const b64 = $("#engineGzip").textContent.trim().replace(/\s+/g, "");
         if (!b64) throw new Error("The embedded engine payload is missing.");
-        return gunzipBase64(b64);
+        engineSourceCache = await gunzipBase64(b64);
+        return engineSourceCache;
+    }
+
+    // Turn this engine off for good. Only the Magic pool uses it: the primary engine is
+    // restarted by the ordinary timeout path instead.
+    stop() {
+        if (this.worker) {
+            try { this.worker.terminate(); } catch { /* already gone */ }
+        }
+        this.worker = null;
+        this.loaded = false;
+        this.loading = null;
+        this.modulesSent.clear();
+        this.modulePromises.clear();
+        this.moduleWaiters.clear();
+        if (this.probeWaiter) {
+            clearTimeout(this.probeWaiter.timer);
+            const waiter = this.probeWaiter;
+            this.probeWaiter = null;
+            waiter.reject(new Error("The engine was stopped."));
+        }
+        if (this.pending) {
+            clearTimeout(this.pending.timer);
+            const pending = this.pending;
+            this.pending = null;
+            pending.reject(new Error("The engine was stopped."));
+        }
+        this.bakesWithData = 0;
     }
 
     async ensureModules(recipeConfig) {
@@ -788,6 +820,95 @@ class ChefEngine {
 }
 
 const engine = new ChefEngine();
+
+/* ---------------------------------------------------------------- Magic pool
+ * A sweep probes hundreds of operations through one worker. Up to three extra engines
+ * (four in total, the primary included) run contiguous slices of that list at the same
+ * time, so the wall time is roughly a quarter of a serial sweep. They are built from the
+ * same inline worker source and kept warm between sweeps, because starting an engine
+ * costs more than a slice does; after a minute with no sweep they shut themselves down,
+ * and leaving the page never leaves one behind.
+ */
+const MAGIC_CHUNKS = 4;
+const MAGIC_CHUNK_MIN = 80;
+const MAGIC_POOL_IDLE_MS = 60000;
+let magicPool = [];
+let magicPoolTimer = 0;
+let magicRunToken = 0;
+
+function stopMagicPool() {
+    clearTimeout(magicPoolTimer);
+    magicPoolTimer = 0;
+    for (const pooled of magicPool) {
+        try { pooled.stop(); } catch { /* already gone */ }
+    }
+    magicPool = [];
+}
+function touchMagicPool() {
+    clearTimeout(magicPoolTimer);
+    magicPoolTimer = setTimeout(stopMagicPool, MAGIC_POOL_IDLE_MS);
+}
+async function magicPoolEngine(index, modules) {
+    while (magicPool.length <= index) magicPool.push(new ChefEngine());
+    const pooled = magicPool[index];
+    await pooled.start();
+    // Every worker needs the modules its own slice uses; the primary's cache does not help.
+    for (const name of modules || []) await pooled.sendModule(name);
+    return pooled;
+}
+// Four is only worth its memory when there is enough work to fill it. Below the cut-off
+// the sweep stays on the primary engine, where the fixed cost of starting a worker would
+// be larger than the slice itself.
+function magicChunkCount(count) {
+    if (count < MAGIC_CHUNK_MIN) return 1;
+    return Math.min(MAGIC_CHUNKS, Math.ceil(count / MAGIC_CHUNK_MIN));
+}
+async function probeMagic(input, candidates, modules, chunks) {
+    const total = candidates.length;
+    const size = Math.max(1, Math.ceil(total / chunks));
+    const slices = [];
+    for (let start = 0; start < total; start += size) {
+        slices.push({start, list: candidates.slice(start, start + size)});
+    }
+    const primary = engine;
+    const runToken = ++magicRunToken;
+    const collect = (res, start) => (res.results || []).map((row, i) => ({...row, __index: start + i}));
+    const tasks = slices.map((slice, sliceIndex) => (async () => {
+        // Slice zero is the primary worker's, so even a two-slice sweep reuses it.
+        if (sliceIndex > 0) {
+            try {
+                const pooled = await magicPoolEngine(sliceIndex - 1, modules);
+                return collect(await pooled.probe(input, slice.list, {timeout: 120000}), slice.start);
+            } catch (err) {
+                // A worker that cannot start, or dies mid-sweep, must not cost the run its
+                // chunk: the primary runs that slice instead. The sweep never returns a
+                // silently partial ranking.
+                return collect(await primary.probe(input, slice.list, {timeout: 120000}), slice.start);
+            }
+        }
+        return collect(await primary.probe(input, slice.list, {timeout: 120000}), slice.start);
+    })());
+    let parts;
+    try {
+        parts = await Promise.all(tasks);
+    } catch (err) {
+        stopMagicPool();
+        throw err;
+    }
+    touchMagicPool();
+    // A newer sweep owns the node now; this one's rows must not overwrite it.
+    if (runToken !== magicRunToken) throw new Error("A newer Magic sweep replaced this one.");
+    // The scorer expects catalogue order, so merge the slices back by their original index
+    // before ranking. A parallel sweep then produces the same rows, in the same order, as
+    // a serial one.
+    const merged = parts.flat()
+        .sort((a, b) => a.__index - b.__index)
+        .map(row => {
+            const {__index, ...rest} = row;
+            return rest;
+        });
+    return {results: merged, chunks: slices.length};
+}
 
 // Does an engine response actually carry data? `result` is the payload the worker
 // computes for the requested return type; a null/undefined result with no dish value
@@ -2719,6 +2840,26 @@ function imageDataUrlFor(node, bytes, kind) {
     if (kind === "html-image") return firstDataUrlImage(utf8(bytes));
     return null;
 }
+function entryKind(node, bytes) {
+    if (!bytes || !bytes.length) return "empty";
+    return htmlOutputKind(node, bytes);
+}
+// A bundle's page is view state: it resets when the values themselves change, not when the
+// node merely re-renders. The count plus a hash of the first few entries is enough for that.
+function bundleSignature(value) {
+    const items = listItemsOf(value);
+    let sig = String(items.length);
+    for (let i = 0; i < Math.min(items.length, 8); i++) {
+        sig += `:${items[i].length}-${fnvBytes(items[i].subarray(0, 48)).toString(16)}`;
+    }
+    return sig;
+}
+// What the copy button hands over for one value, in whichever view is selected.
+function copyValueText(bytes, mode) {
+    if (mode === "hex") return bytesToHex(bytes, " ");
+    if (mode === "raw") return latin1Text(bytes);
+    return looksBinary(bytes) ? bytesToHex(bytes, " ") : utf8(bytes);
+}
 function updatePreviewEl(wrap, node) {
     const bytes = node._output;
     // A bundled wire can hold only empty values, which has no bytes but is still a result.
@@ -2726,14 +2867,29 @@ function updatePreviewEl(wrap, node) {
     const has = Boolean(bytes && (bytes.length || bundled));
     const files = node._files?.length ? node._files : null;
     const selected = files ? preferredFileIndex(node, files) : 0;
-    const kind = has ? (bundled ? "list" : htmlOutputKind(node, bytes)) : "empty";
+    // A bundle reads as one entry at a time, or as the whole list. The page lives on the
+    // node but is never saved; changing the bundle's contents takes it back to the first.
+    const entries = bundled ? listItemsOf(bytes) : [];
+    if (bundled) {
+        const sig = bundleSignature(bytes);
+        if (node._bundleSig !== sig) {
+            node._bundleSig = sig;
+            node.bundlePage = 0;
+        }
+        node.bundlePage = clamp(Math.round(Number(node.bundlePage)) || 0, 0, Math.max(0, entries.length - 1));
+    }
+    const allEntries = bundled && Boolean(node.bundleAll);
+    const page = bundled ? node.bundlePage : 0;
+    const shown = bundled && !allEntries ? (entries[page] || new Uint8Array(0)) : bytes;
+    const shownLen = shown ? shown.length : 0;
+    const kind = has ? (bundled ? (allEntries ? "list" : entryKind(node, shown)) : htmlOutputKind(node, bytes)) : "empty";
     const isImage = kind === "image-bytes" || kind === "html-image";
     // Every preview has a Raw view. An image result also gets Image and Hex, so the
     // picture can be seen, the underlying markup or bytes read, and the bytes inspected.
     let mode = node.previewMode || (isImage ? "image" : "text");
     if (isImage) { if (mode !== "raw" && mode !== "hex") mode = "image"; }
     else if (mode !== "hex" && mode !== "raw") mode = "text";
-    const imageUrl = (has && isImage && mode === "image") ? imageDataUrlFor(node, bytes, kind) : null;
+    const imageUrl = (has && isImage && mode === "image") ? imageDataUrlFor(node, shown, kind) : null;
     // Text and file nodes are the display side of a graph now, so they get the roomier
     // preview the old Output node had (and its save button, below).
     const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "switch" || node.type === "fn" ||
@@ -2743,7 +2899,7 @@ function updatePreviewEl(wrap, node) {
     // length is always enough to clear the cut-off; hex writes three characters per byte.
     const full = Boolean(node.fullPreview);
     const limit = full
-        ? Math.max(1100, mode === "hex" ? (bytes ? bytes.length * 3 : 0) : (bytes ? bytes.length : 0))
+        ? Math.max(1100, mode === "hex" ? shownLen * 3 : shownLen)
         : (isSink ? 1100 : 420);
     // Pick knows why a result is empty: no bundle, a picked slot that is itself blank, or
     // an index beyond the end. Saying so beats the generic "run the graph" hint.
@@ -2752,9 +2908,16 @@ function updatePreviewEl(wrap, node) {
             : (pickIndex(node) > node._pickCount ? `No value at index ${pickIndex(node)}; the bundle has ${node._pickCount}.`
                 : "The picked value is empty."))
         : "";
-    const pv = has
-        ? (bundled && mode !== "hex" ? {text: listPreviewText(bytes, full), binary: false} : previewBytes(bytes, mode, limit))
-        : {text: pickEmpty || (isSink ? "Run the graph to see the output." : "Not run yet."), binary: false};
+    let pv;
+    if (!has) {
+        pv = {text: pickEmpty || (isSink ? "Run the graph to see the output." : "Not run yet."), binary: false};
+    } else if (bundled && !allEntries) {
+        pv = shownLen ? previewBytes(shown, mode, limit) : {text: "(empty)", binary: false};
+    } else if (bundled) {
+        pv = mode === "hex" ? previewBytes(bytes, mode, limit) : {text: listPreviewText(bytes, full), binary: false};
+    } else {
+        pv = previewBytes(bytes, mode, limit);
+    }
     wrap.classList.toggle("empty", !has);
     wrap.classList.toggle("full", full);
     wrap.dataset.kind = kind;
@@ -2764,14 +2927,23 @@ function updatePreviewEl(wrap, node) {
     } else if (imageUrl) {
         body = `<div class="preview-media"><img class="preview-img" src="${esc(imageUrl)}" alt="Operation output" loading="lazy"></div>`;
     } else if (has && mode === "text" && kind === "html") {
-        const html = utf8(bytes);
+        const html = utf8(shown);
         body = `<div class="preview-media preview-html"><iframe class="preview-frame" sandbox="allow-same-origin" referrerpolicy="no-referrer" srcdoc="${esc(html).replace(/"/g, "&quot;")}"></iframe></div>`;
     } else {
         body = `<pre>${esc(pv.text)}</pre>`;
     }
     let fileLabel = files ? `${files[selected].name} · ` : "";
-    // A bundled wire says how many values it carries; its byte count alone hides that.
-    if (bundled) fileLabel = `${bytes.__items.length} value${bytes.__items.length === 1 ? "" : "s"} · `;
+    // A bundled wire shows a pager in place of the "N values" label; the pager's counter
+    // doubles as the switch between single-entry and whole-list views.
+    const pager = bundled
+        ? (allEntries
+            ? `<button class="preview-bundle" data-action="bundle-all" data-node="${node.id}" title="Show the bundle one value at a time">all ${entries.length}</button>`
+            : `<span class="preview-pager">
+                <button data-action="bundle-prev" data-node="${node.id}" title="Previous value"${page <= 0 || entries.length <= 1 ? " disabled" : ""}>‹</button>
+                <button class="preview-bundle" data-action="bundle-all" data-node="${node.id}" title="Show every value in the bundle">${entries.length ? page + 1 : 0} / ${entries.length}</button>
+                <button data-action="bundle-next" data-node="${node.id}" title="Next value"${page >= entries.length - 1 ? " disabled" : ""}>›</button>
+            </span>`)
+        : "";
     if (node.op === "Magic" && Array.isArray(node._magic)) {
         const probed = node._magicProbed == null ? node._magic.length : node._magicProbed;
         const ran = node._magicRan == null ? node._magic.length : node._magicRan;
@@ -2786,9 +2958,10 @@ function updatePreviewEl(wrap, node) {
         : "";
     wrap.innerHTML = `
         <div class="preview-head">
-            <span class="bytes">${fileLabel}${has ? formatBytes(bytes.length) : (node._error ? "error" : "—")}</span>
+            <span class="bytes">${fileLabel}${has ? formatBytes(bundled && !allEntries ? shownLen : bytes.length) : (node._error ? "error" : "—")}</span>
             <span class="spacer"></span>
-            <label class="preview-full" title="Preview the whole output instead of its first stretch"><input type="checkbox" data-action="preview-full" data-node="${node.id}"${node.fullPreview ? " checked" : ""}>Full</label>
+            ${pager}
+            <button class="preview-toggle${full ? " on" : ""}" data-action="preview-full" data-node="${node.id}" aria-pressed="${full ? "true" : "false"}" title="Show the whole output instead of its first stretch">Full</button>
             <span class="seg">${(isImage ? [["image", "Image"], ["raw", "Raw"], ["hex", "Hex"]] : [["text", "Text"], ["raw", "Raw"], ["hex", "Hex"]]).map(([m, label]) => `<button data-action="preview-mode" data-node="${node.id}" data-mode="${m}" class="${mode === m ? "on" : ""}">${label}</button>`).join("")}</span>
             ${has ? `<button class="mini-btn" data-action="copy-node" data-node="${node.id}" title="Copy output">${iconFill("copy")}</button>` : ""}
             ${has && isSink ? `<button class="mini-btn" data-action="save-node" data-node="${node.id}" title="Save output">${iconFill("save")}</button>` : ""}
@@ -4543,8 +4716,11 @@ async function runMagicNode(node, inputBytes, argValues) {
         }
     }
 
-    setRunStatus("running", `Magic is testing ${candidates.length} operations…`);
-    const probe = await engine.probe(buffer, candidates, {timeout: 120000});
+    const chunks = magicChunkCount(candidates.length);
+    setRunStatus("running", chunks > 1
+        ? `Magic is testing ${candidates.length} operations in ${chunks} chunks…`
+        : `Magic is testing ${candidates.length} operations…`);
+    const probe = await probeMagic(buffer, candidates, modules, chunks);
     const ranked = rankMagicResults(probe.results || [], inputText).slice(0, topN);
     node._magicProbed = candidates.length;
     node._magicRan = (probe.results || []).length;
@@ -6984,7 +7160,9 @@ const lab = {
     ],
     rowEls: new Map(),
     integration: [],
-    integrationRunning: false
+    integrationRunning: false,
+    integrationBatch: false,
+    integrationStop: false
 };
 
 function initLab() {
@@ -7488,6 +7666,16 @@ function graphTestNodes() {
         edge: (id, from, to, toPort) => ({id: "e" + id, from, to, toPort})
     };
 }
+// Every check the wiring suite is expected to contain. The last check compares this list
+// with what is actually defined, so deleting a definition turns the batch red instead of
+// quietly shrinking it. Keep the two in step when a check is added.
+const INTEGRATION_CHECK_IDS = [
+    "base64", "aes", "join", "cycle", "selection", "clipboard", "wirehint",
+    "function-run", "function-outputs", "function-recursion", "argwire", "undoredo",
+    "fnsample", "fntyped", "fnsamplepipe", "magic", "magic-benchmark",
+    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "snap",
+    "save-reload", "export-import", "suite-coverage"
+];
 function integrationDefinitions() {
     const B = graphTestNodes();
     return [
@@ -7644,18 +7832,20 @@ function integrationDefinitions() {
             run: () => withScratchGraph(async s => {
                 const def = createFunction("Encode");
                 const [source, sink] = def.nodes;
-                const op = makeNode("op", {id: 3, x: 320, y: 140, op: "To Base64"});
+                // Ids come from the same counter makeNode used for the definition, so a
+                // check can never collide with the ids createFunction generated.
+                const op = makeNode("op", {id: ++nodeSeq, x: 320, y: 140, op: "To Base64"});
                 def.nodes.push(op);
                 def.edges.push(
                     {id: "e1", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
                     {id: "e2", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"}
                 );
-                const input = makeNode("input", {id: 101, x: 0, y: 0, text: "hello"});
-                const inst = makeNode("fn", {id: 102, x: 500, y: 0, fnId: def.id});
+                const input = makeNode("input", {id: ++nodeSeq, x: 0, y: 0, text: "hello"});
+                const inst = makeNode("fn", {id: ++nodeSeq, x: 500, y: 0, fnId: def.id});
                 s.nodes.push(input, inst);
-                s.edges.push({id: "e3", from: 101, to: 102, toPort: "fn:0", fromPort: "out"});
+                s.edges.push({id: "e3", from: input.id, to: inst.id, toPort: "fn:0", fromPort: "out"});
                 const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
-                const bytes = res.results.get(102)?.bytes;
+                const bytes = res.results.get(inst.id)?.bytes;
                 const text = bytes ? utf8(bytes) : "";
                 return {ok: text === "aGVsbG8=", detail: `“hello” through the function came out as ${JSON.stringify(text)}`};
             })
@@ -7668,26 +7858,26 @@ function integrationDefinitions() {
                 const def = createFunction("Both ways");
                 const [source, sink] = def.nodes;
                 sink.ports.push({name: "Output 2"});
-                const op = makeNode("op", {id: 3, x: 320, y: 140, op: "To Base64"});
+                const op = makeNode("op", {id: ++nodeSeq, x: 320, y: 140, op: "To Base64"});
                 def.nodes.push(op);
                 def.edges.push(
                     {id: "e1", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
                     {id: "e2", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"},
                     {id: "e3", from: source.id, to: sink.id, toPort: "in:1", fromPort: "out:0"}
                 );
-                const input = makeNode("input", {id: 201, x: 0, y: 0, text: "plain"});
-                const inst = makeNode("fn", {id: 202, x: 420, y: 0, fnId: def.id});
-                const sinkA = makeNode("input", {id: 203, x: 800, y: 0, text: ""});
-                const sinkB = makeNode("input", {id: 204, x: 800, y: 260, text: ""});
+                const input = makeNode("input", {id: ++nodeSeq, x: 0, y: 0, text: "plain"});
+                const inst = makeNode("fn", {id: ++nodeSeq, x: 420, y: 0, fnId: def.id});
+                const sinkA = makeNode("input", {id: ++nodeSeq, x: 800, y: 0, text: ""});
+                const sinkB = makeNode("input", {id: ++nodeSeq, x: 800, y: 260, text: ""});
                 s.nodes.push(input, inst, sinkA, sinkB);
                 s.edges.push(
-                    {id: "e4", from: 201, to: 202, toPort: "fn:0", fromPort: "out"},
-                    {id: "e5", from: 202, fromPort: "out:0", to: 203, toPort: "main"},
-                    {id: "e6", from: 202, fromPort: "out:1", to: 204, toPort: "main"}
+                    {id: "e4", from: input.id, to: inst.id, toPort: "fn:0", fromPort: "out"},
+                    {id: "e5", from: inst.id, fromPort: "out:0", to: sinkA.id, toPort: "main"},
+                    {id: "e6", from: inst.id, fromPort: "out:1", to: sinkB.id, toPort: "main"}
                 );
                 const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
-                const a = res.results.get(203)?.bytes;
-                const b = res.results.get(204)?.bytes;
+                const a = res.results.get(sinkA.id)?.bytes;
+                const b = res.results.get(sinkB.id)?.bytes;
                 const textA = a ? utf8(a) : "";
                 const textB = b ? utf8(b) : "";
                 return {
@@ -7703,16 +7893,16 @@ function integrationDefinitions() {
             run: () => withScratchGraph(async s => {
                 const def = createFunction("Loop");
                 const [source, sink] = def.nodes;
-                const inner = makeNode("fn", {id: 3, x: 320, y: 140, fnId: def.id});
+                const inner = makeNode("fn", {id: ++nodeSeq, x: 320, y: 140, fnId: def.id});
                 def.nodes.push(inner);
                 def.edges.push(
                     {id: "e1", from: source.id, to: inner.id, toPort: "fn:0", fromPort: "out:0"},
                     {id: "e2", from: inner.id, fromPort: "out:0", to: sink.id, toPort: "in:0"}
                 );
-                const inst = makeNode("fn", {id: 301, x: 400, y: 0, fnId: def.id});
+                const inst = makeNode("fn", {id: ++nodeSeq, x: 400, y: 0, fnId: def.id});
                 s.nodes.push(inst);
                 const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
-                const error = res.results.get(301)?.error || "";
+                const error = res.results.get(inst.id)?.error || "";
                 return {ok: /cannot use itself/.test(error), detail: error ? `reported: ${error}` : "no error was raised"};
             })
         },
@@ -7793,16 +7983,16 @@ function integrationDefinitions() {
                     sampleFileName: "t.bin", sampleFileSize: 4, sampleFileMime: "application/octet-stream",
                     sampleFileData: bytesToB64(new Uint8Array([0xde, 0xad, 0xbe, 0xef]))
                 };
-                const op = makeNode("op", {id: 3, x: 320, y: 140, op: "To Hex"});
+                const op = makeNode("op", {id: ++nodeSeq, x: 320, y: 140, op: "To Hex"});
                 def.nodes.push(op);
                 def.edges.push(
                     {id: "e1", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
                     {id: "e2", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"}
                 );
-                const inst = makeNode("fn", {id: 402, x: 500, y: 0, fnId: def.id});
+                const inst = makeNode("fn", {id: ++nodeSeq, x: 500, y: 0, fnId: def.id});
                 s.nodes.push(inst);
                 const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
-                const bytes = res.results.get(402)?.bytes;
+                const bytes = res.results.get(inst.id)?.bytes;
                 const text = bytes ? utf8(bytes) : "";
                 // A file sample has to survive a save, or a shared graph would test on nothing.
                 const saved = cleanFunctionForSave(def).nodes[0].ports[0];
@@ -7821,24 +8011,24 @@ function integrationDefinitions() {
                 const def = createFunction("Constant");
                 const [source, sink] = def.nodes;
                 source.ports[0] = {name: "Value", sample: "preset text", encoding: "utf8", sampleMode: "text", typed: true};
-                const op = makeNode("op", {id: 3, x: 320, y: 140, op: "To Base64"});
+                const op = makeNode("op", {id: ++nodeSeq, x: 320, y: 140, op: "To Base64"});
                 def.nodes.push(op);
                 def.edges.push(
                     {id: "e1", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
                     {id: "e2", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"}
                 );
-                const typed = makeNode("fn", {id: 501, x: 500, y: 0, fnId: def.id});
+                const typed = makeNode("fn", {id: ++nodeSeq, x: 500, y: 0, fnId: def.id});
                 typed.typedInputs = {"fn:0": "hello"};
-                const wired = makeNode("fn", {id: 502, x: 500, y: 300, fnId: def.id});
+                const wired = makeNode("fn", {id: ++nodeSeq, x: 500, y: 300, fnId: def.id});
                 wired.typedInputs = {"fn:0": "ignored"};
-                const feed = makeNode("input", {id: 503, x: 0, y: 300, text: "from wire"});
+                const feed = makeNode("input", {id: ++nodeSeq, x: 0, y: 300, text: "from wire"});
                 // An emptied box is not an override: it falls back to the default shown in it.
-                const cleared = makeNode("fn", {id: 505, x: 500, y: 600, fnId: def.id});
+                const cleared = makeNode("fn", {id: ++nodeSeq, x: 500, y: 600, fnId: def.id});
                 cleared.typedInputs = {"fn:0": ""};
                 s.nodes.push(typed, wired, feed, cleared);
-                s.edges.push({id: "e3", from: 503, to: 502, toPort: "fn:0", fromPort: "out"});
+                s.edges.push({id: "e3", from: feed.id, to: wired.id, toPort: "fn:0", fromPort: "out"});
                 // The instance has to actually render the box for a typeable input.
-                const node = makeNode("fn", {id: 504, x: 0, y: 600, fnId: def.id, typedInputs: {"fn:0": "x"}});
+                const node = makeNode("fn", {id: ++nodeSeq, x: 0, y: 600, fnId: def.id, typedInputs: {"fn:0": "x"}});
                 s.nodes.push(node);
                 const built = buildFunctionNode(node);
                 const boxes = built.querySelectorAll("[data-typed-port] input").length;
@@ -7848,7 +8038,7 @@ function integrationDefinitions() {
                 s.nodes.pop();
                 const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
                 const text = id => { const b = res.results.get(id)?.bytes; return b ? utf8(b) : ""; };
-                const a = text(501), b = text(502), c = text(505);
+                const a = text(typed.id), b = text(wired.id), c = text(cleared.id);
                 return {
                     ok: boxes === 1 && shown === "preset text · default" &&
                         a === "aGVsbG8=" && b === "ZnJvbSB3aXJl" && c === "cHJlc2V0IHRleHQ=",
@@ -7865,23 +8055,23 @@ function integrationDefinitions() {
                 const [source, sink] = def.nodes;
                 // The typed sample says one thing; the wire into the sample port says another.
                 source.ports[0] = {name: "Value", sample: "typed-sample", encoding: "utf8", sampleMode: "text", typed: true};
-                const fixture = makeNode("input", {id: 3, x: 40, y: 320, text: "Piped!"});
-                const op = makeNode("op", {id: 4, x: 430, y: 140, op: "To Base64"});
+                const fixture = makeNode("input", {id: ++nodeSeq, x: 40, y: 320, text: "Piped!"});
+                const op = makeNode("op", {id: ++nodeSeq, x: 430, y: 140, op: "To Base64"});
                 def.nodes.push(fixture, op);
                 def.edges.push(
                     {id: "e1", from: fixture.id, to: source.id, toPort: "sample:0", fromPort: "out"},
                     {id: "e2", from: source.id, to: op.id, toPort: "main", fromPort: "out:0"},
                     {id: "e3", from: op.id, to: sink.id, toPort: "in:0", fromPort: "out"}
                 );
-                const plain = makeNode("fn", {id: 601, x: 500, y: 0, fnId: def.id});
-                const typed = makeNode("fn", {id: 602, x: 500, y: 300, fnId: def.id});
+                const plain = makeNode("fn", {id: ++nodeSeq, x: 500, y: 0, fnId: def.id});
+                const typed = makeNode("fn", {id: ++nodeSeq, x: 500, y: 300, fnId: def.id});
                 typed.typedInputs = {"fn:0": "mine"};
                 s.nodes.push(plain, typed);
                 const built = buildFunctionNode(plain);
                 const shown = built.querySelector("[data-typed-port] input").placeholder;
                 const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
                 const text = id => { const b = res.results.get(id)?.bytes; return b ? utf8(b) : ""; };
-                const a = text(601), b = text(602);
+                const a = text(plain.id), b = text(typed.id);
                 return {
                     ok: a === "UGlwZWQh" && b === "bWluZQ==" && /inside the function/.test(shown),
                     detail: `piped sample → ${JSON.stringify(a)}, typed value beat it → ${JSON.stringify(b)}, instance box reads ${JSON.stringify(shown)}`
@@ -7913,9 +8103,13 @@ function integrationDefinitions() {
                     const out = nodes[1]._output ? utf8(nodes[1]._output) : "";
                     const table = rows.some(row => /brute.?force/i.test(row.op));
                     const ok = item.top.test(label) && out === item.expect && !table;
-                    // The ranking itself is the diagnosis when this fails, so always report it.
+                    // The ranking itself is the diagnosis when this fails, so always report it,
+                    // along with how much of the sweep actually ran and any error it hit.
                     const listed = rows.slice(0, 5).map(row => `${row.label || row.op} ${Math.round(row.score)}`).join(", ");
-                    report.push(`${ok ? "ok" : "no"} ${JSON.stringify(label)} → ${JSON.stringify(out.slice(0, 40))} [${listed}]`);
+                    const trail = `${nodes[1]._magicRan ?? "?"}/${nodes[1]._magicProbed ?? "?"} probed` +
+                        (nodes[1]._error ? ` · ${nodes[1]._error}` : "") +
+                        (nodes[1]._magicWarning ? ` · ${nodes[1]._magicWarning}` : "");
+                    report.push(`${ok ? "ok" : "no"} ${JSON.stringify(label)} → ${JSON.stringify(out.slice(0, 40))} [${listed}] (${trail})`);
                     if (!ok) return {ok: false, detail: report.join(" · ")};
                 }
                 return {ok: true, detail: report.join(" · ")};
@@ -7965,6 +8159,268 @@ function integrationDefinitions() {
                 }
                 return {ok: true, detail: report.join(" · ")};
             }
+        },
+        {
+            id: "bundles",
+            title: "Compact, Expand and Pick carry one list",
+            description: "Three typed values collect onto a single bundled wire, Expand spreads the same bundle over its own outputs, and Pick takes one position out of it.",
+            run: () => withScratchGraph(async s => {
+                const compact = makeNode("compact", {id: 1, x: 0, y: 0, inCount: 3, texts: ["alpha", "beta", "gamma"]});
+                const expand = makeNode("expand", {id: 2, x: 360, y: 0, outCount: 3});
+                const pick = makeNode("pick", {id: 3, x: 360, y: 280, pickIndex: 2});
+                s.nodes.push(compact, expand, pick);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 1, to: 3, toPort: "main", fromPort: "out"}
+                );
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const bundle = res.results.get(1)?.bytes;
+                const ports = res.results.get(2)?.portOutputs;
+                const portText = port => { const b = ports?.get(port); return b ? utf8(b) : ""; };
+                const picked = res.results.get(3)?.bytes;
+                const pickedText = picked ? utf8(picked) : "";
+                const items = bundle ? listItemsOf(bundle) : [];
+                const spread = [portText("out:0"), portText("out:1"), portText("out:2")];
+                const ok = isListValue(bundle) && items.length === 3 &&
+                    spread.join("|") === "alpha|beta|gamma" && pickedText === "beta";
+                return {ok, detail: `bundle of ${items.length} → Expand ${JSON.stringify(spread)}, Pick ${JSON.stringify(pickedText)}`};
+            })
+        },
+        {
+            id: "fstring",
+            title: "Fstring fills its slots from wires",
+            description: "One shape with two placeholders receives a different value on each numbered port and returns the interpolated string.",
+            run: () => withScratchGraph(async s => {
+                const hello = makeNode("input", {id: 1, x: 0, y: 0, text: "world", title: "Name"});
+                const key = makeNode("input", {id: 2, x: 0, y: 240, text: "K3Y", title: "Key"});
+                const template = makeNode("template", {id: 3, x: 400, y: 80, text: "Hello {input1}, key {input2}", portCount: 2});
+                const out = makeNode("input", {id: 4, x: 800, y: 80, text: ""});
+                s.nodes.push(hello, key, template, out);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 3, toPort: "in:0", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "in:1", fromPort: "out"},
+                    {id: "e3", from: 3, to: 4, toPort: "main", fromPort: "out"}
+                );
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const bytes = res.results.get(4)?.bytes;
+                const text = bytes ? utf8(bytes) : "";
+                return {ok: text === "Hello world, key K3Y", detail: `“Hello {input1}, key {input2}” → ${JSON.stringify(text)}`};
+            })
+        },
+        {
+            id: "switch",
+            title: "Switch routes by key",
+            description: "A matching case hands on its own value (after trimming the input), a miss uses the otherwise value, and a switch with no otherwise passes the value straight through.",
+            run: () => withScratchGraph(async s => {
+                const feed = (inputId, switchId, sinkId, input, cases, otherwise, x, y) => {
+                    s.nodes.push(
+                        makeNode("input", {id: inputId, x, y, text: input, title: "In"}),
+                        makeNode("switch", {id: switchId, x: x + 340, y, cases, switchDefault: otherwise}),
+                        makeNode("input", {id: sinkId, x: x + 700, y, text: "", title: "Out"})
+                    );
+                    s.edges.push(
+                        {id: `e${inputId}`, from: inputId, to: switchId, toPort: "main", fromPort: "out"},
+                        {id: `e${sinkId}`, from: switchId, to: sinkId, toPort: "main", fromPort: "out"}
+                    );
+                };
+                const cases = [{key: "alpha", value: "one"}, {key: "beta", value: "two"}];
+                feed(1, 2, 3, " beta ", cases, "", 0, 0);
+                feed(4, 5, 6, "gamma", [{key: "alpha", value: "one"}], "fallback", 0, 300);
+                feed(7, 8, 9, "gamma", [{key: "alpha", value: "one"}], "", 0, 600);
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const text = id => { const b = res.results.get(id)?.bytes; return b ? utf8(b) : ""; };
+                const matched = text(3), fallback = text(6), passed = text(9);
+                const ok = matched === "two" && fallback === "fallback" && passed === "gamma";
+                return {ok, detail: `case → ${JSON.stringify(matched)}, otherwise → ${JSON.stringify(fallback)}, no otherwise → ${JSON.stringify(passed)}`};
+            })
+        },
+        {
+            id: "collapse",
+            title: "Collapse and expand round-trip",
+            description: "The chevron hides the body while keeping the ports anchored, then expanding brings the size the node was given back.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const node = makeNode("input", {id: 1, x: 0, y: 0, text: "A long value that must stay available while collapsed"});
+                node.w = 300;
+                node.h = 220;
+                s.nodes.push(node);
+                renderAllNodes();
+                const expandedEl = nodeEl(1);
+                const sized = expandedEl.style.width === "300px" && expandedEl.style.height === "220px" && expandedEl.classList.contains("resized");
+                expandedEl.querySelector('[data-action="toggle-collapse"]').click();
+                const collapsedEl = nodeEl(1);
+                const ports = collapsedEl ? collapsedEl.querySelectorAll(".collapsed-ports .port").length : 0;
+                const collapsed = node.collapsed === true && Boolean(collapsedEl?.classList.contains("collapsed")) && !collapsedEl.style.height && ports > 0;
+                collapsedEl.querySelector('[data-action="toggle-collapse"]').click();
+                const backEl = nodeEl(1);
+                const back = node.collapsed === false && backEl.style.height === "220px" && !backEl.classList.contains("collapsed");
+                const ok = sized && collapsed && back;
+                return {ok, detail: `sized ${sized ? "300×220" : "no"}, collapsed with ${ports} anchored port(s) ${collapsed ? "ok" : "no"}, expanded back to ${backEl.style.height || "(natural)"} ${back ? "ok" : "no"}`};
+            }))
+        },
+        {
+            id: "previewstate",
+            title: "Preview mode and Full survive a re-render",
+            description: "The Full pill lifts truncation for the whole value, the Raw view can be selected, both are written into the save, and a fresh render keeps the same controls pressed.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(34).slice(0, 2000);
+                // An operation node always shows a preview: a text node with nothing piped in
+                // is its own editor box instead.
+                const node = makeNode("op", {id: 1, x: 0, y: 0, op: "To Base64"});
+                node._output = enc.encode(text);
+                s.nodes.push(node);
+                renderAllNodes();
+                const previewText = () => (nodeEl(1)?.querySelector("[data-preview] pre")?.textContent || "").length;
+                const valueLength = enc.encode(text).length;
+                const truncated = previewText();
+                nodeEl(1).querySelector('[data-action="preview-full"]').click();
+                const fullLength = previewText();
+                const pressed = node.fullPreview === true && nodeEl(1).querySelector('[data-action="preview-full"]').getAttribute("aria-pressed") === "true";
+                renderAllNodes();
+                const pressedAfterRender = nodeEl(1).querySelector('[data-action="preview-full"]').getAttribute("aria-pressed") === "true";
+                nodeEl(1).querySelector('[data-action="preview-mode"][data-mode="raw"]').click();
+                const rawOn = node.previewMode === "raw" && nodeEl(1).querySelector('[data-action="preview-mode"][data-mode="raw"]').classList.contains("on");
+                const saved = cleanNodeForSave(node);
+                const persisted = saved.previewMode === "raw" && saved.fullPreview === true;
+                const ok = truncated > 0 && truncated < 1500 && fullLength === valueLength && pressed && pressedAfterRender && rawOn && persisted;
+                return {ok, detail: `truncated ${truncated} chars → Full ${fullLength}, pill pressed again ${pressedAfterRender ? "yes" : "no"}, Raw ${rawOn ? "selected" : "not selected"}, save keeps ${JSON.stringify([saved.previewMode, Boolean(saved.fullPreview)])}`};
+            }))
+        },
+        {
+            id: "resize",
+            title: "A resized node keeps its size through a save",
+            description: "Width and height are stored on the node, cleaned into the saved graph, written to localStorage and read back by the same loader a reload uses.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const node = makeNode("input", {id: 7, x: 120, y: 60, text: "Resize me", title: "Sized"});
+                node.w = 280;
+                node.h = 180;
+                s.nodes.push(node);
+                renderAllNodes();
+                const el = nodeEl(7);
+                const rendered = el.style.width === "280px" && el.style.height === "180px" && el.classList.contains("resized");
+                const cleaned = cleanNodeForSave(node);
+                saveLocalNow();
+                const reloaded = loadLocalGraph();
+                const back = reloaded?.nodes.find(n => n.id === 7);
+                const ok = rendered && cleaned.w === 280 && cleaned.h === 180 && back?.w === 280 && back?.h === 180 && back?.title === "Sized";
+                return {ok, detail: `${rendered ? "rendered" : "not rendered"} 280×180, save says ${cleaned.w}×${cleaned.h}, reload says ${back ? `${back.w}×${back.h}` : "missing"}`};
+            }))
+        },
+        {
+            id: "snap",
+            title: "Snap moves nodes onto the dot grid",
+            description: "Every off-grid node moves to the nearest 22 px dot, one undo puts them all back, and with a function open only that function's body moves while the canvas stays put.",
+            run: async () => {
+                const res = await withAutosaveGuard(() => withScratchGraph(async s => {
+                    const a = makeNode("input", {id: 1, x: 33, y: 7, text: "a"});
+                    const b = makeNode("input", {id: 2, x: 100, y: 133, text: "b"});
+                    s.nodes.push(a, b);
+                    renderAllNodes();
+                    resetHistory();
+                    snapNodesToGrid({quiet: true});
+                    const onGrid = [a, b].every(n => n.x % GRID_SIZE === 0 && n.y % GRID_SIZE === 0);
+                    undo();
+                    const restored = nodeById(1)?.x === 33 && nodeById(1)?.y === 7 && nodeById(2)?.x === 100 && nodeById(2)?.y === 133;
+                    // Now the same gesture with a function open: `state` is that body, so the
+                    // canvas the function belongs to must not move at all.
+                    const def = createFunction("Snap target");
+                    def.nodes[0].x = 45;
+                    def.nodes[0].y = 11;
+                    def.nodes[1].x = 701;
+                    def.nodes[1].y = 333;
+                    const mainBefore = s.nodes.map(n => `${n.id}:${n.x},${n.y}`).join("|");
+                    openFunctionEditor(def);
+                    try {
+                        snapNodesToGrid({quiet: true});
+                    } finally {
+                        closeFunctionEditor();
+                    }
+                    const bodyOnGrid = def.nodes.every(n => n.x % GRID_SIZE === 0 && n.y % GRID_SIZE === 0);
+                    const mainAfter = s.nodes.map(n => `${n.id}:${n.x},${n.y}`).join("|");
+                    const onlyFunction = bodyOnGrid && mainAfter === mainBefore;
+                    return {
+                        ok: onGrid && restored && onlyFunction,
+                        detail: `off-grid → on-grid ${onGrid ? "yes" : "no"}, undo restored ${restored ? "yes" : "no"}, open function snapped ${bodyOnGrid ? "itself" : "no"} and left the canvas ${mainAfter === mainBefore ? "untouched" : "moved"}`
+                    };
+                }));
+                resetHistory();
+                return res;
+            }
+        },
+        {
+            id: "save-reload",
+            title: "A graph comes back from localStorage",
+            description: "Text, a resized box, a collapsed node, a switch's cases and a function definition all survive the autosave and the loader, and the user's own autosave is put back afterwards.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const text = makeNode("input", {id: 1, x: 40, y: 40, text: "persisted value", title: "Kept"});
+                text.previewMode = "hex";
+                text.fullPreview = true;
+                text.w = 260;
+                text.h = 160;
+                const folded = makeNode("input", {id: 2, x: 400, y: 40, text: "folded away", title: "Folded"});
+                folded.collapsed = true;
+                const lookup = makeNode("switch", {id: 3, x: 760, y: 40, cases: [{key: "a", value: "first"}, {key: "b", value: "second"}], switchDefault: "none"});
+                s.nodes.push(text, folded, lookup);
+                s.edges.push({id: "e1", from: 1, to: 3, toPort: "main", fromPort: "out"});
+                const def = createFunction("Kept function");
+                def.name = "Kept function";
+                saveLocalNow();
+                const reloaded = loadLocalGraph();
+                const back = id => reloaded?.nodes.find(n => n.id === id);
+                const t = back(1), f = back(2), sw = back(3);
+                const fn = reloaded?.functions.find(x => x.id === def.id);
+                const ok = t?.text === "persisted value" && t?.previewMode === "hex" && t?.fullPreview === true &&
+                    t?.w === 260 && t?.h === 160 && f?.collapsed === true &&
+                    sw?.cases?.length === 2 && sw?.cases[1]?.value === "second" && sw?.switchDefault === "none" &&
+                    fn?.name === "Kept function" && reloaded?.edges?.length === 1;
+                return {ok, detail: `reloaded ${reloaded?.nodes.length || 0} node(s), ${reloaded?.functions.length || 0} function(s); text ${JSON.stringify(t?.text)}, size ${t?.w}×${t?.h}, folded ${f?.collapsed}, cases ${sw?.cases?.length ?? 0}, wire ${reloaded?.edges?.length ?? 0}`};
+            }))
+        },
+        {
+            id: "export-import",
+            title: "Export and import round-trip",
+            description: "The JSON that Save JSON downloads, read back by the same normaliser Open uses, keeps ids, positions, sizes, view state, typed inputs, switch cases and function bodies.",
+            run: () => withScratchGraph(async s => {
+                const sized = makeNode("input", {id: 1, x: 33, y: 55, text: "exported", title: "Exported"});
+                sized.w = 300;
+                sized.h = 170;
+                sized.previewMode = "raw";
+                const lookup = makeNode("switch", {id: 2, x: 400, y: 55, cases: [{key: "x", value: "ex"}, {key: "y", value: "why"}], switchDefault: "otherwise"});
+                const def = createFunction("Travelling function");
+                const inst = makeNode("fn", {id: 3, x: 760, y: 55, fnId: def.id, typedInputs: {"fn:0": "typed"}});
+                s.nodes.push(sized, lookup, inst);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "fn:0", fromPort: "out"}
+                );
+                s.view = {x: 123, y: -45, zoom: 1.1};
+                const json = JSON.stringify(serializeGraph(s));
+                const back = normalizeLoaded(JSON.parse(json));
+                const t = back.nodes.find(n => n.id === 1);
+                const sw = back.nodes.find(n => n.id === 2);
+                const inst2 = back.nodes.find(n => n.id === 3);
+                const fn = back.functions.find(f => f.id === def.id);
+                const ok = back.nodes.length === 3 && back.edges.length === 2 && t?.text === "exported" &&
+                    t?.x === 33 && t?.y === 55 && t?.w === 300 && t?.h === 170 && t?.previewMode === "raw" &&
+                    sw?.cases?.length === 2 && sw?.cases[1]?.value === "why" && sw?.switchDefault === "otherwise" &&
+                    inst2?.typedInputs?.["fn:0"] === "typed" && fn?.name === "Travelling function" &&
+                    back.view?.zoom === 1.1 && back.view?.x === 123 && back.view?.y === -45;
+                return {ok, detail: `${back.nodes.length} node(s), ${back.edges.length} wire(s), ${back.functions.length} function(s), view ${back.view?.zoom}, size ${t?.w}×${t?.h}, typed ${JSON.stringify(inst2?.typedInputs)}`};
+            })
+        },
+        {
+            id: "suite-coverage",
+            title: "Every wiring check is present",
+            description: "Compares the loaded cards with the suite's own expected list, so a definition that was deleted or renamed shows up as a failure rather than a quietly shorter run.",
+            run: async () => {
+                const ids = lab.integration.map(def => def.id);
+                const missing = INTEGRATION_CHECK_IDS.filter(id => !ids.includes(id));
+                const unexpected = ids.filter(id => !INTEGRATION_CHECK_IDS.includes(id));
+                const ok = missing.length === 0 && unexpected.length === 0 && ids.length >= 17 && ids.length === INTEGRATION_CHECK_IDS.length;
+                return {
+                    ok,
+                    detail: `${ids.length} check(s) defined${missing.length ? `, missing ${missing.join(", ")}` : ""}${unexpected.length ? `, unexpected ${unexpected.join(", ")}` : ""}`
+                };
+            }
         }
     ];
 }
@@ -7988,13 +8444,60 @@ async function withScratchGraph(fn) {
         applyView();
     }
 }
+// A check that exercises the save path writes to the user's autosave slot, and so does the
+// debounced writer it schedules. Wait that writer out, then put the original payload back, so
+// running the suite never changes the graph a reload would show.
+async function withAutosaveGuard(fn) {
+    const original = localStorage.getItem(STORAGE_KEY);
+    try {
+        return await fn();
+    } finally {
+        await new Promise(resolve => setTimeout(resolve, 380));
+        try {
+            if (original === null) localStorage.removeItem(STORAGE_KEY);
+            else localStorage.setItem(STORAGE_KEY, original);
+        } catch {}
+    }
+}
 function buildIntegrationCards() {
     lab.integration = integrationDefinitions().map(def => ({...def, status: "pending", detail: "", duration: 0}));
     renderIntegration();
 }
+function integrationSummaryLine({passed = 0, failed = 0, elapsed = null, done = 0, total = 0, running = false, stopped = false} = {}) {
+    const secs = elapsed == null ? "" : ` · ${(elapsed / 1000).toFixed(1)} s`;
+    if (running) return `${done} / ${total} · ${passed} passed · ${failed} failed${secs}`;
+    const prefix = stopped && done < total ? `stopped after ${done} / ${total} · ` : "";
+    return `${prefix}${passed} passed · ${failed} failed${secs}`;
+}
+function setIntegrationSummary(text) {
+    const summary = $("#integrationSummary");
+    if (summary) summary.textContent = text;
+    const runBtn = $('[data-action="run-integrations"]');
+    if (runBtn) runBtn.disabled = lab.integrationBatch;
+    const stopBtn = $('[data-action="stop-integrations"]');
+    if (stopBtn) stopBtn.disabled = !lab.integrationBatch;
+}
+function refreshIntegrationSummary() {
+    const ran = lab.integration.filter(def => def.status === "pass" || def.status === "fail");
+    if (!ran.length) {
+        setIntegrationSummary(`${lab.integration.length} checks · not run yet`);
+        return;
+    }
+    setIntegrationSummary(integrationSummaryLine({
+        passed: ran.filter(def => def.status === "pass").length,
+        failed: ran.filter(def => def.status === "fail").length
+    }));
+}
 function renderIntegration() {
     const wrap = $("#integrationWrap");
-    wrap.innerHTML = `<div class="integration-intro">These checks exercise the node runner and the editor itself: typed input/output nodes, fan-out to argument ports, fan-in merging, cycle protection, multi-select, the clipboard, wired-value previews, function blocks, wires into numbers, switches and dropdowns, undo/redo, file-backed function test samples, test samples piped in from inside a function, and values typed straight onto a function instance. They run through the same embedded engine as the canvas.</div>`;
+    wrap.innerHTML = `
+        <div class="integration-intro">These checks exercise the node runner and the editor itself: typed input/output nodes, fan-out to argument ports, fan-in merging, cycle protection, multi-select, the clipboard, wired-value previews, function blocks, wires into numbers, switches and dropdowns, undo/redo, file-backed function test samples, test samples piped in from inside a function, values typed straight onto a function instance, Compact/Expand/Pick bundles, Fstring, Switch, collapse, preview mode and Full, resize persistence, Snap, saves and export/import. They run through the same embedded engine as the canvas.</div>
+        <div class="integration-toolbar">
+            <button class="btn-secondary" data-action="run-integrations">${iconFill("play")} Run all wiring checks</button>
+            <button class="btn-secondary" data-action="stop-integrations" disabled>Stop</button>
+            <span class="integration-summary" id="integrationSummary" role="status" aria-live="polite"></span>
+        </div>
+    `;
     for (const def of lab.integration) {
         const card = document.createElement("div");
         card.className = "integration-card" + (def.status === "pass" || def.status === "fail" ? " ran" : "");
@@ -8013,64 +8516,151 @@ function renderIntegration() {
     wrap.querySelectorAll("[data-action=run-integration]").forEach(btn => {
         btn.addEventListener("click", () => runIntegration(btn.dataset.id));
     });
+    wrap.querySelector('[data-action="run-integrations"]').addEventListener("click", () => runAllIntegrations());
+    wrap.querySelector('[data-action="stop-integrations"]').addEventListener("click", () => stopIntegrations());
+    refreshIntegrationSummary();
 }
-async function runIntegration(id) {
-    if (lab.integrationRunning) return;
-    const def = lab.integration.find(x => x.id === id);
-    const card = document.querySelector(`.integration-card[data-test-id="${id}"]`);
-    if (!def || !card) return;
-    lab.integrationRunning = true;
-    def.status = "running";
-    def.detail = "";
+// Paint one card from its definition. Shared by the per-card button and the batch, so both
+// report exactly the same way.
+function paintIntegrationCard(def) {
+    const card = document.querySelector(`.integration-card[data-test-id="${def.id}"]`);
+    if (!card) return;
     const status = card.querySelector("[data-int-status]");
-    status.className = "test-status running";
-    status.textContent = "";
+    if (status) {
+        status.className = "test-status " + def.status;
+        status.textContent = statusIcon(def.status);
+    }
     const resultEl = card.querySelector("[data-int-result]");
-    resultEl.textContent = "Running through the node engine…";
-    card.classList.add("ran");
+    if (resultEl) {
+        resultEl.textContent = def.detail || "";
+        resultEl.className = "integration-result " + (def.status === "fail" ? "test-error" : "");
+    }
+    card.classList.toggle("ran", def.status === "pass" || def.status === "fail");
+    card.classList.toggle("running", def.status === "running");
+    const btn = card.querySelector("[data-action=run-integration]");
+    if (btn) btn.disabled = lab.integrationBatch;
+}
+// Run one definition and return its verdict. No DOM work happens here, so the batch and the
+// single-card button cannot drift apart.
+async function executeIntegration(def) {
     const t0 = performance.now();
+    // A check that restores the canvas makes applyGraph() schedule an auto-run. Left pending,
+    // it would fire in the middle of the next check and (when the user's graph holds a Magic
+    // node) sweep Magic underneath it, so each check starts and ends with no run queued.
+    clearTimeout(runTimer);
+    runTimer = 0;
     try {
         if (def.run) {
             // Feature checks drive the editor itself and report their own verdict.
             const res = await def.run();
-            def.duration = performance.now() - t0;
-            def.status = res && res.ok ? "pass" : "fail";
-            def.detail = `${res && res.ok ? "Pass" : "Fail"} — ${res?.detail || ""} · ${Math.round(def.duration)} ms`;
-            const st = card.querySelector("[data-int-status]");
-            st.className = "test-status " + def.status;
-            st.textContent = statusIcon(def.status);
-            resultEl.textContent = def.detail;
-            resultEl.className = "integration-result " + (def.status === "fail" ? "test-error" : "");
-            lab.integrationRunning = false;
-            return;
+            const duration = performance.now() - t0;
+            return {
+                status: res && res.ok ? "pass" : "fail",
+                detail: `${res && res.ok ? "Pass" : "Fail"} — ${res?.detail || ""} · ${Math.round(duration)} ms`,
+                duration
+            };
         }
         const {nodes, edges, outputId} = def.build();
         const result = await executeGraph(nodes, edges, {force: true, timeout: 20000});
-        def.duration = performance.now() - t0;
+        const duration = performance.now() - t0;
         if (def.id === "cycle") {
             const ok = result.cycle.length >= 2 && result.results.get(outputId)?.error;
-            def.status = ok ? "pass" : "fail";
-            def.detail = ok ? `Cycle detected in ${result.cycle.length} nodes before execution.` : "The cycle guard did not mark the loop.";
-        } else {
-            const out = result.results.get(outputId)?.bytes;
-            const text = out ? utf8(out) : "";
-            const expectedBytes = enc.encode(def.expected);
-            const ok = out && out.length === expectedBytes.length && out.every((b, i) => b === expectedBytes[i]);
-            def.status = ok ? "pass" : "fail";
-            def.detail = ok
-                ? `Pass — output: ${JSON.stringify(testPreview(text, 160))} · ${Math.round(def.duration)} ms`
-                : `Expected ${JSON.stringify(def.expected)}, got ${JSON.stringify(testPreview(text || (out ? bytesToHex(out) : "(none)"), 160))}. ${result.errors[0]?.error || ""}`;
+            return {
+                status: ok ? "pass" : "fail",
+                duration,
+                detail: ok ? `Cycle detected in ${result.cycle.length} nodes before execution.` : "The cycle guard did not mark the loop."
+            };
         }
+        const out = result.results.get(outputId)?.bytes;
+        const text = out ? utf8(out) : "";
+        const expectedBytes = enc.encode(def.expected);
+        const ok = out && out.length === expectedBytes.length && out.every((b, i) => b === expectedBytes[i]);
+        return {
+            status: ok ? "pass" : "fail",
+            duration,
+            detail: ok
+                ? `Pass — output: ${JSON.stringify(testPreview(text, 160))} · ${Math.round(duration)} ms`
+                : `Expected ${JSON.stringify(def.expected)}, got ${JSON.stringify(testPreview(text || (out ? bytesToHex(out) : "(none)"), 160))}. ${result.errors[0]?.error || ""}`
+        };
     } catch (err) {
-        def.status = "fail";
-        def.detail = err.message || String(err);
+        return {status: "fail", detail: err.message || String(err), duration: performance.now() - t0};
+    } finally {
+        clearTimeout(runTimer);
+        runTimer = 0;
     }
-    const st = card.querySelector("[data-int-status]");
-    st.className = "test-status " + def.status;
-    st.textContent = statusIcon(def.status);
-    resultEl.textContent = def.detail;
-    resultEl.className = "integration-result " + (def.status === "fail" ? "test-error" : "");
+}
+async function runIntegration(id) {
+    if (lab.integrationBatch || lab.integrationRunning) return;
+    const def = lab.integration.find(x => x.id === id);
+    if (!def) return;
+    lab.integrationRunning = true;
+    def.status = "running";
+    def.detail = "";
+    paintIntegrationCard(def);
+    const res = await executeIntegration(def);
+    Object.assign(def, res);
     lab.integrationRunning = false;
+    paintIntegrationCard(def);
+    refreshIntegrationSummary();
+}
+function stopIntegrations() {
+    if (!lab.integrationBatch) return;
+    lab.integrationStop = true;
+    const stopBtn = $('[data-action="stop-integrations"]');
+    if (stopBtn) {
+        stopBtn.disabled = true;
+        stopBtn.textContent = "Stopping…";
+    }
+}
+async function runAllIntegrations() {
+    if (lab.integrationRunning || lab.integrationBatch) return;
+    lab.integrationBatch = true;
+    lab.integrationStop = false;
+    lab.integrationRunning = true;
+    const autosave = localStorage.getItem(STORAGE_KEY);
+    for (const def of lab.integration) {
+        def.status = "pending";
+        def.detail = "";
+        def.duration = 0;
+    }
+    renderIntegration();
+    const t0 = performance.now();
+    const total = lab.integration.length;
+    let passed = 0, failed = 0, done = 0;
+    setIntegrationSummary(integrationSummaryLine({passed, failed, elapsed: 0, done, total, running: true}));
+    try {
+        for (const def of lab.integration) {
+            if (lab.integrationStop) break;
+            def.status = "running";
+            def.detail = "";
+            paintIntegrationCard(def);
+            const res = await executeIntegration(def);
+            Object.assign(def, res);
+            done++;
+            if (res.status === "pass") passed++;
+            else failed++;
+            paintIntegrationCard(def);
+            setIntegrationSummary(integrationSummaryLine({passed, failed, elapsed: performance.now() - t0, done, total, running: true}));
+        }
+    } finally {
+        // The checks that touch storage put their own keys back; this is the autosave slot a
+        // reload actually reads, so it is restored to what it held when the batch began.
+        try {
+            if (autosave === null) localStorage.removeItem(STORAGE_KEY);
+            else localStorage.setItem(STORAGE_KEY, autosave);
+        } catch {}
+        lab.integrationBatch = false;
+        lab.integrationRunning = false;
+        lab.integrationStop = false;
+        const stopBtn = $('[data-action="stop-integrations"]');
+        if (stopBtn) {
+            stopBtn.textContent = "Stop";
+            stopBtn.disabled = true;
+        }
+    }
+    const stopped = done < total;
+    setIntegrationSummary(integrationSummaryLine({passed, failed, elapsed: performance.now() - t0, done, total, stopped}));
+    toast(stopped ? `Wiring checks stopped after ${done} of ${total}` : failed ? `${failed} wiring check${failed === 1 ? "" : "s"} failed` : "All wiring checks passed", failed ? "error" : "");
 }
 
 /* ================================================================ sidebar / mobile */
@@ -8240,7 +8830,7 @@ function bindGlobalEvents() {
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") saveLocalNow();
     });
-    window.addEventListener("beforeunload", () => saveLocalNow());
+    window.addEventListener("beforeunload", () => { stopMagicPool(); saveLocalNow(); });
     window.addEventListener("resize", () => {
         scheduleEdges();
         if (window.innerWidth > 900 && sidebarOpen) closeSidebar();
@@ -8445,9 +9035,22 @@ function onNodeActionClick(ev) {
     } else if (action === "preview-full") {
         ev.stopPropagation();
         if (node) {
-            node.fullPreview = Boolean(btn.checked);
+            node.fullPreview = !node.fullPreview;
             refreshNodePreview(node);
             saveLocalSoon();
+        }
+    } else if (action === "bundle-prev" || action === "bundle-next") {
+        ev.stopPropagation();
+        const count = node && isListValue(node._output) ? listItemsOf(node._output).length : 0;
+        if (node && count) {
+            node.bundlePage = clamp((Number(node.bundlePage) || 0) + (action === "bundle-next" ? 1 : -1), 0, count - 1);
+            refreshNodePreview(node);
+        }
+    } else if (action === "bundle-all") {
+        ev.stopPropagation();
+        if (node) {
+            node.bundleAll = !node.bundleAll;
+            refreshNodePreview(node);
         }
     } else if (action === "preview-mode") {
         ev.stopPropagation();
@@ -8459,9 +9062,14 @@ function onNodeActionClick(ev) {
     } else if (action === "copy-node") {
         ev.stopPropagation();
         if (node?._output) {
-            const value = node.previewMode === "hex" ? bytesToHex(node._output, " ")
-                : node.previewMode === "raw" ? latin1Text(node._output)
-                : (looksBinary(node._output) ? bytesToHex(node._output, " ") : utf8(node._output));
+            // A paged bundle copies the entry on screen; the whole listing is one click
+            // away, and copying it as text is what the all-entries view shows.
+            const bundled = isListValue(node._output);
+            const items = bundled ? listItemsOf(node._output) : [];
+            const page = bundled ? clamp(Number(node.bundlePage) || 0, 0, Math.max(0, items.length - 1)) : 0;
+            const value = bundled && !node.bundleAll
+                ? copyValueText(items[page] || new Uint8Array(0), node.previewMode)
+                : copyValueText(node._output, node.previewMode);
             copyText(value).then(ok => toast(ok ? "Output copied" : "Could not copy", ok ? "" : "error"));
         }
     } else if (action === "save-node") {

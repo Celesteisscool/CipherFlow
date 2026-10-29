@@ -907,7 +907,7 @@ async function probeMagic(input, candidates, modules, chunks) {
             const {__index, ...rest} = row;
             return rest;
         });
-    return {results: merged, chunks: slices.length};
+    return {results: merged};
 }
 
 // Does an engine response actually carry data? `result` is the payload the worker
@@ -4429,7 +4429,6 @@ const MAGIC_OP_PRIOR = new Map([
     ["Atbash Cipher", 1],               // always yields letters; only text should survive
     ["ROT13", 1],                       // the shift sweep is the point; ties go to the decode
     ["Parse UNIX file permissions", -2],// a permissions table describes the input, not a message
-    ["Render Markdown", -2],            // markup shows the input, it does not decode it
     ["Extract URLs", -2],               // a list of what the input already contains
     ["Extract domains", -2],            // same, one field out of the input
     ["Extract email addresses", -2],    // same
@@ -4443,25 +4442,34 @@ const MAGIC_OP_PRIOR = new Map([
     ["Extract ID3", -2],                // metadata dump
     ["Parse URI", -2],                  // a breakdown of the input
     ["Parse User Agent", -2],           // a breakdown of the input
-    ["Parse DateTime", -2],             // a presentation of the input
-    ["Parse colour code", -2],          // a presentation of the input
     ["Show on map", -2],                // draws the input
     ["Generate all checksums", -2],     // a listing of derived values
     ["Generate all hashes", -2]         // a listing of derived values
 ]);
 
-// The caps a prior is not allowed to lift, re-applied after the nudge. Same rules and same
-// order as scoreMagicResult(), so a result can only move to where its content already earns.
-function magicApplyCaps(score, {opName, text, knownWords, knownRatio, tokens}) {
-    if (magicOpClass(opName) === "encode") score = Math.min(score, 30);
-    if (!knownWords) {
+// One definition of each cap. scoreMagicResult applies them at the points where a bonus
+// must or must not cross them; magicApplyCaps re-applies the same rules after a prior.
+function magicCap(score, rule, {opName, text, knownWords, knownRatio, tokens}) {
+    if (rule === "encoder") return magicOpClass(opName) === "encode" ? Math.min(score, 30) : score;
+    if (rule === "noWords") {
+        if (knownWords) return score;
         const letters = (text.match(/[A-Za-z]/g) || []).length;
-        score = Math.min(score, letters >= 12 ? 45 : 35);
+        return Math.min(score, letters >= 12 ? 45 : 35);
     }
-    if (tokens >= 3 && knownRatio < 0.55) score = Math.min(score, 45);
-    else if (tokens === 2 && knownRatio < 0.6) score = Math.min(score, 52);
-    if (text.trim().length < 8) score = Math.min(score, 20);
+    if (rule === "ratio") {
+        if (tokens >= 3 && knownRatio < 0.55) return Math.min(score, 45);
+        if (tokens === 2 && knownRatio < 0.6) return Math.min(score, 52);
+        return score;
+    }
+    if (rule === "short") return text.trim().length < 8 ? Math.min(score, 20) : score;
     return score;
+}
+// The caps a prior is not allowed to lift, re-applied after the nudge.
+function magicApplyCaps(score, evidence) {
+    score = magicCap(score, "encoder", evidence);
+    score = magicCap(score, "noWords", evidence);
+    score = magicCap(score, "ratio", evidence);
+    return magicCap(score, "short", evidence);
 }
 
 function scoreMagicResult(text, inputText, opName = "") {
@@ -4544,6 +4552,9 @@ function scoreMagicResult(text, inputText, opName = "") {
     if (techWords >= 3 || (techWords >= 2 && techWords / Math.max(1, tokens.length) >= 0.4)) {
         return {score: -999, notes: ["message, not data"]};
     }
+    const knownWords = tokens.filter(token => token.length >= 3 && magicKnownWord(token)).length;
+    const knownRatio = tokens.length ? tokens.filter(token => magicKnownWord(token)).length / tokens.length : 0;
+    const magicEvidence = {opName, text, knownWords, knownRatio, tokens: tokens.length};
 
     const lower = text.toLowerCase();
     let bigramHits = 0;
@@ -4618,7 +4629,7 @@ function scoreMagicResult(text, inputText, opName = "") {
     // that hunts for one keeps them below every real decode. "To HTML Entity" on plain text
     // used to outrank everything simply because the output is legible English-like symbols.
     if (magicOpClass(opName) === "encode") {
-        score = Math.min(score, 30);
+        score = magicCap(score, "encoder", magicEvidence);
         notes.push("encoder, not a decode");
     }
 
@@ -4626,10 +4637,8 @@ function scoreMagicResult(text, inputText, opName = "") {
     // word of three letters or more are a shape, not a message: "Rntsu, Bsune!" has perfect
     // word structure and letter frequencies and says nothing. Such a result cannot outrank
     // text that actually reads.
-    const knownWords = tokens.filter(token => token.length >= 3 && magicKnownWord(token)).length;
-    const knownRatio = tokens.length ? tokens.filter(token => magicKnownWord(token)).length / tokens.length : 0;
     if (!knownWords) {
-        score = Math.min(score, letters >= 12 ? 45 : 35);
+        score = magicCap(score, "noWords", magicEvidence);
         notes.push("no real words");
     } else if (knownWords >= 2) {
         notes.push(`${knownWords} real words`);
@@ -4638,10 +4647,10 @@ function scoreMagicResult(text, inputText, opName = "") {
     // letter statistics of English but half its words are not words at all, so it cannot
     // outrank text that reads. One proper noun in a sentence is fine; a majority is not.
     if (tokens.length >= 3 && knownRatio < 0.55) {
-        score = Math.min(score, 45);
+        score = magicCap(score, "ratio", magicEvidence);
         notes.push("words do not read");
     } else if (tokens.length === 2 && knownRatio < 0.6) {
-        score = Math.min(score, 52);
+        score = magicCap(score, "ratio", magicEvidence);
         notes.push("words do not read");
     } else if (tokens.length >= 2 && knownRatio >= 0.85) {
         score += 4;
@@ -4649,9 +4658,9 @@ function scoreMagicResult(text, inputText, opName = "") {
     }
     // A handful of characters cannot be a hidden message, whatever it happens to spell;
     // "NaN" and "08:30" were outranking real decodes on nothing but legibility.
-    if (trimmed.length < 8) score = Math.min(score, 20);
+    score = magicCap(score, "short", magicEvidence);
     // The cap is re-applied after the bonuses above, so an encoder can never climb back up.
-    if (magicOpClass(opName) === "encode") score = Math.min(score, 30);
+    score = magicCap(score, "encoder", magicEvidence);
     // "Solid" is not the same as "reads": a permissions table can contain five dictionary
     // words and still be a description of the input. A result is fit to stand beside a
     // confident answer only when its words mostly read, or it has a real structure.

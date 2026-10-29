@@ -70760,7 +70760,10 @@ function updatePreviewEl(wrap, node) {
         const sig = bundleSignature(bytes);
         if (node._bundleSig !== sig) {
             node._bundleSig = sig;
+            // A different bundle is a different view: start at its first entry, in the
+            // single-entry pager, rather than carrying the old listing mode across.
             node.bundlePage = 0;
+            node.bundleAll = false;
         }
         node.bundlePage = clamp(Math.round(Number(node.bundlePage)) || 0, 0, Math.max(0, entries.length - 1));
     }
@@ -77044,14 +77047,24 @@ function onNodeActionClick(ev) {
     } else if (action === "copy-node") {
         ev.stopPropagation();
         if (node?._output) {
-            // A paged bundle copies the entry on screen; the whole listing is one click
-            // away, and copying it as text is what the all-entries view shows.
+            // A paged bundle copies the entry on screen; the all-entries view copies the
+            // listing itself, exactly as it is rendered above the Copy button.
             const bundled = isListValue(node._output);
             const items = bundled ? listItemsOf(node._output) : [];
             const page = bundled ? clamp(Number(node.bundlePage) || 0, 0, Math.max(0, items.length - 1)) : 0;
-            const value = bundled && !node.bundleAll
-                ? copyValueText(items[page] || new Uint8Array(0), node.previewMode)
-                : copyValueText(node._output, node.previewMode);
+            let value;
+            if (bundled && !node.bundleAll) {
+                value = copyValueText(items[page] || new Uint8Array(0), node.previewMode);
+            } else if (bundled) {
+                // Read the rendered listing instead of rebuilding it: Text and Raw show the
+                // numbered lines, Hex shows the combined value (cut to the preview limit
+                // when Full is off), and this hands back whichever is actually on screen.
+                const el = nodeEl(node.id);
+                const pre = el ? $("[data-preview] pre", el) : null;
+                value = pre ? pre.textContent : listPreviewText(node._output, Boolean(node.fullPreview));
+            } else {
+                value = copyValueText(node._output, node.previewMode);
+            }
             copyText(value).then(ok => toast(ok ? "Output copied" : "Could not copy", ok ? "" : "error"));
         }
     } else if (action === "save-node") {

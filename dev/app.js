@@ -89,6 +89,11 @@ const ICONS = {
     external: '<path d="M9 2h5v5M14 2 7 9M12 9v5H2V4h5"/>',
     edit: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11.2 2.4l2.4 2.4L6 12.4l-3 .6.6-3z"/><path d="M3 14h10"/></svg>',
     fn: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10.6 2.7c-1.9 0-2.6 1.2-2.6 2.9v4.2c0 1.7-.6 2.6-2.1 2.9"/><path d="M4.6 8h4.7"/></svg>',
+    // Three rows with one picked out, for the Pick node.
+    pick: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h9M2 8h5M2 13h9"/><path d="m11 5.9 2.2 2.1-2.2 2.1"/></svg>',
+    // Three inputs funnelling into one wire, and the same shape reversed for Expand.
+    bundle: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 3h3.4l3.2 5h4.6M1.8 13h3.4l3.2-5M1.8 8h3.4"/><path d="m11.4 5.9 2.2 2.1-2.2 2.1"/></svg>',
+    split: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 3h-3.4L7.6 8H3M14.2 13h-3.4L7.6 8M14.2 8H7.6"/><path d="m4.4 5.9-2.2 2.1 2.2 2.1"/></svg>',
     help: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M6.1 6.2a1.95 1.95 0 1 1 2.7 1.85c-.65.28-.85.65-.85 1.3"/><path d="M8 11.6v.15"/></svg>'
 };
 
@@ -157,6 +162,43 @@ function concatBytes(parts) {
     let offset = 0;
     for (const p of parts) { out.set(p, offset); offset += p.length; }
     return out;
+}
+
+/* ---------------------------------------------------------------- bundled values
+ * A wire normally carries one byte string. Compact puts several values onto one wire, and
+ * the rest of the graph keeps working because a bundled value is still a Uint8Array — its
+ * bytes are the items joined with newlines, which is what a text sink shows and what older
+ * code hashes and copies — while the items themselves ride along on two hidden properties.
+ * Operations read the items and run once per value; Expand takes them apart again.
+ */
+function makeListValue(items) {
+    const list = items.map(item => item instanceof Uint8Array ? item : new Uint8Array(0));
+    const sep = enc.encode("\n");
+    const parts = [];
+    list.forEach((item, i) => { if (i) parts.push(sep); parts.push(item); });
+    const out = concatBytes(parts);
+    Object.defineProperty(out, "__list", {value: true, enumerable: false, configurable: true});
+    Object.defineProperty(out, "__items", {value: list, enumerable: false, configurable: true});
+    return out;
+}
+function isListValue(value) {
+    return Boolean(value && value.__list && Array.isArray(value.__items));
+}
+// The values on a wire, whether it is bundled or a plain single value.
+function listItemsOf(value) {
+    if (value == null) return [];
+    return isListValue(value) ? value.__items : [value];
+}
+function listPreviewText(value) {
+    const items = listItemsOf(value);
+    if (!items.length) return "No values on this wire.";
+    const lines = [`${items.length} value${items.length === 1 ? "" : "s"}`];
+    items.slice(0, 24).forEach((item, i) => {
+        const shown = previewBytes(item, looksBinary(item) ? "hex" : "text", 90).text.replace(/\s+/g, " ").trim();
+        lines.push(`${i + 1} \u00b7 ${shown || "(empty)"}`);
+    });
+    if (items.length > 24) lines.push(`\u2026 ${items.length - 24} more`);
+    return lines.join("\n");
 }
 function looksBinary(bytes) {
     if (!bytes.length) return false;
@@ -320,6 +362,12 @@ function argPreviewField(control) {
  * on the right, and whatever is wired between them runs when an instance runs. Definitions
  * live in the graph file, so a shared graph carries its functions with it.
  */
+// How many ports one side of a function definition can declare. Each one becomes a row on
+// every instance, so the ceiling is about keeping an instance readable rather than any limit
+// in the wiring: ports are plain array entries, so raising this only costs screen space.
+const MAX_FN_PORTS = 32;
+// An index has no port-count limit: a bundle can be much longer than a node is tall.
+const MAX_PICK_INDEX = 9999;
 function functionById(id, functions = state?.functions) {
     return (functions || []).find(f => f.id === id) || null;
 }
@@ -359,6 +407,8 @@ function nodeInPorts(node, lookup) {
         case "switch":
             // The value to look up, both halves of every case, then the fallback.
             return ["main", ...(node.cases || []).flatMap((_, i) => ["key:" + i, "value:" + i]), "default"];
+        case "compact":
+            return Array.from({length: compactInputs(node)}, (_, i) => "in:" + i);
         case "fn":
             return instancePorts(node, lookup).inputs.map(p => p.key);
         case "fnout":
@@ -380,6 +430,8 @@ function nodeOutPorts(node, lookup) {
             return instancePorts(node, lookup).outputs.map(p => p.key);
         case "fnout":
             return [];
+        case "expand":
+            return Array.from({length: expandOutputs(node)}, (_, i) => "out:" + i);
         default:
             return ["out"];
     }
@@ -751,6 +803,60 @@ let fitAfterRender = false;
 function templatePorts(node) {
     return clamp(Number(node?.portCount) || 2, 1, 8);
 }
+// Compact and Expand are the two halves of one idea — several values on one wire — so both
+// ask for a count and both read it through these, clamped to the same ceiling as a function.
+function compactInputs(node) {
+    return clamp(Math.round(Number(node?.inCount)) || 1, 1, MAX_FN_PORTS);
+}
+function expandOutputs(node) {
+    return clamp(Math.round(Number(node?.outCount)) || 1, 1, MAX_FN_PORTS);
+}
+// Pick reads a one-based position out of a bundle. It is stored on the node, so it travels
+// with a save and can be changed without rewiring the graph.
+function pickIndex(node) {
+    return clamp(Math.round(Number(node?.pickIndex)) || 1, 1, MAX_PICK_INDEX);
+}
+// Compact and Expand names are cosmetic: they label the rows, never the wire keys. Keeping
+// them as arrays means a port keeps its name when the count is changed and changed back.
+function normalizePortNames(raw) {
+    return Array.isArray(raw)
+        ? raw.slice(0, MAX_FN_PORTS).map(value => typeof value === "string" ? value : "")
+        : [];
+}
+function rawPortName(node, side, index) {
+    const names = side === "in" ? node?.inNames : node?.outNames;
+    return Array.isArray(names) && typeof names[index] === "string" ? names[index] : "";
+}
+function portNameAt(node, side, index, fallback) {
+    const custom = rawPortName(node, side, index).trim();
+    return custom || fallback;
+}
+// The name is a text field that looks like the old label until it is hovered or focused, so
+// renaming a port needs no separate edit mode.
+function portNameInputHtml(node, side, index, placeholder) {
+    const label = side === "in" ? "input" : "output";
+    return `<input class="control port-name-input" data-port-name-side="${side}" data-port-name-index="${index}" value="${esc(rawPortName(node, side, index))}" placeholder="${esc(placeholder)}" title="Name this ${label}" aria-label="Name this ${label}" spellcheck="false">`;
+}
+function bindPortNameInput(input, node) {
+    const side = input.dataset.portNameSide === "in" ? "in" : "out";
+    const key = side === "in" ? "inNames" : "outNames";
+    const index = clamp(Math.round(Number(input.dataset.portNameIndex)) || 0, 0, MAX_FN_PORTS - 1);
+    const names = () => Array.isArray(node[key]) ? node[key] : (node[key] = []);
+    input.addEventListener("input", () => {
+        names()[index] = input.value;
+        saveLocalSoon();
+    });
+    input.addEventListener("change", () => {
+        const clean = input.value.trim();
+        input.value = clean;
+        names()[index] = clean;
+        saveLocalSoon();
+        scheduleHistory();
+    });
+    input.addEventListener("keydown", ev => {
+        if (ev.key === "Enter") { ev.preventDefault(); input.blur(); }
+    });
+}
 
 function makeNode(type, opts = {}) {
     const node = {
@@ -795,6 +901,21 @@ function makeNode(type, opts = {}) {
         node.text = opts.text ?? "";
         node.cases = Array.isArray(opts.cases) && opts.cases.length ? cloneValue(opts.cases) : [{key: "", value: ""}];
         node.switchDefault = opts.switchDefault ?? "";
+    } else if (type === "compact") {
+        // How many input ports the bundle collects from. The output is always one wire, and
+        // an unwired port can still contribute a value typed straight onto the node.
+        node.inCount = clamp(Math.round(Number(opts.inCount)) || 3, 1, MAX_FN_PORTS);
+        node.texts = Array.isArray(opts.texts) ? opts.texts.slice(0, MAX_FN_PORTS).map(t => String(t ?? "")) : [];
+        node.inNames = normalizePortNames(opts.inNames);
+        node.outNames = normalizePortNames(opts.outNames);
+    } else if (type === "expand") {
+        // How many separate outputs one bundled wire is spread across.
+        node.outCount = clamp(Math.round(Number(opts.outCount)) || 3, 1, MAX_FN_PORTS);
+        node.inNames = normalizePortNames(opts.inNames);
+        node.outNames = normalizePortNames(opts.outNames);
+    } else if (type === "pick") {
+        // Which one-based entry of the incoming bundle should come out.
+        node.pickIndex = clamp(Math.round(Number(opts.pickIndex)) || 1, 1, MAX_PICK_INDEX);
     } else if (type === "fnin") {
         // A function's declared inputs. Each port carries the name shown on every instance
         // and a sample value, so the definition can be run on its own inside the editor.
@@ -928,6 +1049,14 @@ function cleanNodeForSave(n) {
         joinCount: n.joinCount,
         separator: n.separator,
         portCount: n.portCount,
+        inCount: n.inCount,
+        outCount: n.outCount,
+        texts: Array.isArray(n.texts) ? n.texts.slice(0, MAX_FN_PORTS) : undefined,
+        inNames: Array.isArray(n.inNames) && n.inNames.some(name => String(name || "").trim())
+            ? n.inNames.slice(0, MAX_FN_PORTS).map(name => String(name ?? "")) : undefined,
+        outNames: Array.isArray(n.outNames) && n.outNames.some(name => String(name || "").trim())
+            ? n.outNames.slice(0, MAX_FN_PORTS).map(name => String(name ?? "")) : undefined,
+        pickIndex: n.type === "pick" ? pickIndex(n) : undefined,
         cases: n.cases ? cloneValue(n.cases) : undefined,
         switchDefault: n.switchDefault,
         ports: n.ports ? cloneValue(n.ports) : undefined,
@@ -1009,7 +1138,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "op", "fn", "fnin", "fnout"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "compact", "expand", "pick", "op", "fn", "fnin", "fnout"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1036,6 +1165,12 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             joinCount: clamp(Number(raw.joinCount) || 2, 1, 8),
             separator: raw.separator || "",
             portCount: clamp(Number(raw.portCount) || 2, 1, 8),
+            inCount: clamp(Number(raw.inCount) || 3, 1, MAX_FN_PORTS),
+            outCount: clamp(Number(raw.outCount) || 3, 1, MAX_FN_PORTS),
+            texts: Array.isArray(raw.texts) ? raw.texts.slice(0, MAX_FN_PORTS).map(t => String(t ?? "")) : undefined,
+            inNames: raw.inNames,
+            outNames: raw.outNames,
+            pickIndex: raw.pickIndex,
             cases: readSwitchCases(raw.cases),
             switchDefault: typeof raw.switchDefault === "string" ? raw.switchDefault : "",
             ports: Array.isArray(raw.ports) && raw.ports.length ? raw.ports.map(p => ({...p})) : undefined,
@@ -1323,6 +1458,9 @@ function sourceTitle(node) {
     if (node.type === "join") return node.title || "Join";
     if (node.type === "template") return node.title || "Fstring";
     if (node.type === "switch") return node.title || "Switch";
+    if (node.type === "compact") return node.title || "Compact";
+    if (node.type === "expand") return node.title || "Expand";
+    if (node.type === "pick") return node.title || "Pick";
     if (node.type === "fn") return node.title || functionById(node.fnId)?.name || "Function";
     if (node.type === "fnin") return "Function input";
     if (node.type === "fnout") return "Function output";
@@ -1341,6 +1479,9 @@ function nodeCategoryLabel(node) {
     if (node.type === "join") return "Join";
     if (node.type === "template") return "Fstring";
     if (node.type === "switch") return "Switch";
+    if (node.type === "compact") return "Compact";
+    if (node.type === "expand") return "Expand";
+    if (node.type === "pick") return "Pick";
     if (node.type === "fn") return "Function";
     if (node.type === "fnin") return "Fn input";
     if (node.type === "fnout") return "Fn output";
@@ -1436,6 +1577,12 @@ function buildNode(node) {
         body.appendChild(buildTemplateNode(node));
     } else if (node.type === "switch") {
         body.appendChild(buildSwitchNode(node));
+    } else if (node.type === "compact") {
+        body.appendChild(buildCompactNode(node));
+    } else if (node.type === "expand") {
+        body.appendChild(buildExpandNode(node));
+    } else if (node.type === "pick") {
+        body.appendChild(buildPickNode(node));
     } else if (node.type === "fn") {
         body.appendChild(buildFunctionNode(node));
     } else if (node.type === "fnin") {
@@ -1514,6 +1661,10 @@ function collapsedPorts(node) {
         for (let i = 0; i < node.joinCount; i++) ports.push({name: "join:" + i, label: "In " + (i + 1)});
     } else if (node.type === "template") {
         for (let i = 0; i < templatePorts(node); i++) ports.push({name: "in:" + i, label: "In " + (i + 1)});
+    } else if (node.type === "compact") {
+        for (let i = 0; i < compactInputs(node); i++) ports.push({name: "in:" + i, label: portNameAt(node, "in", i, "In " + (i + 1))});
+    } else if (node.type === "expand" || node.type === "pick") {
+        ports.push({name: "main", label: portNameAt(node, "in", 0, "In")});
     } else if (node.type === "switch") {
         // Every port a case can be wired on gets an anchor, so its wire survives collapsing.
         ports.push({name: "main", label: "In"});
@@ -1549,7 +1700,9 @@ function collapsedPorts(node) {
             ? instancePorts(node).outputs
             : node.type === "fnin"
                 ? (node.ports || []).map((p, i) => ({key: "out:" + i, name: p.name || `Input ${i + 1}`}))
-                : outs.map(key => ({key, name: key}));
+                : node.type === "expand"
+                    ? outs.map((key, i) => ({key, name: portNameAt(node, "out", i, `Output ${i + 1}`)}))
+                    : outs.map(key => ({key, name: key}));
         wrap.innerHTML += named.map(o => `<div class="io-row io-out-row" title="${esc(o.name)}">
             <span class="io-label" style="margin-left:auto">${esc(o.name)}</span>
             <span class="out-slot" data-port-slot="${esc(o.key)}"></span>
@@ -1821,6 +1974,129 @@ function buildJoinNode(node) {
     $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
     const sep = $("[data-join-separator]", wrap);
     sep.addEventListener("input", () => { node.separator = sep.value; node._sig = ""; onGraphEdited(); });
+    return wrap;
+}
+
+/* Compact and Expand are the two halves of one idea: several values on one wire. Compact
+ * collects the values arriving on its input ports — the values themselves, not their text —
+ * onto a single bundled wire, and Expand spreads a bundled wire back over separate outputs.
+ * Both ask for their count, because only the person wiring the graph knows how many values
+ * it needs; the number field rebuilds the ports in place. */
+function countField(node, key, label, minimum) {
+    const row = document.createElement("div");
+    row.className = "arg-row count-row";
+    row.innerHTML = `<div class="arg-label-row"><span class="arg-name">${esc(label)}</span><span class="count-hint">1\u2013${MAX_FN_PORTS}</span></div>
+        <input class="control count-input" type="number" min="1" max="${MAX_FN_PORTS}" step="1" value="${clamp(Math.round(Number(node[key])) || minimum, 1, MAX_FN_PORTS)}" spellcheck="false">`;
+    const input = $("input", row);
+    const apply = () => {
+        const next = clamp(Math.round(Number(input.value)) || minimum, 1, MAX_FN_PORTS);
+        input.value = String(next);
+        if (next === Number(node[key])) return;
+        node[key] = next;
+        // The card lays its rows out itself, so a height picked by dragging the resize grip
+        // would cut the new rows off. A count change drops that height and the node grows or
+        // shrinks to fit its ports instead.
+        node.h = 0;
+        // Wires on the ports that just went away go with them, exactly as if the port had
+        // been removed by hand: leaving them would anchor them to nothing.
+        if (node.type === "compact") {
+            state.edges = state.edges.filter(e => !(e.to === node.id && /^in:\d+$/.test(e.toPort) && Number(e.toPort.slice(3)) >= next));
+        } else {
+            state.edges = state.edges.filter(e => !(e.from === node.id && /^out:\d+$/.test(e.fromPort || "") && Number((e.fromPort || "").slice(4)) >= next));
+        }
+        node._sig = "";
+        renderAllNodes();
+        onGraphEdited();
+    };
+    input.addEventListener("change", apply);
+    return row;
+}
+
+function buildCompactNode(node) {
+    const wrap = document.createElement("div");
+    wrap.appendChild(fnNote("Collects everything wired in into one wire. Operations after it run once per value."));
+    wrap.appendChild(countField(node, "inCount", "Inputs", 2));
+    const count = compactInputs(node);
+    let rows = "";
+    for (let i = 0; i < count; i++) {
+        const port = "in:" + i;
+        const edge = edgeInto(node.id, port);
+        rows += `<div class="io-row join-row">
+            <span class="port in${edge ? " connected" : ""}" data-port="${port}"></span>
+            ${portNameInputHtml(node, "in", i, `Input ${i + 1}`)}
+            <span class="port-label">${edge ? chipHtml(edgeSource(edge), edge) : ""}</span>
+        </div>${edge
+            ? `<div class="wire-hint" data-hint-port="${port}">${esc(wireHintFor(node, port))}</div>`
+            : `<div class="compact-typed"><input class="control compact-input" data-compact-text="${i}" value="${esc(node.texts?.[i] || "")}" placeholder="or type a value" spellcheck="false"></div>`}`;
+    }
+    wrap.insertAdjacentHTML("beforeend", rows);
+    const outRow = document.createElement("div");
+    outRow.className = "io-row join-row bundle-out";
+    outRow.innerHTML = `${portNameInputHtml(node, "out", 0, "Bundled wire")}<span class="out-slot" data-port-slot="out"></span>`;
+    wrap.appendChild(outRow);
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
+    // A port with no wire can still contribute a value: the string typed here joins the
+    // bundle at that port's place, so a literal can be mixed with wired values.
+    for (const input of $$("[data-compact-text]", wrap)) {
+        input.addEventListener("input", () => {
+            node.texts = Array.isArray(node.texts) ? node.texts : [];
+            node.texts[Number(input.dataset.compactText)] = input.value;
+            node._sig = "";
+            onGraphEdited();
+        });
+    }
+    for (const input of $$("[data-port-name-side]", wrap)) bindPortNameInput(input, node);
+    return wrap;
+}
+
+function buildExpandNode(node) {
+    const wrap = document.createElement("div");
+    wrap.appendChild(fnNote("Splits one bundled wire into separate outputs. Extra values are ignored; missing ones are empty."));
+    wrap.appendChild(countField(node, "outCount", "Outputs", 2));
+    const edge = edgeInto(node.id, "main");
+    const head = document.createElement("div");
+    head.className = "io-row";
+    head.innerHTML = `<span class="port in${edge ? " connected" : ""}" data-port="main"></span>
+        ${portNameInputHtml(node, "in", 0, "Bundled in")}
+        <span class="port-label">${edge ? chipHtml(edgeSource(edge), edge) : ""}</span>`;
+    bindInputPort($(".port.in", head), node.id, "main");
+    wrap.appendChild(head);
+    const count = expandOutputs(node);
+    for (let i = 0; i < count; i++) {
+        const row = document.createElement("div");
+        row.className = "io-row join-row";
+        row.innerHTML = `${portNameInputHtml(node, "out", i, `Output ${i + 1}`)}<span class="out-slot" data-port-slot="out:${i}"></span>`;
+        wrap.appendChild(row);
+    }
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    for (const input of $$("[data-port-name-side]", wrap)) bindPortNameInput(input, node);
+    return wrap;
+}
+
+// Pick is the single-value sibling of Expand: one bundled wire in, one chosen value out.
+function buildPickNode(node) {
+    const wrap = document.createElement("div");
+    wrap.appendChild(fnNote("Takes one value out of a bundle. Index 1 is the first value; an index past the end is empty."));
+    wrap.appendChild(mainInputRow(node, "Bundled in"));
+    const row = document.createElement("div");
+    row.className = "arg-row count-row";
+    row.innerHTML = `<div class="arg-label-row"><span class="arg-name">Index</span><span class="count-hint">1-based</span></div>
+        <input class="control count-input" type="number" min="1" max="${MAX_PICK_INDEX}" step="1" value="${pickIndex(node)}" spellcheck="false">`;
+    const input = $("input", row);
+    input.addEventListener("change", () => {
+        const next = clamp(Math.round(Number(input.value)) || 1, 1, MAX_PICK_INDEX);
+        input.value = String(next);
+        if (next === pickIndex(node)) return;
+        node.pickIndex = next;
+        node._sig = "";
+        onGraphEdited();
+    });
+    wrap.appendChild(row);
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
     return wrap;
 }
 
@@ -2425,10 +2701,12 @@ function imageDataUrlFor(node, bytes, kind) {
 }
 function updatePreviewEl(wrap, node) {
     const bytes = node._output;
-    const has = Boolean(bytes && bytes.length);
+    // A bundled wire can hold only empty values, which has no bytes but is still a result.
+    const bundled = isListValue(bytes);
+    const has = Boolean(bytes && (bytes.length || bundled));
     const files = node._files?.length ? node._files : null;
     const selected = files ? preferredFileIndex(node, files) : 0;
-    const kind = has ? htmlOutputKind(node, bytes) : "empty";
+    const kind = has ? (bundled ? "list" : htmlOutputKind(node, bytes)) : "empty";
     const isImage = kind === "image-bytes" || kind === "html-image";
     // Image results get an Image / Raw / Hex switch; byte and text results stay Text / Hex.
     let mode = node.previewMode || (isImage ? "image" : "text");
@@ -2438,12 +2716,22 @@ function updatePreviewEl(wrap, node) {
     // Text and file nodes are the display side of a graph now, so they get the roomier
     // preview the old Output node had (and its save button, below).
     const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "switch" || node.type === "fn" ||
+        node.type === "compact" || node.type === "expand" || node.type === "pick" ||
         node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
     // A text node's "Full" box lifts the preview cut-off so the whole file can be read in
     // place. The limit is a character count, so the byte length is always enough to clear it.
     const full = node.type === "input" && Boolean(node.fullPreview) && mode === "text";
     const limit = full ? Math.max(1100, bytes ? bytes.length : 0) : (isSink ? 1100 : 420);
-    const pv = has ? previewBytes(bytes, mode === "hex" ? "hex" : "text", limit) : {text: isSink ? "Run the graph to see the output." : "Not run yet.", binary: false};
+    // Pick knows why a result is empty: no bundle, a picked slot that is itself blank, or
+    // an index beyond the end. Saying so beats the generic "run the graph" hint.
+    const pickEmpty = !has && node.type === "pick" && node._pickCount != null
+        ? (node._pickCount === 0 ? "The bundle is empty."
+            : (pickIndex(node) > node._pickCount ? `No value at index ${pickIndex(node)}; the bundle has ${node._pickCount}.`
+                : "The picked value is empty."))
+        : "";
+    const pv = has
+        ? (bundled && mode !== "hex" ? {text: listPreviewText(bytes), binary: false} : previewBytes(bytes, mode === "hex" ? "hex" : "text", limit))
+        : {text: pickEmpty || (isSink ? "Run the graph to see the output." : "Not run yet."), binary: false};
     wrap.classList.toggle("empty", !has);
     wrap.dataset.kind = kind;
     let body;
@@ -2458,6 +2746,8 @@ function updatePreviewEl(wrap, node) {
         body = `<pre>${esc(pv.text)}</pre>`;
     }
     let fileLabel = files ? `${files[selected].name} · ` : "";
+    // A bundled wire says how many values it carries; its byte count alone hides that.
+    if (bundled) fileLabel = `${bytes.__items.length} value${bytes.__items.length === 1 ? "" : "s"} · `;
     if (node.op === "Magic" && Array.isArray(node._magic)) {
         const probed = node._magicProbed == null ? node._magic.length : node._magicProbed;
         const ran = node._magicRan == null ? node._magic.length : node._magicRan;
@@ -2465,6 +2755,8 @@ function updatePreviewEl(wrap, node) {
     }
     // A switch says which case it took, since the output alone does not show that.
     if (node.type === "switch" && node._switchLabel) fileLabel = `${node._switchLabel} · `;
+    // Pick says which position it read, so an empty result is not mistaken for a failed run.
+    if (node.type === "pick") fileLabel = `item ${pickIndex(node)}${node._pickCount != null ? ` of ${node._pickCount}` : ""} · `;
     const fileRows = files
         ? `<div class="file-list" title="Pick the file that flows into the next node">${files.map((f, i) => `<button class="file-row${i === selected ? " on" : ""}" data-file-pick="${i}" data-node="${node.id}"><span class="file-name">${esc(f.name)}</span><span class="file-size">${formatBytes(f.size)}</span></button>`).join("")}</div>`
         : "";
@@ -2571,6 +2863,8 @@ function refreshNodePreview(node) {
 
 function refreshAllPreviews() {
     for (const node of state.nodes) refreshNodePreview(node);
+    // Wire weight follows the values on them, so it is redrawn once the run has landed.
+    scheduleEdges();
 }
 
 function beginTitleEdit(node, titleEl) {
@@ -2599,9 +2893,16 @@ function beginTitleEdit(node, titleEl) {
 
 /* ================================================================ edges */
 let edgeFrame = 0;
+let edgeTimer = 0;
 function scheduleEdges() {
+    // A frame can be dropped when the page is not being painted — a background tab, or a
+    // reload where the first frame is requested before the document is shown. The timer
+    // guarantees the wires are drawn anyway, instead of staying missing until the next edit.
+    clearTimeout(edgeTimer);
+    edgeTimer = setTimeout(() => { edgeFrame = 0; drawEdges(); }, 200);
     if (edgeFrame) return;
     edgeFrame = requestAnimationFrame(() => {
+        clearTimeout(edgeTimer);
         edgeFrame = 0;
         drawEdges();
     });
@@ -2664,6 +2965,16 @@ function handlePointOnEdge(edge, a, b) {
     return clear || mid;
 }
 
+// Whether this wire carries a bundle: a Compact's output always does, and so does any wire
+// leaving a node whose last value was a list (an operation maps over a list and keeps it).
+function edgeIsBundled(edge) {
+    const from = nodeById(edge.from);
+    if (!from) return false;
+    if (from.type === "compact") return true;
+    const value = from._portOutputs ? from._portOutputs.get(edge.fromPort || "out") : from._output;
+    return isListValue(value);
+}
+
 function drawEdges() {
     if (!state) return;
     edgesLayer.innerHTML = "";
@@ -2680,7 +2991,9 @@ function drawEdges() {
         if (!a || !b) continue;
         const color = nodeAccent(from);
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        group.setAttribute("class", "edge-group" + (selectedEdge === edge.id ? " selected" : ""));
+        // A wire carrying several values is drawn heavier, so a bundle is visible on the
+        // canvas without opening a node.
+        group.setAttribute("class", "edge-group" + (selectedEdge === edge.id ? " selected" : "") + (edgeIsBundled(edge) ? " multi" : ""));
         group.style.setProperty("--edge-accent", color);
         const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
         hit.setAttribute("d", pathFor(a, b));
@@ -3458,8 +3771,12 @@ async function runFunctionDefinition(def, instance, incoming, results, opts = {}
     const continueOnError = Boolean(def.continueOnError);
     const ports = functionPorts(def);
     const seedPorts = new Map();
+    // A mapped call (a bundled argument) supplies one entry of the list per run; those
+    // ports are already decided, so the normal wire/typed lookup skips them.
+    if (opts.seedOverride) for (const [key, value] of opts.seedOverride) seedPorts.set(key, value);
     for (let i = 0; i < ports.inputs.length; i++) {
         const key = "fn:" + i;
+        if (seedPorts.has("out:" + i)) continue;
         const src = sourceBytesForPort(incoming, instance.id, key, results);
         if (src.error) return {error: "Upstream error: " + src.error, portOutputs: new Map()};
         if (src.bytes) seedPorts.set("out:" + i, src.bytes);
@@ -3606,6 +3923,21 @@ function inputSignature(node, incoming, results, opts) {
         const sigs = parts.map(port => port + "=" + sourceBytesForPort(incoming, node.id, port, results).sig);
         return JSON.stringify(["switch", node.text, node.cases, node.switchDefault, sigs]);
     }
+    if (node.type === "compact") {
+        const sigs = [];
+        for (let i = 0; i < compactInputs(node); i++) {
+            sigs.push(i + "=" + sourceBytesForPort(incoming, node.id, "in:" + i, results).sig);
+        }
+        return JSON.stringify(["compact", compactInputs(node), node.texts || [], sigs]);
+    }
+    if (node.type === "expand") {
+        const main = sourceBytesForPort(incoming, node.id, "main", results);
+        return JSON.stringify(["expand", expandOutputs(node), main.sig]);
+    }
+    if (node.type === "pick") {
+        const main = sourceBytesForPort(incoming, node.id, "main", results);
+        return JSON.stringify(["pick", pickIndex(node), main.sig]);
+    }
     if (node.type === "fnin") {
         // A piped sample changes what the body receives, so its wire is part of the
         // signature; without this the node would keep handing out the value it cached.
@@ -3626,7 +3958,9 @@ function inputSignature(node, incoming, results, opts) {
     }
     if (node.type === "fn") {
         const ports = instancePorts(node).inputs.map(p => p.key + "=" + sourceBytesForPort(incoming, node.id, p.key, results).sig);
-        return JSON.stringify(["fn", node.fnId, definitionStamp(functionById(node.fnId)), node.portPick || 0, ports, node.typedInputs || null]);
+        // The selected output tab is a view choice, not an input to the function body.
+        // Keeping it out of the signature lets a port switch reuse the cached body results.
+        return JSON.stringify(["fn", node.fnId, definitionStamp(functionById(node.fnId)), ports, node.typedInputs || null]);
     }
     return JSON.stringify(node);
 }
@@ -4240,7 +4574,7 @@ async function executeGraph(nodes, edges, opts = {}) {
         let sig = "";
         try {
             const takesMain = node.type === "op" || node.type === "input" || node.type === "file" || node.type === "switch" ||
-                node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
+                node.type === "expand" || node.type === "pick" || node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
             const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
@@ -4260,6 +4594,18 @@ async function executeGraph(nodes, edges, opts = {}) {
                 } else if (!error) {
                     // A wired input wins; otherwise the text typed into the node is used.
                     const inputBytes = main.bytes != null ? main.bytes : opInputBytes(node);
+                    // A bundle on any port — the main pipe or a wirable argument — turns the
+                    // operation into one run per entry. Arguments that carry a single value
+                    // are broadcast, and two bundles are zipped by index.
+                    const opArgs = OPS[node.op]?.args || [];
+                    const mainItems = isListValue(main.bytes) ? main.bytes.__items : null;
+                    const argLists = [];
+                    for (let i = 0; i < opArgs.length; i++) {
+                        const src = sourceBytesForPort(incoming, node.id, "arg:" + i, results);
+                        if (isListValue(src.bytes)) argLists.push({index: i, arg: opArgs[i], items: src.bytes.__items});
+                    }
+                    const listMode = Boolean(mainItems) || argLists.length > 0;
+                    const listCount = Math.max(mainItems ? mainItems.length : 0, ...argLists.map(a => a.items.length), 0);
                     if (node.op === "Magic") {
                         const magic = await runMagicNode(node, inputBytes, resolved.values);
                         if (magic.error && !magic.rows.length) throw new Error(magic.error);
@@ -4267,19 +4613,61 @@ async function executeGraph(nodes, edges, opts = {}) {
                         node._files = magic.files || null;
                         out = magic.bytes || null;
                         node._magicWarning = magic.error || magic.warning || "";
-                    } else {
-                        const response = await engine.bakeOp(node.op, resolved.values, inputBytes.buffer.slice(inputBytes.byteOffset, inputBytes.byteOffset + inputBytes.byteLength), {
-                            returnType: "ArrayBuffer",
-                            timeout: opts.timeout || 30000
-                        });
-                        if (response?.error) throw new Error(response.error.displayStr || String(response.error));
-                        const files = await dishFiles(response?.dish);
-                        if (files) {
-                            node._files = files;
-                            out = files[preferredFileIndex(node, files)].bytes;
-                        } else {
+                    } else if (listMode) {
+                        // One operation, every value: the same op runs once per entry and the
+                        // results stay bundled, so a run of operations maps over the whole
+                        // list without an Expand/Compact pair around each.
+                        // View Bit Plane is worth batching: the engine's operation decodes the
+                        // image for every entry, while this decodes it once for the whole list.
+                        const fastPlanes = node.op === "View Bit Plane" && !mainItems
+                            ? await fastBitPlaneList(inputBytes, resolved.values, argLists, listCount)
+                            : null;
+                        if (fastPlanes) {
                             node._files = null;
-                            out = dishBytes(response?.dish) || normalizeEngineResult(response?.result, response?.type);
+                            node._magic = null;
+                            out = makeListValue(fastPlanes);
+                        } else {
+                            const mapped = [];
+                            for (let k = 0; k < listCount; k++) {
+                                const values = cloneValue(resolved.values);
+                                for (const entry of argLists) {
+                                    const item = entry.items[k] || new Uint8Array(0);
+                                    values[entry.index] = normalizeArgForRecipe(entry.arg, wireArgValue(entry.arg, item));
+                                }
+                                const bytesIn = mainItems ? (mainItems[k] || new Uint8Array(0)) : inputBytes;
+                                const response = await engine.bakeOp(node.op, values, bytesIn.buffer.slice(bytesIn.byteOffset, bytesIn.byteOffset + bytesIn.byteLength), {
+                                    returnType: "ArrayBuffer",
+                                    timeout: opts.timeout || 30000
+                                });
+                                if (response?.error) throw new Error(response.error.displayStr || String(response.error));
+                                mapped.push(dishBytes(response?.dish) || normalizeEngineResult(response?.result, response?.type));
+                            }
+                            node._files = null;
+                            node._magic = null;
+                            out = makeListValue(mapped);
+                        }
+                    } else {
+                        const fastPlane = node.op === "View Bit Plane"
+                            ? await fastBitPlaneOne(inputBytes, resolved.values)
+                            : null;
+                        if (fastPlane) {
+                            node._files = null;
+                            node._magic = null;
+                            out = fastPlane;
+                        } else {
+                            const response = await engine.bakeOp(node.op, resolved.values, inputBytes.buffer.slice(inputBytes.byteOffset, inputBytes.byteOffset + inputBytes.byteLength), {
+                                returnType: "ArrayBuffer",
+                                timeout: opts.timeout || 30000
+                            });
+                            if (response?.error) throw new Error(response.error.displayStr || String(response.error));
+                            const files = await dishFiles(response?.dish);
+                            if (files) {
+                                node._files = files;
+                                out = files[preferredFileIndex(node, files)].bytes;
+                            } else {
+                                node._files = null;
+                                out = dishBytes(response?.dish) || normalizeEngineResult(response?.result, response?.type);
+                            }
                         }
                     }
                 }
@@ -4386,6 +4774,50 @@ async function executeGraph(nodes, edges, opts = {}) {
                         out = picked || new Uint8Array(0);
                     }
                 }
+            } else if (node.type === "compact") {
+                // Gather the wired inputs into one bundled value. A nested bundle is
+                // flattened, so a list is always flat whatever fed it.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else {
+                    const items = [];
+                    for (let i = 0; i < compactInputs(node); i++) {
+                        const src = sourceBytesForPort(incoming, node.id, "in:" + i, results);
+                        if (src.error) { error = "Upstream error: " + src.error; break; }
+                        if (src.bytes == null) {
+                            // No wire: a string typed on the port is an entry of its own. An
+                            // empty box contributes nothing, so unused ports stay unused.
+                            const typed = String(node.texts?.[i] ?? "");
+                            if (typed) items.push(enc.encode(typed));
+                            continue;
+                        }
+                        for (const item of listItemsOf(src.bytes)) items.push(item);
+                    }
+                    if (!error) out = makeListValue(items);
+                }
+            } else if (node.type === "expand") {
+                // Spread the bundle over the declared outputs: extra values are dropped, and
+                // an output past the end of the list is an empty value rather than an error.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._portOutputs) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    const items = main.bytes != null ? listItemsOf(main.bytes) : [];
+                    const outputs = new Map();
+                    const count = expandOutputs(node);
+                    for (let i = 0; i < count; i++) outputs.set("out:" + i, items[i] || new Uint8Array(0));
+                    node._portOutputs = outputs;
+                    out = outputs.get("out:0");
+                }
+            } else if (node.type === "pick") {
+                // One value out of a bundle. An index past the end is empty, matching Expand,
+                // rather than an error that would stop the rest of the chain.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    const items = listItemsOf(main.bytes);
+                    node._pickCount = items.length;
+                    out = items[pickIndex(node) - 1] || new Uint8Array(0);
+                }
             } else if (node.type === "fnin") {
                 // Declares the function's inputs. One value per port, taking the top of this
                 // order: the value wired into the instance, then a value piped into the
@@ -4431,7 +4863,16 @@ async function executeGraph(nodes, edges, opts = {}) {
                 // output node collected, one value per output port.
                 sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig && !node._error && node._portOutputs) {
-                    out = node._output;
+                    // Every output was kept from the last run. Picking another tab only
+                    // changes which cached value this instance shows, so do not run the body.
+                    const def = functionById(node.fnId);
+                    const ports = def ? functionPorts(def) : null;
+                    if (ports && ports.outputs.length) {
+                        const key = ports.outputs[clamp(node.portPick || 0, 0, ports.outputs.length - 1)]?.key;
+                        out = key ? (node._portOutputs.get(key) || new Uint8Array(0)) : null;
+                    } else {
+                        out = node._output;
+                    }
                     reused++;
                     countIt = false;
                 } else {
@@ -4443,14 +4884,53 @@ async function executeGraph(nodes, edges, opts = {}) {
                         node._fnErrors = 0;
                         error = `“${def.name}” cannot use itself.`;
                     } else {
-                        const run = await runFunctionDefinition(def, node, incoming, results, opts);
-                        node._portOutputs = run.portOutputs;
-                        // How many nodes inside kept going on an error; shown under the node.
-                        node._fnErrors = run.softErrors || 0;
-                        error = run.error;
-                        const keys = functionPorts(def).outputs.map(p => p.key);
-                        const key = keys[clamp(node.portPick || 0, 0, Math.max(0, keys.length - 1))];
-                        out = key ? (run.portOutputs.get(key) || new Uint8Array(0)) : null;
+                        const ports = functionPorts(def);
+                        const wired = ports.inputs.map((p, i) => sourceBytesForPort(incoming, node.id, p.key, results));
+                        const upstream = wired.find(s => s.error);
+                        if (upstream) {
+                            node._fnErrors = 0;
+                            error = "Upstream error: " + upstream.error;
+                        } else {
+                            const lists = wired.map(s => s.bytes).filter(isListValue);
+                            if (lists.length) {
+                                // A bundled argument fans the call out: the body runs once per
+                                // entry, every list port zipped by index, and each declared
+                                // output collects its results into a bundle of its own. When
+                                // the lists differ in length the longer one decides, and a
+                                // list that has run out contributes an empty value.
+                                const count = Math.max(...lists.map(v => v.__items.length));
+                                const collected = new Map(ports.outputs.map(p => [p.key, []]));
+                                let runError = "";
+                                let soft = 0;
+                                for (let k = 0; k < count; k++) {
+                                    const seed = new Map();
+                                    wired.forEach((s, i) => {
+                                        if (isListValue(s.bytes)) seed.set("out:" + i, s.bytes.__items[k] || new Uint8Array(0));
+                                    });
+                                    const run = await runFunctionDefinition(def, node, incoming, results, {...opts, seedOverride: seed});
+                                    soft += run.softErrors || 0;
+                                    if (run.error) { runError = run.error; break; }
+                                    for (const p of ports.outputs) collected.get(p.key).push(run.portOutputs.get(p.key) || new Uint8Array(0));
+                                }
+                                node._fnErrors = soft;
+                                if (runError) {
+                                    error = runError;
+                                } else {
+                                    node._portOutputs = new Map(ports.outputs.map(p => [p.key, makeListValue(collected.get(p.key))]));
+                                    const key = ports.outputs[clamp(node.portPick || 0, 0, Math.max(0, ports.outputs.length - 1))]?.key;
+                                    out = key ? (node._portOutputs.get(key) || new Uint8Array(0)) : null;
+                                }
+                            } else {
+                                const run = await runFunctionDefinition(def, node, incoming, results, opts);
+                                node._portOutputs = run.portOutputs;
+                                // How many nodes inside kept going on an error; shown under the node.
+                                node._fnErrors = run.softErrors || 0;
+                                error = run.error;
+                                const keys = ports.outputs.map(p => p.key);
+                                const key = keys[clamp(node.portPick || 0, 0, Math.max(0, keys.length - 1))];
+                                out = key ? (run.portOutputs.get(key) || new Uint8Array(0)) : null;
+                            }
+                        }
                     }
                 }
             }
@@ -4884,6 +5364,216 @@ function bmpInfo(bytes) {
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     return {w: view.getInt32(18, true), h: view.getInt32(22, true), bpp: view.getUint16(28, true), offset: view.getUint32(10, true)};
 }
+/* ---------------------------------------------------------------- batched bit planes
+ * The engine's View Bit Plane decodes the source image once per call. A stego sweep asks
+ * for a stack of planes, so that is one full PNG decode for every bit — the slowest thing
+ * this graph does by a wide margin. The two helpers below decode a PNG once, then write
+ * each plane as an 8-bit greyscale PNG (the pixels are only 0/255, so it looks exactly the
+ * same and the file is smaller). Only the common 8-bit, non-interlaced PNG subset takes
+ * this route; anything else falls back to the engine's original operation.
+ */
+function paethPredictor(a, b, c) {
+    const p = a + b - c;
+    const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+    return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+}
+
+// Decode an 8-bit, non-interlaced PNG to unpremultiplied RGBA. Returns null for palette
+// images with a malformed PLTE, 16-bit/interlaced files, or a stream this browser cannot
+// inflate, which makes the caller use the engine instead.
+async function decodePngRgba(bytes) {
+    if (!isPng(bytes)) return null;
+    const png = parsePng(bytes);
+    const head = png.ihdr;
+    if (!head || head.depth !== 8 || head.interlace !== 0 || ![0, 2, 3, 4, 6].includes(head.color)) return null;
+    const width = head.w, height = head.h;
+    if (!width || !height || width * height > 64 * 1024 * 1024) return null;
+    const idat = png.chunks.filter(c => c.type === "IDAT").map(c => c.data);
+    if (!idat.length) return null;
+    const raw = await inflateZlib(concatBytes(idat));
+    if (!raw) return null;
+    const channels = head.color === 0 ? 1 : head.color === 2 ? 3 : head.color === 3 ? 1 : head.color === 4 ? 2 : 4;
+    const stride = width * channels;
+    if (raw.length < (stride + 1) * height) return null;
+
+    let palette = null, paletteAlpha = null;
+    if (head.color === 3) {
+        const plte = png.chunks.find(c => c.type === "PLTE");
+        if (!plte || plte.data.length < 3) return null;
+        palette = plte.data;
+        const trns = png.chunks.find(c => c.type === "tRNS");
+        paletteAlpha = trns ? trns.data : null;
+    }
+    let transparentGray = -1, transparentRgb = null;
+    if (head.color === 0 || head.color === 2) {
+        const trns = png.chunks.find(c => c.type === "tRNS");
+        if (trns && trns.data.length >= 2) {
+            if (head.color === 0) transparentGray = trns.data[1];
+            else if (trns.data.length >= 6) transparentRgb = [trns.data[1], trns.data[3], trns.data[5]];
+        }
+    }
+
+    const out = new Uint8ClampedArray(width * height * 4);
+    let prev = new Uint8Array(stride);
+    let cur = new Uint8Array(stride);
+    let at = 0;
+    for (let y = 0; y < height; y++) {
+        const filter = raw[at++];
+        for (let i = 0; i < stride; i++) cur[i] = raw[at + i];
+        at += stride;
+        for (let i = 0; i < stride; i++) {
+            const left = i >= channels ? cur[i - channels] : 0;
+            const up = prev[i];
+            const upLeft = i >= channels ? prev[i - channels] : 0;
+            let value = cur[i];
+            if (filter === 1) value = (value + left) & 255;
+            else if (filter === 2) value = (value + up) & 255;
+            else if (filter === 3) value = (value + ((left + up) >> 1)) & 255;
+            else if (filter === 4) value = (value + paethPredictor(left, up, upLeft)) & 255;
+            else if (filter !== 0) return null;
+            cur[i] = value;
+        }
+        for (let x = 0; x < width; x++) {
+            const si = x * channels, di = (y * width + x) * 4;
+            if (head.color === 0) {
+                const g = cur[si];
+                out[di] = out[di + 1] = out[di + 2] = g;
+                out[di + 3] = g === transparentGray ? 0 : 255;
+            } else if (head.color === 2) {
+                const r = cur[si], g = cur[si + 1], b = cur[si + 2];
+                out[di] = r; out[di + 1] = g; out[di + 2] = b;
+                out[di + 3] = transparentRgb && r === transparentRgb[0] && g === transparentRgb[1] && b === transparentRgb[2] ? 0 : 255;
+            } else if (head.color === 3) {
+                const index = cur[si];
+                const pi = index * 3;
+                if (pi + 2 >= palette.length) return null;
+                out[di] = palette[pi]; out[di + 1] = palette[pi + 1]; out[di + 2] = palette[pi + 2];
+                out[di + 3] = paletteAlpha && index < paletteAlpha.length ? paletteAlpha[index] : 255;
+            } else if (head.color === 4) {
+                const g = cur[si];
+                out[di] = out[di + 1] = out[di + 2] = g; out[di + 3] = cur[si + 1];
+            } else {
+                out[di] = cur[si]; out[di + 1] = cur[si + 1]; out[di + 2] = cur[si + 2]; out[di + 3] = cur[si + 3];
+            }
+        }
+        const swap = prev; prev = cur; cur = swap;
+    }
+    return {width, height, data: out};
+}
+
+function pngChunk(type, data) {
+    const out = new Uint8Array(12 + data.length);
+    const view = new DataView(out.buffer);
+    view.setUint32(0, data.length);
+    out.set(enc.encode(type), 4);
+    out.set(data, 8);
+    view.setUint32(8 + data.length, crc32Of(out, 4, 8 + data.length));
+    return out;
+}
+
+// Write a plane as an 8-bit greyscale PNG. Filter 0 keeps the encoder small and, with only
+// two possible byte values, still compresses to a few kilobytes.
+async function encodeGrayPng(width, height, gray) {
+    if (typeof CompressionStream !== "function") return null;
+    const stride = width + 1;
+    const raw = new Uint8Array(stride * height);
+    for (let y = 0; y < height; y++) {
+        raw[y * stride] = 0;
+        raw.set(gray.subarray(y * width, (y + 1) * width), y * stride + 1);
+    }
+    let compressed;
+    try {
+        compressed = new Uint8Array(await new Response(
+            new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate"))
+        ).arrayBuffer());
+    } catch {
+        return null;
+    }
+    const ihdr = new Uint8Array(13);
+    const view = new DataView(ihdr.buffer);
+    view.setUint32(0, width);
+    view.setUint32(4, height);
+    ihdr[8] = 8;
+    ihdr[9] = 0;
+    return concatBytes([
+        new Uint8Array(PNG_SIG),
+        pngChunk("IHDR", ihdr),
+        pngChunk("IDAT", compressed),
+        pngChunk("IEND", new Uint8Array(0))
+    ]);
+}
+
+const BIT_PLANE_COLOUR = {Red: 0, Green: 1, Blue: 2, Alpha: 3};
+
+async function renderBitPlanes(decoded, pairs) {
+    const {width, height, data} = decoded;
+    const gray = new Uint8Array(width * height);
+    const out = [];
+    const done = new Map();
+    for (const [colour, bit] of pairs) {
+        // A list can name the same plane more than once — the common case is a colour
+        // list longer than the bit list, which repeats the first plane for the extras.
+        // Render each distinct plane once and reuse its bytes for the repeats.
+        const key = colour + ":" + bit;
+        let png = done.get(key);
+        if (!png) {
+            const channel = BIT_PLANE_COLOUR[colour];
+            // CyberChef's "Bit 0" is the least-significant bit, so shift by the
+            // argument directly. (Shifting by 7 - bit returns the planes reversed.)
+            for (let p = 0, i = channel; p < gray.length; p++, i += 4) {
+                gray[p] = (data[i] >> bit) & 1 ? 0 : 255;
+            }
+            png = await encodeGrayPng(width, height, gray);
+            if (!png) return null;
+            done.set(key, png);
+        }
+        out.push(png);
+    }
+    return out;
+}
+
+// Validate a (colour, bit) pair the way the operation's own arguments would be read.
+function bitPlanePair(colour, bit) {
+    const name = String(colour ?? "");
+    const value = Number(bit);
+    if (!Object.prototype.hasOwnProperty.call(BIT_PLANE_COLOUR, name) || !Number.isInteger(value) || value < 0 || value > 7) return null;
+    return [name, value];
+}
+
+// One image, one plane. Returns null whenever the engine should handle it instead.
+async function fastBitPlaneOne(inputBytes, values) {
+    if (isListValue(inputBytes)) return null;
+    const pair = bitPlanePair(values[0], values[1]);
+    if (!pair) return null;
+    const decoded = await decodePngRgba(inputBytes);
+    if (!decoded) return null;
+    const planes = await renderBitPlanes(decoded, [pair]);
+    return planes ? planes[0] : null;
+}
+
+// The list form: decode a single image once, then render every zipped (colour, bit) pair.
+// The caller has already worked out how the argument lists zip, so this only reads them.
+async function fastBitPlaneList(inputBytes, resolvedValues, argLists, listCount) {
+    if (isListValue(inputBytes)) return null;
+    const pairs = [];
+    for (let k = 0; k < listCount; k++) {
+        let colour = resolvedValues[0], bit = resolvedValues[1];
+        for (const entry of argLists) {
+            if (entry.index > 1) return null;
+            const item = entry.items[k] || new Uint8Array(0);
+            const value = normalizeArgForRecipe(entry.arg, wireArgValue(entry.arg, item));
+            if (entry.index === 0) colour = value;
+            else bit = value;
+        }
+        const pair = bitPlanePair(colour, bit);
+        if (!pair) return null;
+        pairs.push(pair);
+    }
+    const decoded = await decodePngRgba(inputBytes);
+    if (!decoded) return null;
+    return renderBitPlanes(decoded, pairs);
+}
+
 function imageReport(bytes) {
     const lines = [`File · ${formatBytes(bytes.length)}`];
     if (isPng(bytes)) {
@@ -5555,6 +6245,9 @@ const GRAPH_ITEMS = [
     {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
     {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
     {type: "join", label: "Join", icon: "join", keys: "merge combine concatenate append several inputs", about: "Concatenate several inputs into one"},
+    {type: "compact", label: "Compact", icon: "bundle", keys: "bundle list multiple values many wires combine pack gather collect", about: "Collect several wires into one bundled wire"},
+    {type: "expand", label: "Expand", icon: "split", keys: "unbundle split list multiple outputs separate distribute unpack", about: "Split a bundled wire into separate outputs"},
+    {type: "pick", label: "Pick", icon: "pick", keys: "bundle list select choose one single value index item extract pick", about: "Take one value out of a bundled wire"},
     {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
@@ -5806,6 +6499,9 @@ function addGraphNode(type, x, y) {
     } else if (type === "switch") {
         added = makeNode("switch", {x: p.x, y: p.y, title: "Switch"});
         state.nodes.push(added);
+    } else if (type === "compact" || type === "expand" || type === "pick") {
+        added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
+        state.nodes.push(added);
     } else if (type === "pngchunks" || type === "pdfscan" || type === "imginfo") {
         added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
         state.nodes.push(added);
@@ -5833,10 +6529,9 @@ function spawnPoint() {
 /* ================================================================ toolbar / actions */
 function initToolbar() {
     $("#toolbar").innerHTML = `
-        <button class="tb-btn" data-action="new" title="New graph">New</button>
-        <button class="tb-btn" data-action="open" title="Open a saved graph">Open</button>
-        <button class="tb-btn" data-action="save" title="Download graph JSON">Save</button>
-        <button class="tb-btn" data-action="example" title="Load the AES roundtrip example">Example</button>
+        <div class="tb-menu">
+            <button class="tb-btn tb-menu-toggle" data-action="file-menu" aria-haspopup="menu" aria-expanded="false" title="New, load, save, import and export graphs">${iconFill("folder")}<span>File</span><span class="tb-caret">${iconFill("chevron")}</span></button>
+        </div>
         <span class="tb-sep"></span>
         <button class="tb-switch" data-action="auto" title="Toggle automatic runs"><span class="switch" id="autoSwitch"></span><span class="switch-label">Auto-run</span></button>
         <button class="btn-run" id="runBtn" data-action="run">${iconFill("play")} Run</button>
@@ -5849,30 +6544,32 @@ function initToolbar() {
         const btn = ev.target.closest("[data-action]");
         if (!btn) return;
         const action = btn.dataset.action;
-        if (action === "new") newGraph();
-        if (action === "open") $("#openFileInput").click();
-        if (action === "save") saveGraphFile();
-        if (action === "example") loadExample();
+        if (action === "file-menu") { toggleFileMenu(); return; }
         if (action === "auto") toggleAutoRun();
         if (action === "run") { clearTimeout(runTimer); runGraph(true); }
         if (action === "sidebar") toggleSidebar();
     });
+    initFileMenu();
 }
 
 function newGraph() {
-    if (state.nodes.length && !confirm("Start a new graph? This replaces the currently saved graph.")) return;
+    if (state.nodes.length && !confirm("Start a new graph? This replaces what is on the canvas. Saved graphs in this browser are kept.")) return;
     if (editingFunctionId) closeFunctionEditor();
+    setCurrentGraphName("");
     applyGraph(blankState(), {fit: true});
     resetHistory();
     setRunStatus("", "Ready");
+    renderFileMenu();
     toast("New graph");
 }
 function loadExample() {
-    if (state.nodes.length && !confirm("Load the example? This replaces the currently saved graph.")) return;
+    if (state.nodes.length && !confirm("Load the example? This replaces what is on the canvas. Saved graphs in this browser are kept.")) return;
     if (editingFunctionId) closeFunctionEditor();
+    setCurrentGraphName("");
     applyGraph(exampleState(), {fit: true});
     resetHistory();
     setRunStatus("", "Ready");
+    renderFileMenu();
     toast("Loaded the AES multi-input example");
 }
 function toggleAutoRun() {
@@ -5895,7 +6592,9 @@ async function openGraphFile(file, opts = {}) {
         applyGraph({...normalized, autoRun: normalized.autoRun}, {fit: !normalized.view && !opts.at});
         resetHistory();
         setRunStatus("", "Ready");
-        toast("Graph loaded");
+        setCurrentGraphName(opts.name || "");
+        renderFileMenu();
+        toast(currentGraphName ? `Loaded “${currentGraphName}”` : "Graph loaded");
     } catch (err) {
         if (opts.fallbackToFileNode) {
             // Not one of our graphs after all: keep the drop useful and use it as data.
@@ -5908,6 +6607,282 @@ async function openGraphFile(file, opts = {}) {
         }
         toast("Could not open that graph: " + err.message, "error");
     }
+}
+
+/* ================================================================ file menu */
+// Named graphs live in localStorage beside the autosave slot: the autosave keeps the
+// canvas you are working on, and these are the ones you deliberately kept.
+const SAVES_KEY = "cipherflow.savedGraphs.v1";
+const NAME_KEY = "cipherflow.currentName.v1";
+let currentGraphName = "";
+let fileMenu = null;
+
+// The name of the graph being edited, remembered across reloads so the autosaved canvas
+// still says which saved graph it belongs to.
+function setCurrentGraphName(name) {
+    currentGraphName = String(name || "");
+    try {
+        if (currentGraphName) localStorage.setItem(NAME_KEY, currentGraphName);
+        else localStorage.removeItem(NAME_KEY);
+    } catch {}
+}
+
+function readCurrentGraphName() {
+    try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; }
+}
+
+function readSavedGraphs() {
+    try {
+        const raw = localStorage.getItem(SAVES_KEY);
+        const map = raw ? JSON.parse(raw) : null;
+        if (!map || typeof map !== "object" || Array.isArray(map)) return {};
+        const out = {};
+        for (const [name, entry] of Object.entries(map)) {
+            if (entry && typeof entry === "object" && entry.graph) out[name] = entry;
+        }
+        return out;
+    } catch {
+        return {};
+    }
+}
+
+function savedGraphEntries() {
+    return Object.entries(readSavedGraphs())
+        .map(([name, entry]) => ({name, savedAt: Number(entry.savedAt) || 0}))
+        .sort((a, b) => b.savedAt - a.savedAt);
+}
+
+function relativeTime(ts) {
+    if (!ts) return "saved";
+    const secs = Math.max(0, Math.round((Date.now() - ts) / 1000));
+    if (secs < 45) return "just now";
+    const mins = Math.round(secs / 60);
+    if (mins < 60) return `${mins} min ago`;
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return `${hours} h ago`;
+    const days = Math.round(hours / 24);
+    if (days < 7) return `${days} d ago`;
+    return new Date(ts).toLocaleDateString();
+}
+
+// Save as a named graph. If the file bytes push the payload past the quota, drop them and
+// try once more — the graph stays usable and says what was left out.
+function saveNamedGraph(name) {
+    const clean = String(name || "").trim().slice(0, 80);
+    if (!clean) return false;
+    const map = readSavedGraphs();
+    const graph = serializeGraph(graphToSave());
+    const write = entry => {
+        map[clean] = entry;
+        localStorage.setItem(SAVES_KEY, JSON.stringify(map));
+    };
+    try {
+        write({savedAt: Date.now(), graph});
+    } catch {
+        try {
+            write({
+                savedAt: Date.now(),
+                graph: {...graph, nodes: graph.nodes.map(n => n.type === "file" ? {...n, fileData: ""} : n)}
+            });
+            toast("Saved, but the attached file was too large to keep in this browser.", "error");
+        } catch {
+            toast("Could not save: this browser's storage is full. Delete a saved graph and try again.", "error");
+            return false;
+        }
+    }
+    setCurrentGraphName(clean);
+    renderFileMenu();
+    if (fileMenu?.panel && !fileMenu.panel.hidden) placeFileMenu();
+    toast(`Saved “${clean}” to this browser`);
+    return true;
+}
+
+function saveCurrentGraph() {
+    if (currentGraphName) saveNamedGraph(currentGraphName);
+    else promptSaveGraph();
+}
+
+function promptSaveGraph() {
+    const suggested = currentGraphName || `Graph ${new Date().toLocaleDateString()}`;
+    const name = prompt("Save this graph in the browser as:", suggested);
+    if (name) saveNamedGraph(name);
+}
+
+function loadNamedGraph(name) {
+    const entry = readSavedGraphs()[name];
+    if (!entry) { toast("That saved graph is gone.", "error"); renderFileMenu(); return; }
+    try {
+        if (editingFunctionId) closeFunctionEditor();
+        const normalized = normalizeLoaded(entry.graph);
+        applyGraph({...normalized, autoRun: normalized.autoRun}, {fit: !normalized.view});
+        resetHistory();
+        setRunStatus("", "Ready");
+        setCurrentGraphName(name);
+        renderFileMenu();
+        toast(`Loaded “${name}”`);
+    } catch (err) {
+        toast("Could not load that graph: " + err.message, "error");
+    }
+}
+
+function deleteNamedGraph(name) {
+    if (!confirm(`Delete “${name}” from this browser? A downloaded copy is not affected.`)) return;
+    const map = readSavedGraphs();
+    delete map[name];
+    try {
+        localStorage.setItem(SAVES_KEY, JSON.stringify(map));
+    } catch {
+        toast("Could not update browser storage.", "error");
+        return;
+    }
+    if (currentGraphName === name) setCurrentGraphName("");
+    renderFileMenu();
+    toast(`Deleted “${name}”`);
+}
+
+function exportAllSavedGraphs() {
+    const map = readSavedGraphs();
+    if (!Object.keys(map).length) { toast("Nothing saved in this browser yet.", "error"); return; }
+    const data = JSON.stringify({app: "CipherFlow", version: 1, exportedAt: new Date().toISOString(), graphs: map}, null, 2);
+    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+    downloadBlob(new Blob([data], {type: "application/json"}), `cipherflow-saves-${stamp}.json`);
+    toast(`Exported ${Object.keys(map).length} saved graph${Object.keys(map).length === 1 ? "" : "s"}`);
+}
+
+function initFileMenu() {
+    const toggle = $(".tb-menu-toggle");
+    if (!toggle) return;
+    // The panel is a child of <body>, not of the toolbar: the toolbar is blurred and
+    // translated, and either of those would become the containing block for a fixed menu.
+    const panel = document.createElement("div");
+    panel.className = "fm-panel";
+    panel.id = "fileMenuPanel";
+    panel.setAttribute("role", "menu");
+    panel.hidden = true;
+    document.body.appendChild(panel);
+    fileMenu = {toggle, panel};
+
+    panel.addEventListener("click", ev => {
+        const del = ev.target.closest("[data-del]");
+        if (del) { deleteNamedGraph(del.dataset.del); return; }
+        const load = ev.target.closest("[data-load]");
+        if (load) { closeFileMenu(); loadNamedGraph(load.dataset.load); return; }
+        const group = ev.target.closest("[data-group-toggle]");
+        if (group) {
+            const wrap = group.parentElement;
+            const open = !wrap.classList.contains("open");
+            for (const other of panel.querySelectorAll(".fm-group")) other.classList.remove("open");
+            wrap.classList.toggle("open", open);
+            group.setAttribute("aria-expanded", String(open));
+            return;
+        }
+        const act = ev.target.closest("[data-act]");
+        if (!act) return;
+        closeFileMenu();
+        switch (act.dataset.act) {
+            case "new": newGraph(); break;
+            case "example": loadExample(); break;
+            case "save": saveCurrentGraph(); break;
+            case "save-as": promptSaveGraph(); break;
+            case "import": $("#openFileInput").click(); break;
+            case "export": saveGraphFile(); break;
+            case "export-all": exportAllSavedGraphs(); break;
+        }
+    });
+
+    document.addEventListener("pointerdown", ev => {
+        if (!fileMenu || fileMenu.panel.hidden) return;
+        if (ev.target.closest("#fileMenuPanel") || ev.target.closest(".tb-menu-toggle")) return;
+        closeFileMenu();
+    });
+    document.addEventListener("keydown", ev => {
+        if (ev.key === "Escape" && fileMenu && !fileMenu.panel.hidden) { closeFileMenu(); fileMenu.toggle.focus(); }
+    });
+    window.addEventListener("resize", () => { closeFileMenu(); });
+    stage.addEventListener("wheel", () => closeFileMenu(), {passive: true});
+}
+
+function toggleFileMenu() {
+    if (!fileMenu) return;
+    if (fileMenu.panel.hidden) openFileMenu(); else closeFileMenu();
+}
+
+function openFileMenu() {
+    renderFileMenu();
+    fileMenu.panel.hidden = false;
+    fileMenu.toggle.setAttribute("aria-expanded", "true");
+    placeFileMenu();
+}
+
+function closeFileMenu() {
+    if (!fileMenu || fileMenu.panel.hidden) return;
+    fileMenu.panel.hidden = true;
+    fileMenu.toggle.setAttribute("aria-expanded", "false");
+    for (const group of fileMenu.panel.querySelectorAll(".fm-group")) group.classList.remove("open");
+}
+
+function placeFileMenu() {
+    const {toggle, panel} = fileMenu;
+    const rect = toggle.getBoundingClientRect();
+    const w = panel.offsetWidth || 220;
+    const h = panel.offsetHeight || 240;
+    const left = Math.max(10, Math.min(rect.left, window.innerWidth - w - 10));
+    let top = rect.bottom + 8;
+    if (top + h > window.innerHeight - 10) top = Math.max(10, rect.top - h - 8);
+    panel.style.left = `${Math.round(left)}px`;
+    panel.style.top = `${Math.round(top)}px`;
+}
+
+function renderFileMenu() {
+    if (!fileMenu) return;
+    const saves = savedGraphEntries();
+    const loadRows = saves.length
+        ? saves.map(entry => `
+            <div class="fm-entry${entry.name === currentGraphName ? " current" : ""}">
+                <button class="fm-item" data-load="${esc(entry.name)}" role="menuitem" title="Load ${esc(entry.name)}">
+                    <span class="fm-item-name">${esc(entry.name)}</span>
+                    <small>${esc(relativeTime(entry.savedAt))}</small>
+                </button>
+                <button class="fm-del" data-del="${esc(entry.name)}" title="Delete ${esc(entry.name)} from this browser">${iconFill("trash")}</button>
+            </div>`).join("")
+        : `<div class="fm-empty">Nothing saved in this browser yet.</div>`;
+    fileMenu.panel.innerHTML = `
+        <div class="fm-head">
+            <span class="fm-head-label">${currentGraphName ? "Editing" : "Unsaved graph"}</span>
+            ${currentGraphName ? `<strong title="${esc(currentGraphName)}">${esc(currentGraphName)}</strong>` : ""}
+        </div>
+        <div class="fm-group">
+            <button class="fm-row" data-group-toggle="load" aria-expanded="false">${iconFill("folder")}<span>Load</span><span class="fm-count">${saves.length}</span><span class="fm-chev">${iconFill("chevron")}</span></button>
+            <div class="fm-sub" role="menu">
+                ${loadRows}
+                <div class="fm-sep"></div>
+                <button class="fm-item" data-act="new" role="menuitem">${iconFill("plus")}<span>New blank graph</span></button>
+                <button class="fm-item" data-act="example" role="menuitem">${iconFill("wand")}<span>Example graph</span></button>
+            </div>
+        </div>
+        <div class="fm-group">
+            <button class="fm-row" data-group-toggle="save" aria-expanded="false">${iconFill("save")}<span>Save</span><span class="fm-chev">${iconFill("chevron")}</span></button>
+            <div class="fm-sub" role="menu">
+                <button class="fm-item" data-act="save" role="menuitem"><span>${currentGraphName ? `Save “${esc(currentGraphName)}”` : "Save in this browser…"}</span></button>
+                <button class="fm-item" data-act="save-as" role="menuitem"><span>Save as…</span></button>
+                <div class="fm-sep"></div>
+                <div class="fm-note">Autosave keeps the canvas you are working on, separately.</div>
+            </div>
+        </div>
+        <div class="fm-group">
+            <button class="fm-row" data-group-toggle="import" aria-expanded="false">${iconFill("input")}<span>Import</span><span class="fm-chev">${iconFill("chevron")}</span></button>
+            <div class="fm-sub" role="menu">
+                <button class="fm-item" data-act="import" role="menuitem"><span>Graph file (.json)…</span></button>
+            </div>
+        </div>
+        <div class="fm-group">
+            <button class="fm-row" data-group-toggle="export" aria-expanded="false">${iconFill("output")}<span>Export</span><span class="fm-chev">${iconFill("chevron")}</span></button>
+            <div class="fm-sub" role="menu">
+                <button class="fm-item" data-act="export" role="menuitem"><span>Download this graph</span></button>
+                <button class="fm-item" data-act="export-all" role="menuitem"><span>${saves.length ? `Download all ${saves.length} saves` : "Download all saves"}</span></button>
+            </div>
+        </div>
+    `;
 }
 
 /* ================================================================ theme */
@@ -7210,7 +8185,7 @@ function bindGlobalEvents() {
         }
         if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "s") {
             ev.preventDefault();
-            saveGraphFile();
+            if (ev.shiftKey) saveGraphFile(); else saveCurrentGraph();
         }
     });
 
@@ -7225,7 +8200,7 @@ function bindGlobalEvents() {
 
     $("#openFileInput").addEventListener("change", ev => {
         const f = ev.target.files?.[0];
-        if (f) openGraphFile(f);
+        if (f) openGraphFile(f, {name: f.name.replace(/\.json$/i, "")});
         ev.target.value = "";
     });
 
@@ -7368,10 +8343,23 @@ function onNodeActionClick(ev) {
         ev.stopPropagation();
         if (node) {
             node.portPick = Number(btn.dataset.pick) || 0;
-            node._sig = "";
-            refreshNodePreview(node);
-            renderAllNodes();
-            scheduleRun(true, 60);
+            const def = functionById(node.fnId);
+            const ports = def ? functionPorts(def) : null;
+            const cached = ports && node._portOutputs && !node._error;
+            if (cached) {
+                // Switching tabs is a preview change: all body outputs are already cached and
+                // downstream wires read their own port, so nothing needs to run again.
+                const key = ports.outputs[clamp(node.portPick, 0, ports.outputs.length - 1)]?.key;
+                if (key) node._output = node._portOutputs.get(key) || new Uint8Array(0);
+                refreshNodePreview(node);
+                renderAllNodes();
+                saveLocalSoon();
+            } else {
+                node._sig = "";
+                refreshNodePreview(node);
+                renderAllNodes();
+                scheduleRun(true, 60);
+            }
         }
     } else if (action === "fn-add-port" || action === "fn-remove-port") {
         ev.stopPropagation();
@@ -7379,22 +8367,34 @@ function onNodeActionClick(ev) {
             const adding = action === "fn-add-port";
             const index = Number(btn.dataset.index) || 0;
             const isInput = node.type === "fnin";
+            const ports = node.ports || [];
             if (adding) {
-                if ((node.ports || []).length >= 8) { toast("Eight ports is the limit for one function.", "error"); return; }
-                node.ports = [...(node.ports || []), isInput ? {name: `Input ${node.ports.length + 1}`, sample: "", encoding: "utf8", sampleMode: "text", typed: false} : {name: `Output ${node.ports.length + 1}`}];
+                if (ports.length >= MAX_FN_PORTS) {
+                    toast(`One side of a function can have up to ${MAX_FN_PORTS} ports.`, "error");
+                    return;
+                }
+                node.ports = [...ports, isInput
+                    ? {name: `Input ${ports.length + 1}`, sample: "", encoding: "utf8", sampleMode: "text", typed: false}
+                    : {name: `Output ${ports.length + 1}`}];
             } else {
-                if ((node.ports || []).length <= 1) return;
-                node.ports = node.ports.filter((_, i) => i !== index);
-                // Removing a port takes its wires, and slides the later ports down.
-                const prefix = isInput ? "in:" : "out:";
-                state.edges = state.edges.filter(e => !(e.to === node.id && e.fromPort === prefix + index) && !(e.to === node.id && e.toPort === prefix + index));
-                state.edges = state.edges.map(e => {
-                    const shift = key => {
-                        if (!key || !key.startsWith(prefix)) return key;
-                        const n = Number(key.slice(prefix.length));
-                        return Number.isFinite(n) && n > index ? prefix + (n - 1) : key;
-                    };
-                    return {...e, toPort: shift(e.toPort), fromPort: shift(e.fromPort)};
+                if (ports.length <= 1) return;
+                // Removing a port takes its wires and slides the later ones down. An input
+                // node hands values out (out:) and takes its test samples in (sample:); an
+                // output node only takes values in (in:), so each side has its own key space.
+                const inPrefix = isInput ? "sample:" : "in:";
+                const outPrefix = isInput ? "out:" : null;
+                const shift = (key, prefix) => {
+                    if (!prefix || !key || !key.startsWith(prefix)) return key;
+                    const n = Number(key.slice(prefix.length));
+                    if (!Number.isFinite(n)) return key;
+                    return n === index ? null : n > index ? prefix + (n - 1) : key;
+                };
+                node.ports = ports.filter((_, i) => i !== index);
+                state.edges = state.edges.flatMap(e => {
+                    const toPort = e.to === node.id ? shift(e.toPort, inPrefix) : e.toPort;
+                    const fromPort = e.from === node.id ? shift(e.fromPort, outPrefix) : e.fromPort;
+                    if (toPort === null || fromPort === null) return [];
+                    return [{...e, toPort, fromPort}];
                 });
             }
             renderAllNodes();
@@ -7502,6 +8502,7 @@ function hideBoot() {
 async function init() {
     initTheme();
     state = loadLocalGraph();
+    currentGraphName = readCurrentGraphName();
     const restored = Boolean(state);
     if (!state) state = exampleState();
     if (!state.view) state.view = {x: 40, y: 40, zoom: 0.7};

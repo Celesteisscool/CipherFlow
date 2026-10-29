@@ -257,20 +257,27 @@ ${css}
         <div class="help-body">
             <div class="help-section">
                 <h3>Build a graph</h3>
-                <p>Every node is a step. Circles on a node are <b>ports</b>: the one on the right is its output, the ones on the left are inputs. Drag from an output to an input to draw a wire and the data flows along it. Add nodes from the list on the left (click, or drag onto the canvas).</p>
+                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Compact, Expand, Pick, Fstring, Switch and Magic) and <b>Operations</b> by category.</p>
             </div>
             <div class="help-section">
                 <h3>Text and file nodes are input <em>and</em> output</h3>
-                <p>Both have a port on each side. With nothing piped into the left port, a text node shows a box for you to type your own value, and a file node shows a drop area. As soon as you pipe data in, that input wins and the node displays it instead — so a text or file node is the end of a chain on its own, with copy and save buttons on its preview. There is no separate Output node to add.</p>
+                <p><b>Text Input / Output</b> and <b>File Input / Output</b> each have a port on both sides. With nothing piped into the left port, the text node shows a box for you to type your own value, and the file node shows a drop area. As soon as you pipe data in, that input wins and the node displays it instead — so either is the end of a chain on its own, with copy and save buttons on its preview. There is no separate Output node to add.</p>
             </div>
             <div class="help-section">
-                <h3>Combine two inputs</h3>
-                <p>Every operation carries a box for its own main input, and <b>every</b> argument it has gets a port of its own — a key, an IV, a password, but also a number, a switch or a dropdown. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins: the box dims and shows the value arriving on the wire, cut short if it runs long. A wired number is read as a number, a switch as on or off, and a wire into a dropdown picks whichever option it matches. <b>Join</b> merges several wires into one in order, with an optional separator. This is the part CyberChef recipes cannot do.</p>
-                <p><b>Fstring</b> builds one string out of several: type a shape like <code>Hello {input1}, key {input2}</code> and each slot is filled from that numbered port — an f-string whose variables are wires. <b>Switch</b> is a lookup table: wire a value into it, add a case per key with the value to hand on, and give an <em>otherwise</em> value for when nothing matches. Both halves of a case and the otherwise value take wires too — the wire wins while it is connected. With no otherwise at all (nothing wired and nothing typed) the input is passed straight through. Keys match exactly once trimmed of surrounding spaces.</p>
+                <h3>Operations and their arguments</h3>
+                <p>Every operation carries a box for its own main input, and <b>every</b> argument it has gets a port of its own — a key, an IV, a password, but also a number, a switch or a dropdown. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins: the box dims and shows the value arriving on the wire, cut short if it runs long. A wired number is read as a number, a switch as on or off, and a wire into a dropdown picks whichever option it matches.</p>
+                <p><b>Join</b> merges several wires into one in order, with an optional separator. <b>Fstring</b> builds one string out of several: type a shape like <code>Hello {input1}, key {input2}</code> and each slot is filled from that numbered port — an f-string whose variables are wires. <b>Switch</b> is a lookup table: wire a value into it, add a case per key with the value to hand on, and give an <em>otherwise</em> value for when nothing matches. Both halves of a case and the otherwise value take wires too — the wire wins while it is connected. With no otherwise at all (nothing wired and nothing typed) the input is passed straight through. Keys match exactly, once surrounding spaces are trimmed.</p>
+            </div>
+            <div class="help-section">
+                <h3>Lists on one wire</h3>
+                <p>A <b>bundle</b> is a list carried on one wire, drawn <b>thicker</b> than a normal wire. <b>Compact</b> gathers everything plugged into it into a single bundle; its <b>Inputs</b> field sets how many ports it offers (1–32), and a port with no wire takes a <b>string typed under it</b>, so a literal can travel in the same bundle as wired values. Nested bundles are flattened, changing the count grows or shrinks the card to fit, and the preview numbers what the wire is carrying. Every port label on Compact and Expand is a text field: type over it to name that input or output, and the name is saved with the graph. Wires follow the port's position, not its name.</p>
+                <p><b>Expand</b> spreads that bundle back over as many outputs as its own <b>Outputs</b> field says. Values past the number of outputs are dropped, and outputs with no value to carry come out empty. Lowering either count removes the wires on the ports that disappear.</p>
+                <p><b>Pick</b> takes one value out of a bundle. Set <b>Index</b> to 1 for the first value; an index past the end gives an empty value. Its output is a single value, so the wire after it is a normal one.</p>
+                <p>An <b>operation</b> downstream of a bundle runs once per value and hands back a bundle, so a whole chain can work through a list without being wired once per item. That applies to arguments too: a bundle on a key, number or switch port runs the operation once per entry, two bundles are <b>zipped</b> by index, and a single value is broadcast against the whole list. A blank entry stays blank rather than failing the run.</p>
             </div>
             <div class="help-section">
                 <h3>Magic</h3>
-                <p><b>Magic</b> lives in the <b>Graph</b> section of the node list, beside Text, File, Join, Fstring and Switch (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
+                <p><b>Magic</b> lives in the <b>Graph</b> section of the node list (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks the best ten. Results that read no better than the input are dropped, operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
             </div>
             <div class="help-section">
                 <h3>Steganalysis, all local</h3>
@@ -278,14 +285,13 @@ ${css}
                 <p>The rest of a sweep is already in the operation list, and these reports pipe into it: <b>Strings</b> for printable runs, <b>Extract LSB</b> and <b>View Bit Plane</b> for hidden bit layers, <b>Extract RGBA</b> and <b>Randomize Colour Palette</b> for channel and palette tricks, <b>Extract EXIF</b> for camera metadata, <b>Scan for Embedded Files</b> for signatures at any offset, and <b>Extract Files</b> for carving. Native tools such as steghide, outguess, zsteg and binwalk are separate programs with no browser equivalent, so they are not bundled — everything above runs in the page, offline, with nothing uploaded.</p>
             </div>
             <div class="help-section">
-                <h3>Move, resize, collapse</h3>
+                <h3>Canvas, wires and view</h3>
                 <ul>
-                    <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom.</li>
+                    <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom. <b>Fit</b>, in the bottom-left controls, frames the whole graph.</li>
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename it.</li>
                     <li><b>Snap</b>, beside Fit in the bottom-left controls, is a toggle. Turning it on puts every node on the graph back on the nearest grid dot and then keeps them there: dragged nodes track the grid as they move. It lights up while it is holding and the setting is remembered, so a reload comes back snapped. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
-                    <li><kbd>Delete</kbd> removes the selected node or wire; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph.</li>
-                    <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redoes — adding and deleting nodes, wires, moves, resizes and every value you type. A burst of typing undoes in one step.</li>
+                    <li>Click a wire to select it — an <b>×</b> appears in the middle. Click the × to remove it, or double-click the wire.</li>
                 </ul>
             </div>
             <div class="help-section">
@@ -298,20 +304,33 @@ ${css}
                 </ul>
             </div>
             <div class="help-section">
-                <h3>Function blocks</h3>
-                <p>A function is a graph of your own: build a body once, then place it like any other node. Press <b>New function</b> at the top of the node list to create one and its editor opens. Inside, the <b>Function input</b> node declares what the function takes — rename each row, give it a sample value, and add as many rows as you need. Wire those into your body, and wire the body into the <b>Function output</b> node, which declares what it hands back. <b>Run test</b> tries the body on its sample values.</p>
+                <h3>Functions</h3>
+                <p>A function is a graph of your own: build a body once, then place it like any other node. Press <b>New function</b> at the top of the node list to create one and its editor opens. Inside, the <b>Function input</b> node declares what the function takes — rename each row, give it a sample value, and add as many rows as you need — up to 32 inputs and 32 outputs on one function. Wire those into your body, and wire the body into the <b>Function output</b> node, which declares what it hands back. <b>Run test</b> tries the body on its sample values.</p>
                 <p>The editor window is the <b>same canvas</b> pointed at the definition, with its own <b>node list</b> down the right side — the same operations, search and gestures as the sidebar. The <b>Nodes</b> button in the header tucks the list away when you want the whole width for the canvas.</p>
                 <p>Press <b>Done</b> and the function appears in the node list: click or drag it onto the canvas to place an instance, which has one input port per declared input and one output port per declared output. Editing the definition updates every instance — double-click an instance (or its pencil in the list) to reopen the editor. A function cannot call itself, and definitions are saved inside the graph file, so a shared file keeps its functions.</p>
+                <p>Wiring a bundle into an <b>instance</b> runs the function once per entry and hands each declared output back as a bundle of the results. Two bundles wired into two inputs are <b>zipped</b>: run one takes entry 1 of both, run two takes entry 2 of both, and so on — so a function that needs a name and a key can be applied to two lists in step. When the lists differ in length the longer one decides, and an input whose list has run out gets an empty value.</p>
                 <p>Each declared input carries a <b>test sample</b>, which is what the body runs on when you press <b>Run test</b>. A sample can be <b>Text</b> you type, a <b>File</b> you attach, or a value <b>piped in</b> from a node in the body — wire something into the port on the sample row and it takes over. That is how a fixture is derived: build the value with nodes, pipe it in, and every instance can fall back to it. A function that works on an image, an archive or any other bytes can be tested on the real thing from inside the editor.</p>
                 <p>Tick <b>Can be typed in</b> on a declared input and every instance of the function grows a box for it, so a constant can be typed straight onto the node instead of needing something wired into the port. The box shows the input's test sample as its <b>default</b>, so you can see the value an untouched instance will run on; typing in the box overrides it, emptying the box puts the default back, and a wire into the port overrides both.</p>
             </div>
             <div class="help-section">
-                <h3>Delete a wire</h3>
-                <p>Click a wire to select it — an <b>×</b> appears in the middle. Click the × to remove it (double-clicking the wire works too).</p>
+                <h3>Running and shortcuts</h3>
+                <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed.</p>
+                <ul class="help-keys">
+                    <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>S</kbd> saves in this browser</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> downloads the graph</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes; add <kbd>Shift</kbd> to redo</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>C</kbd>, <kbd>Ctrl</kbd>+<kbd>X</kbd> and <kbd>Ctrl</kbd>+<kbd>V</kbd> copy, cut and paste</li>
+                    <li><kbd>Delete</kbd> removes the selection or a wire</li>
+                    <li><kbd>Escape</kbd> closes a panel, cancels a wire, clears the selection</li>
+                    <li><kbd>Shift</kbd>+click or drag adds to the selection</li>
+                </ul>
             </div>
             <div class="help-section">
-                <h3>Running and saving</h3>
-                <p>With <b>Auto-run</b> on, the graph re-runs as you edit. Use <b>Run</b> to force a fresh pass. <b>Save</b> and <b>Open</b> move a graph as a JSON file, and your work is kept in this browser automatically. Everything runs in this page, offline — no data leaves it.</p>
+                <h3>Graphs and files</h3>
+                <p>The <b>File</b> menu in the toolbar keeps your graphs. <b>Load</b> lists everything saved in this browser, newest first — click one to open it, or use the trash to delete it. <b>New blank graph</b> and <b>Example graph</b> replace whatever is on the canvas; the saved graphs stay.</p>
+                <p><b>Save</b> keeps the graph under its name: <b>Save “name”</b> overwrites it and <b>Save as…</b> saves it under another name. A graph with no name asks for one, and the name it is saved under shows at the top of the menu. Separately, the canvas is autosaved as you work, so a reload brings back exactly what you had even if you never named it.</p>
+                <p><b>Import</b> opens a <code>.json</code> graph file and <b>Export</b> downloads the current graph, or every saved graph in one file. Everything runs in this page, offline — no data leaves it.</p>
             </div>
             <div class="help-section">
                 <h3>Checking the operations</h3>

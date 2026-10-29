@@ -916,7 +916,7 @@ select.control { padding-right: 4px; }
 /* The head is one nowrap row, so a narrow node shortens the size label rather than pushing
  * the FULL box and the mode switch out of the card. */
 .preview-head .bytes { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* "Full" on a text node: preview the whole output instead of its first stretch. */
+/* "Full" on any preview: show the whole output instead of its first stretch. */
 .preview-full {
     display: inline-flex;
     align-items: center;
@@ -927,6 +927,9 @@ select.control { padding-right: 4px; }
     cursor: pointer;
 }
 .preview-full:hover { color: var(--ink); }
+/* Full also lifts the height cap on an image preview, the way it lifts the text
+ * cut-off: the picture is shown at its own size and the node scrolls if it must. */
+.preview.full .preview-img { max-height: none; }
 .preview-full input {
     width: 10px;
     height: 10px;

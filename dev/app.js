@@ -189,15 +189,20 @@ function listItemsOf(value) {
     if (value == null) return [];
     return isListValue(value) ? value.__items : [value];
 }
-function listPreviewText(value) {
+function listPreviewText(value, full = false) {
     const items = listItemsOf(value);
     if (!items.length) return "No values on this wire.";
     const lines = [`${items.length} value${items.length === 1 ? "" : "s"}`];
-    items.slice(0, 24).forEach((item, i) => {
-        const shown = previewBytes(item, looksBinary(item) ? "hex" : "text", 90).text.replace(/\s+/g, " ").trim();
+    const count = full ? items.length : Math.min(items.length, 24);
+    for (let i = 0; i < count; i++) {
+        const item = items[i];
+        // Full also opens up each value, not just the number of values listed.
+        const binary = looksBinary(item);
+        const limit = full ? (binary ? item.length * 3 : item.length) : 90;
+        const shown = previewBytes(item, binary ? "hex" : "text", limit).text.replace(/\s+/g, " ").trim();
         lines.push(`${i + 1} \u00b7 ${shown || "(empty)"}`);
-    });
-    if (items.length > 24) lines.push(`\u2026 ${items.length - 24} more`);
+    }
+    if (items.length > count) lines.push(`\u2026 ${items.length - count} more`);
     return lines.join("\n");
 }
 function looksBinary(bytes) {
@@ -210,11 +215,27 @@ function looksBinary(bytes) {
     }
     return suspicious / sample > 0.18;
 }
+function latin1Text(bytes) {
+    // One character per byte, so Raw shows exactly what the wire carries even when the
+    // bytes are not valid UTF-8. String.fromCharCode is applied in chunks to keep the
+    // argument list small on a large output.
+    let out = "";
+    for (let i = 0; i < bytes.length; i += 8192) {
+        out += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    }
+    return out;
+}
 function previewBytes(bytes, mode = "text", limit = 600) {
     if (!bytes || !bytes.length) return {text: "No output yet.", binary: false};
     if (mode === "hex") {
-        const full = bytesToHex(bytes.subarray(0, Math.ceil(limit / 3)), " ");
-        return {text: full + (bytes.length > Math.ceil(limit / 3) ? " …" : ""), binary: false};
+        const take = Math.ceil(limit / 3);
+        const full = bytesToHex(bytes.subarray(0, take), " ");
+        return {text: full + (bytes.length > take ? " …" : ""), binary: false};
+    }
+    if (mode === "raw") {
+        let raw = latin1Text(bytes).replace(/\u0000/g, "·").replace(/\r/g, "");
+        if (raw.length > limit) raw = raw.slice(0, limit) + " …";
+        return {text: raw, binary: false};
     }
     if (looksBinary(bytes)) {
         return {text: `Binary output (${formatBytes(bytes.length)}). Switch to Hex to inspect.`, binary: true};
@@ -866,6 +887,8 @@ function makeNode(type, opts = {}) {
         y: Math.round(opts.y ?? 100),
         title: opts.title || "",
         previewMode: opts.previewMode || "text",
+        // Every node preview can lift its truncation, not just a text sink.
+        fullPreview: Boolean(opts.fullPreview),
         collapsed: Boolean(opts.collapsed),
         w: Number(opts.w) || 0,
         h: Number(opts.h) || 0
@@ -881,9 +904,6 @@ function makeNode(type, opts = {}) {
     } else if (type === "input") {
         node.text = opts.text ?? "Hello, World!";
         node.encoding = opts.encoding || "utf8";
-        // Off by default: a long result shows its first stretch, and the box switches to the
-        // whole thing when the user asks for it.
-        node.fullPreview = Boolean(opts.fullPreview);
     } else if (type === "file") {
         node.fileName = opts.fileName || "";
         node.fileSize = opts.fileSize || 0;
@@ -2708,20 +2728,23 @@ function updatePreviewEl(wrap, node) {
     const selected = files ? preferredFileIndex(node, files) : 0;
     const kind = has ? (bundled ? "list" : htmlOutputKind(node, bytes)) : "empty";
     const isImage = kind === "image-bytes" || kind === "html-image";
-    // Image results get an Image / Raw / Hex switch; byte and text results stay Text / Hex.
+    // Every preview has a Raw view. An image result also gets Image and Hex, so the
+    // picture can be seen, the underlying markup or bytes read, and the bytes inspected.
     let mode = node.previewMode || (isImage ? "image" : "text");
     if (isImage) { if (mode !== "raw" && mode !== "hex") mode = "image"; }
-    else if (mode !== "hex") mode = "text";
+    else if (mode !== "hex" && mode !== "raw") mode = "text";
     const imageUrl = (has && isImage && mode === "image") ? imageDataUrlFor(node, bytes, kind) : null;
     // Text and file nodes are the display side of a graph now, so they get the roomier
     // preview the old Output node had (and its save button, below).
     const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "switch" || node.type === "fn" ||
         node.type === "compact" || node.type === "expand" || node.type === "pick" ||
         node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
-    // A text node's "Full" box lifts the preview cut-off so the whole file can be read in
-    // place. The limit is a character count, so the byte length is always enough to clear it.
-    const full = node.type === "input" && Boolean(node.fullPreview) && mode === "text";
-    const limit = full ? Math.max(1100, bytes ? bytes.length : 0) : (isSink ? 1100 : 420);
+    // Every preview can lift its truncation. Text and raw count characters, so the byte
+    // length is always enough to clear the cut-off; hex writes three characters per byte.
+    const full = Boolean(node.fullPreview);
+    const limit = full
+        ? Math.max(1100, mode === "hex" ? (bytes ? bytes.length * 3 : 0) : (bytes ? bytes.length : 0))
+        : (isSink ? 1100 : 420);
     // Pick knows why a result is empty: no bundle, a picked slot that is itself blank, or
     // an index beyond the end. Saying so beats the generic "run the graph" hint.
     const pickEmpty = !has && node.type === "pick" && node._pickCount != null
@@ -2730,9 +2753,10 @@ function updatePreviewEl(wrap, node) {
                 : "The picked value is empty."))
         : "";
     const pv = has
-        ? (bundled && mode !== "hex" ? {text: listPreviewText(bytes), binary: false} : previewBytes(bytes, mode === "hex" ? "hex" : "text", limit))
+        ? (bundled && mode !== "hex" ? {text: listPreviewText(bytes, full), binary: false} : previewBytes(bytes, mode, limit))
         : {text: pickEmpty || (isSink ? "Run the graph to see the output." : "Not run yet."), binary: false};
     wrap.classList.toggle("empty", !has);
+    wrap.classList.toggle("full", full);
     wrap.dataset.kind = kind;
     let body;
     if (node.op === "Magic" && Array.isArray(node._magic)) {
@@ -2764,8 +2788,8 @@ function updatePreviewEl(wrap, node) {
         <div class="preview-head">
             <span class="bytes">${fileLabel}${has ? formatBytes(bytes.length) : (node._error ? "error" : "—")}</span>
             <span class="spacer"></span>
-            ${node.type === "input" ? `<label class="preview-full" title="Preview the whole output instead of its first stretch"><input type="checkbox" data-action="preview-full" data-node="${node.id}"${node.fullPreview ? " checked" : ""}>Full</label>` : ""}
-            <span class="seg">${(isImage ? [["image", "Image"], ["raw", "Raw"], ["hex", "Hex"]] : [["text", "Text"], ["hex", "Hex"]]).map(([m, label]) => `<button data-action="preview-mode" data-node="${node.id}" data-mode="${m}" class="${mode === m ? "on" : ""}">${label}</button>`).join("")}</span>
+            <label class="preview-full" title="Preview the whole output instead of its first stretch"><input type="checkbox" data-action="preview-full" data-node="${node.id}"${node.fullPreview ? " checked" : ""}>Full</label>
+            <span class="seg">${(isImage ? [["image", "Image"], ["raw", "Raw"], ["hex", "Hex"]] : [["text", "Text"], ["raw", "Raw"], ["hex", "Hex"]]).map(([m, label]) => `<button data-action="preview-mode" data-node="${node.id}" data-mode="${m}" class="${mode === m ? "on" : ""}">${label}</button>`).join("")}</span>
             ${has ? `<button class="mini-btn" data-action="copy-node" data-node="${node.id}" title="Copy output">${iconFill("copy")}</button>` : ""}
             ${has && isSink ? `<button class="mini-btn" data-action="save-node" data-node="${node.id}" title="Save output">${iconFill("save")}</button>` : ""}
         </div>
@@ -6445,8 +6469,12 @@ function renderSearch() {
     // is one query away instead of a scroll to the Graph section.
     const graphMatches = GRAPH_ITEMS.filter(item =>
         item.label.toLowerCase().includes(q) || item.keys.includes(q) || item.about.toLowerCase().includes(q));
+    // A graph tool can share its name with the operation behind it (Magic is the one
+    // case today). The graph entry is the better one to add, so it wins and the plain
+    // operation is not listed a second time under the same search.
+    const graphLabels = new Set(graphMatches.map(item => item.label.toLowerCase()));
     const matches = OP_NAMES.filter(op => {
-        if (FLOW_OPS.has(op)) return false;
+        if (FLOW_OPS.has(op) || graphLabels.has(op.toLowerCase())) return false;
         const m = OPS[op];
         return op.toLowerCase().includes(q) || m.category.toLowerCase().includes(q) || (m.description || "").toLowerCase().includes(q);
     });
@@ -8431,7 +8459,9 @@ function onNodeActionClick(ev) {
     } else if (action === "copy-node") {
         ev.stopPropagation();
         if (node?._output) {
-            const value = node.previewMode === "hex" ? bytesToHex(node._output, " ") : (looksBinary(node._output) ? bytesToHex(node._output, " ") : utf8(node._output));
+            const value = node.previewMode === "hex" ? bytesToHex(node._output, " ")
+                : node.previewMode === "raw" ? latin1Text(node._output)
+                : (looksBinary(node._output) ? bytesToHex(node._output, " ") : utf8(node._output));
             copyText(value).then(ok => toast(ok ? "Output copied" : "Could not copy", ok ? "" : "error"));
         }
     } else if (action === "save-node") {

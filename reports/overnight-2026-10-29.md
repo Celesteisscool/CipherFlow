@@ -25,11 +25,16 @@ time** in `updatePreviewEl()` (`dev/app.js`):
 - **Clicking the counter** switches to the flat listing (`all 12`); clicking it again returns
   to the same page. Arrows are absent in that mode.
 - **Copy** copies the current entry in paged mode (honouring Text/Raw/Hex) and the joined
-  list in all-entries mode.
+  list in all-entries mode. *(Corrected by `b9b1699`: all-entries Copy copies the rendered
+  numbered listing — combined hex in Hex — and `9606ed8` routes Copy through the same
+  `bundleView()` page as the header. See "Correction — post-mission audit" and
+  "Correction 2".)*
 - Page and mode are view state on the node (`bundlePage`, `bundleAll`). They are **not** in
   `cleanNodeForSave()`/`serializeGraph()`/localStorage, so a reload starts at 1 and the page
   is reset (clamped) when the bundle's shape changes — a count plus a hash of the first eight
-  entries (`bundleSignature()`).
+  entries (`bundleSignature()`). *(Corrected by `b9b1699` and `9606ed8`: a changed bundle
+  clears all-mode as well as the page, and `bundleSignature()` hashes every entry, not the
+  first eight. See "Correction — post-mission audit" and "Correction 2".)*
 
 `dev/styles.css` gained `.preview-pager`/`.preview-bundle` rules; the header wraps at narrow
 widths and keeps every control reachable.
@@ -43,7 +48,7 @@ Built-page evidence (final build, Compact node with three typed values):
 | counter | `all 3` | `3 values` / `1 · alpha` / `2 · beta` / `3 · gamma` |
 | counter again | `2 / 3` | `beta` (same page) |
 | Full | pressed, `.preview.full` | entry untruncated |
-| copy (writeText intercepted) | `2 / 3` | wrote `beta`; all mode wrote `alpha\nbeta\ngamma` |
+| copy (writeText intercepted) | `2 / 3` | wrote `beta`; all mode wrote `alpha\nbeta\ngamma` *(all-mode result corrected by `b9b1699`; see Correction)* |
 
 At the 220 px minimum width the header wrapped to two rows (34 px) with `scrollWidth ==
 clientWidth`; the arrows, counter, Full, Text/Raw/Hex, copy and save controls all stayed
@@ -82,7 +87,9 @@ The dead `.preview-full` checkbox CSS was removed. On the final build the active
   in 4 chunks…`.
 
 Scoring, `MAGIC_SKIP`, `MAGIC_NOISE`, `MAGIC_BENCHMARK` and `rankMagicResults()` were not
-changed. Measured on this machine, default 666-candidate sweep, same `"Khoor, Zruog!"` input:
+changed *at this commit; mission 2 (`73d4211`) later changed the scorer, the benchmark
+(14 → 19 cases) and the ranking priors — see "Mission 2" below*. Measured on this machine,
+default 666-candidate sweep, same `"Khoor, Zruog!"` input:
 
 | run | wall time | notes |
 |---|---|---|
@@ -98,7 +105,8 @@ top row (`ROT13 (shift 23)`, `Hello, World!`).
 
 ## Task 4 — probes become real checks
 
-Census supplied by `dev/gen-meta.mjs` / `dev/testplan.json` (708 tests):
+Census supplied by `dev/gen-meta.mjs` / `dev/testplan.json` (708 tests at this commit;
+`73d4211` added four spelling-alphabet checks — see "Mission 2"):
 
 | | official | dcode | probes | skipped | total |
 |---|---|---|---|---|---|
@@ -146,7 +154,8 @@ Probe bite test: `From Braille` was temporarily changed back to `hello`, rebuilt
 row failed (`HELLO`); restoring `HELLO`, rebuilding, and running the single row passed again.
 
 Operations tab on the final build: **684 passed · 111 probes · 0 failed · 3 blocked
-upstream · 21 skipped · 819 / 819**.
+upstream · 21 skipped · 819 / 819**. *(Final at this commit; `73d4211`'s four spelling
+checks make the final totals 688 passed of 823 — see "Mission 2".)*
 
 ## Task 5 — one click runs every wiring check
 
@@ -195,8 +204,9 @@ batch turned red with `suite-coverage`: `Fail — 27 check(s) defined, missing b
 unexpected bundles-renamed`, overall `25 passed · 2 failed · 38.0 s`. Restored from the
 backup, rebuilt.
 
-Final build: **27 cards, 26 passed, 1 failed, 34.2 s**. Every new card passed and its detail
-shows real values, e.g.:
+Final build *at this commit*: **27 cards, 26 passed, 1 failed, 34.2 s** *(overtaken by
+`73d4211`: 27 passed, 0 failed — see "Mission 2" and "Correction 2")*. Every new card
+passed and its detail shows real values, e.g.:
 
 - `bundles`: `bundle of 3 → Expand ["alpha","beta","gamma"], Pick "beta"`
 - `fstring`: `"Hello {input1}, key {input2}" → "Hello world, key K3Y"`
@@ -206,9 +216,14 @@ shows real values, e.g.:
 - `save-reload`: `3 node(s), 1 function(s); text "persisted value", size 260×160, folded true,
   cases 2, wire 1`
 
-The single failure is described under "Known failure" below.
+The single failure is described under "Known failure" below *(and was resolved by
+`73d4211`; see "Mission 2")*.
 
 ## Known failure (pre-existing, not introduced here)
+
+*Corrected by `73d4211`: this failure does not exist in the final tree — the confidence
+contract now withholds "convincing" from GoldBug's near-copy of the input, and the card
+reports top-1 19/19 with the suite at 27/27. See "Mission 2 — Task D" and "Correction 2".*
 
 `magic-benchmark` fails its `plain english` case: Magic picks `GoldBug Decode`
 (`"The quick brown fox jumps over the lazy dogp"`, 6 visible rows) with no warning instead of
@@ -219,18 +234,22 @@ same dev server) and produced the identical failure (`GoldBug Decode`, 6 visible
 
 Mission 1's task 3 is scheduling-only and mission 2 (`reports/mission-2026-10-29b.md`) owns
 Magic accuracy, so the scorer and benchmark were left untouched. Consequence: the wiring
-suite is 26/27 rather than fully green; `magic` itself passes in the batch.
+suite is 26/27 rather than fully green; `magic` itself passes in the batch. *(Corrected by
+`73d4211`: the suite is 27/27 and `magic-benchmark` 19/19 — see "Mission 2".)*
 
 ## Checks actually run
 
 1. `node --check dev/app.js` — clean (run after every edit; last run after removing the
    temporary measurement hook).
-2. `node dev/dcode/selftest.mjs` — `all 284 checks passed`.
+2. `node dev/dcode/selftest.mjs` — `all 284 checks passed` *(288 after mission 2's spelling
+   selftests — see below)*.
 3. `node dev/gen-meta.mjs` — `official: 352, dcode: 187, probes: 112, probeExpected: 36,
    skipped: 21, total: 708`; `dev/meta.json`/`dev/testplan.json` regenerated (gitignored).
 4. `node dev/build.mjs` — `wrote …/index.html 13.86 MB`, `worker 4786735 modules 24`;
    `index.html` is 14,538,667 bytes (the byte count changed only by the trailing-space
    cleanup above, so the generator is otherwise reproducible; last written 2026-10-29 01:48).
+   *(Not the final artifact: `73d4211`, `b9b1699`, `9606ed8` and `dda30b8` each rebuilt it;
+   later hashes are recorded below.)*
 5. Built page at `http://127.0.0.1:8788/index.html` (existing `dev/serve.mjs`):
    - bundle pager table above, Final build, 3-value Compact; Full pill states in light/dark;
      header at 220 px wrapped with no overflow;
@@ -258,15 +277,17 @@ suite is 26/27 rather than fully green; `magic` itself passes in the batch.
   pool, metadata and wiring-suite changes. The final build re-exercised the pager, the Full
   pill, wrapping at 220 px and the two theme fills.
 - **Copy** was proven by intercepting `navigator.clipboard.writeText` (`beta` for the page,
-  the joined list for all-entries); the harness page is not focused, so reading the real
+  the joined list for all-entries *— corrected by `b9b1699`: all-entries Copy now yields the
+  rendered listing*); the harness page is not focused, so reading the real
   clipboard back is refused by the browser. The app itself reported "Output copied".
 - **Magic timings** are single-run wall times on this machine, with the serial baseline from
   a temporary one-chunk build that was reverted. They are reported as measured, including the
   cold-start loss.
 - **`nodeSeq` allocation** changes are test-harness fixes (ids inside checks), not product
   behaviour.
-- **The `magic-benchmark` failure** is left for mission 2; see above. No check was skipped,
-  weakened or deleted to get the 26/27 result.
+- **The `magic-benchmark` failure** is left for mission 2; see above. *(Fixed by `73d4211`:
+  the card is 19/19 and the suite 27/27 in the final tree — see "Mission 2".)* No check was
+  skipped, weakened or deleted to get the 26/27 result.
 - Untracked fixtures (`check-all-ciphers.json`, `check_all_ciphers_*.json`,
   `cipherflow-*.json`, `screenshots/`) and both mission files are untouched and not
   committed.
@@ -277,8 +298,9 @@ Mission file: `reports/mission-2026-10-29b.md` (untracked, not committed). Start
 mission 1's commit `de86c3a` with a clean tree. Everything below was measured in the built
 `index.html`, rebuilt with `node dev/build.mjs`; the shipped file was never hand-edited.
 Mission 1's pager, Full pill, four-engine pool, probe expectations and wiring suite were not
-modified. The only lab code touched is the `magic-benchmark` check's own rows and count, which
-the mission allows.
+modified *by this mission; `b9b1699` and `9606ed8` changed the pager afterwards — see the
+corrections below*. The only lab code touched is the `magic-benchmark` check's own rows and
+count, which the mission allows.
 
 ### Task A — the extended benchmark and its baseline
 
@@ -358,6 +380,10 @@ for two tokens), sub-8-character results ≤ 20. A prior can therefore reorder r
 already close (`104` over `103`, or a decode over a parser table at 45) but can never lift a
 capped result above its ceiling.
 
+*Corrected by `dda30b8`: those cap rules now live in one `magicCap()` that both
+`scoreMagicResult()` and the prior path call, in the same order; the ceilings and every
+per-case score are unchanged (see "Correction 2").*
+
 | operation | delta | reason |
 |---|---|---|
 | Spelling Alphabet Decode | +4 | one word per letter; a readable result is a decode by construction |
@@ -372,7 +398,7 @@ capped result above its ceiling.
 | Atbash Cipher | +1 | always yields letters; only text should survive |
 | ROT13 | +1 | the shift sweep is the point; ties go to the decode |
 | Parse UNIX file permissions | -2 | a permissions table describes the input, not a message |
-| Render Markdown | -2 | markup shows the input, it does not decode it |
+| Render Markdown | -2 | markup shows the input, it does not decode it *(removed in `dda30b8` — see Correction 2)* |
 | Extract URLs | -2 | a list of what the input already contains |
 | Extract domains | -2 | same, one field out of the input |
 | Extract email addresses | -2 | same |
@@ -386,8 +412,8 @@ capped result above its ceiling.
 | Extract ID3 | -2 | metadata dump |
 | Parse URI | -2 | a breakdown of the input |
 | Parse User Agent | -2 | a breakdown of the input |
-| Parse DateTime | -2 | a presentation of the input |
-| Parse colour code | -2 | a presentation of the input |
+| Parse DateTime | -2 | a presentation of the input *(removed in `dda30b8` — see Correction 2)* |
+| Parse colour code | -2 | a presentation of the input *(removed in `dda30b8` — see Correction 2)* |
 | Show on map | -2 | draws the input |
 | Generate all checksums | -2 | a listing of derived values |
 | Generate all hashes | -2 | a listing of derived values |
@@ -492,8 +518,9 @@ so scoring added no measurable cost.
 2. `node dev/dcode/selftest.mjs` — `195 operations, 191 known-answer checks` → **all 288 checks
    passed**; the `spelling` filter alone passes 7/7.
 3. `node dev/build.mjs` — `wrote …/index.html 13.87 MB`, `worker 4786735 modules 24`;
-   `index.html` is 14,547,447 bytes, sha256 `99ed345c…55f305b2f`. Two consecutive builds from
-   the same sources produced the identical hash. The byte count moved from the earlier
+   `index.html` is 14,547,447 bytes, sha256 `99ed345c…55f305b2f` *(not the final artifact:
+   `b9b1699`, `9606ed8` and `dda30b8` rebuilt it — see the corrections below)*. Two
+   consecutive builds from the same sources produced the identical hash. The byte count moved from the earlier
    measurement build because `node dev/gen-meta.mjs` was rerun after the operation description
    and selftest changes, so the inlined catalogue and test plan are current.
 4. Built page at `http://127.0.0.1:8788/index.html`:
@@ -512,7 +539,8 @@ so scoring added no measurable cost.
      and `"Load the example? This replaces what is on the canvas. Saved graphs in this browser are kept."`,
      and the graph was unchanged.
 5. Temporary harness: `magic-heldout` card added for the four held-out cases, run in the built
-   page, then deleted. The final build after regenerating metadata is sha `99ed345c…`; no
+   page, then deleted. The final build after regenerating metadata is sha `99ed345c…` *(the
+   mission-2 build; `b9b1699`, `9606ed8` and `dda30b8` rebuilt it — see below)*; no
    harness code is in the commit.
 6. Working tree at commit time contains only `dev/app.js`, `dev/dcode/ops-cachesleuth-code.mjs`,
    `dev/dcode/runtime-cachesleuth-code.js`, `index.html` and this report's appended section.

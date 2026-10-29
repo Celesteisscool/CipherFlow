@@ -9,7 +9,7 @@ no CDN, and no network access at runtime. Open it and it works offline.
 
 - **App entry point:** [`index.html`](index.html) (the built, self-contained app)
 - **Engine:** CyberChef 11.5.0 (Apache-2.0), bundled inline
-- Extra operations recreated in the style of dCode live in [`dev/dcode/`](dev/dcode)
+- Extra operations recreated in the style of dCode and CacheSleuth live in [`dev/dcode/`](dev/dcode)
 
 ## Run it locally
 
@@ -53,7 +53,7 @@ that it is cached and runs fully offline.
 index.html            the app (self-contained, this is what gets deployed)
 dev/app.js            UI source: canvas, nodes, wiring, run loop
 dev/styles.css        UI source: styles
-dev/dcode/            recreated dCode-style operations (payload + runtime + ops)
+dev/dcode/            recreated dCode/CacheSleuth operations (payload + runtime + ops)
 dev/build.mjs         inlines app.js, styles.css, the engine and metadata into index.html
 dev/gen-meta.mjs      builds the operation catalogue + test plan
 dev/serve.mjs         tiny dev static server (dev only, not part of the app)
@@ -82,4 +82,5 @@ node dev/build.mjs           # -> index.html
 ## Credits
 
 Built on [CyberChef](https://github.com/gchq/CyberChef) (Apache-2.0). Some operation
-behaviour was modelled on [dCode](https://www.dcode.fr/) for reference.
+behaviour was modelled on [dCode](https://www.dcode.fr/) and
+[CacheSleuth](https://www.cachesleuth.com/) for reference.

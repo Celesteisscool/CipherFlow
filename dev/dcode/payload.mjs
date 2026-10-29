@@ -14,12 +14,14 @@ import * as shift from "./ops-shift.mjs";
 import * as transposition from "./ops-transposition.mjs";
 import * as polygrammic from "./ops-polygrammic.mjs";
 import * as text from "./ops-text.mjs";
+import * as cachesleuth from "./ops-cachesleuth.mjs";
+import * as cachesleuthCode from "./ops-cachesleuth-code.mjs";
 import * as magic from "./ops-magic.mjs";
 
 export const MODULE_NAME = "CipherFlowDcode";
-export const BATCHES = [shift, transposition, polygrammic, text, magic];
+export const BATCHES = [shift, transposition, polygrammic, text, cachesleuth, cachesleuthCode, magic];
 // Helper files are concatenated in order; every `run` may use all of them.
-export const RUNTIME_FILES = ["runtime.js", "runtime-transposition.js", "runtime-polygrammic.js", "runtime-text.js"];
+export const RUNTIME_FILES = ["runtime.js", "runtime-transposition.js", "runtime-polygrammic.js", "runtime-text.js", "runtime-cachesleuth.js", "runtime-cachesleuth-code.js"];
 
 export function allOps() {
     return BATCHES.flatMap(batch => batch.ops || []);

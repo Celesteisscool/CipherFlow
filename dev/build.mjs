@@ -83,7 +83,7 @@ const worker = fs.readFileSync(WORKER_PATH, "utf8") + "\n" + HOOK;
 // module bundle, delivered to the worker exactly like the built-in ones.
 const moduleFile = path.join(MODULE_DIR, MODULE_NAME + ".js");
 fs.writeFileSync(moduleFile, renderModule());
-console.log("dCode module:", (fs.statSync(moduleFile).size / 1024).toFixed(1), "KB");
+console.log("Recreated ops module:", (fs.statSync(moduleFile).size / 1024).toFixed(1), "KB");
 const moduleFiles = fs.readdirSync(MODULE_DIR).filter(f => f.endsWith(".js")).sort();
 const modules = moduleFiles.map(file => ({
     name: file.replace(/\.js$/, ""),
@@ -230,7 +230,7 @@ ${css}
                 <option value="fail">Failures</option>
                 <option value="blocked">Blocked upstream</option>
                 <option value="official">Known-answer</option>
-                <option value="dcode">dCode ciphers</option>
+                <option value="dcode">Recreated ops</option>
                 <option value="probes">Live probes</option>
                 <option value="skip">Not auto-run</option>
             </select>

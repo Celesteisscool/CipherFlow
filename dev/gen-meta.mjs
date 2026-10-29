@@ -581,11 +581,27 @@ const roundtripTests = ROUNDTRIPS.map(r => ({
     sample: SAMPLE
 }));
 
-/* Cipher pairs: encode then decode with the same arguments must return the sample. */
+/* Cipher pairs: encode then decode with the same arguments must return the sample.
+ * The pair's arguments are written for the encoder, so a decoder is only given the
+ * ones it declares too. A decoder with no arguments at all (Zalgo, Leet) must get an
+ * empty list: CyberChef hydrates every ingredient, and a stray value fails the recipe
+ * before the decoder ever runs. */
+function pairSteps(pair) {
+    const encoderArgs = CONFIG[pair.encode]?.args || [];
+    const decoderArgs = CONFIG[pair.decode]?.args || [];
+    const decoderValues = defaultArgs(pair.decode);
+    for (let i = 0; i < pair.args.length && i < decoderArgs.length; i++) {
+        if (encoderArgs[i]?.name === decoderArgs[i].name) decoderValues[i] = pair.args[i];
+    }
+    return [
+        {op: pair.encode, args: pair.args},
+        {op: pair.decode, args: decoderValues}
+    ];
+}
 const dcodeRoundtripTests = dcodePairs().map(pair => ({
     id: pair.id,
     label: `${pair.encode} → ${pair.decode}`,
-    steps: [{op: pair.encode, args: pair.args}, {op: pair.decode, args: pair.args}],
+    steps: pairSteps(pair),
     sample: pair.sample || TEXT_ROUNDTRIP_SAMPLE,
     expected: pair.expected || pair.sample || TEXT_ROUNDTRIP_SAMPLE
 }));

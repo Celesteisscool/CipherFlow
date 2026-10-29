@@ -2323,7 +2323,7 @@ kbd {
         <div class="help-body">
             <div class="help-section">
                 <h3>Build a graph</h3>
-                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Compact, Expand, Pick, Fstring, Switch and Magic) and <b>Operations</b> by category.</p>
+                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Fstring, Switch and Magic), <b>Bundles</b> (Compact, Expand and Pick, the nodes that carry lists) and <b>Operations</b> by category.</p>
             </div>
             <div class="help-section">
                 <h3>Text and file nodes are input <em>and</em> output</h3>
@@ -2336,7 +2336,7 @@ kbd {
             </div>
             <div class="help-section">
                 <h3>Lists on one wire</h3>
-                <p>A <b>bundle</b> is a list carried on one wire, drawn <b>thicker</b> than a normal wire. <b>Compact</b> gathers everything plugged into it into a single bundle; its <b>Inputs</b> field sets how many ports it offers (1–32), and a port with no wire takes a <b>string typed under it</b>, so a literal can travel in the same bundle as wired values. Nested bundles are flattened, changing the count grows or shrinks the card to fit, and the preview numbers what the wire is carrying. Every port label on Compact and Expand is a text field: type over it to name that input or output, and the name is saved with the graph. Wires follow the port's position, not its name.</p>
+                <p>A <b>bundle</b> is a list carried on one wire, drawn <b>thicker</b> than a normal wire. The three bundle nodes sit together in the <b>Bundles</b> section at the top of the node list. <b>Compact</b> gathers everything plugged into it into a single bundle; its <b>Inputs</b> field sets how many ports it offers (1–32), and a port with no wire takes a <b>string typed under it</b>, so a literal can travel in the same bundle as wired values. Nested bundles are flattened, changing the count grows or shrinks the card to fit, and the preview numbers what the wire is carrying. Every port label on Compact and Expand is a text field: type over it to name that input or output, and the name is saved with the graph. Wires follow the port's position, not its name.</p>
                 <p><b>Expand</b> spreads that bundle back over as many outputs as its own <b>Outputs</b> field says. Values past the number of outputs are dropped, and outputs with no value to carry come out empty. Lowering either count removes the wires on the ports that disappear.</p>
                 <p><b>Pick</b> takes one value out of a bundle. Set <b>Index</b> to 1 for the first value; an index past the end gives an empty value. Its output is a single value, so the wire after it is a normal one.</p>
                 <p>An <b>operation</b> downstream of a bundle runs once per value and hands back a bundle, so a whole chain can work through a list without being wired once per item. That applies to arguments too: a bundle on a key, number or switch port runs the operation once per entry, two bundles are <b>zipped</b> by index, and a single value is broadcast against the whole list. A blank entry stays blank rather than failing the run.</p>
@@ -73859,16 +73859,16 @@ function createFunctionFromSelection() {
 /* ================================================================ palette */
 // The canvas-level nodes, found by the search box. `keys` is what the search matches
 // besides the label and description, so "f-string" reaches Fstring and "lookup" reaches
-// Switch. An item's `section` says where the palette offers it: the wiring tools sit in
-// Graph, while the three image/document audits belong with the Multimedia operations they
-// read bytes for, so they appear in that category instead.
+// Switch. An item's `section` says where the palette offers it: the bundle tools sit in
+// Bundles, the wiring tools in Graph, while the three image/document audits belong with the
+// Multimedia operations they read bytes for, so they appear in that category instead.
 const GRAPH_ITEMS = [
     {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
     {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
     {type: "join", label: "Join", icon: "join", keys: "merge combine concatenate append several inputs", about: "Concatenate several inputs into one"},
-    {type: "compact", label: "Compact", icon: "bundle", keys: "bundle list multiple values many wires combine pack gather collect", about: "Collect several wires into one bundled wire"},
-    {type: "expand", label: "Expand", icon: "split", keys: "unbundle split list multiple outputs separate distribute unpack", about: "Split a bundled wire into separate outputs"},
-    {type: "pick", label: "Pick", icon: "pick", keys: "bundle list select choose one single value index item extract pick", about: "Take one value out of a bundled wire"},
+    {type: "compact", label: "Compact", icon: "bundle", section: "Bundles", keys: "bundle list multiple values many wires combine pack gather collect", about: "Collect several wires into one bundled wire"},
+    {type: "expand", label: "Expand", icon: "split", section: "Bundles", keys: "unbundle split list multiple outputs separate distribute unpack", about: "Split a bundled wire into separate outputs"},
+    {type: "pick", label: "Pick", icon: "pick", section: "Bundles", keys: "bundle list select choose one single value index item extract pick", about: "Take one value out of a bundled wire"},
     {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
@@ -73876,8 +73876,9 @@ const GRAPH_ITEMS = [
     {type: "pdfscan", label: "PDF Scan", icon: "doc", section: "Multimedia", keys: "pdfid pdfinfo pdf objects streams javascript embedded scan document steg hidden", about: "Count a PDF's objects, pages and risky features"},
     {type: "imginfo", label: "Image Info", icon: "search", section: "Multimedia", keys: "identify image dimensions format exif jpeg gif webp bmp png metadata steg", about: "Report an image's format, size, depth and metadata"}
 ];
-// Split once: the Graph section draws only the wiring tools, and the audits are appended to
-// the Multimedia category's item list by buildPalette.
+// Split once: Bundles and Graph draw their own tools, and the audits are appended to the
+// Multimedia category's item list by buildPalette.
+const BUNDLE_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Bundles");
 const WIRING_ITEMS = GRAPH_ITEMS.filter(item => !item.section);
 const MEDIA_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Multimedia");
 function buildPalette() {
@@ -73898,6 +73899,10 @@ function buildPalette() {
     html += `<div class="palette-section">
         <div class="palette-section-title">Graph</div>
         ${graphItems.map(item => `<button class="graph-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="graph-icon">${iconFill(item.icon)}</span>${esc(item.label)}<small>+</small></button>`).join("")}
+    </div>`;
+    html += `<div class="palette-section">
+        <div class="palette-section-title">Bundles</div>
+        ${BUNDLE_ITEMS.map(item => `<button class="graph-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="graph-icon">${iconFill(item.icon)}</span>${esc(item.label)}<small>+</small></button>`).join("")}
     </div>`;
     html += `<div class="palette-section"><div class="palette-section-title">Operations</div>`;
     for (const cat of CATEGORIES) {

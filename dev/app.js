@@ -6238,16 +6238,16 @@ function createFunctionFromSelection() {
 /* ================================================================ palette */
 // The canvas-level nodes, found by the search box. `keys` is what the search matches
 // besides the label and description, so "f-string" reaches Fstring and "lookup" reaches
-// Switch. An item's `section` says where the palette offers it: the wiring tools sit in
-// Graph, while the three image/document audits belong with the Multimedia operations they
-// read bytes for, so they appear in that category instead.
+// Switch. An item's `section` says where the palette offers it: the bundle tools sit in
+// Bundles, the wiring tools in Graph, while the three image/document audits belong with the
+// Multimedia operations they read bytes for, so they appear in that category instead.
 const GRAPH_ITEMS = [
     {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
     {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
     {type: "join", label: "Join", icon: "join", keys: "merge combine concatenate append several inputs", about: "Concatenate several inputs into one"},
-    {type: "compact", label: "Compact", icon: "bundle", keys: "bundle list multiple values many wires combine pack gather collect", about: "Collect several wires into one bundled wire"},
-    {type: "expand", label: "Expand", icon: "split", keys: "unbundle split list multiple outputs separate distribute unpack", about: "Split a bundled wire into separate outputs"},
-    {type: "pick", label: "Pick", icon: "pick", keys: "bundle list select choose one single value index item extract pick", about: "Take one value out of a bundled wire"},
+    {type: "compact", label: "Compact", icon: "bundle", section: "Bundles", keys: "bundle list multiple values many wires combine pack gather collect", about: "Collect several wires into one bundled wire"},
+    {type: "expand", label: "Expand", icon: "split", section: "Bundles", keys: "unbundle split list multiple outputs separate distribute unpack", about: "Split a bundled wire into separate outputs"},
+    {type: "pick", label: "Pick", icon: "pick", section: "Bundles", keys: "bundle list select choose one single value index item extract pick", about: "Take one value out of a bundled wire"},
     {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
@@ -6255,8 +6255,9 @@ const GRAPH_ITEMS = [
     {type: "pdfscan", label: "PDF Scan", icon: "doc", section: "Multimedia", keys: "pdfid pdfinfo pdf objects streams javascript embedded scan document steg hidden", about: "Count a PDF's objects, pages and risky features"},
     {type: "imginfo", label: "Image Info", icon: "search", section: "Multimedia", keys: "identify image dimensions format exif jpeg gif webp bmp png metadata steg", about: "Report an image's format, size, depth and metadata"}
 ];
-// Split once: the Graph section draws only the wiring tools, and the audits are appended to
-// the Multimedia category's item list by buildPalette.
+// Split once: Bundles and Graph draw their own tools, and the audits are appended to the
+// Multimedia category's item list by buildPalette.
+const BUNDLE_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Bundles");
 const WIRING_ITEMS = GRAPH_ITEMS.filter(item => !item.section);
 const MEDIA_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Multimedia");
 function buildPalette() {
@@ -6277,6 +6278,10 @@ function buildPalette() {
     html += `<div class="palette-section">
         <div class="palette-section-title">Graph</div>
         ${graphItems.map(item => `<button class="graph-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="graph-icon">${iconFill(item.icon)}</span>${esc(item.label)}<small>+</small></button>`).join("")}
+    </div>`;
+    html += `<div class="palette-section">
+        <div class="palette-section-title">Bundles</div>
+        ${BUNDLE_ITEMS.map(item => `<button class="graph-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="graph-icon">${iconFill(item.icon)}</span>${esc(item.label)}<small>+</small></button>`).join("")}
     </div>`;
     html += `<div class="palette-section"><div class="palette-section-title">Operations</div>`;
     for (const cat of CATEGORIES) {

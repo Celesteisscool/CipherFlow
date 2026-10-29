@@ -538,3 +538,46 @@ so scoring added no measurable cost.
   its encoder only spells letters — so that was left out of scope rather than guessed at. No
   other browser or machine was tested, and timings are single-run wall times that vary with
   engine warmth.
+
+## Correction — post-mission audit
+
+An independent audit, run after both mission commits, found two defects in mission 1's bundle
+preview that the original verification had not exercised. They were fixed in a separate
+follow-up commit, `b9b1699` ("Make bundle copies match the screen and reset all mode on a new
+bundle"), which touches only `dev/app.js` and the regenerated `index.html`. Mission 1's and
+mission 2's findings above are left as written; the earlier claims the fix supersedes are
+identified here rather than deleted.
+
+1. **All-entries Copy.** The Task 1 claim that Copy copied "the joined list in all-entries
+   mode" — and the table's `all mode wrote alpha\nbeta\ngamma` — described the shipped
+   behaviour, not the requirement: it copied the concatenated values while the screen showed
+   the numbered `3 values` listing. `b9b1699` makes the all-entries path read the rendered
+   `[data-preview] pre`: Text and Raw copy the numbered listing, Hex copies the combined hex
+   view exactly as displayed (including the preview cut when Full is off). Paged Copy still
+   copies the selected entry in Text, Raw or Hex. **The earlier claim is corrected, not
+   deleted.**
+2. **Reset on a changed or shrunk bundle.** Task 1 said the page and all-mode were reset when
+   the bundle changes, but the code reset only `bundlePage`; `bundleAll` survived, so a new
+   bundle opened in the flat listing. `b9b1699` clears both on a `bundleSignature()` change,
+   so the pager reopens at `1 / N` in single-entry mode; the page is still clamped when the
+   bundle shrinks.
+
+Built-page proof after the fix (Compact node, three short values, light and dark):
+
+| state | pager | Text/Raw copy | Hex copy |
+|---|---|---|---|
+| single, page 1 | `1 / 3` | `alpha` | `61 6c 70 68 61` |
+| single, page 2 | `2 / 3` | `beta` | `62 65 74 61` |
+| all entries | `all 3` | `3 values\n1 · alpha\n2 · beta\n3 · gamma` | `61 6c 70 68 61 0a 62 65 74 61 0a 67 61 6d 6d 61` |
+
+Changing `gamma`→`delta` while in all mode moved the header to `‹ 1 / 3 ›`; shrinking to two
+values moved it to `‹ 1 / 2 ›`. Copy in both states matched the new listing/hex, and the
+values were identical in light and dark.
+
+`node --check dev/app.js` was clean and `node dev/build.mjs` regenerated `index.html`
+(sha256 `4649adf3…f53b6db0a`). A clean archive of `b9b1699` rebuilt byte-identically to that
+sha once the documented non-committed extracted inputs (`dev/modules`, `dev/cc-tests.json`)
+were supplied and `dev/gen-meta.mjs` rerun; a tracked tree without those inputs cannot build,
+which is the pre-existing dependency recorded in the README. On a fresh reload with the tab
+left idle, the one-click wiring suite reported **27 passed · 0 failed · 57.8 s**, and
+`magic-benchmark` reported **top-1 19/19**.

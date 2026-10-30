@@ -8889,7 +8889,10 @@ function symbolEncodeText(text, cipher) {
     const source = String(text ?? "");
     let out = "";
     for (let i = 0; i < source.length;) {
-        const hit = keys.find(entry => source.slice(i, i + entry.key.length).toLowerCase() === entry.key.toLowerCase());
+        const hit = keys.find(entry => {
+            const slice = source.slice(i, i + entry.key.length);
+            return cipher.caseSensitive ? slice === entry.key : slice.toLowerCase() === entry.key.toLowerCase();
+        });
         if (hit) {
             out += String.fromCharCode(SYMBOL_PLACEHOLDER_BASE + hit.glyph.index);
             i += hit.key.length;
@@ -9299,7 +9302,8 @@ function filterSymbolRows() {
     for (const rowEl of body.querySelectorAll(".symbols-row")) {
         const row = symbolRow(rowEl.dataset.symbol);
         if (!row) continue;
-        const haystack = symbolNorm([row.name, row.slug, ...(row.tags || [])].join(" "));
+        const aliasName = row.aliasOf ? (symbolRow(row.aliasOf)?.name || row.aliasOf) : "";
+        const haystack = symbolNorm([row.name, row.slug, ...(row.tags || []), aliasName, row.klass, row.note].join(" "));
         const match = !query || haystack.includes(query);
         rowEl.hidden = !match;
         if (match) shown++;

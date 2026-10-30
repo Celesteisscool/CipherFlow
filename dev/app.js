@@ -9002,9 +9002,9 @@ function appendSymbolGlyph(node, ta, glyph, cipher) {
     flashSymbolTiles(node, text);
 }
 
-/* The preview strip shows the transcription again as large glyphs. It is the place a
- * mis-transcribed character becomes visible, so an unmapped character draws a dashed
- * placeholder instead of disappearing. */
+/* The preview strip repeats the transcription in tiles the same size as the glyph picker.
+ * It is the place a mis-transcribed character becomes visible, so an unmapped character
+ * draws a dashed placeholder instead of disappearing. */
 const SYMBOL_PREVIEW_DEBOUNCE = 80;
 const SYMBOL_PNG_SCALE = 2;
 

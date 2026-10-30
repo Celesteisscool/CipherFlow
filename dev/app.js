@@ -207,8 +207,11 @@ function listPreviewText(value, full = false) {
 }
 function looksBinary(bytes) {
     if (!bytes.length) return false;
-    let suspicious = 0;
     const sample = Math.min(bytes.length, 600);
+    // Symbol-cipher output is private-use placeholder text: valid UTF-8 whose high bytes
+    // would otherwise trip the byte scan, so decode the sample and treat it as text.
+    if (/[\uE000-\uF8FF]/.test(utf8(bytes.subarray(0, sample)))) return false;
+    let suspicious = 0;
     for (let i = 0; i < sample; i++) {
         const b = bytes[i];
         if (b === 0 || (b < 7) || (b > 13 && b < 32) || (b > 126 && b < 160)) suspicious++;
@@ -361,6 +364,7 @@ const CATEGORIES = META.categories
 const GRAPH_COLOR = CAT_COLORS.Graph;
 // Function blocks get their own accent so an instance reads differently from an operation.
 const FUNCTION_COLOR = "#0f8f8f";
+const SYMBOL_COLOR = "#a2603a";
 
 // Every argument a node has can take a wire. The control stays where it is for typing, but
 // a value arriving on the port wins while the wire is connected — a number is parsed, a
@@ -438,6 +442,9 @@ function nodeInPorts(node, lookup) {
             // One port per declared input, for feeding that input's test sample from a node
             // in the body instead of typing or attaching it.
             return (node.ports || []).map((_, i) => "sample:" + i);
+        case "symbol":
+            // A wire may feed the text to transcribe; otherwise the node's own box is used.
+            return ["main"];
         default:
             return ["main"];
     }
@@ -1070,6 +1077,12 @@ function makeNode(type, opts = {}) {
         // Values typed straight onto the instance, keyed by port ("fn:0"); used for any
         // declared input the definition marked as typeable and nothing is wired into.
         node.typedInputs = opts.typedInputs ? cloneValue(opts.typedInputs) : {};
+    } else if (type === "symbol") {
+        // A symbol-cipher node remembers which alphabet it draws and which way it runs.
+        node.slug = opts.slug || "";
+        node.symbolDirection = opts.symbolDirection === "decode" ? "decode" : "encode";
+        node.symbolShowIndex = opts.symbolShowIndex !== false;
+        node.text = opts.text ?? "";
     }
     node._output = null;
     node._error = "";
@@ -1204,6 +1217,9 @@ function cleanNodeForSave(n) {
         fnId: n.fnId,
         portPick: n.portPick,
         typedInputs: n.typedInputs ? cloneValue(n.typedInputs) : undefined,
+        slug: n.type === "symbol" ? n.slug : undefined,
+        symbolDirection: n.type === "symbol" ? n.symbolDirection : undefined,
+        symbolShowIndex: n.type === "symbol" ? Boolean(n.symbolShowIndex) : undefined,
         fileIndex: n.fileIndex || 0,
         previewMode: n.previewMode || "text",
         fullPreview: n.fullPreview ? true : undefined,
@@ -1279,8 +1295,9 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "compact", "expand", "pick", "op", "fn", "fnin", "fnout"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "compact", "expand", "pick", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
+    if (type === "symbol" && !raw.slug) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
     // is only rewritten when it is still the old default, so a name the user typed survives.
@@ -1318,6 +1335,9 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             fnId: raw.fnId ? String(raw.fnId) : "",
             portPick: Number(raw.portPick) || 0,
             typedInputs: readTypedInputs(raw.typedInputs),
+            slug: type === "symbol" ? String(raw.slug) : undefined,
+            symbolDirection: raw.symbolDirection === "decode" ? "decode" : "encode",
+            symbolShowIndex: raw.symbolShowIndex !== false,
             fileIndex: clamp(Number(raw.fileIndex) || 0, 0, 32),
             previewMode: ["hex", "raw", "image", "text"].includes(raw.previewMode) ? raw.previewMode : "text",
             fullPreview: Boolean(raw.fullPreview),
@@ -1605,11 +1625,13 @@ function sourceTitle(node) {
     if (node.type === "fn") return node.title || functionById(node.fnId)?.name || "Function";
     if (node.type === "fnin") return "Function input";
     if (node.type === "fnout") return "Function output";
+    if (node.type === "symbol") return node.title || symbolRow(node.slug)?.name || "Symbol cipher";
     return node.title || node.type;
 }
 function nodeAccent(node) {
     if (node.type === "op") return opAccent(node.op);
     if (node.type === "fn" || node.type === "fnin" || node.type === "fnout") return FUNCTION_COLOR;
+    if (node.type === "symbol") return SYMBOL_COLOR;
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") return CAT_COLORS.Multimedia;
     return GRAPH_COLOR;
 }
@@ -1626,6 +1648,7 @@ function nodeCategoryLabel(node) {
     if (node.type === "fn") return "Function";
     if (node.type === "fnin") return "Fn input";
     if (node.type === "fnout") return "Fn output";
+    if (node.type === "symbol") return "Symbol";
     return categoryOf(node.op);
 }
 function nodeTypeClass(node) {
@@ -1730,6 +1753,8 @@ function buildNode(node) {
         body.appendChild(buildFnInputNode(node));
     } else if (node.type === "fnout") {
         body.appendChild(buildFnOutputNode(node));
+    } else if (node.type === "symbol") {
+        body.appendChild(buildSymbolNode(node));
     }
     // Most nodes have a single output on the right edge. A function's input declaration and
     // an instance of a multi-output function put each port in the row it belongs to instead.
@@ -4913,7 +4938,8 @@ async function executeGraph(nodes, edges, opts = {}) {
         let sig = "";
         try {
             const takesMain = node.type === "op" || node.type === "input" || node.type === "file" || node.type === "switch" ||
-                node.type === "expand" || node.type === "pick" || node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
+                node.type === "expand" || node.type === "pick" || node.type === "pngchunks" || node.type === "pdfscan" ||
+                node.type === "imginfo" || node.type === "symbol";
             const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
@@ -5063,6 +5089,24 @@ async function executeGraph(nodes, edges, opts = {}) {
                         const withSeps = [];
                         parts.forEach((p, i) => { if (i) withSeps.push(sep); withSeps.push(p); });
                         out = concatBytes(withSeps);
+                    }
+                }
+            } else if (node.type === "symbol") {
+                // The transcription is the node's own text unless a wire feeds it. The direction
+                // toggle decides which way the table walks, and the output is the same U+E000
+                // placeholder text the palette's Symbol cipher operations produce.
+                sig = sigHash(inputSignature(node, incoming, results, opts) + ":" + node.slug + ":" + node.symbolDirection + ":" + String(node.text || ""));
+                if (!force && node._sig === sig && !error && (node._output || node._error)) {
+                    out = node._output;
+                    error = node._error;
+                    reused++;
+                    countIt = false;
+                } else if (!error) {
+                    const cipher = symbolCipher(node.slug);
+                    if (!cipher) error = "This node's symbol cipher is not available.";
+                    else {
+                        const text = main.bytes != null ? utf8(main.bytes) : String(node.text || "");
+                        out = enc.encode(node.symbolDirection === "decode" ? symbolDecodeText(text, cipher) : symbolEncodeText(text, cipher));
                     }
                 }
             } else if (node.type === "template") {
@@ -8820,6 +8864,504 @@ async function runAllIntegrations() {
     toast(stopped ? `Wiring checks stopped after ${done} of ${total}` : failed ? `${failed} wiring check${failed === 1 ? "" : "s"} failed` : "All wiring checks passed", failed ? "error" : "");
 }
 
+/* ================================================================ symbol ciphers */
+const SYMBOLS_OPEN_KEY = "cf.symbolsPanelOpen";
+let symbolRows = [];
+let symbolsOpen = false;
+
+function symbolRow(slug) {
+    return symbolRows.find(row => row.slug === slug) || null;
+}
+
+function symbolCipher(slug) {
+    return symbolRows.find(row => row.slug === slug && row.ready) || null;
+}
+
+// The graph form of a glyph: U+E000 + its index, the same placeholder scheme as the
+// palette's Symbol cipher encode/decode operations, so node output can feed either.
+const SYMBOL_PLACEHOLDER_BASE = 0xE000;
+
+function symbolEncodeText(text, cipher) {
+    const keys = cipher.glyphs
+        .map(glyph => ({glyph, key: String(glyph.key ?? "")}))
+        .filter(entry => entry.key)
+        .sort((a, b) => b.key.length - a.key.length);
+    const source = String(text ?? "");
+    let out = "";
+    for (let i = 0; i < source.length;) {
+        const hit = keys.find(entry => source.slice(i, i + entry.key.length).toLowerCase() === entry.key.toLowerCase());
+        if (hit) {
+            out += String.fromCharCode(SYMBOL_PLACEHOLDER_BASE + hit.glyph.index);
+            i += hit.key.length;
+        } else {
+            out += source[i];
+            i++;
+        }
+    }
+    return out;
+}
+
+function symbolDecodeText(text, cipher) {
+    const byCode = new Map(cipher.glyphs
+        .filter(glyph => glyph.index <= 0xFF)
+        .map(glyph => [SYMBOL_PLACEHOLDER_BASE + glyph.index, glyph.label || glyph.key || ""]));
+    let out = "";
+    for (const ch of String(text ?? "")) out += byCode.get(ch.codePointAt(0)) ?? ch;
+    return out;
+}
+
+// What a click puts into the transcription. An uppercase-only alphabet uses the label it
+// shows under the glyph; punctuation and spaces keep their literal key so the text stays
+// readable by the rest of the graph.
+function symbolGlyphAppendText(glyph, cipher) {
+    const key = String(glyph.key ?? "");
+    if (!key) return "";
+    if (cipher.caseSensitive) return key;
+    if (key.trim() && /[a-z]/i.test(key)) return String(glyph.label || key).toUpperCase();
+    return key;
+}
+
+function symbolTileHtml(cipher, glyph) {
+    const label = glyph.label || glyph.key || "";
+    const spoken = label === "␣" ? "space" : label;
+    return `<button type="button" class="glyph-tile" role="button" tabindex="0" data-glyph-index="${glyph.index}" aria-label="index ${glyph.index}, ${esc(spoken)}">
+        <span class="glyph-index" aria-hidden="true">${glyph.index}</span>
+        <svg class="glyph-tile-art" viewBox="0 0 100 100" aria-hidden="true"><use href="#g-${cipher.slug}-${glyph.index}"></use></svg>
+        <span class="glyph-label${label.length > 1 ? " multi" : ""}">${esc(label)}</span>
+    </button>`;
+}
+
+function clearSymbolHits(node) {
+    clearTimeout(node._symbolHitTimer);
+    node._symbolHitTimer = 0;
+    const el = nodeEl(node.id);
+    if (!el) return;
+    for (const tile of el.querySelectorAll(".glyph-tile.is-hit")) tile.classList.remove("is-hit");
+}
+
+function flashSymbolTiles(node, needle) {
+    clearSymbolHits(node);
+    const el = nodeEl(node.id);
+    if (!el) return;
+    const grid = $(".symbol-grid", el);
+    const cipher = symbolCipher(node.slug);
+    if (!grid || !cipher) return;
+    const want = String(needle || "").toLowerCase();
+    if (!want) return;
+    const hits = [];
+    for (const tile of grid.querySelectorAll(".glyph-tile")) {
+        const glyph = cipher.glyphs.find(g => g.index === Number(tile.dataset.glyphIndex));
+        if (glyph && String(glyph.key).toLowerCase() === want) {
+            tile.classList.add("is-hit");
+            hits.push(tile);
+        }
+    }
+    if (!hits.length) return;
+    // A match already on screen must not scroll the grid; only an off-screen match is
+    // brought into view, and only the grid itself moves.
+    const gr = grid.getBoundingClientRect();
+    const visible = hits.some(tile => {
+        const tr = tile.getBoundingClientRect();
+        return tr.top >= gr.top && tr.bottom <= gr.bottom;
+    });
+    if (!visible) {
+        const tr = hits[0].getBoundingClientRect();
+        if (tr.top < gr.top) grid.scrollTop -= gr.top - tr.top + 6;
+        else if (tr.bottom > gr.bottom) grid.scrollTop += tr.bottom - gr.bottom + 6;
+    }
+    node._symbolHitTimer = setTimeout(() => clearSymbolHits(node), 600);
+}
+
+function flashSymbolFromInput(node, ta) {
+    node._symbolHitCaret = ta.selectionStart;
+    flashSymbolTiles(node, ta.selectionStart > 0 ? ta.value[ta.selectionStart - 1] : "");
+}
+
+// Clicking a tile appends at the end, never at the caret. Going through execCommand keeps
+// the browser's own undo stack, so Ctrl/Cmd+Z removes the click like typed text.
+function appendSymbolGlyph(node, ta, glyph, cipher) {
+    const text = symbolGlyphAppendText(glyph, cipher);
+    if (!text) return;
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    let inserted = false;
+    try { inserted = document.execCommand("insertText", false, text); } catch { inserted = false; }
+    if (!inserted) {
+        ta.value += text;
+        ta.dispatchEvent(new Event("input", {bubbles: true}));
+    } else {
+        node.text = ta.value;
+        node._sig = "";
+    }
+    flashSymbolTiles(node, text);
+}
+
+/* The preview strip shows the transcription again as large glyphs. It is the place a
+ * mis-transcribed character becomes visible, so an unmapped character draws a dashed
+ * placeholder instead of disappearing. */
+const SYMBOL_PREVIEW_DEBOUNCE = 80;
+const SYMBOL_PNG_SCALE = 2;
+
+// Longest key first so a digraph alphabet (Aurebesh's TH, SH) wins over its single letters.
+function symbolPreviewEntries(text, cipher) {
+    const keys = cipher.glyphs
+        .map(glyph => ({glyph, key: String(glyph.key ?? "")}))
+        .filter(entry => entry.key)
+        .sort((a, b) => b.key.length - a.key.length);
+    const entries = [];
+    const source = String(text ?? "");
+    for (let i = 0; i < source.length;) {
+        const ch = source[i];
+        if (/\s/.test(ch)) {
+            // A cipher with a real space glyph shows it; otherwise a space is a gap.
+            const space = cipher.glyphs.find(g => String(g.key ?? "") === ch);
+            if (space) entries.push({glyph: space, char: space.label || "␣"});
+            i++;
+            continue;
+        }
+        const hit = keys.find(entry => {
+            const slice = source.slice(i, i + entry.key.length);
+            return cipher.caseSensitive ? slice === entry.key : slice.toLowerCase() === entry.key.toLowerCase();
+        });
+        entries.push(hit
+            ? {glyph: hit.glyph, char: hit.glyph.label || hit.key}
+            : {glyph: null, char: ch});
+        i += hit ? hit.key.length : 1;
+    }
+    return entries;
+}
+
+function symbolPreviewTileHtml(cipher, entry) {
+    if (entry.glyph) {
+        const glyph = entry.glyph;
+        return `<span class="symbol-prev-tile" data-glyph-index="${glyph.index}" title="${esc(glyph.label || glyph.key)}">
+            <svg class="symbol-prev-art" viewBox="0 0 100 100" aria-hidden="true"><use href="#g-${cipher.slug}-${glyph.index}"></use></svg>
+            <span class="symbol-prev-label">${esc(entry.char)}</span>
+        </span>`;
+    }
+    return `<span class="symbol-prev-tile unknown" title="No ${esc(cipher.name)} glyph for “${esc(entry.char)}”">
+        <span class="symbol-prev-unknown" aria-hidden="true">${esc(entry.char)}</span>
+        <span class="symbol-prev-label">${esc(entry.char)}</span>
+    </span>`;
+}
+
+function renderSymbolPreview(node, cipher, wrap) {
+    const strip = $(".symbol-prev-tiles", wrap);
+    if (!strip) return;
+    const entries = symbolPreviewEntries(node.text, cipher);
+    strip.innerHTML = entries.map(entry => symbolPreviewTileHtml(cipher, entry)).join("");
+    strip.hidden = !entries.length;
+    const count = $(".symbol-prev-count", wrap);
+    if (count) count.textContent = `Preview · ${entries.length} glyph${entries.length === 1 ? "" : "s"}`;
+    const hint = $(".symbol-prev-hint", wrap);
+    if (hint) hint.hidden = Boolean(entries.length);
+    const copy = $(".symbol-copy-png", wrap);
+    if (copy) copy.disabled = !entries.length;
+}
+
+function scheduleSymbolPreview(node, cipher, wrap) {
+    clearTimeout(node._symbolPreviewTimer);
+    node._symbolPreviewTimer = setTimeout(() => renderSymbolPreview(node, cipher, wrap), SYMBOL_PREVIEW_DEBOUNCE);
+}
+
+function symbolPngStamp() {
+    const d = new Date();
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+// The PNG reuses the strip's own layout (each tile's offset inside it), so the file matches
+// what is on screen — labels, placeholders and wrapping included — rather than a second
+// guessed layout. <use href="#…"> cannot be drawn to a canvas, so each glyph's <symbol>
+// contents are copied into a standalone SVG and drawn through an Image.
+async function copySymbolPreviewPng(node, cipher, wrap) {
+    const strip = $(".symbol-prev-tiles", wrap);
+    const tiles = strip ? [...strip.querySelectorAll(".symbol-prev-tile")] : [];
+    if (!tiles.length) return;
+    const button = $(".symbol-copy-png", wrap);
+    if (button) button.disabled = true;
+    const root = getComputedStyle(document.documentElement);
+    const css = (name, fallback) => root.getPropertyValue(name).trim() || fallback;
+    const bg = css("--node", "#ffffff");
+    const ink = css("--ink", "#17181a");
+    const muted = css("--muted", "#71747b");
+    const line = css("--line", "#d9d9d2");
+    const tileBg = css("--panel-2", "#ffffff");
+    const pad = 12;
+    const parts = [];
+    let bottom = 0;
+    let right = 0;
+    for (const tile of tiles) {
+        const x = pad + tile.offsetLeft;
+        const y = pad + tile.offsetTop;
+        bottom = Math.max(bottom, y + tile.offsetHeight);
+        right = Math.max(right, x + tile.offsetWidth + pad);
+        parts.push(`<rect x="${x}" y="${y}" width="${tile.offsetWidth}" height="${tile.offsetHeight}" rx="9" fill="${tileBg}" stroke="${line}"/>`);
+        const index = Number(tile.dataset.glyphIndex);
+        // SVG elements have no offsetLeft/offsetWidth (those are HTMLElement-only), and the
+        // canvas may be zoomed, so the art is measured in rects and divided by the tile's own
+        // zoom factor to get back to unscaled CSS pixels.
+        const zoom = tile.offsetWidth ? tile.getBoundingClientRect().width / tile.offsetWidth : 1;
+        const artBox = el => {
+            const r = el.getBoundingClientRect();
+            const t = tile.getBoundingClientRect();
+            return {x: (r.left - t.left) / zoom, y: (r.top - t.top) / zoom, w: r.width / zoom, h: r.height / zoom};
+        };
+        const art = index ? $(".symbol-prev-art", tile) : $(".symbol-prev-unknown", tile);
+        if (index && art) {
+            const box = artBox(art);
+            const glyphSymbol = document.getElementById(`g-${cipher.slug}-${index}`);
+            parts.push(`<g transform="translate(${x + box.x} ${y + box.y}) scale(${box.w / 100})">${glyphSymbol ? glyphSymbol.innerHTML : ""}</g>`);
+        } else if (art) {
+            const box = artBox(art);
+            const ax = x + box.x;
+            const ay = y + box.y;
+            parts.push(`<rect x="${ax}" y="${ay}" width="${box.w}" height="${box.h}" rx="8" fill="none" stroke="${line}" stroke-dasharray="5 4"/>`);
+            parts.push(`<text x="${ax + box.w / 2}" y="${ay + box.h / 2}" text-anchor="middle" dominant-baseline="central" font-family="monospace" font-size="22" fill="${muted}">${esc(art.textContent)}</text>`);
+        }
+        const label = $(".symbol-prev-label", tile);
+        if (label) {
+            parts.push(`<text x="${x + label.offsetLeft + label.offsetWidth / 2}" y="${y + label.offsetTop + label.offsetHeight * 0.8}" text-anchor="middle" font-family="monospace" font-size="${parseFloat(getComputedStyle(label).fontSize) || 9.5}" fill="${muted}">${esc(label.textContent)}</text>`);
+        }
+    }
+    const width = Math.ceil(Math.max(strip.clientWidth || 0, right));
+    const height = Math.ceil(bottom + pad);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" color="${ink}"><rect width="100%" height="100%" rx="10" fill="${bg}"/>${parts.join("")}</svg>`;
+    const url = URL.createObjectURL(new Blob([svg], {type: "image/svg+xml;charset=utf-8"}));
+    try {
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = () => reject(new Error("The preview could not be rasterised."));
+            img.src = url;
+        });
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(width * SYMBOL_PNG_SCALE);
+        canvas.height = Math.round(height * SYMBOL_PNG_SCALE);
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        if (!blob) throw new Error("The preview could not be encoded as PNG.");
+        downloadBlob(blob, `cipherflow-${cipher.slug}-${symbolPngStamp()}.png`);
+        toast("Preview PNG downloaded");
+    } catch (err) {
+        toast(err?.message || "The preview PNG could not be made.", "error");
+    } finally {
+        URL.revokeObjectURL(url);
+        if (button) button.disabled = false;
+    }
+}
+
+function buildSymbolNode(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "symbol-node";
+    const cipher = symbolCipher(node.slug);
+    if (!cipher) {
+        wrap.innerHTML = `<p class="symbol-node-hint">Unknown symbol cipher “${esc(node.slug || "")}”.</p>`;
+        return wrap;
+    }
+    node.symbolDirection = node.symbolDirection === "decode" ? "decode" : "encode";
+    if (node.symbolShowIndex === undefined) node.symbolShowIndex = true;
+    const encode = node.symbolDirection === "encode";
+    wrap.innerHTML = `
+        <div class="symbol-controls">
+            <div class="symbol-seg" role="group" aria-label="Direction">
+                <button type="button" class="symbol-dir${encode ? " on" : ""}" data-symbol-direction="encode" aria-pressed="${encode}">Encode</button>
+                <button type="button" class="symbol-dir${encode ? "" : " on"}" data-symbol-direction="decode" aria-pressed="${!encode}">Decode</button>
+            </div>
+            <button type="button" class="symbol-index-btn${node.symbolShowIndex ? " on" : ""}" data-symbol-index aria-pressed="${Boolean(node.symbolShowIndex)}" title="Show glyph indexes">#</button>
+        </div>
+        <textarea class="control typed-input symbol-input" rows="2" spellcheck="false" placeholder="Click a glyph below, or type a transcription">${esc(node.text || "")}</textarea>
+        <div class="symbol-grid${node.symbolShowIndex ? "" : " hide-index"}" role="group" aria-label="${esc(cipher.name)} glyphs">
+            ${cipher.glyphs.map(glyph => symbolTileHtml(cipher, glyph)).join("")}
+        </div>
+        <div class="symbol-preview">
+            <div class="symbol-prev-head">
+                <span class="symbol-prev-count">Preview · 0 glyphs</span>
+                <button type="button" class="symbol-copy-png" disabled>Copy PNG</button>
+            </div>
+            <p class="symbol-prev-hint">Click a glyph to start transcribing.</p>
+            <div class="symbol-prev-tiles" hidden></div>
+        </div>
+    `;
+    // The node is a pipeline stage too: a wire may feed the text to encode, exactly like the
+    // operation's input row, and the wire wins over the transcription box when connected.
+    wrap.prepend(mainInputRow(node, "In"));
+    const ta = $(".symbol-input", wrap);
+    const grid = $(".symbol-grid", wrap);
+
+    ta.addEventListener("input", () => {
+        node.text = ta.value;
+        node._sig = "";
+        flashSymbolFromInput(node, ta);
+        scheduleSymbolPreview(node, cipher, wrap);
+        onGraphEdited();
+    });
+    ta.addEventListener("click", () => clearSymbolHits(node));
+    ta.addEventListener("keydown", ev => {
+        if (["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(ev.key)) clearSymbolHits(node);
+    });
+
+    $("[data-symbol-index]", wrap).addEventListener("click", ev => {
+        node.symbolShowIndex = !node.symbolShowIndex;
+        grid.classList.toggle("hide-index", !node.symbolShowIndex);
+        const btn = ev.currentTarget;
+        btn.classList.toggle("on", node.symbolShowIndex);
+        btn.setAttribute("aria-pressed", String(Boolean(node.symbolShowIndex)));
+        onGraphEdited();
+    });
+    for (const btn of wrap.querySelectorAll("[data-symbol-direction]")) {
+        btn.addEventListener("click", () => {
+            node.symbolDirection = btn.dataset.symbolDirection === "decode" ? "decode" : "encode";
+            for (const other of wrap.querySelectorAll("[data-symbol-direction]")) {
+                const on = other === btn;
+                other.classList.toggle("on", on);
+                other.setAttribute("aria-pressed", String(on));
+            }
+            node._sig = "";
+            onGraphEdited();
+        });
+    }
+
+    grid.addEventListener("pointerdown", ev => {
+        if (ev.target.closest(".glyph-tile")) ev.stopPropagation();
+    });
+    grid.addEventListener("click", ev => {
+        const tile = ev.target.closest(".glyph-tile");
+        if (!tile) return;
+        const glyph = cipher.glyphs.find(g => g.index === Number(tile.dataset.glyphIndex));
+        if (!glyph) return;
+        appendSymbolGlyph(node, ta, glyph, cipher);
+        scheduleSymbolPreview(node, cipher, wrap);
+    });
+    $(".symbol-copy-png", wrap).addEventListener("click", () => copySymbolPreviewPng(node, cipher, wrap));
+    renderSymbolPreview(node, cipher, wrap);
+    return wrap;
+}
+
+function loadSymbolRows() {
+    try {
+        symbolRows = JSON.parse($("#symbolData")?.textContent || "[]");
+    } catch {
+        symbolRows = [];
+    }
+}
+
+// Search folds accents and case so "pokemon" finds "Pokémon" and "star wars" finds the
+// rows tagged with the phrase.
+const symbolNorm = value => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+function renderSymbolRows() {
+    const body = $("#symbolsPanelBody");
+    const html = symbolRows.map(row => {
+        const samples = row.ready
+            ? `<span class="symbols-samples">${row.samples.map(sample => `<svg class="symbols-sample" viewBox="0 0 100 100" aria-hidden="true"><use href="#${sample.id}"></use></svg>`).join("")}</span>`
+            : "";
+        const meta = row.ready
+            ? `${row.glyphCount} glyph${row.glyphCount === 1 ? "" : "s"}`
+            : "not yet drawn";
+        const variants = row.variants > 1 ? `<span>${row.variants} variants</span>` : "";
+        const title = row.ready
+            ? `Add ${row.name} to the canvas`
+            : `${row.name} is in the catalogue but has not been drawn yet`;
+        return `<button class="symbols-row${row.ready ? "" : " todo"}" type="button" data-symbol="${esc(row.slug)}"${row.ready ? "" : " disabled"} title="${esc(title)}">
+            <span class="symbols-row-head"><span class="symbols-row-name">${esc(row.name)}</span><span class="symbols-source">${esc(row.source)}</span></span>
+            ${samples}
+            <span class="symbols-meta"><span>${esc(meta)}</span>${variants}</span>
+        </button>`;
+    }).join("");
+    body.innerHTML = html + `<div class="symbols-empty" id="symbolsEmpty" hidden></div>`;
+    filterSymbolRows();
+}
+
+function filterSymbolRows() {
+    const input = $("#symbolsSearch");
+    const query = symbolNorm(input?.value.trim() || "");
+    const body = $("#symbolsPanelBody");
+    if (!body) return;
+    let shown = 0;
+    for (const rowEl of body.querySelectorAll(".symbols-row")) {
+        const row = symbolRow(rowEl.dataset.symbol);
+        if (!row) continue;
+        const haystack = symbolNorm([row.name, row.slug, ...(row.tags || [])].join(" "));
+        const match = !query || haystack.includes(query);
+        rowEl.hidden = !match;
+        if (match) shown++;
+    }
+    const empty = $("#symbolsEmpty");
+    if (empty) {
+        empty.hidden = shown > 0;
+        empty.textContent = symbolRows.length
+            ? `No symbol cipher matches “${input.value.trim()}”.`
+            : "No symbol ciphers are in the catalogue yet.";
+    }
+}
+
+function setSymbolsOpen(open, {focus = true} = {}) {
+    symbolsOpen = Boolean(open);
+    const panel = $("#symbolsPanel");
+    if (!panel) return;
+    panel.hidden = !symbolsOpen;
+    $("#symbolsRailBtn").setAttribute("aria-expanded", symbolsOpen ? "true" : "false");
+    try { localStorage.setItem(SYMBOLS_OPEN_KEY, symbolsOpen ? "1" : "0"); } catch {}
+    if (symbolsOpen && focus) {
+        const input = $("#symbolsSearch");
+        input.focus();
+        input.select();
+    }
+}
+
+function addSymbolNode(slug) {
+    const row = symbolRow(slug);
+    if (!row || !row.ready) return;
+    const p = spawnPoint();
+    const node = makeNode("symbol", {slug, x: p.x, y: p.y, title: row.name});
+    state.nodes.push(node);
+    setSelection([node.id]);
+    renderAllNodes();
+    onGraphEdited();
+    requestAnimationFrame(() => ensureNodeVisible(node));
+    if (window.innerWidth <= 900) setSymbolsOpen(false, {focus: false});
+}
+
+function initSymbolsPanel() {
+    loadSymbolRows();
+    // The badge counts the catalogue, not just the drawn alphabets: every cipher from
+    // dCode and CacheSleuth belongs in this panel, and the ready ones say so on their row.
+    const total = symbolRows.length;
+    const ready = symbolRows.filter(row => row.ready).length;
+    $("#symbolsRailCount").textContent = total;
+    $("#symbolsPanelCount").textContent = total;
+    $("#symbolsRailBtn").title = `Symbol ciphers (${total})`;
+    const hint = $(".symbols-panel-hint");
+    if (hint) hint.textContent = `${total} symbol ciphers · ${ready} ready to add`;
+    renderSymbolRows();
+    $("#symbolsRailBtn").addEventListener("click", () => setSymbolsOpen(!symbolsOpen));
+    $("#symbolsPanelClose").addEventListener("click", () => {
+        setSymbolsOpen(false);
+        $("#symbolsRailBtn").focus();
+    });
+    $("#symbolsSearch").addEventListener("input", filterSymbolRows);
+    $("#symbolsPanelBody").addEventListener("click", ev => {
+        const rowEl = ev.target.closest(".symbols-row");
+        if (!rowEl || rowEl.disabled) return;
+        addSymbolNode(rowEl.dataset.symbol);
+    });
+    // Moving the caret in a transcription dismisses its keyboard highlight immediately;
+    // the 600 ms decay is only for a caret that stays where the character was typed.
+    document.addEventListener("selectionchange", () => {
+        const ta = document.activeElement;
+        if (!ta || !ta.classList?.contains("symbol-input")) return;
+        const node = nodeById(Number(ta.closest(".node")?.dataset.id));
+        if (node && ta.selectionStart !== node._symbolHitCaret) clearSymbolHits(node);
+    });
+    let open = false;
+    try { open = localStorage.getItem(SYMBOLS_OPEN_KEY) === "1"; } catch {}
+    setSymbolsOpen(open, {focus: false});
+}
+
 /* ================================================================ sidebar / mobile */
 function openSidebar() {
     sidebarOpen = true;
@@ -8913,6 +9455,7 @@ function bindGlobalEvents() {
 
     document.addEventListener("keydown", ev => {
         if (ev.key === "Escape") {
+            if (symbolsOpen) { setSymbolsOpen(false); $("#symbolsRailBtn").focus(); return; }
             if (helpOpen()) { closeHelp(); return; }
             if (editingFunctionId) { closeFunctionEditor(); return; }
             if (! $("#lab").hidden) { closeLab(); return; }
@@ -9313,6 +9856,7 @@ async function init() {
     initToolbar();
     setupPaletteDelegation();
     buildPalette();
+    initSymbolsPanel();
     renderAllNodes();
     updateAutoSwitch();
     initLab();
@@ -9324,6 +9868,8 @@ async function init() {
     $(".brand-mark").innerHTML = svg("logo");
     $("#searchIcon").innerHTML = svg("search");
     $("#searchClear").innerHTML = svg("x");
+    $("#symbolsSearchIcon").innerHTML = svg("search");
+    $("#symbolsPanelClose").innerHTML = iconFill("x");
     $("#fitBtnIcon").innerHTML = svg("fit");
     $("#snapBtnIcon").innerHTML = svg("snap");
     initSnap();

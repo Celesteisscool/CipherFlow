@@ -8907,7 +8907,10 @@ function symbolEncodeText(text, cipher) {
 function symbolDecodeText(text, cipher) {
     const byCode = new Map(cipher.glyphs
         .filter(glyph => glyph.index <= 0xFF)
-        .map(glyph => [SYMBOL_PLACEHOLDER_BASE + glyph.index, glyph.label || glyph.key || ""]));
+        .map(glyph => {
+            const label = glyph.label || glyph.key || "";
+            return [SYMBOL_PLACEHOLDER_BASE + glyph.index, label === "␣" ? " " : label];
+        }));
     let out = "";
     for (const ch of String(text ?? "")) out += byCode.get(ch.codePointAt(0)) ?? ch;
     return out;

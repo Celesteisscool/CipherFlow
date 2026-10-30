@@ -170,9 +170,11 @@
       "colour",
       "color",
       "blocks",
-      "pixels"
+      "pixels",
+      "josh cramer",
+      "hexasquare"
     ],
-    "status": "todo",
+    "status": "ready",
     "wave": 1,
     "variants": 1,
     "class": "grid"
@@ -198,9 +200,12 @@
     "tags": [
       "star wars",
       "galactic basic",
-      "digraphs"
+      "digraphs",
+      "aurek",
+      "besh",
+      "outer rim"
     ],
-    "status": "todo",
+    "status": "ready",
     "wave": 1,
     "variants": 1,
     "class": "franchise"

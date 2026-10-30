@@ -21,8 +21,10 @@ import {cipher as tallyMarks} from "./tally-marks.mjs";
 import {cipher as dancingMen} from "./dancing-men.mjs";
 import {cipher as templars} from "./templars.mjs";
 import {cipher as theban} from "./theban.mjs";
+import {cipher as aurebesh} from "./aurebesh.mjs";
+import {cipher as hexahue} from "./hexahue.mjs";
 
-const REGISTRY = [pigpen, braille, standardGalactic, ogham, elderFuthark, flagSemaphore, sevenSegment, mayanNumerals, youngerFuthark, babylonianNumerals, tallyMarks, dancingMen, templars, theban];
+const REGISTRY = [pigpen, braille, standardGalactic, ogham, elderFuthark, flagSemaphore, sevenSegment, mayanNumerals, youngerFuthark, babylonianNumerals, tallyMarks, dancingMen, templars, theban, aurebesh, hexahue];
 
 const encoder = new TextEncoder();
 

@@ -186,9 +186,11 @@
     "tags": [
       "pokemon",
       "pokémon",
-      "ruins"
+      "zarbi",
+      "ruins",
+      "201"
     ],
-    "status": "todo",
+    "status": "ready",
     "wave": 1,
     "variants": 1,
     "class": "franchise"

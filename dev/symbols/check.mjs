@@ -70,7 +70,9 @@ for (const cipher of allCiphers()) {
 const stats = spriteStats();
 console.log(`sprite: ${stats.symbols} symbols, ${stats.bytes} bytes`);
 for (const [slug, s] of Object.entries(stats.perCipher)) {
-    console.log(`  ${slug}: ${s.symbols} glyphs, ${s.bytes} bytes`);
+    const perGlyph = s.bytes / Math.max(s.symbols, 1);
+    const flag = perGlyph > 350 ? " — over the 350 B/glyph budget" : "";
+    console.log(`  ${slug}: ${s.symbols} glyphs, ${s.bytes} bytes (${perGlyph.toFixed(0)} B/glyph)${flag}`);
 }
 const counts = (key) => catalogue.reduce((m, row) => (m[row[key]] = (m[row[key]] || 0) + 1, m), {});
 console.log("catalogue status", counts("status"));

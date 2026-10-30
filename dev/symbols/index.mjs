@@ -10,8 +10,16 @@ import fs from "node:fs";
 import {cipher as pigpen} from "./pigpen.mjs";
 import {cipher as braille} from "./braille.mjs";
 import {cipher as standardGalactic} from "./standard-galactic.mjs";
+import {cipher as ogham} from "./ogham.mjs";
+import {cipher as elderFuthark} from "./elder-futhark.mjs";
+import {cipher as flagSemaphore} from "./flag-semaphore.mjs";
+import {cipher as sevenSegment} from "./seven-segment.mjs";
+import {cipher as mayanNumerals} from "./mayan-numerals.mjs";
+import {cipher as youngerFuthark} from "./younger-futhark.mjs";
+import {cipher as babylonianNumerals} from "./babylonian-numerals.mjs";
+import {cipher as tallyMarks} from "./tally-marks.mjs";
 
-const REGISTRY = [pigpen, braille, standardGalactic];
+const REGISTRY = [pigpen, braille, standardGalactic, ogham, elderFuthark, flagSemaphore, sevenSegment, mayanNumerals, youngerFuthark, babylonianNumerals, tallyMarks];
 
 const encoder = new TextEncoder();
 
@@ -52,6 +60,9 @@ export function panelCatalogue() {
             source: row.source,
             tags: row.tags || [],
             status: row.status,
+            klass: row.class || "",
+            note: row.note || "",
+            aliasOf: row.aliasOf || "",
             ready,
             caseSensitive: ready ? Boolean(cipher.caseSensitive) : false,
             direction: ready ? (cipher.direction || "ltr") : "ltr",

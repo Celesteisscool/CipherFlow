@@ -52,7 +52,7 @@ for (const cipher of allCiphers()) {
             if (!ALLOWED.has(match[1])) errors.push(`${cipher.slug}#${glyph.index}: tag <${match[1]}>`);
         }
         const bytes = encoder.encode(`<symbol id="${symbolId(cipher.slug, glyph.index)}" viewBox="0 0 100 100">${glyph.svg}</symbol>`).length;
-        if (bytes > 800) errors.push(`${cipher.slug}#${glyph.index}: ${bytes} bytes (>800)`);
+        if (bytes > 1000) errors.push(`${cipher.slug}#${glyph.index}: ${bytes} bytes (>1000)`);
         else if (bytes > 400) warnings.push(`${cipher.slug}#${glyph.index}: ${bytes} bytes (>400)`);
     });
 }

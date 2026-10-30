@@ -9259,17 +9259,31 @@ function renderSymbolRows() {
         const samples = row.ready
             ? `<span class="symbols-samples">${row.samples.map(sample => `<svg class="symbols-sample" viewBox="0 0 100 100" aria-hidden="true"><use href="#${sample.id}"></use></svg>`).join("")}</span>`
             : "";
+        const status = row.status || "todo";
         const meta = row.ready
             ? `${row.glyphCount} glyph${row.glyphCount === 1 ? "" : "s"}`
-            : "not yet drawn";
+            : status === "alias"
+                ? `alias of ${row.aliasOf || "another row"}`
+                : status === "blocked"
+                    ? "blocked"
+                    : status === "keyed"
+                        ? "keyed"
+                        : "not yet drawn";
+        const classTag = !row.ready && row.klass ? `<span>${esc(row.klass)}</span>` : "";
         const variants = row.variants > 1 ? `<span>${row.variants} variants</span>` : "";
         const title = row.ready
             ? `Add ${row.name} to the canvas`
-            : `${row.name} is in the catalogue but has not been drawn yet`;
-        return `<button class="symbols-row${row.ready ? "" : " todo"}" type="button" data-symbol="${esc(row.slug)}"${row.ready ? "" : " disabled"} title="${esc(title)}">
+            : status === "alias"
+                ? `${row.name} is an alias of ${row.aliasOf || "another catalogue row"}`
+                : status === "blocked"
+                    ? `${row.name} is blocked: ${row.note || "no published 1:1 table"}`
+                    : status === "keyed"
+                        ? `${row.name} needs key material and is not a 1:1 glyph table`
+                        : `${row.name} is in the catalogue but has not been drawn yet`;
+        return `<button class="symbols-row${row.ready ? "" : " todo"}" type="button" data-symbol="${esc(row.slug)}" data-status="${esc(status)}"${row.ready ? "" : " disabled"} title="${esc(title)}">
             <span class="symbols-row-head"><span class="symbols-row-name">${esc(row.name)}</span><span class="symbols-source">${esc(row.source)}</span></span>
             ${samples}
-            <span class="symbols-meta"><span>${esc(meta)}</span>${variants}</span>
+            <span class="symbols-meta"><span>${esc(meta)}</span>${classTag}${variants}</span>
         </button>`;
     }).join("");
     body.innerHTML = html + `<div class="symbols-empty" id="symbolsEmpty" hidden></div>`;

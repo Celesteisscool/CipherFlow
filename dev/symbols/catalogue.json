@@ -495,10 +495,17 @@
   },
   {
     "slug": "circular-glyphs-alphabet",
-    "name": "Circular Glyphs Alphabet",
+    "name": "Circular Glyphs",
     "source": "dcode",
-    "tags": [],
-    "status": "todo",
+    "tags": [
+      "arcs",
+      "circles",
+      "quadrants",
+      "irolan",
+      "geometric",
+      "substitution"
+    ],
+    "status": "ready",
     "wave": 2,
     "variants": 1,
     "class": "chart"

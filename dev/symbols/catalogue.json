@@ -157,10 +157,11 @@
       "408",
       "homophones"
     ],
-    "status": "todo",
+    "status": "blocked",
     "wave": 1,
     "variants": 1,
-    "class": "homophone"
+    "class": "homophone",
+    "note": "The published 408 key survives only as interleaved Z408/Z340 artwork; no verified machine-readable 54-symbol table to redraw from yet."
   },
   {
     "slug": "hexahue",
@@ -219,9 +220,12 @@
     "tags": [
       "dingbats",
       "symbols",
-      "font"
+      "font",
+      "microsoft",
+      "pictograms",
+      "wingdings"
     ],
-    "status": "todo",
+    "status": "ready",
     "wave": 1,
     "variants": 1,
     "class": "font"

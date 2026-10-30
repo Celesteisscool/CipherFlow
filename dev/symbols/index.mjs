@@ -24,8 +24,9 @@ import {cipher as theban} from "./theban.mjs";
 import {cipher as aurebesh} from "./aurebesh.mjs";
 import {cipher as hexahue} from "./hexahue.mjs";
 import {cipher as unown} from "./unown.mjs";
+import {cipher as wingdings1} from "./wingdings-1.mjs";
 
-const REGISTRY = [pigpen, braille, standardGalactic, ogham, elderFuthark, flagSemaphore, sevenSegment, mayanNumerals, youngerFuthark, babylonianNumerals, tallyMarks, dancingMen, templars, theban, aurebesh, hexahue, unown];
+const REGISTRY = [pigpen, braille, standardGalactic, ogham, elderFuthark, flagSemaphore, sevenSegment, mayanNumerals, youngerFuthark, babylonianNumerals, tallyMarks, dancingMen, templars, theban, aurebesh, hexahue, unown, wingdings1];
 
 const encoder = new TextEncoder();
 

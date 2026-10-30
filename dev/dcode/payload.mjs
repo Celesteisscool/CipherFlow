@@ -10,7 +10,6 @@
  * embedded at the top of the same script.
  */
 import fs from "node:fs";
-import {allCiphers} from "../symbols/index.mjs";
 import * as shift from "./ops-shift.mjs";
 import * as transposition from "./ops-transposition.mjs";
 import * as polygrammic from "./ops-polygrammic.mjs";
@@ -18,12 +17,11 @@ import * as text from "./ops-text.mjs";
 import * as cachesleuth from "./ops-cachesleuth.mjs";
 import * as cachesleuthCode from "./ops-cachesleuth-code.mjs";
 import * as magic from "./ops-magic.mjs";
-import * as symbol from "./ops-symbol.mjs";
 
 export const MODULE_NAME = "CipherFlowDcode";
-export const BATCHES = [shift, transposition, polygrammic, text, cachesleuth, cachesleuthCode, magic, symbol];
+export const BATCHES = [shift, transposition, polygrammic, text, cachesleuth, cachesleuthCode, magic];
 // Helper files are concatenated in order; every `run` may use all of them.
-export const RUNTIME_FILES = ["runtime.js", "runtime-transposition.js", "runtime-polygrammic.js", "runtime-text.js", "runtime-cachesleuth.js", "runtime-cachesleuth-code.js", "runtime-symbol.js"];
+export const RUNTIME_FILES = ["runtime.js", "runtime-transposition.js", "runtime-polygrammic.js", "runtime-text.js", "runtime-cachesleuth.js", "runtime-cachesleuth-code.js"];
 
 export function allOps() {
     return BATCHES.flatMap(batch => batch.ops || []);
@@ -42,24 +40,6 @@ function fnSource(fn) {
     return src;
 }
 
-// The worker cannot import dev/symbols/*.mjs, so the glyph tables it needs are
-// baked into the generated module: key, label and index per cipher. The artwork
-// itself stays in the page sprite; this is only the text mapping.
-function symbolTable() {
-    const table = {};
-    for (const cipher of allCiphers()) {
-        table[cipher.slug] = {
-            caseSensitive: Boolean(cipher.caseSensitive),
-            glyphs: cipher.glyphs.map(glyph => [
-                String(glyph.key ?? ""),
-                String(glyph.label ?? ""),
-                glyph.index
-            ])
-        };
-    }
-    return table;
-}
-
 export function renderModule() {
     const runtime = RUNTIME_FILES
         .map(file => fs.readFileSync(new URL("./" + file, import.meta.url), "utf8"))
@@ -75,7 +55,6 @@ export function renderModule() {
 (function () {
 'use strict';
 ${runtime}
-var CF_SYMBOL_TABLE = ${JSON.stringify(symbolTable())};
 var CF_MODULE = ${JSON.stringify(MODULE_NAME)};
 var CF_SPECS = [
 ${specs.map(spec => `    {

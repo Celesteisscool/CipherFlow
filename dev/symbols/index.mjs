@@ -23,8 +23,9 @@ import {cipher as templars} from "./templars.mjs";
 import {cipher as theban} from "./theban.mjs";
 import {cipher as aurebesh} from "./aurebesh.mjs";
 import {cipher as hexahue} from "./hexahue.mjs";
+import {cipher as unown} from "./unown.mjs";
 
-const REGISTRY = [pigpen, braille, standardGalactic, ogham, elderFuthark, flagSemaphore, sevenSegment, mayanNumerals, youngerFuthark, babylonianNumerals, tallyMarks, dancingMen, templars, theban, aurebesh, hexahue];
+const REGISTRY = [pigpen, braille, standardGalactic, ogham, elderFuthark, flagSemaphore, sevenSegment, mayanNumerals, youngerFuthark, babylonianNumerals, tallyMarks, dancingMen, templars, theban, aurebesh, hexahue, unown];
 
 const encoder = new TextEncoder();
 

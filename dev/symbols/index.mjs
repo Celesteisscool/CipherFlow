@@ -52,6 +52,25 @@ export function renderSprite() {
 
 // The rows the left panel lists. A catalogue row is only "ready" when its module is
 // registered, so a missing module can never advertise a cipher the app cannot draw.
+// The panel previews five glyphs per row. Prefer letters (and digraphs) so the row
+// reads as an alphabet; then fill with any non-space, non-punctuation glyph. Only a
+// cipher with no letter-like keys at all falls back to its first five entries.
+function sampleGlyphs(cipher) {
+    const picked = cipher.glyphs
+        .filter(glyph => /^[A-Za-z]{1,3}$/.test(String(glyph.key ?? "")))
+        .slice(0, 5);
+    if (picked.length < 5) {
+        const used = new Set(picked);
+        const fillers = cipher.glyphs.filter(glyph => {
+            if (used.has(glyph)) return false;
+            const key = String(glyph.key ?? "");
+            return key.trim() && !/^[\s\p{P}\p{S}]+$/u.test(key);
+        });
+        picked.push(...fillers.slice(0, 5 - picked.length));
+    }
+    return picked.length ? picked.slice(0, 5) : cipher.glyphs.slice(0, 5);
+}
+
 export function panelCatalogue() {
     const rows = JSON.parse(fs.readFileSync(new URL("./catalogue.json", import.meta.url), "utf8"));
     return rows.map(row => {
@@ -72,7 +91,7 @@ export function panelCatalogue() {
             variants: row.variants || 1,
             glyphCount: ready ? cipher.glyphs.length : 0,
             samples: ready
-                ? cipher.glyphs.slice(0, 5).map(g => ({id: symbolId(cipher.slug, g.index), label: g.label}))
+                ? sampleGlyphs(cipher).map(g => ({id: symbolId(cipher.slug, g.index), label: g.label}))
                 : [],
             glyphs: ready
                 ? cipher.glyphs.map(g => ({index: g.index, key: g.key, label: g.label}))

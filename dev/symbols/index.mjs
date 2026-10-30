@@ -57,23 +57,24 @@ export function renderSprite() {
 
 // The rows the left panel lists. A catalogue row is only "ready" when its module is
 // registered, so a missing module can never advertise a cipher the app cannot draw.
-// The panel previews five glyphs per row. Prefer letters (and digraphs) so the row
-// reads as an alphabet; then fill with any non-space, non-punctuation glyph. Only a
-// cipher with no letter-like keys at all falls back to its first five entries.
+// The panel previews ten glyphs per row, which is what fills the drawer's width. Prefer
+// letters (and digraphs) so the row reads as an alphabet; then fill with any non-space,
+// non-punctuation glyph. Only a cipher with no letter-like keys at all falls back to its
+// first ten entries.
 function sampleGlyphs(cipher) {
     const picked = cipher.glyphs
         .filter(glyph => /^[A-Za-z]{1,3}$/.test(String(glyph.key ?? "")))
-        .slice(0, 5);
-    if (picked.length < 5) {
+        .slice(0, 10);
+    if (picked.length < 10) {
         const used = new Set(picked);
         const fillers = cipher.glyphs.filter(glyph => {
             if (used.has(glyph)) return false;
             const key = String(glyph.key ?? "");
             return key.trim() && !/^[\s\p{P}\p{S}]+$/u.test(key);
         });
-        picked.push(...fillers.slice(0, 5 - picked.length));
+        picked.push(...fillers.slice(0, 10 - picked.length));
     }
-    return picked.length ? picked.slice(0, 5) : cipher.glyphs.slice(0, 5);
+    return picked.length ? picked.slice(0, 10) : cipher.glyphs.slice(0, 10);
 }
 
 export function panelCatalogue() {

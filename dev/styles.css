@@ -1384,7 +1384,7 @@ select.control { padding-right: 4px; }
     font-size: 8.5px;
     letter-spacing: .02em;
 }
-.symbols-samples { display: flex; align-items: center; gap: 6px; height: 22px; color: var(--ink); }
+.symbols-samples { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-height: 22px; color: var(--ink); }
 .symbols-sample { width: 22px; height: 22px; flex: 0 0 auto; }
 .symbols-row.todo .symbols-samples { display: none; }
 .symbols-meta { display: flex; align-items: center; gap: 8px; color: var(--faint); font-size: 9px; }
@@ -1392,6 +1392,8 @@ select.control { padding-right: 4px; }
 .symbol-node-hint { margin: 0; color: var(--muted); font-size: 10.5px; line-height: 1.5; }
 
 /* ---------------------------------------------------------- symbol node body */
+/* Wider than a normal node: the glyph picker fits seven tiles across instead of five. */
+.node.type-symbol { width: 400px; }
 .node.type-symbol .node-body { display: flex; flex-direction: column; }
 .symbol-node { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
 .symbol-controls { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; }
@@ -1523,12 +1525,13 @@ select.control { padding-right: 4px; }
 }
 .symbol-copy-png:hover:not(:disabled) { color: var(--ink); border-color: var(--line-strong); }
 .symbol-copy-png:disabled { opacity: .45; cursor: default; }
+/* The strip repeats the picker's grid, so an output tile is the same size as the glyph
+ * tile it came from. */
 .symbol-prev-tiles {
     position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 5px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+    gap: 6px;
     padding: 2px;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -1544,22 +1547,24 @@ select.control { padding-right: 4px; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: 5px 3px 4px;
+    justify-content: center;
+    gap: 1px;
+    min-height: 54px;
+    padding: 4px 3px 3px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 7px;
     background: var(--panel-2);
     color: var(--ink);
 }
-.symbol-prev-art { width: 56px; height: 56px; flex: 0 0 auto; }
+.symbol-prev-art { width: 36px; height: 36px; flex: 0 0 auto; }
 .symbol-prev-tile.unknown { border-style: dashed; border-color: var(--line-strong); background: transparent; }
 .symbol-prev-unknown {
     display: grid;
     place-items: center;
-    width: 56px;
-    height: 56px;
+    width: 36px;
+    height: 36px;
     font-family: var(--mono);
-    font-size: 18px;
+    font-size: 13px;
     color: var(--muted);
 }
 .symbol-prev-label {
@@ -2473,6 +2478,9 @@ kbd {
     :root { --sidebar-w: 310px; }
     .sidebar-title { font-size: 20px; }
     .node { width: 292px; }
+    /* The symbol node's wider default belongs to a full-size window; at this width it
+       matches the other nodes and the picker wraps to the same five columns. */
+    .node.type-symbol { width: 292px; }
 }
 @media (max-width: 900px) {
     #app { display: grid; grid-template-columns: var(--symbols-rail-w) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 8px; }

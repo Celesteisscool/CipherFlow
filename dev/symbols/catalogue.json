@@ -1,0 +1,4131 @@
+[
+  {
+    "slug": "pigpen",
+    "name": "Pigpen",
+    "source": "both",
+    "tags": [
+      "masonic",
+      "freemason",
+      "geometric",
+      "tic-tac-toe"
+    ],
+    "status": "ready",
+    "wave": 1,
+    "variants": 4
+  },
+  {
+    "slug": "flag-semaphore",
+    "name": "Flag semaphore",
+    "source": "both",
+    "tags": [
+      "flags",
+      "semaphore",
+      "signals",
+      "arms"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "braille",
+    "name": "Braille",
+    "source": "both",
+    "tags": [
+      "dots",
+      "six-dot",
+      "grade-1",
+      "blind"
+    ],
+    "status": "ready",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "dancing-men",
+    "name": "Dancing Men",
+    "source": "both",
+    "tags": [
+      "sherlock",
+      "holmes",
+      "stick figures",
+      "conan doyle"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "standard-galactic",
+    "name": "Standard Galactic",
+    "source": "both",
+    "tags": [
+      "sga",
+      "commander keen",
+      "minecraft",
+      "enchanting table"
+    ],
+    "status": "ready",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "elder-futhark",
+    "name": "Elder Futhark",
+    "source": "both",
+    "tags": [
+      "runes",
+      "runic",
+      "norse",
+      "viking"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "younger-futhark",
+    "name": "Younger Futhark",
+    "source": "dcode",
+    "tags": [
+      "runes",
+      "runic",
+      "norse",
+      "viking"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "theban",
+    "name": "Theban",
+    "source": "both",
+    "tags": [
+      "witches alphabet",
+      "honorian",
+      "occult"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "ogham",
+    "name": "Ogham",
+    "source": "both",
+    "tags": [
+      "celtic",
+      "irish",
+      "tree alphabet",
+      "notches"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "templars",
+    "name": "Knights Templar",
+    "source": "both",
+    "tags": [
+      "templar",
+      "cross",
+      "maltese cross",
+      "masonic"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "zodiac-408",
+    "name": "Zodiac 408",
+    "source": "both",
+    "tags": [
+      "zodiac killer",
+      "408",
+      "homophones"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "hexahue",
+    "name": "Hexahue",
+    "source": "cachesleuth",
+    "tags": [
+      "colour",
+      "color",
+      "blocks",
+      "pixels"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "unown",
+    "name": "Unown",
+    "source": "both",
+    "tags": [
+      "pokemon",
+      "pokémon",
+      "ruins"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "aurebesh",
+    "name": "Aurebesh",
+    "source": "both",
+    "tags": [
+      "star wars",
+      "galactic basic",
+      "digraphs"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "wingdings-1",
+    "name": "Wingdings 1",
+    "source": "both",
+    "tags": [
+      "dingbats",
+      "symbols",
+      "font"
+    ],
+    "status": "todo",
+    "wave": 1,
+    "variants": 1
+  },
+  {
+    "slug": "7-segment-display",
+    "name": "7-Segment Display",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "abyss-language-genshin-impact",
+    "name": "Abyss Language (Genshin Impact)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "acere-cipher",
+    "name": "Acéré Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "al-bhed-language",
+    "name": "Al Bhed Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "alien-language",
+    "name": "Alien Language",
+    "source": "both",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "alpha-angle-system-branding",
+    "name": "Alpha Angle System Branding",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "alphabet-of-angels-and-genii",
+    "name": "Alphabet of Angels and Genii",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "alphabet-of-the-magi",
+    "name": "Alphabet of the Magi",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "alphabetum-kaldeorum",
+    "name": "Alphabetum Kaldeorum",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "alternian-alphabet",
+    "name": "Alternian Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "american-sign-language",
+    "name": "American Sign Language",
+    "source": "both",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "amharic-language",
+    "name": "Amharic Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "amphibia-alphabet",
+    "name": "Amphibia Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ancients-alphabet-from-stargate",
+    "name": "Ancients Alphabet from Stargate",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "arthur-and-the-invisibles-alphabet",
+    "name": "Arthur and the Invisibles Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "astronomical-symbol",
+    "name": "Astronomical Symbol",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "atlantean-language",
+    "name": "Atlantean Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "babylonian-numerals",
+    "name": "Babylonian Numerals",
+    "source": "both",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ballet-alphabet",
+    "name": "Ballet Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "betamaze-cipher",
+    "name": "Betamaze Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "bibi-binary-code",
+    "name": "Bibi-binary Code",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "birds-on-a-wire-cipher",
+    "name": "Birds on a Wire Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "celestial-alphabet",
+    "name": "Celestial Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "chappe-alphabet",
+    "name": "Chappe Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "chappe-code",
+    "name": "Chappe Code",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "chinese-code",
+    "name": "Chinese Code",
+    "source": "both",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "circular-glyphs-alphabet",
+    "name": "Circular Glyphs Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "cistercian-monk-numerals",
+    "name": "Cistercian Monk Numerals",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "clock-cipher",
+    "name": "Clock Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "code-of-claw-gregor",
+    "name": "Code of Claw (Gregor)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "copiale-cipher",
+    "name": "Copiale Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dni-numerals",
+    "name": "D'ni Numerals",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dada-urka-cipher",
+    "name": "Dada Urka Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "daedric-alphabet",
+    "name": "Daedric Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "daggers-alphabet",
+    "name": "Daggers' Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "deshret-language-genshin-impact",
+    "name": "Deshret Language (Genshin Impact)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dinotopia-alphabet",
+    "name": "Dinotopia Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dominos-in-digits",
+    "name": "Dominos in Digits",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dorabella-cipher",
+    "name": "Dorabella Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dothraki-alphabet",
+    "name": "Dothraki Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dotsies-font",
+    "name": "Dotsies Font",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dovahzul-language",
+    "name": "Dovahzul Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "draconic-language",
+    "name": "Draconic Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "egyptian-numerals",
+    "name": "Egyptian Numerals",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "elian-script",
+    "name": "Elian Script",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "enderwalk-language",
+    "name": "Enderwalk Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "enochian-alphabet",
+    "name": "Enochian Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "eternity-code-artemis-fowl",
+    "name": "Eternity Code (Artemis Fowl)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "fez-alphabet",
+    "name": "Fez Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "french-sign-language",
+    "name": "French Sign Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "friderici-cipher-windows",
+    "name": "Friderici Cipher (Windows)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "futurama-alien-2-alphabet",
+    "name": "Futurama Alien 2 Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "futurama-alien-alphabet",
+    "name": "Futurama Alien Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gerudo-language",
+    "name": "Gerudo Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gnommish-language",
+    "name": "Gnommish Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "goblin-tolkien-alphabet",
+    "name": "Goblin Tolkien Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gold-bug-cipher",
+    "name": "Gold Bug Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "goron-language",
+    "name": "Goron Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-alchemy-cipher",
+    "name": "Gravity Falls Alchemy Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-bill-cipher",
+    "name": "Gravity Falls Bill Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-bros-code",
+    "name": "Gravity Falls Bros' Code",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-color-code",
+    "name": "Gravity Falls Color Code",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-journal-3",
+    "name": "Gravity Falls Journal 3",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-rune-cipher",
+    "name": "Gravity Falls Rune Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-the-author",
+    "name": "Gravity Falls The Author",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-theraprism-cipher",
+    "name": "Gravity Falls Theraprism Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "halo-covenant-language",
+    "name": "Halo Covenant Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hexagram-encoding",
+    "name": "Hexagram Encoding",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hieroglyphs-manuel-de-codage",
+    "name": "Hieroglyphs (Manuel de Codage)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hylian-language-a-link-between-worlds",
+    "name": "Hylian Language (A Link Between Worlds)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hylian-language-breath-of-the-wild",
+    "name": "Hylian Language (Breath of the Wild)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hylian-language-ocarina-of-time",
+    "name": "Hylian Language (Ocarina of Time)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hylian-language-skyward-sword",
+    "name": "Hylian Language (Skyward Sword)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hylian-language-the-wind-waker",
+    "name": "Hylian Language (The Wind Waker)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hylian-language-twilight-princess",
+    "name": "Hylian Language (Twilight Princess)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hymnos-alphabet",
+    "name": "Hymnos Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ideograms-cipher-lines-circles-dots",
+    "name": "Ideograms Cipher (Lines, Circles, Dots)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "illageralt-alphabet",
+    "name": "Illageralt Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "inazuman-language-genshin-impact",
+    "name": "Inazuman Language (Genshin Impact)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "infernal-alphabet",
+    "name": "Infernal Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "inuktitut-language",
+    "name": "Inuktitut Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "iokharic-language",
+    "name": "Iokharic Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "itc-zapf-dingbats",
+    "name": "ITC Zapf Dingbats",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kaktovik-numerals",
+    "name": "Kaktovik Numerals",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kirby-forgotten-land-alphabet",
+    "name": "Kirby (Forgotten Land) Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "klingon-language-piqad",
+    "name": "Klingon Language (pIqaD)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "knots-notation",
+    "name": "Knots Notation",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kromagg-alphabet-sliders",
+    "name": "Kromagg Alphabet (Sliders)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kryptonian-alphabet",
+    "name": "Kryptonian Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "lingua-ignota",
+    "name": "Lingua Ignota",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "lunar-alphabet-l-katz",
+    "name": "Lunar Alphabet (L. Katz)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "malachim-alphabet",
+    "name": "Malachim Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "malayalam",
+    "name": "Malayalam",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mary-stuart-code",
+    "name": "Mary Stuart Code",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "matoran-language",
+    "name": "Matoran Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mayan-numerals",
+    "name": "Mayan Numerals",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mirror-digits",
+    "name": "Mirror Digits",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "monklish-alphabet",
+    "name": "Monklish Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "moon-alphabet",
+    "name": "Moon Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mourier-alphabet",
+    "name": "Mourier Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "music-sheet-cipher",
+    "name": "Music Sheet Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "music-staff-notation",
+    "name": "Music Staff Notation",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "navy-signals-code",
+    "name": "Navy Signals Code",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "nazcaan-alphabet",
+    "name": "Nazcaän Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "new-alphabet-by-crouwel",
+    "name": "New Alphabet by Crouwel",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ninjargon-alphabet-lego-ninjago",
+    "name": "Ninjargon Alphabet (Lego Ninjago)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "noita-alphabet",
+    "name": "Noita Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "nyctography-lewis-carroll",
+    "name": "Nyctography Lewis Carroll",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ophidian-alphabet-ultima",
+    "name": "Ophidian Alphabet (Ultima)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "option-key-cipher",
+    "name": "Option-Key Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "outer-rim-basic-alphabet",
+    "name": "Outer Rim Basic Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "passing-the-river-alphabet",
+    "name": "Passing the River Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pictured-as-perfect-code",
+    "name": "Pictured as Perfect Code",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "rataalada-cipher-batman",
+    "name": "RataAlada Cipher (Batman)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "rosicrucian-cipher",
+    "name": "Rosicrucian Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sanskrit",
+    "name": "Sanskrit",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "semaphore-angle",
+    "name": "Semaphore Angle",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "semaphore-clock",
+    "name": "Semaphore Clock",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "semaphore-trousers-cipher",
+    "name": "Semaphore Trousers Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sheikah-language",
+    "name": "Sheikah Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "simlish-language",
+    "name": "Simlish Language",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "stray-alphabet",
+    "name": "Stray Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sumeru-language-genshin-impact",
+    "name": "Sumeru Language (Genshin Impact)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "symbol-font",
+    "name": "Symbol Font",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tally-marks",
+    "name": "Tally Marks",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "telugu",
+    "name": "Telugu",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tenctonese-alphabet",
+    "name": "Tenctonese Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "teyvat-language-genshin-impact",
+    "name": "Teyvat Language (Genshin Impact)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "thai",
+    "name": "Thai",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tifinagh-alphabet",
+    "name": "Tifinagh Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tom-tom-code",
+    "name": "Tom Tom Code",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "voynich-cipher",
+    "name": "Voynich Cipher",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "vulcan-language-star-trek",
+    "name": "Vulcan Language (Star Trek)",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "wakanda-alphabet",
+    "name": "Wakanda Alphabet",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "webdings-font",
+    "name": "Webdings Font",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "wingdings-2-font",
+    "name": "Wingdings 2 Font",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "wingdings-3-font",
+    "name": "Wingdings 3 Font",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "zodiac-sign",
+    "name": "Zodiac Sign",
+    "source": "dcode",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "25-pair-color-code",
+    "name": "25-Pair Color Code",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "adlam",
+    "name": "Adlam",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "alphabet-code",
+    "name": "Alphabet Code",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "alphabots",
+    "name": "Alphabots",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "american-sign-language-color",
+    "name": "American Sign Language - Color",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "amohibia",
+    "name": "Amohibia",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ancient-alien",
+    "name": "Ancient Alien",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ancient-hylian",
+    "name": "Ancient Hylian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "andorian",
+    "name": "Andorian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "anillo",
+    "name": "Anillo",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "anti-life",
+    "name": "Anti-Life",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "antiker",
+    "name": "Antiker",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "aquarius",
+    "name": "Aquarius",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "arcadian",
+    "name": "Arcadian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "astronony-symbols",
+    "name": "Astronony Symbols",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ath",
+    "name": "Ath",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "atlantis",
+    "name": "Atlantis",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "autobot",
+    "name": "Autobot",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ba-ku",
+    "name": "Ba'ku",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "baal",
+    "name": "Baal",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "baal-diagonal",
+    "name": "Baal Diagonal",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "backslash",
+    "name": "Backslash",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ballet",
+    "name": "Ballet",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "barcode-39",
+    "name": "Barcode 39",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "beams",
+    "name": "Beams",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "bearded-men",
+    "name": "Bearded Men",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "birds-on-a-wire",
+    "name": "Birds On A Wire",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "blokscript",
+    "name": "Blokscript",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "blork",
+    "name": "Blork",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "blox",
+    "name": "Blox",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "book",
+    "name": "Book",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "borg",
+    "name": "Borg",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "box",
+    "name": "Box",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "brahmi",
+    "name": "Brahmi",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "breath-of-the-wild",
+    "name": "Breath of the Wild",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "builder-code-marvel",
+    "name": "Builder Code - Marvel",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "bynar",
+    "name": "Bynar",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "caps",
+    "name": "Caps",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "centaur",
+    "name": "Centaur",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "centauri",
+    "name": "Centauri",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "chappe",
+    "name": "Chappe",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "chappe-2",
+    "name": "Chappe 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "chappe-3",
+    "name": "Chappe 3",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "chocolate",
+    "name": "Chocolate",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "circle",
+    "name": "Circle",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "circles",
+    "name": "Circles",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "circular-glyphs",
+    "name": "Circular Glyphs",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "cistern",
+    "name": "Cistern",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "clutter",
+    "name": "Clutter",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "code-s",
+    "name": "Code S",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "codescript",
+    "name": "Codescript",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "cold-code",
+    "name": "Cold Code",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "color",
+    "name": "Color",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "color-music",
+    "name": "Color Music",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "colored-squares",
+    "name": "Colored Squares",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "colorhoney",
+    "name": "ColorHoney",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "colortokki",
+    "name": "ColorTokki",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "conway",
+    "name": "Conway",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "covenant",
+    "name": "Covenant",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "cybertronic",
+    "name": "Cybertronic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "d-ni-letters",
+    "name": "D'Ni Letters",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "d-ni-numbers",
+    "name": "D'Ni Numbers",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dada-urka",
+    "name": "Dada Urka",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dagger",
+    "name": "Dagger",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dancing-men-2",
+    "name": "Dancing Men 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dancing-men-3",
+    "name": "Dancing Men 3",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dead-spy-scrawls",
+    "name": "Dead Spy Scrawls",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "decepticon",
+    "name": "Decepticon",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "demon-script",
+    "name": "Demon Script",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "devanagari-numerals",
+    "name": "Devanagari Numerals",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dinotopian",
+    "name": "Dinotopian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dli",
+    "name": "DLI",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dna",
+    "name": "DNA",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "doctor",
+    "name": "Doctor",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "doop",
+    "name": "Doop",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dorabella",
+    "name": "Dorabella",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dots-stipplecode",
+    "name": "Dots/Stipplecode",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dotsies",
+    "name": "Dotsies",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "drac",
+    "name": "Drac",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "draconic",
+    "name": "Draconic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dragon-skyrim",
+    "name": "Dragon - Skyrim",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dragon-2",
+    "name": "Dragon 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dragon-runes",
+    "name": "Dragon Runes",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "drazi",
+    "name": "Drazi",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "droid",
+    "name": "Droid",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "dwemeri",
+    "name": "Dwemeri",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "efkolia",
+    "name": "Efkolia",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "egyptian-hieroglyphics",
+    "name": "Egyptian Hieroglyphics",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "elia",
+    "name": "Elia",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "enochian",
+    "name": "Enochian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "eternity",
+    "name": "Eternity",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "etruscan",
+    "name": "Etruscan",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ewok",
+    "name": "Ewok",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "fabrini",
+    "name": "Fabrini",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "fairy",
+    "name": "Fairy",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "fakoo",
+    "name": "Fakoo",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "fennim",
+    "name": "Fennim",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ferengi",
+    "name": "Ferengi",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "fez",
+    "name": "Fez",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "flags",
+    "name": "Flags",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "fonic",
+    "name": "Fonic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "forerunner",
+    "name": "Forerunner",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "four-square",
+    "name": "Four Square",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "freemason-version-1",
+    "name": "Freemason Version 1",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "freemason-version-2",
+    "name": "Freemason Version 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "freeze-marks",
+    "name": "Freeze Marks",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "fringe",
+    "name": "Fringe",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "futhark",
+    "name": "Futhark",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "futurama",
+    "name": "Futurama",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "futurama-2",
+    "name": "Futurama 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gaim",
+    "name": "Gaim",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "galactic",
+    "name": "Galactic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "galactic-2",
+    "name": "Galactic 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gardner",
+    "name": "Gardner",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "geocache-attributes",
+    "name": "Geocache Attributes",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gerudo-zelda",
+    "name": "Gerudo - Zelda",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "giovanni-fontana",
+    "name": "Giovanni Fontana",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "glagolitic",
+    "name": "Glagolitic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "glagolitic-2",
+    "name": "Glagolitic 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gnommish",
+    "name": "Gnommish",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-author",
+    "name": "Gravity Falls - Author",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-bill",
+    "name": "Gravity Falls - Bill",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "gravity-falls-journal",
+    "name": "Gravity Falls - Journal",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "great-machine",
+    "name": "Great Machine",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hexacode",
+    "name": "Hexacode",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hieratic",
+    "name": "Hieratic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hvd",
+    "name": "HVD",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hyach",
+    "name": "Hyach",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hylian",
+    "name": "Hylian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hylian-64",
+    "name": "Hylian 64",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "hymmnos",
+    "name": "Hymmnos",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "iching-hexagrams",
+    "name": "IChing Hexagrams",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "iconian",
+    "name": "Iconian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "illuminati-version-1",
+    "name": "Illuminati Version 1",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "illuminati-version-2",
+    "name": "Illuminati Version 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "indiana-jones",
+    "name": "Indiana Jones",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "japanese-numbers",
+    "name": "Japanese Numbers",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "jenks",
+    "name": "Jenks",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kabouter",
+    "name": "Kabouter",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kabouter-1947-version",
+    "name": "Kabouter 1947 Version",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kargi",
+    "name": "Kargi",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kartrak",
+    "name": "KarTrak",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kilrathi",
+    "name": "Kilrathi",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kix",
+    "name": "Kix",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "klingon",
+    "name": "Klingon",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "klinzhai-klingon",
+    "name": "Klinzhai - Klingon",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kokopelli",
+    "name": "Kokopelli",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "korean",
+    "name": "Korean",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "krakoan",
+    "name": "Krakoan",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "kryptonian",
+    "name": "Kryptonian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "leprechaun",
+    "name": "Leprechaun",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "life",
+    "name": "Life",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "llort",
+    "name": "Llort",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "lunar",
+    "name": "Lunar",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "magicode",
+    "name": "Magicode",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "malachim",
+    "name": "Malachim",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "malcorian",
+    "name": "Malcorian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mandalorian",
+    "name": "Mandalorian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "marain",
+    "name": "Marain",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "marain-2",
+    "name": "Marain 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "markab",
+    "name": "Markab",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mary-queen-of-scots",
+    "name": "Mary Queen of Scots",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "master-of-magic",
+    "name": "Master of Magic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "matoran",
+    "name": "Matoran",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "maximal",
+    "name": "Maximal",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mayan-calendar-1",
+    "name": "Mayan Calendar 1",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mayan-calendar-2",
+    "name": "Mayan Calendar 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mayan-numbers-1",
+    "name": "Mayan Numbers 1",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mayan-numbers-2",
+    "name": "Mayan Numbers 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "maze",
+    "name": "Maze",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "meroitic-hieroglyphs",
+    "name": "Meroitic Hieroglyphs",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mesoppotanic",
+    "name": "Mesoppotanic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "minbari",
+    "name": "Minbari",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "minimoys",
+    "name": "Minimoys",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mirror-numbers-1",
+    "name": "Mirror Numbers 1",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "mirror-numbers-2",
+    "name": "Mirror Numbers 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "moon",
+    "name": "Moon",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "morse-mountain",
+    "name": "Morse Mountain",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "morseircle",
+    "name": "Morseircle",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "murray-version-1",
+    "name": "Murray Version 1",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "murray-version-2",
+    "name": "Murray Version 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "murray-version-3",
+    "name": "Murray Version 3",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "murray-version-4",
+    "name": "Murray Version 4",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "music-sheet",
+    "name": "Music Sheet",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "n-ko",
+    "name": "N'Ko",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "narn",
+    "name": "Narn",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "nato-flags",
+    "name": "NATO Flags",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "nazcaan",
+    "name": "Nazcaan",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "nuha",
+    "name": "Nuha",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "number-pad-lines",
+    "name": "Number Pad Lines",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "numikki",
+    "name": "Numikki",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "nyctographic",
+    "name": "Nyctographic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ophidean",
+    "name": "Ophidean",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "orkhon",
+    "name": "Orkhon",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "outer-rim",
+    "name": "Outer Rim",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pakmara",
+    "name": "Pakmara",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pasley",
+    "name": "Pasley",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pentadic",
+    "name": "Pentadic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pictish-swirl",
+    "name": "Pictish Swirl",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pig-pen-version-1",
+    "name": "Pig Pen Version 1",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pig-pen-version-2",
+    "name": "Pig Pen Version 2",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pipeline",
+    "name": "Pipeline",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pixel",
+    "name": "Pixel",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "planet",
+    "name": "Planet",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "planet-barcode",
+    "name": "Planet Barcode",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "pool-balls",
+    "name": "Pool Balls",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "popham",
+    "name": "Popham",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "postnet-barcode",
+    "name": "Postnet Barcode",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "precursor",
+    "name": "Precursor",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "predacon",
+    "name": "Predacon",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "predator",
+    "name": "Predator",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "preservers",
+    "name": "Preservers",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "puzzle",
+    "name": "Puzzle",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "puzzle-code",
+    "name": "Puzzle Code (Black)",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "quadoo",
+    "name": "Quadoo",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "r2-units-star-wars",
+    "name": "R2 Units - Star Wars",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "reality",
+    "name": "Reality",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "red-herring",
+    "name": "Red Herring",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "resident-alien",
+    "name": "Resident Alien",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "retrospection",
+    "name": "Retrospection",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "rich",
+    "name": "Rich",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "riddler",
+    "name": "Riddler",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "romulan",
+    "name": "Romulan",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "rosicrucian",
+    "name": "Rosicrucian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "royal-mail",
+    "name": "Royal Mail (RM4SCC)",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "san-luca",
+    "name": "San Luca",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "segment-display",
+    "name": "Segment Display (7-Segment)",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "seltorian",
+    "name": "Seltorian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "semaphore-stick-men",
+    "name": "Semaphore - Stick Men",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "semaphore-clocks",
+    "name": "Semaphore Clocks",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "semaphore-flags",
+    "name": "Semaphore Flags",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "semaphore-man",
+    "name": "Semaphore Man",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "semaphore-trousers",
+    "name": "Semaphore Trousers",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "shadow",
+    "name": "Shadow",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "shadow-chain-of-death",
+    "name": "Shadow Chain of Death",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sheliak",
+    "name": "Sheliak",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "shoes-code",
+    "name": "Shoes Code",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sign",
+    "name": "Sign",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "simlish",
+    "name": "Simlish (From The Sims)",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sith",
+    "name": "Sith",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "slash-and-pipe",
+    "name": "Slash and Pipe",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "snooker",
+    "name": "Snooker",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "solresol",
+    "name": "Solresol",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "son-a",
+    "name": "Son'a",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "space-invaders",
+    "name": "Space Invaders",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "spick",
+    "name": "Spick",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "spintype",
+    "name": "Spintype",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sprykski",
+    "name": "Sprykski",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "square-glyphs",
+    "name": "Square Glyphs",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "stargate-universe",
+    "name": "Stargate Universe",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sticks",
+    "name": "Sticks",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "stray",
+    "name": "Stray",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "sumerian",
+    "name": "Sumerian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "symbolica",
+    "name": "Symbolica",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "takcha",
+    "name": "Takcha",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tau",
+    "name": "Tau",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "templar",
+    "name": "Templar",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tenctonese",
+    "name": "Tenctonese",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tengwar",
+    "name": "Tengwar",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "terzi",
+    "name": "Terzi",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tetragrammaton",
+    "name": "Tetragrammaton",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tholian",
+    "name": "Tholian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "three-square",
+    "name": "Three Square",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tic-tac-toe",
+    "name": "Tic Tac Toe",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tifinagh",
+    "name": "Tifinagh",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "time",
+    "name": "Time",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tkon",
+    "name": "Tkon",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tll-code",
+    "name": "TLL Code",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "tomtom",
+    "name": "Tomtom",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "trees",
+    "name": "Trees",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "triangle",
+    "name": "Triangle",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "triangles",
+    "name": "Triangles",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "trolls-alphabet",
+    "name": "Trolls Alphabet",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ugaritic",
+    "name": "Ugaritic",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ulog",
+    "name": "Ulog",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "umbaran-star-wars",
+    "name": "Umbaran - Star Wars",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "unitology",
+    "name": "Unitology",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "unown-pokemon-alphabet",
+    "name": "Unown - Pokemon Alphabet",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "utopian",
+    "name": "Utopian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "video-game",
+    "name": "Video Game",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "vidiian",
+    "name": "Vidiian",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "visitor",
+    "name": "Visitor",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "voodoo",
+    "name": "Voodoo",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "vorlon",
+    "name": "Vorlon",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "voth",
+    "name": "Voth",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "vulcan-modern",
+    "name": "Vulcan - Modern",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "vulcan-old",
+    "name": "Vulcan - Old",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "wakanda",
+    "name": "Wakanda",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "window",
+    "name": "Window",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "wraith",
+    "name": "Wraith",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "xelbet",
+    "name": "Xelbet",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "yan-koryani",
+    "name": "Yan Koryani",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "ygyde",
+    "name": "Ygyde",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "yin-yang",
+    "name": "Yin Yang",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "zentlardy",
+    "name": "Zentlardy",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "zeti",
+    "name": "Zeti",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "zodiac",
+    "name": "Zodiac",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  },
+  {
+    "slug": "zodiac-killer",
+    "name": "Zodiac Killer",
+    "source": "cachesleuth",
+    "tags": [],
+    "status": "todo",
+    "wave": 2,
+    "variants": 1
+  }
+]

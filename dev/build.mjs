@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 import {MODULE_NAME, renderModule} from "./dcode/payload.mjs";
+import {panelCatalogue, renderSprite, spriteStats} from "./symbols/index.mjs";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "index.html");
@@ -95,6 +96,15 @@ const tests = fs.readFileSync(path.join(ROOT, "dev/testplan.json"), "utf8");
 const css = fs.readFileSync(path.join(ROOT, "dev/styles.css"), "utf8");
 const app = fs.readFileSync(path.join(ROOT, "dev/app.js"), "utf8");
 
+const glyphSprite = renderSprite();
+const spriteInfo = spriteStats();
+console.log("Symbol sprite:", spriteInfo.symbols, "symbols,", glyphSprite.length, "bytes");
+for (const [slug, info] of Object.entries(spriteInfo.perCipher)) {
+    console.log(`  ${slug}: ${info.symbols} glyphs, ${info.bytes} bytes`);
+}
+const symbolPanel = panelCatalogue();
+console.log("Symbol panel rows:", symbolPanel.length, "(" + symbolPanel.filter(r => r.ready).length + " ready)");
+
 const gzB64 = str => zlib.gzipSync(Buffer.from(str, "utf8"), {level: 9}).toString("base64");
 const jsonForScript = str => str.replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 
@@ -160,6 +170,30 @@ ${css}
 </div>
 
 <div id="app">
+    <aside class="symbols-rail" id="symbolsRail">
+        <button class="symbols-rail-btn" id="symbolsRailBtn" type="button" aria-expanded="false" aria-controls="symbolsPanel" title="Symbol ciphers">
+            <span class="symbols-rail-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#g-pigpen-1"></use></svg></span>
+            <span class="symbols-rail-label">Symbols</span>
+            <span class="symbols-rail-count" id="symbolsRailCount">0</span>
+        </button>
+    </aside>
+
+    <aside class="symbols-panel" id="symbolsPanel" hidden aria-label="Symbol ciphers">
+        <div class="symbols-panel-head">
+            <div class="symbols-panel-title-row">
+                <h2 class="symbols-panel-title">Symbol ciphers</h2>
+                <span class="count-badge"><span id="symbolsPanelCount">0</span></span>
+                <button class="icon-button" id="symbolsPanelClose" title="Close symbol ciphers"></button>
+            </div>
+            <div class="search-wrap">
+                <span id="symbolsSearchIcon"></span>
+                <input id="symbolsSearch" class="search-input" placeholder="Search symbol ciphers" autocomplete="off" spellcheck="false" aria-label="Search symbol ciphers">
+            </div>
+            <p class="symbols-panel-hint">Click a cipher to add it to the canvas.</p>
+        </div>
+        <div class="symbols-panel-body" id="symbolsPanelBody"></div>
+    </aside>
+
     <main class="stage" id="stage">
         <div class="toolbar" id="toolbar"></div>
         <div class="world" id="world">
@@ -347,6 +381,8 @@ ${css}
 <input type="file" id="openFileInput" accept="application/json,.json" hidden>
 <div id="toasts"></div>
 
+${glyphSprite}
+<script type="application/json" id="symbolData">${jsonForScript(JSON.stringify(symbolPanel))}</script>
 <script type="application/json" id="metaData">${jsonForScript(meta)}</script>
 <script type="application/json" id="testData">${jsonForScript(tests)}</script>
 <script type="text/plain" id="engineGzip">

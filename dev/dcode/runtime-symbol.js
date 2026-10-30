@@ -68,7 +68,11 @@ function cfSymbolDecode(text, slug) {
     var byCode = {};
     for (var i = 0; i < entry.glyphs.length; i++) {
         var row = entry.glyphs[i];
-        if (row[2] <= CF_SYMBOL_MAX_INDEX) byCode[CF_SYMBOL_BASE + row[2]] = row[1] || row[0];
+        if (row[2] <= CF_SYMBOL_MAX_INDEX) {
+            // ␣ is the printed label for a space glyph; decode it back to a space.
+            var label = row[1] || row[0];
+            byCode[CF_SYMBOL_BASE + row[2]] = label === "␣" ? " " : label;
+        }
     }
     var out = "";
     for (var ch of source) {

@@ -1,0 +1,979 @@
+{
+  "slug": "zodiac_killer",
+  "name": "Zodiac Killer",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=zodiac_killer",
+      "images": "https://i.cachesleuth.com/images/zodiac_killer/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/zodiac-killer-cipher"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "lcdir": "",
+    "ucdir": "uppercase",
+    "font": ""
+  },
+  "counts": {
+    "declared": 62,
+    "uniqueFiles": 62,
+    "manifestFiles": 62,
+    "downloaded": 62,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/zodiac_killer/uppercase/A.png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/zodiac_killer/uppercase/B.png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/zodiac_killer/uppercase/C.png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/zodiac_killer/uppercase/D.png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/zodiac_killer/uppercase/E.png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/zodiac_killer/uppercase/F.png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/zodiac_killer/uppercase/G.png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/zodiac_killer/uppercase/H.png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/zodiac_killer/uppercase/I.png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/zodiac_killer/uppercase/J.png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/zodiac_killer/uppercase/K.png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/zodiac_killer/uppercase/L.png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/zodiac_killer/uppercase/M.png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/zodiac_killer/uppercase/N.png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/zodiac_killer/uppercase/O.png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/zodiac_killer/uppercase/P.png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/zodiac_killer/uppercase/Q.png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/zodiac_killer/uppercase/R.png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/zodiac_killer/uppercase/S.png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/zodiac_killer/uppercase/T.png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/zodiac_killer/uppercase/U.png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/zodiac_killer/uppercase/V.png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/zodiac_killer/uppercase/W.png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/zodiac_killer/uppercase/X.png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/zodiac_killer/uppercase/Y.png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/zodiac_killer/uppercase/Z.png"
+    },
+    {
+      "index": 27,
+      "key": "a",
+      "label": "a",
+      "file": "art/zodiac_killer/a.png"
+    },
+    {
+      "index": 28,
+      "key": "b",
+      "label": "b",
+      "file": "art/zodiac_killer/b.png"
+    },
+    {
+      "index": 29,
+      "key": "c",
+      "label": "c",
+      "file": "art/zodiac_killer/c.png"
+    },
+    {
+      "index": 30,
+      "key": "d",
+      "label": "d",
+      "file": "art/zodiac_killer/d.png"
+    },
+    {
+      "index": 31,
+      "key": "e",
+      "label": "e",
+      "file": "art/zodiac_killer/e.png"
+    },
+    {
+      "index": 32,
+      "key": "f",
+      "label": "f",
+      "file": "art/zodiac_killer/f.png"
+    },
+    {
+      "index": 33,
+      "key": "g",
+      "label": "g",
+      "file": "art/zodiac_killer/g.png"
+    },
+    {
+      "index": 34,
+      "key": "h",
+      "label": "h",
+      "file": "art/zodiac_killer/h.png"
+    },
+    {
+      "index": 35,
+      "key": "i",
+      "label": "i",
+      "file": "art/zodiac_killer/i.png"
+    },
+    {
+      "index": 36,
+      "key": "j",
+      "label": "j",
+      "file": "art/zodiac_killer/j.png"
+    },
+    {
+      "index": 37,
+      "key": "k",
+      "label": "k",
+      "file": "art/zodiac_killer/k.png"
+    },
+    {
+      "index": 38,
+      "key": "l",
+      "label": "l",
+      "file": "art/zodiac_killer/l.png"
+    },
+    {
+      "index": 39,
+      "key": "m",
+      "label": "m",
+      "file": "art/zodiac_killer/m.png"
+    },
+    {
+      "index": 40,
+      "key": "n",
+      "label": "n",
+      "file": "art/zodiac_killer/n.png"
+    },
+    {
+      "index": 41,
+      "key": "o",
+      "label": "o",
+      "file": "art/zodiac_killer/o.png"
+    },
+    {
+      "index": 42,
+      "key": "p",
+      "label": "p",
+      "file": "art/zodiac_killer/p.png"
+    },
+    {
+      "index": 43,
+      "key": "q",
+      "label": "q",
+      "file": "art/zodiac_killer/q.png"
+    },
+    {
+      "index": 44,
+      "key": "r",
+      "label": "r",
+      "file": "art/zodiac_killer/r.png"
+    },
+    {
+      "index": 45,
+      "key": "s",
+      "label": "s",
+      "file": "art/zodiac_killer/s.png"
+    },
+    {
+      "index": 46,
+      "key": "t",
+      "label": "t",
+      "file": "art/zodiac_killer/t.png"
+    },
+    {
+      "index": 47,
+      "key": "u",
+      "label": "u",
+      "file": "art/zodiac_killer/u.png"
+    },
+    {
+      "index": 48,
+      "key": "v",
+      "label": "v",
+      "file": "art/zodiac_killer/v.png"
+    },
+    {
+      "index": 49,
+      "key": "w",
+      "label": "w",
+      "file": "art/zodiac_killer/w.png"
+    },
+    {
+      "index": 50,
+      "key": "x",
+      "label": "x",
+      "file": "art/zodiac_killer/x.png"
+    },
+    {
+      "index": 51,
+      "key": "y",
+      "label": "y",
+      "file": "art/zodiac_killer/y.png"
+    },
+    {
+      "index": 52,
+      "key": "z",
+      "label": "z",
+      "file": "art/zodiac_killer/z.png"
+    },
+    {
+      "index": 53,
+      "key": "0",
+      "label": "0",
+      "file": "art/zodiac_killer/0.png"
+    },
+    {
+      "index": 54,
+      "key": "1",
+      "label": "1",
+      "file": "art/zodiac_killer/1.png"
+    },
+    {
+      "index": 55,
+      "key": "2",
+      "label": "2",
+      "file": "art/zodiac_killer/2.png"
+    },
+    {
+      "index": 56,
+      "key": "3",
+      "label": "3",
+      "file": "art/zodiac_killer/3.png"
+    },
+    {
+      "index": 57,
+      "key": "4",
+      "label": "4",
+      "file": "art/zodiac_killer/4.png"
+    },
+    {
+      "index": 58,
+      "key": "5",
+      "label": "5",
+      "file": "art/zodiac_killer/5.png"
+    },
+    {
+      "index": 59,
+      "key": "6",
+      "label": "6",
+      "file": "art/zodiac_killer/6.png"
+    },
+    {
+      "index": 60,
+      "key": "7",
+      "label": "7",
+      "file": "art/zodiac_killer/7.png"
+    },
+    {
+      "index": 61,
+      "key": "8",
+      "label": "8",
+      "file": "art/zodiac_killer/8.png"
+    },
+    {
+      "index": 62,
+      "key": "9",
+      "label": "9",
+      "file": "art/zodiac_killer/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/zodiac-killer-cipher",
+    "count": 73,
+    "variantNames": [
+      "z408",
+      "z340"
+    ],
+    "glyphs": [
+      {
+        "key": "7",
+        "file": "art/zodiac_killer/_dcode/char(55).png",
+        "variants": {
+          "z408": "A",
+          "z340": "L"
+        }
+      },
+      {
+        "key": "G",
+        "file": "art/zodiac_killer/_dcode/char(71).png",
+        "variants": {
+          "z408": "A",
+          "z340": "T"
+        }
+      },
+      {
+        "key": "S",
+        "file": "art/zodiac_killer/_dcode/char(83).png",
+        "variants": {
+          "z408": "A",
+          "z340": "D"
+        }
+      },
+      {
+        "key": "5",
+        "file": "art/zodiac_killer/_dcode/char(53).png",
+        "variants": {
+          "z408": "T",
+          "z340": "V"
+        }
+      },
+      {
+        "key": "H",
+        "file": "art/zodiac_killer/_dcode/char(72).png",
+        "variants": {
+          "z408": "T",
+          "z340": "I"
+        }
+      },
+      {
+        "key": "9",
+        "file": "art/zodiac_killer/_dcode/char(57).png",
+        "variants": {
+          "z408": "I",
+          "z340": "N"
+        }
+      },
+      {
+        "key": "%",
+        "file": "art/zodiac_killer/_dcode/char(37).png",
+        "variants": {
+          "z408": "L",
+          "z340": "T"
+        }
+      },
+      {
+        "key": "P",
+        "file": "art/zodiac_killer/_dcode/char(80).png",
+        "variants": {
+          "z408": "I",
+          "z340": "I"
+        }
+      },
+      {
+        "key": "/",
+        "file": "art/zodiac_killer/_dcode/char(47).png",
+        "variants": {
+          "z408": "K",
+          "z340": "U"
+        }
+      },
+      {
+        "key": "Z",
+        "file": "art/zodiac_killer/_dcode/char(90).png",
+        "variants": {
+          "z408": "E",
+          "z340": "R"
+        }
+      },
+      {
+        "key": "U",
+        "file": "art/zodiac_killer/_dcode/char(85).png",
+        "variants": {
+          "z408": "I",
+          "z340": "S"
+        }
+      },
+      {
+        "key": "B",
+        "file": "art/zodiac_killer/_dcode/char(66).png",
+        "variants": {
+          "z408": "L",
+          "z340": "E"
+        }
+      },
+      {
+        "key": "k",
+        "file": "art/zodiac_killer/_dcode/char(107).png",
+        "variants": {
+          "z408": "I",
+          "z340": "I"
+        }
+      },
+      {
+        "key": "O",
+        "file": "art/zodiac_killer/_dcode/char(79).png",
+        "variants": {
+          "z408": "N",
+          "z340": "A"
+        }
+      },
+      {
+        "key": "R",
+        "file": "art/zodiac_killer/_dcode/char(82).png",
+        "variants": {
+          "z408": "G",
+          "z340": "O"
+        }
+      },
+      {
+        "key": "=",
+        "file": "art/zodiac_killer/_dcode/char(61).png",
+        "variants": {
+          "z408": "P",
+          "z340": "Q"
+        }
+      },
+      {
+        "key": "p",
+        "file": "art/zodiac_killer/_dcode/char(112).png",
+        "variants": {
+          "z408": "E",
+          "z340": "C"
+        }
+      },
+      {
+        "key": "X",
+        "file": "art/zodiac_killer/_dcode/char(88).png",
+        "variants": {
+          "z408": "O",
+          "z340": "R"
+        }
+      },
+      {
+        "key": "W",
+        "file": "art/zodiac_killer/_dcode/char(87).png",
+        "variants": {
+          "z408": "E",
+          "z340": "W"
+        }
+      },
+      {
+        "key": "V",
+        "file": "art/zodiac_killer/_dcode/char(86).png",
+        "variants": {
+          "z408": "B",
+          "z340": "O"
+        }
+      },
+      {
+        "key": "+",
+        "file": "art/zodiac_killer/_dcode/char(43).png",
+        "variants": {
+          "z408": "E",
+          "z340": "H"
+        }
+      },
+      {
+        "key": "e",
+        "file": "art/zodiac_killer/_dcode/char(101).png",
+        "variants": {
+          "z408": "C",
+          "z340": "X"
+        }
+      },
+      {
+        "key": "Y",
+        "file": "art/zodiac_killer/_dcode/char(89).png",
+        "variants": {
+          "z408": "U",
+          "z340": "N"
+        }
+      },
+      {
+        "key": "F",
+        "file": "art/zodiac_killer/_dcode/char(70).png",
+        "variants": {
+          "z408": "S",
+          "z340": "F"
+        }
+      },
+      {
+        "key": "6",
+        "file": "art/zodiac_killer/_dcode/char(54).png",
+        "variants": {
+          "z408": "E",
+          "z340": "D"
+        }
+      },
+      {
+        "key": "@",
+        "file": "art/zodiac_killer/_dcode/char(64).png",
+        "variants": {
+          "z408": "S",
+          "z340": "U"
+        }
+      },
+      {
+        "key": "K",
+        "file": "art/zodiac_killer/_dcode/char(75).png",
+        "variants": {
+          "z408": "S",
+          "z340": "A"
+        }
+      },
+      {
+        "key": "!",
+        "file": "art/zodiac_killer/_dcode/char(33).png",
+        "variants": {
+          "z408": "O"
+        }
+      },
+      {
+        "key": "q",
+        "file": "art/zodiac_killer/_dcode/char(113).png",
+        "variants": {
+          "z408": "M",
+          "z340": "U"
+        }
+      },
+      {
+        "key": "M",
+        "file": "art/zodiac_killer/_dcode/char(77).png",
+        "variants": {
+          "z408": "H",
+          "z340": "O"
+        }
+      },
+      {
+        "key": "J",
+        "file": "art/zodiac_killer/_dcode/char(74).png",
+        "variants": {
+          "z408": "F",
+          "z340": "S"
+        }
+      },
+      {
+        "key": "^",
+        "file": "art/zodiac_killer/_dcode/char(94).png",
+        "variants": {
+          "z408": "N",
+          "z340": "O"
+        }
+      },
+      {
+        "key": "I",
+        "file": "art/zodiac_killer/_dcode/char(73).png",
+        "variants": {
+          "z408": "T"
+        }
+      },
+      {
+        "key": "T",
+        "file": "art/zodiac_killer/_dcode/char(84).png",
+        "variants": {
+          "z408": "O",
+          "z340": "R"
+        }
+      },
+      {
+        "key": "t",
+        "file": "art/zodiac_killer/_dcode/char(116).png",
+        "variants": {
+          "z408": "R",
+          "z340": "L"
+        }
+      },
+      {
+        "key": "N",
+        "file": "art/zodiac_killer/_dcode/char(78).png",
+        "variants": {
+          "z408": "E",
+          "z340": "E"
+        }
+      },
+      {
+        "key": "Q",
+        "file": "art/zodiac_killer/_dcode/char(81).png",
+        "variants": {
+          "z408": "F"
+        }
+      },
+      {
+        "key": "D",
+        "file": "art/zodiac_killer/_dcode/char(68).png",
+        "variants": {
+          "z408": "N",
+          "z340": "N"
+        }
+      },
+      {
+        "key": ")",
+        "file": "art/zodiac_killer/_dcode/char(41).png",
+        "variants": {
+          "z408": "H",
+          "z340": "W"
+        }
+      },
+      {
+        "key": "(",
+        "file": "art/zodiac_killer/_dcode/char(40).png",
+        "variants": {
+          "z408": "N",
+          "z340": "T"
+        }
+      },
+      {
+        "key": "#",
+        "file": "art/zodiac_killer/_dcode/char(35).png",
+        "variants": {
+          "z408": "L",
+          "z340": "T"
+        }
+      },
+      {
+        "key": "A",
+        "file": "art/zodiac_killer/_dcode/char(65).png",
+        "variants": {
+          "z408": "W",
+          "z340": "D"
+        }
+      },
+      {
+        "key": "f",
+        "file": "art/zodiac_killer/_dcode/char(102).png",
+        "variants": {
+          "z408": "D",
+          "z340": "B"
+        }
+      },
+      {
+        "key": "l",
+        "file": "art/zodiac_killer/_dcode/char(108).png",
+        "variants": {
+          "z408": "A",
+          "z340": "A"
+        }
+      },
+      {
+        "key": "E",
+        "file": "art/zodiac_killer/_dcode/char(69).png",
+        "variants": {
+          "z408": "E",
+          "z340": "R"
+        }
+      },
+      {
+        "key": "L",
+        "file": "art/zodiac_killer/_dcode/char(76).png",
+        "variants": {
+          "z408": "T",
+          "z340": "G"
+        }
+      },
+      {
+        "key": "d",
+        "file": "art/zodiac_killer/_dcode/char(100).png",
+        "variants": {
+          "z408": "O",
+          "z340": "L"
+        }
+      },
+      {
+        "key": "r",
+        "file": "art/zodiac_killer/_dcode/char(114).png",
+        "variants": {
+          "z408": "R",
+          "z340": "Z"
+        }
+      },
+      {
+        "key": "\\",
+        "file": "art/zodiac_killer/_dcode/char(92).png",
+        "variants": {
+          "z408": "R",
+          "z340": "K"
+        }
+      },
+      {
+        "key": "8",
+        "file": "art/zodiac_killer/_dcode/char(56).png",
+        "variants": {
+          "z408": "S",
+          "z340": "P"
+        }
+      },
+      {
+        "key": "z",
+        "file": "art/zodiac_killer/_dcode/char(122).png",
+        "variants": {
+          "z408": "D",
+          "z340": "A"
+        }
+      },
+      {
+        "key": "c",
+        "file": "art/zodiac_killer/_dcode/char(99).png",
+        "variants": {
+          "z408": "V",
+          "z340": "E"
+        }
+      },
+      {
+        "key": "j",
+        "file": "art/zodiac_killer/_dcode/char(106).png",
+        "variants": {
+          "z340": "P"
+        }
+      },
+      {
+        "key": "_",
+        "file": "art/zodiac_killer/_dcode/char(95).png",
+        "variants": {
+          "z408": "Y",
+          "z340": "B"
+        }
+      },
+      {
+        "key": ">",
+        "file": "art/zodiac_killer/_dcode/char(62).png",
+        "variants": {
+          "z340": "N"
+        }
+      },
+      {
+        "key": "|",
+        "file": "art/zodiac_killer/_dcode/char(124).png",
+        "variants": {
+          "z340": "E"
+        }
+      },
+      {
+        "key": "1",
+        "file": "art/zodiac_killer/_dcode/char(49).png",
+        "variants": {
+          "z340": "R"
+        }
+      },
+      {
+        "key": "2",
+        "file": "art/zodiac_killer/_dcode/char(50).png",
+        "variants": {
+          "z340": "M"
+        }
+      },
+      {
+        "key": ".",
+        "file": "art/zodiac_killer/_dcode/char(46).png",
+        "variants": {
+          "z340": "N"
+        }
+      },
+      {
+        "key": "<",
+        "file": "art/zodiac_killer/_dcode/char(60).png",
+        "variants": {
+          "z340": "I"
+        }
+      },
+      {
+        "key": "*",
+        "file": "art/zodiac_killer/_dcode/char(42).png",
+        "variants": {
+          "z408": "L",
+          "z340": "A"
+        }
+      },
+      {
+        "key": "y",
+        "file": "art/zodiac_killer/_dcode/char(121).png",
+        "variants": {
+          "z340": "I"
+        }
+      },
+      {
+        "key": ":",
+        "file": "art/zodiac_killer/_dcode/char(58).png",
+        "variants": {
+          "z340": "T"
+        }
+      },
+      {
+        "key": "3",
+        "file": "art/zodiac_killer/_dcode/char(51).png",
+        "variants": {
+          "z340": "Y"
+        }
+      },
+      {
+        "key": "&",
+        "file": "art/zodiac_killer/_dcode/char(38).png",
+        "variants": {
+          "z408": "I",
+          "z340": "S"
+        }
+      },
+      {
+        "key": "4",
+        "file": "art/zodiac_killer/_dcode/char(52).png",
+        "variants": {
+          "z340": "E"
+        }
+      },
+      {
+        "key": "-",
+        "file": "art/zodiac_killer/_dcode/char(45).png",
+        "variants": {
+          "z340": "S"
+        }
+      },
+      {
+        "key": "C",
+        "file": "art/zodiac_killer/_dcode/char(67).png",
+        "variants": {
+          "z340": "Y"
+        }
+      },
+      {
+        "key": ";",
+        "file": "art/zodiac_killer/_dcode/char(59).png",
+        "variants": {
+          "z340": "T"
+        }
+      },
+      {
+        "key": "b",
+        "file": "art/zodiac_killer/_dcode/char(98).png",
+        "variants": {
+          "z340": "E"
+        }
+      },
+      {
+        "key": "0",
+        "file": "art/zodiac_killer/_dcode/char(48).png",
+        "variants": null
+      },
+      {
+        "key": "[",
+        "file": "art/zodiac_killer/_dcode/char(91).png",
+        "variants": null
+      },
+      {
+        "key": "?",
+        "file": "art/zodiac_killer/_dcode/char(63).png",
+        "variants": {
+          "z340": "J"
+        }
+      }
+    ]
+  },
+  "check": "PASS"
+}

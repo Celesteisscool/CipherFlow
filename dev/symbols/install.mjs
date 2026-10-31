@@ -56,27 +56,46 @@ for (const slug of slugs.sort()) {
         return true;
     };
 
+    // artFrom "dcode": the two sources publish the same alphabet and dCode's icons were
+    // chosen, so the shipped glyph points at dCode's file. Keys/labels stay CacheSleuth's,
+    // only the drawing changes, and the duplicate set is not shipped.
+    const artFrom = staged.artFrom === "dcode" ? "dcode" : "cachesleuth";
+    const dcodeByKey = new Map();
+    if (staged.dcode) {
+        for (const g of staged.dcode.glyphs) {
+            const key = String(g.key ?? "").toLowerCase();
+            if (g.file && !dcodeByKey.has(key)) dcodeByKey.set(key, g);
+        }
+    }
+
+    const dropSet = new Set((staged.dropped || []).map(k => String(k)));
     let artFiles = 0;
     const glyphs = [];
     for (const g of staged.glyphs) {
-        // staged paths look like "glyphs/a.png"; repo paths look like "art/<slug>/a.png"
-        const rel = g.file ? g.file.replace(/^glyphs\//, "") : null;
-        const ok = rel && copy(g.file, path.join(artDir, rel));
+        const src = artFrom === "dcode" ? dcodeByKey.get(String(g.key ?? "").toLowerCase()) : g;
+        // A declared character with no art in the chosen source, named in --drop at
+        // authoring time (hexahue's empty space): dropped from the shipped set.
+        if (artFrom === "dcode" && !src && dropSet.has(String(g.key ?? ""))) continue;
+        // staged paths look like "glyphs/a.png"/"dcode/char(65).png"; repo paths like
+        // "art/<slug>/a.png"/"art/<slug>/_dcode/char(65).png"
+        const rel = src && src.file ? src.file.replace(/^(?:glyphs|dcode)\//, "") : null;
+        const sub = artFrom === "dcode" ? "_dcode" : "";
+        const ok = rel && copy(src.file, path.join(artDir, sub, rel));
         if (ok) artFiles++;
-        glyphs.push({index: g.index, key: g.key, label: g.label, file: ok ? `art/${slug}/${rel}` : null});
+        glyphs.push({index: glyphs.length + 1, key: g.key, label: g.label, file: ok ? `art/${slug}/${sub ? sub + "/" : ""}${rel}` : null});
     }
 
     let dcode = null;
-    if (staged.dcode) {
+    if (staged.dcode && artFrom !== "dcode") {
         const dglyphs = [];
         let dcount = 0;
         for (const g of staged.dcode.glyphs) {
             const rel = g.file ? g.file.replace(/^dcode\//, "") : null;
             const ok = rel && copy(g.file, path.join(artDir, "_dcode", rel));
             if (ok) dcount++;
-            dglyphs.push({key: g.key, file: ok ? `art/${slug}/_dcode/${rel}` : null});
+            dglyphs.push({key: g.key, file: ok ? `art/${slug}/_dcode/${rel}` : null, variants: g.variants || null});
         }
-        dcode = {page: staged.dcode.page, count: dcount, glyphs: dglyphs};
+        dcode = {page: staged.dcode.page, count: dcount, variantNames: staged.dcode.variantNames || [], glyphs: dglyphs};
     }
 
     const tableRel = staged.source.cachesleuth.tableImage
@@ -88,6 +107,8 @@ for (const slug of slugs.sort()) {
     const installed = {
         slug,
         name: staged.name,
+        artFrom,
+        dropped: staged.dropped || [],
         source: {
             cachesleuth: {
                 page: staged.source.cachesleuth.page,
@@ -112,14 +133,14 @@ for (const slug of slugs.sort()) {
     rows.push({
         slug,
         name: installed.name,
-        source: dcode && dcode.count ? "both" : "cachesleuth",
+        source: artFrom === "dcode" ? "dcode" : dcode && dcode.count ? "both" : "cachesleuth",
         status: missing ? "blocked" : "ready",
         glyphs: glyphs.length,
         uniqueFiles: staged.counts.uniqueFiles,
         dcode: dcode ? dcode.count : 0,
         check: staged.check
     });
-    console.log(`${slug.padEnd(14)} ${String(glyphs.length).padStart(3)} glyphs  ${String(artFiles).padStart(3)} art  dcode ${String(dcode ? dcode.count : 0).padStart(2)}  ${staged.check}`);
+    console.log(`${slug.padEnd(14)} ${String(glyphs.length).padStart(3)} glyphs  ${String(artFiles).padStart(3)} art  dcode ${String(dcode ? dcode.count : 0).padStart(2)}  ${staged.check}${(staged.dropped || []).length ? `  dropped ${JSON.stringify(staged.dropped)}` : ""}`);
 }
 
 rows.sort((a, b) => a.name.localeCompare(b.name));

@@ -67,16 +67,30 @@ function samplesFor(data) {
     return picked.map(g => ({key: g.key, label: g.label, src: encoder(path.join(HERE, g.file))}));
 }
 
+/** True when two keys in the set differ only by case (zodiac_killer's A/a are different
+ * symbols with different art), so the host must not fold case when matching text. */
+function caseSensitiveSet(glyphs) {
+    const byFold = new Map();
+    for (const g of glyphs) {
+        const k = String(g.key ?? "");
+        const f = k.toLowerCase();
+        if (byFold.has(f) && byFold.get(f) !== k) return true;
+        if (!byFold.has(f)) byFold.set(f, k);
+    }
+    return false;
+}
+
 /** Panel rows: one per ready cipher, sample strip already resolved to data URLs. */
 export function panelRows() {
     return readyCiphers().map(c => ({
         slug: c.slug,
         name: c.name,
         source: c.source,
+        artFrom: c.artFrom || "cachesleuth",
         glyphs: c.glyphs.length,
         dcode: c.dcode ? c.dcode.count : 0,
         direction: "ltr",
-        caseSensitive: false,
+        caseSensitive: caseSensitiveSet(c.glyphs),
         samples: samplesFor(c)
     }));
 }
@@ -91,13 +105,21 @@ export function glyphDataBundle() {
     const ciphers = {};
     for (const c of readyCiphers()) {
         const dcodeArt = c.dcode
-            ? c.dcode.glyphs.map(g => ({key: g.key, src: g.file ? encoder(path.join(HERE, g.file)) : null}))
+            ? c.dcode.glyphs.map(g => ({
+                key: g.key,
+                src: g.file ? encoder(path.join(HERE, g.file)) : null,
+                // Per-glyph plaintext per variant, where the page publishes one (Zodiac's
+                // Z408/Z340). The host uses it to tell a solved per-variant mapping from a
+                // letter-keyed alphabet, which decides the source toggle under D17.
+                variants: g.variants && Object.keys(g.variants).length ? g.variants : undefined
+            }))
             : null;
         ciphers[c.slug] = {
             name: c.name,
             source: c.source,
+            artFrom: c.artFrom || "cachesleuth",
             direction: "ltr",
-            caseSensitive: false,
+            caseSensitive: caseSensitiveSet(c.glyphs),
             table: c.source.cachesleuth.tableImage ? encoder(path.join(HERE, c.source.cachesleuth.tableImage)) : null,
             glyphs: c.glyphs.map(g => ({
                 index: g.index,
@@ -106,7 +128,7 @@ export function glyphDataBundle() {
                 src: g.file ? encoder(path.join(HERE, g.file)) : null
             })),
             dcode: c.dcode && c.dcode.count
-                ? {page: c.dcode.page, glyphs: dcodeArt}
+                ? {page: c.dcode.page, variantNames: c.dcode.variantNames || [], glyphs: dcodeArt}
                 : null
         };
     }

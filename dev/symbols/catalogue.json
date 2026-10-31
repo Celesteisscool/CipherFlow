@@ -1,5 +1,15 @@
 [
   {
+    "slug": "aurebesh",
+    "name": "Aurebesh",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 35,
+    "check": "PASS"
+  },
+  {
     "slug": "braille",
     "name": "Braille",
     "source": "both",
@@ -20,6 +30,16 @@
     "check": "PASS"
   },
   {
+    "slug": "enochian",
+    "name": "Enochian",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 22,
+    "check": "PASS"
+  },
+  {
     "slug": "futhark",
     "name": "Futhark",
     "source": "both",
@@ -27,6 +47,16 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 6,
+    "check": "PASS"
+  },
+  {
+    "slug": "hexahue",
+    "name": "Hexahue",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 38,
+    "uniqueFiles": 39,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -47,6 +77,36 @@
     "glyphs": 30,
     "uniqueFiles": 30,
     "dcode": 30,
+    "check": "PASS"
+  },
+  {
+    "slug": "theban",
+    "name": "Theban",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 24,
+    "check": "PASS"
+  },
+  {
+    "slug": "unown",
+    "name": "Unown - Pokemon Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 28,
+    "uniqueFiles": 28,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "zodiac_killer",
+    "name": "Zodiac Killer",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 62,
+    "uniqueFiles": 62,
+    "dcode": 73,
     "check": "PASS"
   }
 ]

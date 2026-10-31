@@ -1,0 +1,321 @@
+{
+  "slug": "theban",
+  "name": "Theban",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=theban",
+      "images": "https://i.cachesleuth.com/images/theban/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/theban-alphabet"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 26,
+    "uniqueFiles": 26,
+    "manifestFiles": 26,
+    "downloaded": 26,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/theban/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/theban/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/theban/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/theban/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/theban/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/theban/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/theban/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/theban/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/theban/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/theban/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/theban/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/theban/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/theban/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/theban/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/theban/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/theban/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/theban/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/theban/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/theban/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/theban/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/theban/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/theban/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/theban/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/theban/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/theban/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/theban/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/theban-alphabet",
+    "count": 24,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "A",
+        "file": "art/theban/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "B",
+        "file": "art/theban/_dcode/char(66).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/theban/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/theban/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/theban/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "F",
+        "file": "art/theban/_dcode/char(70).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/theban/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/theban/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/theban/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "K",
+        "file": "art/theban/_dcode/char(75).png",
+        "variants": null
+      },
+      {
+        "key": "L",
+        "file": "art/theban/_dcode/char(76).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/theban/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/theban/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/theban/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "P",
+        "file": "art/theban/_dcode/char(80).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/theban/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/theban/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/theban/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/theban/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/theban/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "X",
+        "file": "art/theban/_dcode/char(88).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/theban/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "Z",
+        "file": "art/theban/_dcode/char(90).png",
+        "variants": null
+      },
+      {
+        "key": ".",
+        "file": "art/theban/_dcode/char(46).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

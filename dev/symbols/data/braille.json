@@ -1,6 +1,8 @@
 {
   "slug": "braille",
   "name": "Braille",
+  "artFrom": "cachesleuth",
+  "dropped": [],
   "source": {
     "cachesleuth": {
       "page": "https://www.cachesleuth.com/codes/omni?code=braille",
@@ -341,42 +343,52 @@
   "dcode": {
     "page": "/braille-alphabet",
     "count": 9,
+    "variantNames": [],
     "glyphs": [
       {
         "key": "#",
-        "file": "art/braille/_dcode/char(35).png"
+        "file": "art/braille/_dcode/char(35).png",
+        "variants": null
       },
       {
         "key": "7",
-        "file": "art/braille/_dcode/char(55).png"
+        "file": "art/braille/_dcode/char(55).png",
+        "variants": null
       },
       {
         "key": "!",
-        "file": "art/braille/_dcode/char(33).png"
+        "file": "art/braille/_dcode/char(33).png",
+        "variants": null
       },
       {
         "key": "*",
-        "file": "art/braille/_dcode/char(42).png"
+        "file": "art/braille/_dcode/char(42).png",
+        "variants": null
       },
       {
         "key": "'",
-        "file": "art/braille/_dcode/char(39).png"
+        "file": "art/braille/_dcode/char(39).png",
+        "variants": null
       },
       {
         "key": "1",
-        "file": "art/braille/_dcode/char(49).png"
+        "file": "art/braille/_dcode/char(49).png",
+        "variants": null
       },
       {
         "key": "9",
-        "file": "art/braille/_dcode/char(57).png"
+        "file": "art/braille/_dcode/char(57).png",
+        "variants": null
       },
       {
         "key": ")",
-        "file": "art/braille/_dcode/char(41).png"
+        "file": "art/braille/_dcode/char(41).png",
+        "variants": null
       },
       {
         "key": "5",
-        "file": "art/braille/_dcode/char(53).png"
+        "file": "art/braille/_dcode/char(53).png",
+        "variants": null
       }
     ]
   },

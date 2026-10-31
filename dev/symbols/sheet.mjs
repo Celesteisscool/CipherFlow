@@ -49,12 +49,37 @@ function tile(g) {
     </figure>`;
 }
 
-const ourGrid = data.glyphs.map(tile).join("\n");
-const dcodeGrid = data.dcode ? data.dcode.glyphs.map(g =>
-    `<figure class="tile${g.file ? "" : " missing"}">
+// What the node will actually draw: CacheSleuth's grid, or dCode's icons matched by
+// key where both sources publish the same alphabet and dCode's art was chosen
+// (`artFrom: "dcode"`) — the latter ships without a source toggle.
+const dcodeByKey = new Map();
+for (const g of data.dcode?.glyphs || []) {
+    const key = String(g.key ?? "").toLowerCase();
+    if (g.file && !dcodeByKey.has(key)) dcodeByKey.set(key, g);
+}
+// Declared characters dropped because the chosen art has no tile for them (--drop)
+// leave the set entirely — the same rule install.mjs ships by.
+const dropSet = new Set((data.dropped || []).map(k => String(k)));
+const shipped = data.artFrom === "dcode"
+    ? data.glyphs.filter(g => !dropSet.has(String(g.key ?? "")))
+        .map(g => ({...g, file: dcodeByKey.get(String(g.key ?? "").toLowerCase())?.file || null}))
+    : data.glyphs;
+const ourGrid = shipped.map(tile).join("\n");
+const dcodeGrid = data.dcode ? data.dcode.glyphs.map(g => {
+    const vs = g.variants
+        ? `<span class="variants">${Object.entries(g.variants).map(([n, v]) => `${esc(n)}: ${esc(v)}`).join(" · ")}</span>`
+        : "";
+    return `<figure class="tile${g.file ? "" : " missing"}">
         ${g.file && dataUrl(g.file) ? `<img src="${dataUrl(g.file)}" alt="dcode ${esc(g.key)}">` : `<span class="ph">?</span>`}
-        <figcaption>${esc(g.key.toUpperCase())}</figcaption>
-    </figure>`).join("\n") : "";
+        <figcaption>${esc(g.key.toUpperCase())}${vs}</figcaption>
+    </figure>`;
+}).join("\n") : "";
+
+const dcodeNote = data.dcode && data.dcode.variantNames && data.dcode.variantNames.length
+    ? `Second implementation: ${data.dcode.count} symbols with a per-variant plaintext mapping (${data.dcode.variantNames.map(esc).join(", ")}) — dCode maps each symbol to its solved meaning in each cryptogram (homophonic, several symbols per letter), a different model from CacheSleuth's one-glyph-per-letter grid. The captions under this grid read \"variant: plaintext\".`
+    : data.artFrom === "dcode"
+    ? `This is the shipped art: dCode's ${data.dcode ? data.dcode.count : 0} glyphs were chosen as the cipher's own set, keyed and captioned by CacheSleuth's characters, so the node has no source toggle.${data.dropped && data.dropped.length ? ` The declared ${data.dropped.map(esc).map(k => `“${k}”`).join(", ")} tile${data.dropped.length > 1 ? "s" : ""} had no dCode art and was dropped at authoring time (\`--drop\`): dCode publishes no glyph for ${data.dropped.length > 1 ? "them" : "it"}, so ${data.dropped.length > 1 ? "they" : "it"} would draw empty anyway.` : ""} Section 2 draws these same files; this section is provenance only.`
+    : `Second implementation: ${data.dcode ? data.dcode.count : 0} glyphs vs CacheSleuth's ${data.counts.declared}. Where the two sets differ (count, keys or art), the node header shows the CacheSleuth/dCode toggle (D2).`;
 
 const tableImg = data.source.cachesleuth.tableImage ? dataUrl(data.source.cachesleuth.tableImage) : null;
 const pass = data.check === "PASS";
@@ -80,6 +105,7 @@ const html = `<!doctype html>
           text-align: center; color: #111; }
   .tile img { width: 44px; height: 44px; object-fit: contain; image-rendering: auto; }
   .tile figcaption { font-size: 12px; font-weight: 700; letter-spacing: .04em; margin-top: 4px; }
+  .tile .variants { display: block; font-size: 10px; font-weight: 500; letter-spacing: 0; color: #555; margin-top: 2px; }
   .tile .idx { position: absolute; top: 2px; left: 4px; font-size: 9px; color: #999; }
   .tile.missing { background: #402020; color: #ffd7d7; outline: 2px dashed #d33; }
   .tile .ph { font-size: 30px; line-height: 44px; }
@@ -103,6 +129,7 @@ const html = `<!doctype html>
   <div><b>${data.counts.failed}</b>failed</div>
   <div><b>${data.counts.unmapped}</b>unmapped (legends)</div>
   <div><b>${data.dcode ? data.dcode.count : "—"}</b>dCode glyphs</div>
+  ${data.dropped && data.dropped.length ? `<div><b>${data.dropped.length}</b>dropped (no dCode art)</div>` : ""}
 </div>
 
 <div class="split">
@@ -114,11 +141,11 @@ const html = `<!doctype html>
   </section>
 
   <section class="col">
-    <h2>2 · Ours — CacheSleuth art, our letter mapping</h2>
+    <h2>2 · Ours — ${data.artFrom === "dcode" ? "dCode art (chosen), our letter mapping" : "CacheSleuth art, our letter mapping"}</h2>
     <div class="grid">
 ${ourGrid}
     </div>
-    <div class="meta" style="margin-top:8px">what the node will draw: glyph above, letter beneath, index in the corner</div>
+    <div class="meta" style="margin-top:8px">what the node will draw: glyph above, letter beneath, index in the corner${data.artFrom === "dcode" ? " · dCode's icons, CacheSleuth's characters, no source toggle" : ""}${data.dropped && data.dropped.length ? ` · dropped ${data.dropped.map(k => JSON.stringify(k)).join(", ")} — no dCode art for it` : ""}</div>
   </section>
 </div>
 
@@ -127,8 +154,7 @@ ${data.dcode ? `<section>
   <div class="grid">
 ${dcodeGrid}
   </div>
-  <div class="note">Second implementation: ${data.dcode.count} glyphs vs CacheSleuth's ${data.counts.declared}.
-  Where the two sets differ (count, keys or art), the node header shows the CacheSleuth/dCode toggle (D2).</div>
+  <div class="note">${dcodeNote}</div>
 </section>` : `<section><h2>3 · dCode</h2><div class="note">Not extracted for this cipher — single source.</div></section>`}
 
 ${data.failed.length ? `<section><h2>Failures</h2><div class="note">${data.failed.map(f => `${esc(f.key)} (${esc(f.file)}): ${esc(f.why)}`).join("<br>")}</div></section>` : ""}

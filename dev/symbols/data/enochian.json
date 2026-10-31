@@ -1,0 +1,380 @@
+{
+  "slug": "enochian",
+  "name": "Enochian",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=enochian",
+      "images": "https://i.cachesleuth.com/images/enochian/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/enochian-language"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 26,
+    "uniqueFiles": 26,
+    "manifestFiles": 26,
+    "downloaded": 26,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/enochian/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/enochian/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/enochian/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/enochian/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/enochian/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/enochian/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/enochian/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/enochian/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/enochian/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/enochian/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/enochian/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/enochian/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/enochian/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/enochian/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/enochian/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/enochian/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/enochian/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/enochian/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/enochian/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/enochian/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/enochian/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/enochian/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/enochian/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/enochian/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/enochian/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/enochian/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/enochian-language",
+    "count": 22,
+    "variantNames": [
+      "Letter",
+      "Name"
+    ],
+    "glyphs": [
+      {
+        "key": "A",
+        "file": "art/enochian/_dcode/char(65).png",
+        "variants": {
+          "Letter": "Un",
+          "Name": "/ɑ/"
+        }
+      },
+      {
+        "key": "B",
+        "file": "art/enochian/_dcode/char(66).png",
+        "variants": {
+          "Letter": "Pa",
+          "Name": "/b/"
+        }
+      },
+      {
+        "key": "C",
+        "file": "art/enochian/_dcode/char(67).png",
+        "variants": {
+          "Letter": "Veh",
+          "Name": "/k/"
+        }
+      },
+      {
+        "key": "D",
+        "file": "art/enochian/_dcode/char(68).png",
+        "variants": {
+          "Letter": "Gal",
+          "Name": "/d/"
+        }
+      },
+      {
+        "key": "E",
+        "file": "art/enochian/_dcode/char(69).png",
+        "variants": {
+          "Letter": "Graph",
+          "Name": "/e/"
+        }
+      },
+      {
+        "key": "F",
+        "file": "art/enochian/_dcode/char(70).png",
+        "variants": {
+          "Letter": "Or",
+          "Name": "/f/"
+        }
+      },
+      {
+        "key": "G",
+        "file": "art/enochian/_dcode/char(71).png",
+        "variants": {
+          "Letter": "Ged",
+          "Name": "/dʒ/"
+        }
+      },
+      {
+        "key": "H",
+        "file": "art/enochian/_dcode/char(72).png",
+        "variants": {
+          "Letter": "Na",
+          "Name": "/h/"
+        }
+      },
+      {
+        "key": "I",
+        "file": "art/enochian/_dcode/char(73).png",
+        "variants": {
+          "Letter": "Gon",
+          "Name": "/iː/"
+        }
+      },
+      {
+        "key": "L",
+        "file": "art/enochian/_dcode/char(76).png",
+        "variants": {
+          "Letter": "Ur",
+          "Name": "/l/"
+        }
+      },
+      {
+        "key": "M",
+        "file": "art/enochian/_dcode/char(77).png",
+        "variants": {
+          "Letter": "Tal",
+          "Name": "/m/"
+        }
+      },
+      {
+        "key": "N",
+        "file": "art/enochian/_dcode/char(78).png",
+        "variants": {
+          "Letter": "Drux",
+          "Name": "/n/"
+        }
+      },
+      {
+        "key": "O",
+        "file": "art/enochian/_dcode/char(79).png",
+        "variants": {
+          "Letter": "Med",
+          "Name": "/oː/"
+        }
+      },
+      {
+        "key": "P",
+        "file": "art/enochian/_dcode/char(80).png",
+        "variants": {
+          "Letter": "Mals",
+          "Name": "/p/"
+        }
+      },
+      {
+        "key": "Q",
+        "file": "art/enochian/_dcode/char(81).png",
+        "variants": {
+          "Letter": "Ger",
+          "Name": "/q/"
+        }
+      },
+      {
+        "key": "R",
+        "file": "art/enochian/_dcode/char(82).png",
+        "variants": {
+          "Letter": "Don",
+          "Name": "/r/"
+        }
+      },
+      {
+        "key": "S",
+        "file": "art/enochian/_dcode/char(83).png",
+        "variants": {
+          "Letter": "Fam",
+          "Name": "/s/"
+        }
+      },
+      {
+        "key": "T",
+        "file": "art/enochian/_dcode/char(84).png",
+        "variants": {
+          "Letter": "Gisg",
+          "Name": "/t/"
+        }
+      },
+      {
+        "key": "U",
+        "file": "art/enochian/_dcode/char(85).png",
+        "variants": {
+          "Letter": "Van",
+          "Name": "/v/"
+        }
+      },
+      {
+        "key": "X",
+        "file": "art/enochian/_dcode/char(88).png",
+        "variants": {
+          "Letter": "Pal",
+          "Name": "/ks/"
+        }
+      },
+      {
+        "key": "Y",
+        "file": "art/enochian/_dcode/char(89).png",
+        "variants": {
+          "Letter": "Gon",
+          "Name": "/iː/"
+        }
+      },
+      {
+        "key": "Z",
+        "file": "art/enochian/_dcode/char(90).png",
+        "variants": {
+          "Letter": "Ceph",
+          "Name": "/z/"
+        }
+      }
+    ]
+  },
+  "check": "PASS"
+}

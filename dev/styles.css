@@ -2357,7 +2357,9 @@ body.has-sym-rail .toolbar { left: 43px; }
 /* The node: source bar, glyph grid, preview strip, transcribed text. */
 .node.type-symbol { width: 360px; }
 .sym-node { display: flex; flex-direction: column; gap: 8px; }
-.sym-bar { min-height: 20px; }
+/* Two control pairs can share this bar (Source, then Variant for a solved set), so it
+ * wraps instead of squeezing the segments on a narrow node. */
+.sym-bar { min-height: 20px; flex-wrap: wrap; row-gap: 4px; }
 .sym-src { margin-left: auto; }
 .sym-src button {
     border: none;
@@ -2403,6 +2405,8 @@ body.has-sym-rail .toolbar { left: 43px; }
 .glyph-tile img { width: 30px; height: 30px; object-fit: contain; }
 .glyph-missing { font-size: 20px; line-height: 30px; color: var(--faint); }
 .glyph-key { font-size: 9.5px; font-weight: 700; letter-spacing: .02em; color: var(--ink); }
+/* Per-variant letters under a solved set's tiles (Zodiac's z408/z340 meanings). */
+.glyph-var { font-size: 8px; font-weight: 600; line-height: 1.3; letter-spacing: 0; color: var(--faint); text-align: center; }
 .sym-preview {
     display: flex;
     align-items: flex-end;

@@ -1078,6 +1078,7 @@ function makeNode(type, opts = {}) {
         // and the text the clicked glyphs have spelled so far. That text is the output.
         node.symbolCipher = opts.symbolCipher || "";
         node.symbolSource = opts.symbolSource === "dcode" ? "dcode" : "cachesleuth";
+        node.symbolVariant = typeof opts.symbolVariant === "string" ? opts.symbolVariant : "";
         node.text = opts.text ?? "";
     }
     node._output = null;
@@ -1217,6 +1218,7 @@ function cleanNodeForSave(n) {
         previewMode: n.previewMode || "text",
         symbolCipher: n.symbolCipher,
         symbolSource: n.symbolSource,
+        symbolVariant: n.symbolVariant || undefined,
         fullPreview: n.fullPreview ? true : undefined,
         collapsed: Boolean(n.collapsed),
         w: Math.round(n.w || 0),
@@ -1329,6 +1331,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             fnId: raw.fnId ? String(raw.fnId) : "",
             symbolCipher: typeof raw.symbolCipher === "string" ? raw.symbolCipher : "",
             symbolSource: raw.symbolSource === "dcode" ? "dcode" : "cachesleuth",
+            symbolVariant: typeof raw.symbolVariant === "string" ? raw.symbolVariant : "",
             portPick: Number(raw.portPick) || 0,
             typedInputs: readTypedInputs(raw.typedInputs),
             fileIndex: clamp(Number(raw.fileIndex) || 0, 0, 32),
@@ -4213,8 +4216,9 @@ function inputSignature(node, incoming, results, opts) {
         return JSON.stringify(["fn", node.fnId, definitionStamp(functionById(node.fnId)), ports, node.typedInputs || null]);
     }
     if (node.type === "symbol") {
-        // The transcription is the whole input to this node: cipher, whose art, and text.
-        return JSON.stringify(["symbol", node.symbolCipher, node.symbolSource, node.text]);
+        // The transcription is the whole input to this node: cipher, whose art, which
+        // variant mapping it captions/appends with, and text.
+        return JSON.stringify(["symbol", node.symbolCipher, node.symbolSource, node.symbolVariant || "", node.text]);
     }
     return JSON.stringify(node);
 }
@@ -9441,8 +9445,10 @@ async function init() {
  * inlines, so this panel and these nodes never fetch at runtime.
  *
  * Data contract (dev/symbols/index.mjs):
- *   SYMBOLS.ciphers[slug] = {name, glyphs:[{index,key,label,src}],
+ *   SYMBOLS.ciphers[slug] = {name, artFrom, glyphs:[{index,key,label,src}],
  *                             dcode:{page, glyphs:[{key,src}]}|null, table}
+ * `artFrom` says whose icons the glyph set draws: "dcode" where the sources publish
+ * the same alphabet and dCode's art was picked (unown), so no source toggle applies.
  * where every `src` is already a data: URL, and a cipher is only in the island if its
  * count check passed and all of its art was on disk.
  */
@@ -9480,7 +9486,8 @@ function symbolDisplayLabel(glyph) {
     return String(glyph?.label || key);
 }
 
-/** The glyph set a node is showing: CacheSleuth's by default, dCode's when picked. */
+/** The glyph set a node is showing: CacheSleuth's by default, dCode's when picked —
+ * for a solved set either dCode's own letters (Normal) or one variant's mapping. */
 function symbolGlyphSet(node) {
     const cipher = symbolCipher(node.symbolCipher);
     if (!cipher) return null;
@@ -9488,14 +9495,26 @@ function symbolGlyphSet(node) {
     // source "dcode" for a cipher dCode publishes a handful of glyphs for (Braille has 9)
     // falls back to the complete set rather than drawing a half-empty grid.
     if (node.symbolSource === "dcode" && symbolToggleSources(cipher)) {
+        const variantNames = cipher.dcode.variantNames || [];
+        // "" is Normal: dCode's look-alike key as the letter, with both mappings printed
+        // under it. A variant (Z408/Z340) makes that cryptogram's solved letter the tile's
+        // key AND its label, so the caption, the appended character and the preview strip
+        // all agree; a symbol with no meaning in that cryptogram keeps its look-alike key.
+        const variant = variantNames.includes(node.symbolVariant) ? node.symbolVariant : null;
         return {
             source: "dcode",
-            glyphs: cipher.dcode.glyphs.map((g, i) => ({
-                index: i + 1,
-                key: String(g.key ?? ""),
-                label: String(g.key ?? "").toUpperCase(),
-                src: g.src
-            }))
+            variant,
+            glyphs: cipher.dcode.glyphs.map((g, i) => {
+                const key = String(g.key ?? "");
+                const mapped = variant ? g.variants?.[variant] : undefined;
+                return {
+                    index: i + 1,
+                    key: mapped || key,
+                    label: mapped || key.toUpperCase(),
+                    src: g.src,
+                    variants: g.variants && Object.keys(g.variants).length ? g.variants : undefined
+                };
+            })
         };
     }
     return {source: "cachesleuth", glyphs: cipher.glyphs};
@@ -9510,7 +9529,22 @@ function symbolGlyphSet(node) {
 function symbolToggleSources(cipher) {
     if (!cipher || !cipher.dcode || !cipher.dcode.glyphs?.length) return null;
     const keys = new Set(cipher.dcode.glyphs.map(g => String(g.key ?? "").toLowerCase()));
-    return SYMBOL_A_TO_Z.every(ch => keys.has(ch)) ? ["cachesleuth", "dcode"] : null;
+    if (!SYMBOL_A_TO_Z.every(ch => keys.has(ch))) return null;
+    // A solved per-variant mapping (Zodiac's Z408/Z340) keys each symbol to an arbitrary
+    // char and carries the plaintext in variant columns instead. It used to be refused
+    // here because the coverage test alone would have captioned 73 tiles with dCode's
+    // private chars; the tiles now print each symbol's per-variant letters under the
+    // caption (what the contact sheet shows), so the set is legible and usable. A page
+    // like Enochian's (glyph → letter *name*, not plaintext) was never a solved mapping.
+    return ["cachesleuth", "dcode"];
+}
+
+/** True when every mapped variant value is a single plaintext character. */
+function dcodeSolvedMapping(dcode) {
+    if (!dcode.variantNames?.length) return false;
+    const mapped = (dcode.glyphs || []).filter(g => g.variants && Object.keys(g.variants).length);
+    if (!mapped.length) return false;
+    return mapped.every(g => Object.values(g.variants).every(v => String(v).length === 1));
 }
 
 /** The strip under the grid: every character transcribed so far, as a labelled glyph. */
@@ -9563,22 +9597,51 @@ function buildSymbolNode(node) {
         return wrap;
     }
     if (node.symbolSource !== "dcode") node.symbolSource = "cachesleuth";
+    const variantNames = cipher.dcode?.variantNames || [];
+    // A saved or hand-edited variant counts only when this cipher publishes it; anything
+    // else (every non-variant cipher included) collapses to "" — Normal mode.
+    if (!variantNames.includes(node.symbolVariant)) node.symbolVariant = "";
     const set = symbolGlyphSet(node);
     const sources = symbolToggleSources(cipher);
     const tiles = set.glyphs.map((g, i) => {
         const label = symbolDisplayLabel(g);
-        return `<button class="glyph-tile" type="button" data-glyph="${i}" title="${esc(label)}" aria-label="index ${g.index}, ${esc(label)}">
+        // Normal mode prints what each symbol means in both cryptograms under its
+        // look-alike letter — the contact sheet's line. A variant mode shows that one
+        // mapping AS the letter, so printing it again underneath would say nothing new;
+        // the tooltip keeps both mappings either way.
+        const variantLine = g.variants
+            ? Object.entries(g.variants).map(([n, v]) => `${esc(n)}: ${esc(v)}`).join(" · ")
+            : "";
+        const showLine = variantLine && !set.variant;
+        return `<button class="glyph-tile" type="button" data-glyph="${i}" title="${esc(label)}${variantLine ? ` — ${variantLine}` : ""}" aria-label="index ${g.index}, ${esc(label)}">
             ${g.src ? `<img src="${esc(g.src)}" alt="" loading="lazy" draggable="false">` : '<span class="glyph-missing">?</span>'}
-            <span class="glyph-key">${esc(label)}</span>
+            <span class="glyph-key">${esc(label)}</span>${showLine ? `<span class="glyph-var">${variantLine}</span>` : ""}
         </button>`;
     }).join("");
+    const solved = variantNames.length > 0 && dcodeSolvedMapping(cipher.dcode);
+    const sourceTitle = src => src === "cachesleuth"
+        ? "Draw this cipher as CacheSleuth publishes it"
+        : `Draw this cipher as dCode publishes it${solved ? ` — each glyph captioned with its ${variantNames.join("/")} letters` : ""}`;
+    const fixedSource = cipher.artFrom === "dcode" ? "dCode" : "CacheSleuth";
     const sourceControl = sources
         ? `<span class="io-label">Source</span><span class="seg sym-src">${sources.map(src =>
-            `<button type="button" data-sym-source="${src}" class="${node.symbolSource === src ? "on" : ""}" title="Draw this cipher as ${src === "cachesleuth" ? "CacheSleuth" : "dCode"} publishes it">${src === "cachesleuth" ? "CacheSleuth" : "dCode"}</button>`).join("")}</span>`
-        : `<span class="io-label">Source</span><span class="sym-src-fixed">${node.symbolSource === "dcode" ? "dCode" : "CacheSleuth"}</span>`;
+            `<button type="button" data-sym-source="${src}" class="${node.symbolSource === src ? "on" : ""}" title="${esc(sourceTitle(src))}">${src === "cachesleuth" ? "CacheSleuth" : "dCode"}</button>`).join("")}</span>`
+        : `<span class="io-label">Source</span><span class="sym-src-fixed">${fixedSource}</span>`;
+    // Second switch, only where the source publishes solved mappings and dCode is the
+    // selected source: Normal is dCode's own letters, each variant is that cryptogram's
+    // solved mapping used as the tile's letter.
+    const variantControl = sources && variantNames.length && node.symbolSource === "dcode"
+        ? `<span class="io-label">Variant</span><span class="seg sym-var">${["", ...variantNames].map(v => {
+            const on = (node.symbolVariant || "") === v ? "on" : "";
+            const title = v
+                ? `Caption and append each symbol's ${v.toUpperCase()} solved letter — a symbol unused in that cryptogram keeps its look-alike letter`
+                : "dCode's look-alike letter on each tile, with both mappings printed underneath";
+            return `<button type="button" data-sym-variant="${esc(v)}" class="${on}" title="${esc(title)}">${v ? esc(v.toUpperCase()) : "Normal"}</button>`;
+        }).join("")}</span>`
+        : "";
     wrap.innerHTML = `
         <div class="io-row sym-bar">
-            ${sourceControl}
+            ${sourceControl}${variantControl}
             <button type="button" class="mini-btn sym-clear" data-sym-clear title="Clear the transcription">Clear</button>
         </div>
         <div class="glyph-grid" data-sym-tiles>${tiles}</div>
@@ -9617,6 +9680,17 @@ function buildSymbolNode(node) {
             const next = src.dataset.symSource;
             if (next !== node.symbolSource) {
                 node.symbolSource = next === "dcode" ? "dcode" : "cachesleuth";
+                node._sig = "";
+                rerenderSymbolNode(node);
+                onGraphEdited();
+            }
+            return;
+        }
+        const vr = ev.target.closest("[data-sym-variant]");
+        if (vr) {
+            const next = vr.dataset.symVariant || "";
+            if ((node.symbolVariant || "") !== next) {
+                node.symbolVariant = next;
                 node._sig = "";
                 rerenderSymbolNode(node);
                 onGraphEdited();

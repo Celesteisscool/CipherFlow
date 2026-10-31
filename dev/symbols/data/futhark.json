@@ -1,6 +1,8 @@
 {
   "slug": "futhark",
   "name": "Futhark",
+  "artFrom": "cachesleuth",
+  "dropped": [],
   "source": {
     "cachesleuth": {
       "page": "https://www.cachesleuth.com/codes/omni?code=futhark",
@@ -191,30 +193,37 @@
   "dcode": {
     "page": "/elder-futhark",
     "count": 6,
+    "variantNames": [],
     "glyphs": [
       {
         "key": "F",
-        "file": "art/futhark/_dcode/char(70).png"
+        "file": "art/futhark/_dcode/char(70).png",
+        "variants": null
       },
       {
         "key": "U",
-        "file": "art/futhark/_dcode/char(85).png"
+        "file": "art/futhark/_dcode/char(85).png",
+        "variants": null
       },
       {
         "key": "X",
-        "file": "art/futhark/_dcode/char(88).png"
+        "file": "art/futhark/_dcode/char(88).png",
+        "variants": null
       },
       {
         "key": "A",
-        "file": "art/futhark/_dcode/char(65).png"
+        "file": "art/futhark/_dcode/char(65).png",
+        "variants": null
       },
       {
         "key": "R",
-        "file": "art/futhark/_dcode/char(82).png"
+        "file": "art/futhark/_dcode/char(82).png",
+        "variants": null
       },
       {
         "key": "K",
-        "file": "art/futhark/_dcode/char(75).png"
+        "file": "art/futhark/_dcode/char(75).png",
+        "variants": null
       }
     ]
   },

@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 /* Symbol glyph extractor — authoring-time only, never part of dev/build.mjs.
  *
- *   node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path]
+ *   node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>]]]
+ *
+ * --art dcode ships dCode's icons as the cipher's own glyphs — used where both
+ * sources publish the same alphabet and dCode's art was chosen (unown, hexahue).
+ * The keys stay CacheSleuth's; the extractor refuses if dCode's set does not cover
+ * every declared character, unless that character is named in --drop (hexahue's
+ * empty space tile, which dCode does not publish). A named drop is recorded in
+ * cipher.json and shown on the contact sheet — never silent.
  *
  * Builds one cipher's glyph set from what the sources themselves declare, so no
  * character list is ever hand-typed (plan D6):
@@ -31,7 +38,7 @@ const NUMS = "0123456789".split("");
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
 
 function usage(code) {
-    console.error("usage: node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path]");
+    console.error("usage: node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>]]]");
     process.exit(code);
 }
 
@@ -121,12 +128,24 @@ function listOf(expr) {
 function planGlyphs(desc) {
     const glyphs = [];
     const seen = new Set();
+    // The site's caption rule (codetables.js): an up-cipher captions each tile
+    // with its own character ("A" under the uppercase art, "a" under the
+    // lowercase art); everything else is captioned uppercase.
+    const labelFor = key => (desc.up ? key : key.toUpperCase());
     const add = (key, file) => {
         if (!file || seen.has(key)) return;
         seen.add(key);
-        glyphs.push({key, label: key.length === 1 ? key.toUpperCase() : key.toUpperCase(), file});
+        glyphs.push({key, label: labelFor(key), file});
     };
-    for (const ch of listOf(desc.letters)) add(ch, `${desc.lcdir ? desc.lcdir + "/" : ""}${ch.toLowerCase()}.png`);
+    const letters = listOf(desc.letters);
+    // up:"1" ciphers publish BOTH cases as distinct art: the site's main table
+    // renders an "Uppercase" section ([ucdir/]UPPER.png, via its ln() rule)
+    // before the "Lowercase" one ([lcdir/]lower.png, via on()), so both sets are
+    // the source's alphabet — not a duplicate to drop (zodiac_killer: 62 files).
+    if (desc.up) {
+        for (const ch of letters) add(ch.toUpperCase(), `${desc.ucdir ? desc.ucdir + "/" : ""}${ch.toUpperCase()}.png`);
+    }
+    for (const ch of letters) add(ch, `${desc.lcdir ? desc.lcdir + "/" : ""}${ch.toLowerCase()}.png`);
     for (const n of listOf(desc.numbers)) add(n, `${n}.png`);
     const others = listOf(desc.otherchars);
     const names = listOf(desc.othernames);
@@ -178,8 +197,40 @@ function writePng(dir, file, buf) {
 
 /* --- dCode ----------------------------------------------------------- */
 
+/* Some cipher pages (zodiac-killer) publish a mapping table whose repeated
+ * header cells name the cipher's variants, one group per row of
+ * [glyph img][variant-1 letter][variant-2 letter]… . Parse it so every glyph
+ * carries what it MEANS in each variant — the Zodiac symbols are homophonic,
+ * so dCode's page maps one symbol inventory onto Z408 and Z340 separately. */
+function dcodeVariants(html) {
+    const out = new Map(); // absolute img src -> {variantName: plaintext}
+    for (let t = html.indexOf("<table"); t !== -1; t = html.indexOf("<table", t + 1)) {
+        const tEnd = html.indexOf("</table>", t);
+        const tbl = html.slice(t, tEnd === -1 ? html.length : tEnd);
+        if (!/class="glyph"/.test(tbl)) continue;
+        const names = [...new Set([...tbl.matchAll(/<th>([^<]*)<\/th>/g)].map(m => m[1].trim()).filter(Boolean))];
+        if (names.length < 2) continue;
+        for (const row of tbl.match(/<tr>[\s\S]*?<\/tr>/g) || []) {
+            const tds = [...row.matchAll(/<td>([\s\S]*?)<\/td>/g)].map(m => m[1]);
+            for (let i = 0; i < tds.length; i++) {
+                const src = (tds[i].match(/\bsrc="([^"]+)"/) || [])[1];
+                if (!src || !/class="glyph"/.test(tds[i])) continue;
+                const vals = {};
+                for (let k = 0; k < names.length && i + 1 + k < tds.length; k++) {
+                    const v = tds[i + 1 + k].replace(/<[^>]+>/g, "").trim();
+                    if (v) vals[names[k]] = v;
+                }
+                if (Object.keys(vals).length) out.set(src, vals);
+            }
+        }
+        if (out.size) return out;
+    }
+    return out;
+}
+
 async function extractDcode(pagePath, dir) {
     const html = await fetchText(DCODE_BASE + pagePath);
+    const variantsFor = dcodeVariants(html);
     const tags = [...html.matchAll(/<img[^>]*>/g)].map(x => x[0]).filter(t => /class="glyph"/.test(t));
     const seen = new Map();
     for (const t of tags) {
@@ -192,17 +243,19 @@ async function extractDcode(pagePath, dir) {
     }
     const entries = [...seen.entries()].map(([src, key]) => ({src, key}));
     const glyphs = await pool(entries, 6, async e => {
+        const variants = variantsFor.get(e.src) || null;
         try {
             const buf = await fetchBuf(e.src.startsWith("http") ? e.src : DCODE_BASE + e.src);
             const file = `dcode/${encodeURIComponent(path.basename(new URL(e.src, DCODE_BASE).pathname))}`;
             const bytes = writePng(dir, file, buf);
-            return {key: e.key, file, bytes, ok: isPng(buf)};
+            return {key: e.key, file, bytes, ok: isPng(buf), variants};
         } catch (err) {
             console.warn(`  ! dcode ${e.key}: ${err.message}`);
-            return {key: e.key, file: null, bytes: 0, ok: false};
+            return {key: e.key, file: null, bytes: 0, ok: false, variants};
         }
     });
-    return {page: pagePath, glyphs, count: glyphs.filter(g => g.file).length, ok: glyphs.every(g => g.ok)};
+    return {page: pagePath, variantNames: [...new Set([...variantsFor.values()].flatMap(v => Object.keys(v)))],
+        glyphs, count: glyphs.filter(g => g.file).length, ok: glyphs.every(g => g.ok)};
 }
 
 function isPng(buf) {
@@ -217,6 +270,27 @@ async function main() {
     const slug = args[0];
     const dIdx = args.indexOf("--dcode");
     const dcodePath = dIdx >= 0 ? args[dIdx + 1] : null;
+    const artIdx = args.indexOf("--art");
+    const artFrom = artIdx >= 0 ? String(args[artIdx + 1] || "").toLowerCase() : "cachesleuth";
+    if (!["cachesleuth", "dcode"].includes(artFrom)) usage(2);
+    if (artFrom === "dcode" && !dcodePath) {
+        console.error("--art dcode needs --dcode <page-path>");
+        process.exit(2);
+    }
+    const dropIdx = args.indexOf("--drop");
+    const dropSet = new Set();
+    if (dropIdx >= 0) {
+        if (artFrom !== "dcode") {
+            console.error("--drop only applies with --art dcode");
+            process.exit(2);
+        }
+        const val = dropIdx + 1 < args.length ? args[dropIdx + 1] : undefined;
+        if (val === undefined) {
+            console.error("--drop needs the characters to drop, e.g. --drop \" \"");
+            process.exit(2);
+        }
+        for (const ch of String(val)) dropSet.add(ch);
+    }
 
     const desc = pickDescriptor(readDescriptors(), slug);
     if (!desc) {
@@ -281,10 +355,26 @@ async function main() {
     }
 
     let dcode = null;
+    let artGap = [], artDropped = [];
     if (dcodePath) {
         console.log(`  dCode page             : ${dcodePath}`);
         dcode = await extractDcode(dcodePath, stage);
         console.log(`  dCode glyphs downloaded : ${dcode.count} (all PNG: ${dcode.ok})`);
+        if (dcode.variantNames.length) console.log(`  dCode variant mapping   : ${dcode.variantNames.join(", ")}`);
+        if (artFrom === "dcode") {
+            // Shipping dCode's icons works only when its set covers every character
+            // CacheSleuth declares, unless a character is named in --drop (hexahue's
+            // empty space): dCode publishes no glyph for it, so it is dropped on purpose
+            // and recorded — anything unnamed stays a count-check failure.
+            const byKey = new Map();
+            for (const g of dcode.glyphs) if (g.ok) byKey.set(String(g.key).toLowerCase(), g);
+            const uncovered = glyphs.filter(g => !byKey.has(String(g.key).toLowerCase())).map(g => g.key);
+            artDropped = uncovered.filter(k => dropSet.has(k));
+            artGap = uncovered.filter(k => !dropSet.has(k));
+            console.log(`  art source             : dCode (${glyphs.length - uncovered.length}/${glyphs.length} declared characters covered${artDropped.length ? ", dropped " + artDropped.map(k => JSON.stringify(k)).join(" ") : ""})`);
+            for (const c of dropSet) if (!uncovered.includes(c)) console.warn(`  ! --drop ${JSON.stringify(c)} — dCode has art for it, not dropped`);
+            if (artGap.length) console.log(`  dCode art missing keys : ${artGap.map(k => JSON.stringify(k)).join(", ")} (name them in --drop to drop on purpose)`);
+        }
     }
 
     const counts = {
@@ -296,11 +386,14 @@ async function main() {
         unmapped: unmapped.length
     };
     const check = counts.declared === counts.downloaded && counts.failed === 0 && absent.length === 0
+        && (artFrom !== "dcode" || (dcode && dcode.ok && artGap.length === 0))
         ? "PASS" : "FAIL";
 
     const data = {
         slug,
         name: desc.name,
+        artFrom,
+        dropped: artDropped,
         descriptor: {
             letters: desc.letters, numbers: desc.numbers,
             otherchars: desc.otherchars, othernames: desc.othernames,
@@ -318,7 +411,7 @@ async function main() {
         glyphs: results.map((r, i) => ({index: i + 1, key: r.key, label: r.label, file: r.ok ? `glyphs/${r.file}` : null, bytes: r.bytes})),
         failed: failed.map(r => ({key: r.key, file: r.file, why: r.why})),
         unmapped,
-        dcode: dcode ? {page: dcode.page, count: dcode.count, glyphs: dcode.glyphs} : null,
+        dcode: dcode ? {page: dcode.page, count: dcode.count, variantNames: dcode.variantNames, glyphs: dcode.glyphs} : null,
         check
     };
     fs.writeFileSync(path.join(stage, "cipher.json"), JSON.stringify(data, null, 2));

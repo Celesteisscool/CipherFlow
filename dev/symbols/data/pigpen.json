@@ -1,0 +1,362 @@
+{
+  "slug": "pigpen",
+  "name": "Pig Pen Version 1",
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=pigpen",
+      "images": "https://i.cachesleuth.com/images/pigpen/",
+      "tableImage": "art/pigpen/table-legend.png"
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/pigpen-cipher"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 36,
+    "uniqueFiles": 36,
+    "manifestFiles": 36,
+    "downloaded": 36,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/pigpen/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/pigpen/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/pigpen/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/pigpen/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/pigpen/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/pigpen/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/pigpen/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/pigpen/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/pigpen/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/pigpen/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/pigpen/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/pigpen/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/pigpen/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/pigpen/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/pigpen/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/pigpen/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/pigpen/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/pigpen/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/pigpen/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/pigpen/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/pigpen/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/pigpen/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/pigpen/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/pigpen/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/pigpen/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/pigpen/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/pigpen/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/pigpen/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/pigpen/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/pigpen/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/pigpen/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/pigpen/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/pigpen/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/pigpen/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/pigpen/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/pigpen/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/pigpen-cipher",
+    "count": 26,
+    "glyphs": [
+      {
+        "key": "A",
+        "file": "art/pigpen/_dcode/char(65).png"
+      },
+      {
+        "key": "B",
+        "file": "art/pigpen/_dcode/char(66).png"
+      },
+      {
+        "key": "C",
+        "file": "art/pigpen/_dcode/char(67).png"
+      },
+      {
+        "key": "D",
+        "file": "art/pigpen/_dcode/char(68).png"
+      },
+      {
+        "key": "E",
+        "file": "art/pigpen/_dcode/char(69).png"
+      },
+      {
+        "key": "F",
+        "file": "art/pigpen/_dcode/char(70).png"
+      },
+      {
+        "key": "G",
+        "file": "art/pigpen/_dcode/char(71).png"
+      },
+      {
+        "key": "H",
+        "file": "art/pigpen/_dcode/char(72).png"
+      },
+      {
+        "key": "I",
+        "file": "art/pigpen/_dcode/char(73).png"
+      },
+      {
+        "key": "J",
+        "file": "art/pigpen/_dcode/char(74).png"
+      },
+      {
+        "key": "K",
+        "file": "art/pigpen/_dcode/char(75).png"
+      },
+      {
+        "key": "L",
+        "file": "art/pigpen/_dcode/char(76).png"
+      },
+      {
+        "key": "M",
+        "file": "art/pigpen/_dcode/char(77).png"
+      },
+      {
+        "key": "N",
+        "file": "art/pigpen/_dcode/char(78).png"
+      },
+      {
+        "key": "O",
+        "file": "art/pigpen/_dcode/char(79).png"
+      },
+      {
+        "key": "P",
+        "file": "art/pigpen/_dcode/char(80).png"
+      },
+      {
+        "key": "Q",
+        "file": "art/pigpen/_dcode/char(81).png"
+      },
+      {
+        "key": "R",
+        "file": "art/pigpen/_dcode/char(82).png"
+      },
+      {
+        "key": "S",
+        "file": "art/pigpen/_dcode/char(83).png"
+      },
+      {
+        "key": "T",
+        "file": "art/pigpen/_dcode/char(84).png"
+      },
+      {
+        "key": "U",
+        "file": "art/pigpen/_dcode/char(85).png"
+      },
+      {
+        "key": "V",
+        "file": "art/pigpen/_dcode/char(86).png"
+      },
+      {
+        "key": "W",
+        "file": "art/pigpen/_dcode/char(87).png"
+      },
+      {
+        "key": "X",
+        "file": "art/pigpen/_dcode/char(88).png"
+      },
+      {
+        "key": "Y",
+        "file": "art/pigpen/_dcode/char(89).png"
+      },
+      {
+        "key": "Z",
+        "file": "art/pigpen/_dcode/char(90).png"
+      }
+    ]
+  },
+  "check": "PASS"
+}

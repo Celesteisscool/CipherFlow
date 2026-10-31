@@ -1,0 +1,384 @@
+{
+  "slug": "braille",
+  "name": "Braille",
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=braille",
+      "images": "https://i.cachesleuth.com/images/braille/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/braille-alphabet"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "new Array(\" \",\"'\",\".\",\",\",\";\",\":\",\"!\",\"\\u201C\",\"\\u201D\",'\"',\"?\",\"(\",\")\",\"-\",\"*\")",
+    "othernames": "new Array(\"space\",\"apostrophe\",\"period\",\"comma\",\"semicolon\",\"colon\",\"exclamation\",\"openquote\",\"closequote\",\"quote\",\"question\",\"parenthesis\",\"parenthesis\",\"hyphen\",\"asterisk\")",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 51,
+    "uniqueFiles": 50,
+    "manifestFiles": 50,
+    "downloaded": 51,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/braille/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/braille/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/braille/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/braille/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/braille/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/braille/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/braille/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/braille/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/braille/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/braille/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/braille/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/braille/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/braille/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/braille/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/braille/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/braille/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/braille/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/braille/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/braille/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/braille/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/braille/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/braille/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/braille/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/braille/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/braille/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/braille/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/braille/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/braille/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/braille/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/braille/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/braille/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/braille/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/braille/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/braille/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/braille/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/braille/9.png"
+    },
+    {
+      "index": 37,
+      "key": " ",
+      "label": " ",
+      "file": "art/braille/space.png"
+    },
+    {
+      "index": 38,
+      "key": "'",
+      "label": "'",
+      "file": "art/braille/apostrophe.png"
+    },
+    {
+      "index": 39,
+      "key": ".",
+      "label": ".",
+      "file": "art/braille/period.png"
+    },
+    {
+      "index": 40,
+      "key": ",",
+      "label": ",",
+      "file": "art/braille/comma.png"
+    },
+    {
+      "index": 41,
+      "key": ";",
+      "label": ";",
+      "file": "art/braille/semicolon.png"
+    },
+    {
+      "index": 42,
+      "key": ":",
+      "label": ":",
+      "file": "art/braille/colon.png"
+    },
+    {
+      "index": 43,
+      "key": "!",
+      "label": "!",
+      "file": "art/braille/exclamation.png"
+    },
+    {
+      "index": 44,
+      "key": "\\u201C",
+      "label": "\\U201C",
+      "file": "art/braille/openquote.png"
+    },
+    {
+      "index": 45,
+      "key": "\\u201D",
+      "label": "\\U201D",
+      "file": "art/braille/closequote.png"
+    },
+    {
+      "index": 46,
+      "key": "\"",
+      "label": "\"",
+      "file": "art/braille/quote.png"
+    },
+    {
+      "index": 47,
+      "key": "?",
+      "label": "?",
+      "file": "art/braille/question.png"
+    },
+    {
+      "index": 48,
+      "key": "(",
+      "label": "(",
+      "file": "art/braille/parenthesis.png"
+    },
+    {
+      "index": 49,
+      "key": ")",
+      "label": ")",
+      "file": "art/braille/parenthesis.png"
+    },
+    {
+      "index": 50,
+      "key": "-",
+      "label": "-",
+      "file": "art/braille/hyphen.png"
+    },
+    {
+      "index": 51,
+      "key": "*",
+      "label": "*",
+      "file": "art/braille/asterisk.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/braille-alphabet",
+    "count": 9,
+    "glyphs": [
+      {
+        "key": "#",
+        "file": "art/braille/_dcode/char(35).png"
+      },
+      {
+        "key": "7",
+        "file": "art/braille/_dcode/char(55).png"
+      },
+      {
+        "key": "!",
+        "file": "art/braille/_dcode/char(33).png"
+      },
+      {
+        "key": "*",
+        "file": "art/braille/_dcode/char(42).png"
+      },
+      {
+        "key": "'",
+        "file": "art/braille/_dcode/char(39).png"
+      },
+      {
+        "key": "1",
+        "file": "art/braille/_dcode/char(49).png"
+      },
+      {
+        "key": "9",
+        "file": "art/braille/_dcode/char(57).png"
+      },
+      {
+        "key": ")",
+        "file": "art/braille/_dcode/char(41).png"
+      },
+      {
+        "key": "5",
+        "file": "art/braille/_dcode/char(53).png"
+      }
+    ]
+  },
+  "check": "PASS"
+}

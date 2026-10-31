@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 import {MODULE_NAME, renderModule} from "./dcode/payload.mjs";
+import {glyphDataBundle, spriteStats} from "./symbols/index.mjs";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "index.html");
@@ -94,6 +95,14 @@ const meta = fs.readFileSync(path.join(ROOT, "dev/meta.json"), "utf8");
 const tests = fs.readFileSync(path.join(ROOT, "dev/testplan.json"), "utf8");
 const css = fs.readFileSync(path.join(ROOT, "dev/styles.css"), "utf8");
 const app = fs.readFileSync(path.join(ROOT, "dev/app.js"), "utf8");
+
+// Symbol ciphers travel as one JSON island of data URLs: the panel and the node draw
+// straight from it, so a single-file offline build never fetches a glyph at runtime.
+// Every cipher in here has already passed its count check (dev/symbols/index.mjs).
+const glyphs = glyphDataBundle();
+const glyphStats = spriteStats();
+console.log("glyphs:", glyphStats.ciphers, "ciphers", glyphStats.symbols, "symbols",
+    (glyphStats.bytes / 1024).toFixed(0), "KB of source art");
 
 const gzB64 = str => zlib.gzipSync(Buffer.from(str, "utf8"), {level: 9}).toString("base64");
 const jsonForScript = str => str.replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
@@ -349,6 +358,7 @@ ${css}
 
 <script type="application/json" id="metaData">${jsonForScript(meta)}</script>
 <script type="application/json" id="testData">${jsonForScript(tests)}</script>
+<script type="application/json" id="glyphData">${jsonForScript(JSON.stringify(glyphs))}</script>
 <script type="text/plain" id="engineGzip">
 ${engineB64}
 </script>

@@ -1,0 +1,342 @@
+{
+  "slug": "semaphore",
+  "name": "Semaphore Flags",
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=semaphore",
+      "images": "https://i.cachesleuth.com/images/semaphore/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/semaphore-flag"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "new Array(\" \",\"/\",\"\\\\\",\"@\")",
+    "othernames": "new Array(\"space\",\"letters\",\"numbers\",\"cancel\")",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 30,
+    "uniqueFiles": 30,
+    "manifestFiles": 30,
+    "downloaded": 30,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/semaphore/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/semaphore/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/semaphore/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/semaphore/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/semaphore/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/semaphore/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/semaphore/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/semaphore/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/semaphore/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/semaphore/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/semaphore/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/semaphore/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/semaphore/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/semaphore/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/semaphore/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/semaphore/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/semaphore/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/semaphore/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/semaphore/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/semaphore/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/semaphore/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/semaphore/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/semaphore/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/semaphore/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/semaphore/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/semaphore/z.png"
+    },
+    {
+      "index": 27,
+      "key": " ",
+      "label": " ",
+      "file": "art/semaphore/space.png"
+    },
+    {
+      "index": 28,
+      "key": "/",
+      "label": "/",
+      "file": "art/semaphore/letters.png"
+    },
+    {
+      "index": 29,
+      "key": "\\\\",
+      "label": "\\\\",
+      "file": "art/semaphore/numbers.png"
+    },
+    {
+      "index": 30,
+      "key": "@",
+      "label": "@",
+      "file": "art/semaphore/cancel.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/semaphore-flag",
+    "count": 30,
+    "glyphs": [
+      {
+        "key": "A",
+        "file": "art/semaphore/_dcode/char(65).png"
+      },
+      {
+        "key": "B",
+        "file": "art/semaphore/_dcode/char(66).png"
+      },
+      {
+        "key": "C",
+        "file": "art/semaphore/_dcode/char(67).png"
+      },
+      {
+        "key": "D",
+        "file": "art/semaphore/_dcode/char(68).png"
+      },
+      {
+        "key": "E",
+        "file": "art/semaphore/_dcode/char(69).png"
+      },
+      {
+        "key": "F",
+        "file": "art/semaphore/_dcode/char(70).png"
+      },
+      {
+        "key": "G",
+        "file": "art/semaphore/_dcode/char(71).png"
+      },
+      {
+        "key": "H",
+        "file": "art/semaphore/_dcode/char(72).png"
+      },
+      {
+        "key": "I",
+        "file": "art/semaphore/_dcode/char(73).png"
+      },
+      {
+        "key": "J",
+        "file": "art/semaphore/_dcode/char(74).png"
+      },
+      {
+        "key": "K",
+        "file": "art/semaphore/_dcode/char(75).png"
+      },
+      {
+        "key": "L",
+        "file": "art/semaphore/_dcode/char(76).png"
+      },
+      {
+        "key": "M",
+        "file": "art/semaphore/_dcode/char(77).png"
+      },
+      {
+        "key": "N",
+        "file": "art/semaphore/_dcode/char(78).png"
+      },
+      {
+        "key": "O",
+        "file": "art/semaphore/_dcode/char(79).png"
+      },
+      {
+        "key": "P",
+        "file": "art/semaphore/_dcode/char(80).png"
+      },
+      {
+        "key": "Q",
+        "file": "art/semaphore/_dcode/char(81).png"
+      },
+      {
+        "key": "R",
+        "file": "art/semaphore/_dcode/char(82).png"
+      },
+      {
+        "key": "S",
+        "file": "art/semaphore/_dcode/char(83).png"
+      },
+      {
+        "key": "T",
+        "file": "art/semaphore/_dcode/char(84).png"
+      },
+      {
+        "key": "U",
+        "file": "art/semaphore/_dcode/char(85).png"
+      },
+      {
+        "key": "V",
+        "file": "art/semaphore/_dcode/char(86).png"
+      },
+      {
+        "key": "W",
+        "file": "art/semaphore/_dcode/char(87).png"
+      },
+      {
+        "key": "X",
+        "file": "art/semaphore/_dcode/char(88).png"
+      },
+      {
+        "key": "Y",
+        "file": "art/semaphore/_dcode/char(89).png"
+      },
+      {
+        "key": "Z",
+        "file": "art/semaphore/_dcode/char(90).png"
+      },
+      {
+        "key": "c",
+        "file": "art/semaphore/_dcode/char(99).png"
+      },
+      {
+        "key": "a",
+        "file": "art/semaphore/_dcode/char(97).png"
+      },
+      {
+        "key": "b",
+        "file": "art/semaphore/_dcode/char(98).png"
+      },
+      {
+        "key": "d",
+        "file": "art/semaphore/_dcode/char(100).png"
+      }
+    ]
+  },
+  "check": "PASS"
+}

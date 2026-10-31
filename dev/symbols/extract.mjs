@@ -86,17 +86,31 @@ function strField(rest, name) {
     return m ? m[1] : "";
 }
 
+/* The descriptor's literals are JavaScript strings, so a key must be the character
+ * they denote rather than the text of their escape: "\u201C" is the left double quote
+ * and "\\" is one backslash. Without this the tile is captioned \u201C and clicking it
+ * appends those six characters, one glyph each. */
+function unescapeJs(s) {
+    return String(s).replace(/\\(?:u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4})|x([0-9a-fA-F]{2})|([\s\S]))/g,
+        (_, braced, u4, x2, ch) => {
+            if (braced !== undefined) return String.fromCodePoint(parseInt(braced, 16));
+            if (u4 !== undefined) return String.fromCharCode(parseInt(u4, 16));
+            if (x2 !== undefined) return String.fromCharCode(parseInt(x2, 16));
+            return ({n: "\n", t: "\t", r: "\r", b: "\b", f: "\f", v: "\v", "0": "\0"})[ch] ?? ch;
+        });
+}
+
 /* Turns the descriptor's list expressions into arrays without hand-typing them. */
 function listOf(expr) {
     const e = (expr || "").trim();
     if (!e || e === '""' || e === "''") return [];
     if (e === "atoz") return ATOZ.slice();
     if (e === "nums") return NUMS.slice();
-    if (/^"([^"]*)"\.split\(""\)$/.test(e)) return e.match(/^"([^"]*)"/)[1].split("");
-    if (/^"([^"]*)"$/.test(e)) return e.match(/^"([^"]*)"/)[1].split("");
+    if (/^"([^"]*)"\.split\(""\)$/.test(e)) return unescapeJs(e.match(/^"([^"]*)"/)[1]).split("");
+    if (/^"([^"]*)"$/.test(e)) return unescapeJs(e.match(/^"([^"]*)"/)[1]).split("");
     if (/^new Array\(([\s\S]*)\)$/.test(e)) {
         const inner = e.replace(/^new Array\(/, "").replace(/\)$/, "");
-        return [...inner.matchAll(/"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g)].map(x => x[1] ?? x[2]);
+        return [...inner.matchAll(/"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g)].map(x => unescapeJs(x[1] ?? x[2]));
     }
     throw new Error(`unhandled descriptor expression: ${e}`);
 }

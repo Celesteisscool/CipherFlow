@@ -9521,9 +9521,20 @@ function renderSymbolPreview(el, node, set) {
         el.innerHTML = '<span class="sym-hint">Click a glyph to start transcribing.</span>';
         return;
     }
-    const byKey = new Map((set?.glyphs || []).map(g => [String(g.key).toLowerCase(), g]));
+    // Exact keys win before case is folded, and the first entry keeps a fold: some sets
+    // carry two keys that differ only in case (dCode publishes its four special semaphore
+    // flags under the alt chars a/b/c/d, beside A–Z), so folding first made a click on the
+    // first B draw the second B's art — and made the letters' own art unreachable.
+    const byKey = new Map();
+    const byFold = new Map();
+    for (const g of set?.glyphs || []) {
+        const key = String(g.key ?? "");
+        if (!byKey.has(key)) byKey.set(key, g);
+        const folded = key.toLowerCase();
+        if (!byFold.has(folded)) byFold.set(folded, g);
+    }
     el.innerHTML = [...text].map(ch => {
-        const glyph = byKey.get(ch.toLowerCase());
+        const glyph = byKey.get(ch) || byFold.get(ch.toLowerCase());
         if (glyph && glyph.src) {
             return `<span class="sym-pv"><img src="${esc(glyph.src)}" alt="" draggable="false"><b>${esc(symbolDisplayLabel(glyph))}</b></span>`;
         }

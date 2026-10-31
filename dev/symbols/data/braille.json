@@ -289,14 +289,14 @@
     },
     {
       "index": 44,
-      "key": "\\u201C",
-      "label": "\\U201C",
+      "key": "“",
+      "label": "“",
       "file": "art/braille/openquote.png"
     },
     {
       "index": 45,
-      "key": "\\u201D",
-      "label": "\\U201D",
+      "key": "”",
+      "label": "”",
       "file": "art/braille/closequote.png"
     },
     {

@@ -1,0 +1,52 @@
+[
+  {
+    "slug": "braille",
+    "name": "Braille",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 51,
+    "uniqueFiles": 50,
+    "dcode": 9,
+    "check": "PASS"
+  },
+  {
+    "slug": "dancingmen",
+    "name": "Dancing Men",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 26,
+    "check": "PASS"
+  },
+  {
+    "slug": "futhark",
+    "name": "Futhark",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 6,
+    "check": "PASS"
+  },
+  {
+    "slug": "pigpen",
+    "name": "Pig Pen Version 1",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 26,
+    "check": "PASS"
+  },
+  {
+    "slug": "semaphore",
+    "name": "Semaphore Flags",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 30,
+    "uniqueFiles": 30,
+    "dcode": 30,
+    "check": "PASS"
+  }
+]

@@ -2220,3 +2220,236 @@ kbd {
     .test-detail { padding-left: 10px; }
     .sidebar { top: 8px; right: 8px; }
 }
+
+/* ------------------------------------------------------- symbol ciphers */
+/* The rail and drawer are fixed to the viewport, so opening the panel never reflows
+   the canvas or moves a saved node position. The rail is full height and the stage's
+   Fit/Snap controls step right to clear it. */
+.sym-rail {
+    position: fixed;
+    /* Inset to the canvas card's inner edge (12px page inset + its 1px border) so the
+       rail stops at the card's border instead of running past it to the window edge. */
+    left: 13px; top: 13px; bottom: 13px;
+    width: 30px;
+    z-index: 56;
+    pointer-events: none;
+    /* Rides the drawer's leading edge. The panel starts at the card's inner edge exactly
+       one panel-width away, so bar and panel move as one and the bar reads as pushed
+       rather than as something the panel slides under. */
+    transition: transform 180ms ease;
+}
+body.sym-drawer-open .sym-rail { transform: translateX(320px); }
+.sym-rail-btn {
+    pointer-events: auto;
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 0;
+    border: none;
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--muted);
+    cursor: pointer;
+}
+.sym-rail-btn:hover { background: var(--panel-2); color: var(--ink); }
+.sym-rail-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.sym-rail-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; }
+.sym-rail-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+.sym-rail-count {
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 3px 5px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+}
+/* The rail covers the card's left edge, so the stage controls that hang off it step right. */
+body.has-sym-rail .stage-controls { left: 44px; }
+body.has-sym-rail .toolbar { left: 43px; }
+
+.sym-drawer {
+    position: fixed;
+    /* Starts at the card's inner edge, with the bar ahead of it. -100% (not -105%) parks
+       it exactly one panel-width away, so its right edge and the bar's left edge stay
+       flush for the whole slide instead of the panel passing underneath the bar. */
+    left: 13px; top: 13px; bottom: 13px;
+    width: 320px;
+    z-index: 55;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 180ms ease, visibility 0s linear 180ms;
+}
+.sym-drawer.open {
+    transform: none;
+    visibility: visible;
+    transition: transform 180ms ease, visibility 0s;
+}
+.sym-head { display: flex; align-items: center; gap: 8px; padding: 14px 13px 9px; }
+.sym-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 15px;
+    font-weight: 680;
+    letter-spacing: -0.02em;
+}
+.sym-search { padding: 0 12px 10px; }
+.sym-search .search-input { padding: 0 11px; }
+.sym-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 2px 8px 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+}
+.sym-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    text-align: left;
+    padding: 8px 9px;
+    /* Visible at rest, not just on hover: with a transparent border the rows read as one
+       block and you cannot tell where one cipher button ends and the next begins. */
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    margin-bottom: 5px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.sym-row:hover { background: var(--panel-2); border-color: var(--line-strong); }
+.sym-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.sym-row-main { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sym-row-name { font-size: 12.5px; font-weight: 620; color: var(--ink); }
+.sym-row-samples { display: inline-flex; gap: 3px; flex: 0 0 auto; }
+.sym-row-samples img {
+    /* 30px to match the grid and preview strip — 21px was too small to read. */
+    width: 30px; height: 30px;
+    object-fit: contain;
+    padding: 1px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+}
+.sym-row-meta { font-size: 9.5px; color: var(--faint); }
+
+/* The node: source bar, glyph grid, preview strip, transcribed text. */
+.node.type-symbol { width: 360px; }
+.sym-node { display: flex; flex-direction: column; gap: 8px; }
+.sym-bar { min-height: 20px; }
+.sym-src { margin-left: auto; }
+.sym-src button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 9.5px;
+    font-weight: 650;
+    padding: 2px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.sym-src button.on { background: var(--accent); color: #fff; }
+.sym-src-fixed { font-size: 10px; font-weight: 620; color: var(--muted); margin-left: auto; }
+.sym-clear { margin-left: 8px; }
+.glyph-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 6px;
+    max-height: 238px;
+    overflow-y: auto;
+    padding: 7px;
+    background: var(--preview-bg);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+}
+.glyph-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 2px 4px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel-2);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.glyph-tile:hover { border-color: var(--accent); }
+.glyph-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.glyph-tile img { width: 30px; height: 30px; object-fit: contain; }
+.glyph-missing { font-size: 20px; line-height: 30px; color: var(--faint); }
+.glyph-key { font-size: 9.5px; font-weight: 700; letter-spacing: .02em; color: var(--ink); }
+.sym-preview {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    min-height: 52px;
+    max-height: 96px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 7px;
+    background: var(--preview-bg);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+}
+.sym-hint { align-self: center; font-size: 10px; color: var(--faint); }
+.sym-pv { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 0 0 auto; }
+.sym-pv img { width: 30px; height: 30px; object-fit: contain; }
+.sym-pv b { font-size: 9px; font-weight: 700; color: var(--ink); }
+
+/* Every symbol image sits on a white plate. The sources draw black-on-transparent art,
+   so a white ground makes the ink read the same in either theme — the treatment the
+   approved contact sheets use. Plates the image, not the tile: the letter underneath
+   stays on the node's own ground, where the theme's ink colour still applies. */
+.glyph-tile img,
+.sym-pv img,
+.sym-row-samples img {
+    background: #fff;
+    border-radius: 4px;
+    /* These are inline data URLs: left draggable, the browser offers the glyph itself as
+       a file drop and the canvas accepts it as a file node. draggable="false" covers
+       Firefox, this covers WebKit/Blink. */
+    -webkit-user-drag: none;
+    user-select: none;
+}
+.sym-pv.sym-miss b { color: var(--muted); font-weight: 600; }
+.sym-ph {
+    width: 30px; height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--line-strong);
+    border-radius: 5px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    .sym-drawer { width: calc(100vw - 30px); }
+}

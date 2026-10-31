@@ -438,6 +438,9 @@ function nodeInPorts(node, lookup) {
             // One port per declared input, for feeding that input's test sample from a node
             // in the body instead of typing or attaching it.
             return (node.ports || []).map((_, i) => "sample:" + i);
+        case "symbol":
+            // A transcription source: nothing is piped into it, it only hands text out.
+            return [];
         default:
             return ["main"];
     }
@@ -1070,6 +1073,12 @@ function makeNode(type, opts = {}) {
         // Values typed straight onto the instance, keyed by port ("fn:0"); used for any
         // declared input the definition marked as typeable and nothing is wired into.
         node.typedInputs = opts.typedInputs ? cloneValue(opts.typedInputs) : {};
+    } else if (type === "symbol") {
+        // A transcription surface: which alphabet it draws, whose art it draws it with,
+        // and the text the clicked glyphs have spelled so far. That text is the output.
+        node.symbolCipher = opts.symbolCipher || "";
+        node.symbolSource = opts.symbolSource === "dcode" ? "dcode" : "cachesleuth";
+        node.text = opts.text ?? "";
     }
     node._output = null;
     node._error = "";
@@ -1206,6 +1215,8 @@ function cleanNodeForSave(n) {
         typedInputs: n.typedInputs ? cloneValue(n.typedInputs) : undefined,
         fileIndex: n.fileIndex || 0,
         previewMode: n.previewMode || "text",
+        symbolCipher: n.symbolCipher,
+        symbolSource: n.symbolSource,
         fullPreview: n.fullPreview ? true : undefined,
         collapsed: Boolean(n.collapsed),
         w: Math.round(n.w || 0),
@@ -1279,7 +1290,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "compact", "expand", "pick", "op", "fn", "fnin", "fnout"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "compact", "expand", "pick", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1316,6 +1327,8 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             switchDefault: typeof raw.switchDefault === "string" ? raw.switchDefault : "",
             ports: Array.isArray(raw.ports) && raw.ports.length ? raw.ports.map(p => ({...p})) : undefined,
             fnId: raw.fnId ? String(raw.fnId) : "",
+            symbolCipher: typeof raw.symbolCipher === "string" ? raw.symbolCipher : "",
+            symbolSource: raw.symbolSource === "dcode" ? "dcode" : "cachesleuth",
             portPick: Number(raw.portPick) || 0,
             typedInputs: readTypedInputs(raw.typedInputs),
             fileIndex: clamp(Number(raw.fileIndex) || 0, 0, 32),
@@ -1596,6 +1609,7 @@ function sourceTitle(node) {
     if (node.type === "pngchunks") return node.title || "PNG Chunks";
     if (node.type === "pdfscan") return node.title || "PDF Scan";
     if (node.type === "imginfo") return node.title || "Image Info";
+    if (node.type === "symbol") return node.title || symbolCipherName(node.symbolCipher);
     if (node.type === "join") return node.title || "Join";
     if (node.type === "template") return node.title || "Fstring";
     if (node.type === "switch") return node.title || "Switch";
@@ -1611,12 +1625,14 @@ function nodeAccent(node) {
     if (node.type === "op") return opAccent(node.op);
     if (node.type === "fn" || node.type === "fnin" || node.type === "fnout") return FUNCTION_COLOR;
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") return CAT_COLORS.Multimedia;
+    if (node.type === "symbol") return SYMBOL_COLOR;
     return GRAPH_COLOR;
 }
 function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") return "Multimedia";
+    if (node.type === "symbol") return "Symbols";
     if (node.type === "join") return "Join";
     if (node.type === "template") return "Fstring";
     if (node.type === "switch") return "Switch";
@@ -1712,6 +1728,8 @@ function buildNode(node) {
         body.appendChild(mainInputRow(node, "In"));
         body.appendChild(buildPreview(node));
         body.appendChild(buildError(node));
+    } else if (node.type === "symbol") {
+        body.appendChild(buildSymbolNode(node));
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
     } else if (node.type === "template") {
@@ -1824,6 +1842,9 @@ function collapsedPorts(node) {
         (node.ports || []).forEach((p, i) => {
             if (edgeInto(node.id, "sample:" + i)) ports.push({name: "sample:" + i, label: `${p.name || `Input ${i + 1}`} sample`});
         });
+    } else if (node.type === "symbol") {
+        // Nothing can be wired into a symbol node, so a collapsed one shows no input rows
+        // at all — only its output anchor, so outgoing wires keep their place.
     } else {
         ports.push({name: "main", label: "In"});
     }
@@ -4191,6 +4212,10 @@ function inputSignature(node, incoming, results, opts) {
         // Keeping it out of the signature lets a port switch reuse the cached body results.
         return JSON.stringify(["fn", node.fnId, definitionStamp(functionById(node.fnId)), ports, node.typedInputs || null]);
     }
+    if (node.type === "symbol") {
+        // The transcription is the whole input to this node: cipher, whose art, and text.
+        return JSON.stringify(["symbol", node.symbolCipher, node.symbolSource, node.text]);
+    }
     return JSON.stringify(node);
 }
 
@@ -5048,6 +5073,12 @@ async function executeGraph(nodes, edges, opts = {}) {
                         }
                     }
                 }
+            } else if (node.type === "symbol") {
+                // A transcription node: no wire feeds it, and the text clicked onto its
+                // glyphs is what flows out of it.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
+                else if (!error) out = enc.encode(node.text || "");
             } else if (node.type === "join") {
                 sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
@@ -6727,7 +6758,7 @@ function startPaletteDrag(ev, payload) {
         }
         moveEv.preventDefault();
         paletteDrag.ghost.style.transform = `translate(${moveEv.clientX + 12}px, ${moveEv.clientY + 12}px)`;
-        const overStage = hitStage(moveEv.clientX, moveEv.clientY);
+        const overStage = hitStageDrop(moveEv.clientX, moveEv.clientY);
         stage.classList.toggle("drop-target", overStage);
     };
     const onUp = upEv => {
@@ -6741,11 +6772,12 @@ function startPaletteDrag(ev, payload) {
         drag?.ghost?.remove();
         if (!drag || !drag.moved) return;
         suppressPaletteClickUntil = performance.now() + 300;
-        const overStage = hitStage(upEv.clientX, upEv.clientY);
+        const overStage = hitStageDrop(upEv.clientX, upEv.clientY);
         if (!overStage) return;
         const p = screenToWorld(upEv.clientX, upEv.clientY);
         if (drag.payload.type === "op") addOperationNode(drag.payload.op, p.x - 150, p.y - 30);
         else if (drag.payload.type === "fn") addFunctionNode(drag.payload.fnId, p.x - 140, p.y - 30);
+        else if (drag.payload.type === "symbol") addSymbolNode(drag.payload.slug, p.x - 180, p.y - 40);
         else addGraphNode(drag.payload.node, p.x - 140, p.y - 30);
     };
     document.addEventListener("pointermove", onMove);
@@ -6762,6 +6794,9 @@ function makeDragGhost(payload) {
     } else if (payload.type === "fn") {
         ghost.style.setProperty("--node-accent", FUNCTION_COLOR);
         ghost.textContent = functionById(payload.fnId)?.name || "Function";
+    } else if (payload.type === "symbol") {
+        ghost.style.setProperty("--node-accent", SYMBOL_COLOR);
+        ghost.textContent = symbolCipher(payload.slug)?.name || payload.slug;
     } else {
         ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", switch: "Switch", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
@@ -6772,6 +6807,20 @@ function makeDragGhost(payload) {
 function hitStage(clientX, clientY) {
     const r = stage.getBoundingClientRect();
     return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+}
+// The symbol drawer and its rail sit on top of the canvas. A pointer over them is not over
+// the stage for drop purposes, or a dragged node lands underneath the panel where it
+// cannot be seen. The closed drawer is skipped by its visibility, not by its position.
+function hitStageDrop(clientX, clientY) {
+    if (!hitStage(clientX, clientY)) return false;
+    for (const el of [symbolDrawerEl, document.querySelector(".sym-rail")]) {
+        if (!el) continue;
+        const cs = getComputedStyle(el);
+        if (cs.visibility === "hidden" || cs.display === "none") continue;
+        const r = el.getBoundingClientRect();
+        if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) return false;
+    }
+    return true;
 }
 function renderSearch() {
     const q = searchTerm.trim().toLowerCase();
@@ -9317,6 +9366,7 @@ async function init() {
     updateAutoSwitch();
     initLab();
     initHelp();
+    initSymbolPanel();
     bindGlobalEvents();
     applyView();
 
@@ -9381,6 +9431,315 @@ async function init() {
     setTimeout(() => {
         if (!engine.loaded && !engine.lastError) setRunStatus("", "Loading engine…");
     }, 500);
+}
+
+/* ================================================================ symbol ciphers
+ * A symbol node is a transcription surface: the source's own glyph art in a grid, a
+ * click on a tile appends its letter, the strip under the grid repeats what has been
+ * clicked as smaller labelled glyphs, and the text under that is what flows out of the
+ * node. Everything drawn here comes from the #glyphData island that dev/build.mjs
+ * inlines, so this panel and these nodes never fetch at runtime.
+ *
+ * Data contract (dev/symbols/index.mjs):
+ *   SYMBOLS.ciphers[slug] = {name, glyphs:[{index,key,label,src}],
+ *                             dcode:{page, glyphs:[{key,src}]}|null, table}
+ * where every `src` is already a data: URL, and a cipher is only in the island if its
+ * count check passed and all of its art was on disk.
+ */
+const SYMBOLS = readGlyphData();
+const SYMBOL_COLOR = "#8b5cf6";
+const SYMBOL_STORAGE_KEY = "cf.symbolsPanelOpen";
+const SYMBOL_A_TO_Z = "abcdefghijklmnopqrstuvwxyz".split("");
+// A tic-tac-toe frame: the pigpen grid, drawn here rather than in ICONS so the panel
+// keeps its own mark without growing the shared icon set.
+const SYMBOL_RAIL_ICON = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 1.8v12.4M10 1.8v12.4M1.8 6h12.4M1.8 10h12.4"/></svg>';
+
+let symbolDrawerEl = null;
+let symbolRailBtn = null;
+
+function readGlyphData() {
+    try {
+        const el = typeof document !== "undefined" && document.getElementById("glyphData");
+        if (!el) return {ciphers: {}};
+        const parsed = JSON.parse(el.textContent || "{}");
+        return parsed && typeof parsed === "object" && parsed.ciphers ? parsed : {ciphers: {}};
+    } catch {
+        return {ciphers: {}};
+    }
+}
+
+function symbolCipher(slug) {
+    return (slug && SYMBOLS.ciphers[slug]) || null;
+}
+function symbolCipherName(slug) {
+    return symbolCipher(slug)?.name || "Symbol cipher";
+}
+function symbolDisplayLabel(glyph) {
+    const key = String(glyph?.key ?? "");
+    if (!key.trim()) return "␣";
+    return String(glyph?.label || key);
+}
+
+/** The glyph set a node is showing: CacheSleuth's by default, dCode's when picked. */
+function symbolGlyphSet(node) {
+    const cipher = symbolCipher(node.symbolCipher);
+    if (!cipher) return null;
+    // dCode art is only used when the toggle rule allows it: a node that somehow carries
+    // source "dcode" for a cipher dCode publishes a handful of glyphs for (Braille has 9)
+    // falls back to the complete set rather than drawing a half-empty grid.
+    if (node.symbolSource === "dcode" && symbolToggleSources(cipher)) {
+        return {
+            source: "dcode",
+            glyphs: cipher.dcode.glyphs.map((g, i) => ({
+                index: i + 1,
+                key: String(g.key ?? ""),
+                label: String(g.key ?? "").toUpperCase(),
+                src: g.src
+            }))
+        };
+    }
+    return {source: "cachesleuth", glyphs: cipher.glyphs};
+}
+
+/**
+ * D2: the source toggle appears only when the other source publishes a complete A–Z
+ * alphabet for this cipher. A second source holding a handful of images (dCode ships 9
+ * for Braille, 6 for Futhark) is not something you can transcribe with, so the node
+ * stays single-source rather than offering a half-empty grid.
+ */
+function symbolToggleSources(cipher) {
+    if (!cipher || !cipher.dcode || !cipher.dcode.glyphs?.length) return null;
+    const keys = new Set(cipher.dcode.glyphs.map(g => String(g.key ?? "").toLowerCase()));
+    return SYMBOL_A_TO_Z.every(ch => keys.has(ch)) ? ["cachesleuth", "dcode"] : null;
+}
+
+/** The strip under the grid: every character transcribed so far, as a labelled glyph. */
+function renderSymbolPreview(el, node, set) {
+    if (!el) return;
+    const text = String(node.text || "");
+    if (!text) {
+        el.innerHTML = '<span class="sym-hint">Click a glyph to start transcribing.</span>';
+        return;
+    }
+    const byKey = new Map((set?.glyphs || []).map(g => [String(g.key).toLowerCase(), g]));
+    el.innerHTML = [...text].map(ch => {
+        const glyph = byKey.get(ch.toLowerCase());
+        if (glyph && glyph.src) {
+            return `<span class="sym-pv"><img src="${esc(glyph.src)}" alt="" draggable="false"><b>${esc(symbolDisplayLabel(glyph))}</b></span>`;
+        }
+        const shown = ch.trim() ? ch : "␣";
+        return `<span class="sym-pv sym-miss"><span class="sym-ph">${esc(shown)}</span><b>${esc(shown)}</b></span>`;
+    }).join("");
+    el.scrollLeft = el.scrollWidth;
+}
+
+function updateSymbolCounts(wrap, set) {
+    // Both readouts live in the node's foot: how many glyphs the grid holds, and how many
+    // characters have been transcribed. Never touch the grid element itself here — its
+    // selector is data-sym-tiles, and writing text into it would empty the grid.
+    const gridCount = $("[data-sym-tiles-count]", wrap);
+    const chars = $("[data-sym-chars]", wrap);
+    if (gridCount) gridCount.textContent = `${set?.glyphs?.length ?? 0} glyphs`;
+    if (chars) chars.textContent = `${String(wrap.__text ?? "").length} chars`;
+}
+
+function buildSymbolNode(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "sym-node";
+    const cipher = symbolCipher(node.symbolCipher);
+    if (!cipher) {
+        wrap.innerHTML = `<div class="error-box" style="display:block">This graph names “${esc(node.symbolCipher || "an unknown cipher")}”, which is not in this build.</div>`;
+        return wrap;
+    }
+    if (node.symbolSource !== "dcode") node.symbolSource = "cachesleuth";
+    const set = symbolGlyphSet(node);
+    const sources = symbolToggleSources(cipher);
+    const tiles = set.glyphs.map((g, i) => {
+        const label = symbolDisplayLabel(g);
+        return `<button class="glyph-tile" type="button" data-glyph="${i}" title="${esc(label)}" aria-label="index ${g.index}, ${esc(label)}">
+            ${g.src ? `<img src="${esc(g.src)}" alt="" loading="lazy" draggable="false">` : '<span class="glyph-missing">?</span>'}
+            <span class="glyph-key">${esc(label)}</span>
+        </button>`;
+    }).join("");
+    const sourceControl = sources
+        ? `<span class="io-label">Source</span><span class="seg sym-src">${sources.map(src =>
+            `<button type="button" data-sym-source="${src}" class="${node.symbolSource === src ? "on" : ""}" title="Draw this cipher as ${src === "cachesleuth" ? "CacheSleuth" : "dCode"} publishes it">${src === "cachesleuth" ? "CacheSleuth" : "dCode"}</button>`).join("")}</span>`
+        : `<span class="io-label">Source</span><span class="sym-src-fixed">${node.symbolSource === "dcode" ? "dCode" : "CacheSleuth"}</span>`;
+    wrap.innerHTML = `
+        <div class="io-row sym-bar">
+            ${sourceControl}
+            <button type="button" class="mini-btn sym-clear" data-sym-clear title="Clear the transcription">Clear</button>
+        </div>
+        <div class="glyph-grid" data-sym-tiles>${tiles}</div>
+        <div class="sym-preview" data-sym-preview></div>
+        <textarea class="control typed-input" data-sym-text rows="2" spellcheck="false" placeholder="Click a glyph to transcribe"></textarea>
+        <div class="node-foot"><span class="bytes" data-sym-tiles-count></span><span style="margin-left:auto" class="bytes" data-sym-chars></span></div>
+    `;
+    const ta = $("[data-sym-text]", wrap);
+    const preview = $("[data-sym-preview]", wrap);
+    const tilesLabel = $("[data-sym-tiles-count]", wrap);
+    ta.value = String(node.text || "");
+    wrap.__text = ta.value;
+    renderSymbolPreview(preview, node, set);
+    if (tilesLabel) tilesLabel.textContent = `${set.glyphs.length} glyphs`;
+    updateSymbolCounts(wrap, set);
+
+    const sync = () => {
+        node.text = ta.value;
+        wrap.__text = node.text;
+        node._sig = "";
+        renderSymbolPreview(preview, node, symbolGlyphSet(node) || set);
+        updateSymbolCounts(wrap, set);
+        onGraphEdited();
+    };
+    wrap.addEventListener("click", ev => {
+        const tile = ev.target.closest("[data-glyph]");
+        if (tile) {
+            const glyph = set.glyphs[Number(tile.dataset.glyph)];
+            if (!glyph) return;
+            ta.value = String(node.text || "") + glyph.key;
+            sync();
+            return;
+        }
+        const src = ev.target.closest("[data-sym-source]");
+        if (src) {
+            const next = src.dataset.symSource;
+            if (next !== node.symbolSource) {
+                node.symbolSource = next === "dcode" ? "dcode" : "cachesleuth";
+                node._sig = "";
+                rerenderSymbolNode(node);
+                onGraphEdited();
+            }
+            return;
+        }
+        if (ev.target.closest("[data-sym-clear]")) {
+            ta.value = "";
+            sync();
+        }
+    });
+    ta.addEventListener("input", sync);
+    return wrap;
+}
+
+// Rebuild one node's body without touching its ports, wires or position.
+function rerenderSymbolNode(node) {
+    const el = nodeEl(node.id);
+    const body = el && $(".node-body", el);
+    if (!body) { renderAllNodes(); return; }
+    body.innerHTML = "";
+    body.appendChild(buildSymbolNode(node));
+    scheduleEdges();
+}
+
+/** Place a symbol node from the left panel, the same way the palette places its nodes. */
+function addSymbolNode(slug, x, y) {
+    const cipher = symbolCipher(slug);
+    if (!cipher) return;
+    const p = (x === undefined) ? spawnPoint() : {x, y};
+    const node = makeNode("symbol", {x: p.x, y: p.y, symbolCipher: slug, symbolSource: "cachesleuth"});
+    state.nodes.push(node);
+    setSelection([node.id]);
+    renderAllNodes();
+    onGraphEdited();
+    requestAnimationFrame(() => ensureNodeVisible(node));
+    if (window.innerWidth <= 900) setSymbolDrawer(false);
+}
+
+function setSymbolDrawer(open) {
+    if (!symbolDrawerEl || !symbolRailBtn) return;
+    symbolDrawerEl.classList.toggle("open", Boolean(open));
+    symbolRailBtn.setAttribute("aria-expanded", String(Boolean(open)));
+    // Tells the bar to travel with the panel: without it the panel slides under a
+    // stationary bar instead of pushing it aside.
+    document.body.classList.toggle("sym-drawer-open", Boolean(open));
+    try { localStorage.setItem(SYMBOL_STORAGE_KEY, open ? "1" : "0"); } catch { /* private mode */ }
+    if (open) {
+        const search = $("#symSearch", symbolDrawerEl);
+        if (search) search.focus();
+    }
+}
+
+function initSymbolPanel() {
+    const slugs = Object.keys(SYMBOLS.ciphers);
+    if (!slugs.length || symbolDrawerEl) return;
+    let open = false;
+    try { open = localStorage.getItem(SYMBOL_STORAGE_KEY) === "1"; } catch { /* private mode */ }
+    document.body.insertAdjacentHTML("beforeend", `
+        <div class="sym-rail">
+            <button class="sym-rail-btn" id="symRailBtn" aria-expanded="${open}" aria-controls="symDrawer" title="Symbol ciphers (${slugs.length})">
+                <span class="sym-rail-icon" aria-hidden="true">${SYMBOL_RAIL_ICON}</span>
+                <span class="sym-rail-label">Symbols</span>
+                <span class="sym-rail-count">${slugs.length}</span>
+            </button>
+        </div>
+        <aside class="sym-drawer${open ? " open" : ""}" id="symDrawer" aria-label="Symbol ciphers">
+            <div class="sym-head">
+                <span class="sym-title">Symbol ciphers <span class="count-badge">${slugs.length}</span></span>
+                <button class="icon-button" id="symClose" title="Close symbol ciphers">${iconFill("x")}</button>
+            </div>
+            <div class="search-wrap sym-search">
+                <input id="symSearch" class="search-input" placeholder="Search symbol ciphers" autocomplete="off" spellcheck="false" aria-label="Search symbol ciphers">
+            </div>
+            <div class="sym-list" id="symList"></div>
+        </aside>`);
+    symbolDrawerEl = document.getElementById("symDrawer");
+    symbolRailBtn = document.getElementById("symRailBtn");
+    // The stage's Fit/Snap controls sit bottom-left; they step right to clear the rail.
+    document.body.classList.add("has-sym-rail");
+    // Restore last visit's drawer state, bar included, so it opens where it was left.
+    document.body.classList.toggle("sym-drawer-open", open);
+    const list = document.getElementById("symList");
+    const search = document.getElementById("symSearch");
+
+    const renderList = () => {
+        const q = String(search.value || "").trim().toLowerCase();
+        const rows = slugs
+            .map(slug => ({slug, ...SYMBOLS.ciphers[slug]}))
+            .filter(c => !q || c.name.toLowerCase().includes(q) || c.slug.includes(q))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        if (!rows.length) {
+            list.innerHTML = `<div class="search-empty">No symbol cipher matches “${esc(search.value || "")}”.</div>`;
+            return;
+        }
+        list.innerHTML = rows.map(c => {
+            const samples = c.glyphs.slice(0, 5).map(g =>
+                g.src ? `<img src="${esc(g.src)}" alt="" loading="lazy" draggable="false">` : "").join("");
+            return `<button class="sym-row" data-sym-slug="${esc(c.slug)}" title="Add ${esc(c.name)} to the canvas">
+                <span class="sym-row-main">
+                    <span class="sym-row-name">${esc(c.name)}</span>
+                    <span class="sym-row-samples" aria-hidden="true">${samples}</span>
+                </span>
+                <span class="sym-row-meta">${c.glyphs.length} glyphs${symbolToggleSources(c) ? " · both sources" : ""}</span>
+            </button>`;
+        }).join("");
+    };
+    renderList();
+
+    document.getElementById("symRailBtn").addEventListener("click", () =>
+        setSymbolDrawer(!symbolDrawerEl.classList.contains("open")));
+    document.getElementById("symClose").addEventListener("click", () => setSymbolDrawer(false));
+    search.addEventListener("input", renderList);
+    list.addEventListener("click", ev => {
+        // A drag that just dropped a node on the canvas must not also spawn one here.
+        if (performance.now() < suppressPaletteClickUntil) return;
+        const row = ev.target.closest("[data-sym-slug]");
+        if (row) addSymbolNode(row.dataset.symSlug);
+    });
+    // Dragging a row onto the canvas places that cipher, on the palette's own pointer-drag
+    // machinery: ghost, drop-target highlight, and the click suppression above.
+    list.addEventListener("pointerdown", ev => {
+        if (ev.button !== 0) return;
+        const row = ev.target.closest("[data-sym-slug]");
+        if (row) startPaletteDrag(ev, {type: "symbol", slug: row.dataset.symSlug});
+    });
+    // Esc closes the drawer only while focus is inside it, so Escape keeps its usual
+    // meaning everywhere else on the canvas.
+    document.addEventListener("keydown", ev => {
+        if (ev.key !== "Escape" || !symbolDrawerEl.classList.contains("open")) return;
+        if (!symbolDrawerEl.contains(document.activeElement)) return;
+        setSymbolDrawer(false);
+        symbolRailBtn.focus();
+    });
 }
 
 window.addEventListener("DOMContentLoaded", init);

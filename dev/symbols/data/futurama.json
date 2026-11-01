@@ -1,0 +1,300 @@
+{
+  "slug": "futurama",
+  "name": "Futurama",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=futurama",
+      "images": "https://i.cachesleuth.com/images/futurama/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/alphabet-alien-futurama"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "sameAsCachesleuth": true,
+  "counts": {
+    "declared": 43,
+    "uniqueFiles": 36,
+    "manifestFiles": 36,
+    "downloaded": 43,
+    "failed": 0,
+    "unmapped": 0,
+    "extras": 7
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/futurama/_dcode/char(65).png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/futurama/_dcode/char(66).png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/futurama/_dcode/char(67).png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/futurama/_dcode/char(68).png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/futurama/_dcode/char(69).png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/futurama/_dcode/char(70).png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/futurama/_dcode/char(71).png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/futurama/_dcode/char(72).png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/futurama/_dcode/char(73).png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/futurama/_dcode/char(74).png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/futurama/_dcode/char(75).png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/futurama/_dcode/char(76).png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/futurama/_dcode/char(77).png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/futurama/_dcode/char(78).png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/futurama/_dcode/char(79).png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/futurama/_dcode/char(80).png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/futurama/_dcode/char(81).png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/futurama/_dcode/char(82).png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/futurama/_dcode/char(83).png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/futurama/_dcode/char(84).png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/futurama/_dcode/char(85).png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/futurama/_dcode/char(86).png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/futurama/_dcode/char(87).png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/futurama/_dcode/char(88).png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/futurama/_dcode/char(89).png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/futurama/_dcode/char(90).png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/futurama/_dcode/char(48).png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/futurama/_dcode/char(49).png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/futurama/_dcode/char(50).png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/futurama/_dcode/char(51).png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/futurama/_dcode/char(52).png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/futurama/_dcode/char(53).png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/futurama/_dcode/char(54).png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/futurama/_dcode/char(55).png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/futurama/_dcode/char(56).png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/futurama/_dcode/char(57).png"
+    },
+    {
+      "index": 37,
+      "key": "!",
+      "label": "!",
+      "file": "art/futurama/_dcode/char(33).png"
+    },
+    {
+      "index": 38,
+      "key": "\"",
+      "label": "\"",
+      "file": "art/futurama/_dcode/char(34).png"
+    },
+    {
+      "index": 39,
+      "key": "'",
+      "label": "'",
+      "file": "art/futurama/_dcode/char(39).png"
+    },
+    {
+      "index": 40,
+      "key": "-",
+      "label": "-",
+      "file": "art/futurama/_dcode/char(45).png"
+    },
+    {
+      "index": 41,
+      "key": ".",
+      "label": ".",
+      "file": "art/futurama/_dcode/char(46).png"
+    },
+    {
+      "index": 42,
+      "key": ":",
+      "label": ":",
+      "file": "art/futurama/_dcode/char(58).png"
+    },
+    {
+      "index": 43,
+      "key": ";",
+      "label": ";",
+      "file": "art/futurama/_dcode/char(59).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

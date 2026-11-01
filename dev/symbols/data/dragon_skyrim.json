@@ -1,0 +1,431 @@
+{
+  "slug": "dragon_skyrim",
+  "name": "Dragon - Skyrim",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=dragon_skyrim",
+      "images": "https://i.cachesleuth.com/images/dragon_skyrim/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/dovahzul-dragon-language"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "new Array(\"'\",\".\",\",\",\"$\",\"#\",\"!\",\"%\",\"?\",\"(\",\")\",\"&\",\"*\")",
+    "othernames": "new Array(\"apostrophe\",\"period\",\"comma\",\"dollar\",\"hashtag\",\"exclamation\",\"percent\",\"question\",\"parentheses_open\",\"parentheses_close\",\"ampersand\",\"asterisk\")",
+    "digraphs": [
+      {
+        "seq": "aa",
+        "file": "alt/aa.png"
+      },
+      {
+        "seq": "ah",
+        "file": "alt/ah.png"
+      },
+      {
+        "seq": "ei",
+        "file": "alt/ei.png"
+      },
+      {
+        "seq": "ey",
+        "file": "alt/ey.png"
+      },
+      {
+        "seq": "ii",
+        "file": "alt/ii.png"
+      },
+      {
+        "seq": "ir",
+        "file": "alt/ir.png"
+      },
+      {
+        "seq": "oo",
+        "file": "alt/oo.png"
+      },
+      {
+        "seq": "ur",
+        "file": "alt/ur.png"
+      },
+      {
+        "seq": "uu",
+        "file": "alt/uu.png"
+      },
+      {
+        "seq": "@",
+        "file": "alt/web_at.png"
+      }
+    ],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "sameAsCachesleuth": true,
+  "counts": {
+    "declared": 58,
+    "uniqueFiles": 58,
+    "manifestFiles": 58,
+    "downloaded": 58,
+    "failed": 0,
+    "unmapped": 0,
+    "extras": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/dragon_skyrim/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/dragon_skyrim/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/dragon_skyrim/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/dragon_skyrim/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/dragon_skyrim/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/dragon_skyrim/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/dragon_skyrim/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/dragon_skyrim/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/dragon_skyrim/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/dragon_skyrim/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/dragon_skyrim/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/dragon_skyrim/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/dragon_skyrim/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/dragon_skyrim/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/dragon_skyrim/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/dragon_skyrim/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/dragon_skyrim/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/dragon_skyrim/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/dragon_skyrim/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/dragon_skyrim/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/dragon_skyrim/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/dragon_skyrim/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/dragon_skyrim/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/dragon_skyrim/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/dragon_skyrim/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/dragon_skyrim/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/dragon_skyrim/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/dragon_skyrim/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/dragon_skyrim/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/dragon_skyrim/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/dragon_skyrim/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/dragon_skyrim/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/dragon_skyrim/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/dragon_skyrim/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/dragon_skyrim/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/dragon_skyrim/9.png"
+    },
+    {
+      "index": 37,
+      "key": "'",
+      "label": "'",
+      "file": "art/dragon_skyrim/apostrophe.png"
+    },
+    {
+      "index": 38,
+      "key": ".",
+      "label": ".",
+      "file": "art/dragon_skyrim/period.png"
+    },
+    {
+      "index": 39,
+      "key": ",",
+      "label": ",",
+      "file": "art/dragon_skyrim/comma.png"
+    },
+    {
+      "index": 40,
+      "key": "$",
+      "label": "$",
+      "file": "art/dragon_skyrim/dollar.png"
+    },
+    {
+      "index": 41,
+      "key": "#",
+      "label": "#",
+      "file": "art/dragon_skyrim/hashtag.png"
+    },
+    {
+      "index": 42,
+      "key": "!",
+      "label": "!",
+      "file": "art/dragon_skyrim/exclamation.png"
+    },
+    {
+      "index": 43,
+      "key": "%",
+      "label": "%",
+      "file": "art/dragon_skyrim/percent.png"
+    },
+    {
+      "index": 44,
+      "key": "?",
+      "label": "?",
+      "file": "art/dragon_skyrim/question.png"
+    },
+    {
+      "index": 45,
+      "key": "(",
+      "label": "(",
+      "file": "art/dragon_skyrim/parentheses_open.png"
+    },
+    {
+      "index": 46,
+      "key": ")",
+      "label": ")",
+      "file": "art/dragon_skyrim/parentheses_close.png"
+    },
+    {
+      "index": 47,
+      "key": "&",
+      "label": "&",
+      "file": "art/dragon_skyrim/ampersand.png"
+    },
+    {
+      "index": 48,
+      "key": "*",
+      "label": "*",
+      "file": "art/dragon_skyrim/asterisk.png"
+    },
+    {
+      "index": 49,
+      "key": "aa",
+      "label": "AA",
+      "file": "art/dragon_skyrim/alt/aa.png"
+    },
+    {
+      "index": 50,
+      "key": "ah",
+      "label": "AH",
+      "file": "art/dragon_skyrim/alt/ah.png"
+    },
+    {
+      "index": 51,
+      "key": "ei",
+      "label": "EI",
+      "file": "art/dragon_skyrim/alt/ei.png"
+    },
+    {
+      "index": 52,
+      "key": "ey",
+      "label": "EY",
+      "file": "art/dragon_skyrim/alt/ey.png"
+    },
+    {
+      "index": 53,
+      "key": "ii",
+      "label": "II",
+      "file": "art/dragon_skyrim/alt/ii.png"
+    },
+    {
+      "index": 54,
+      "key": "ir",
+      "label": "IR",
+      "file": "art/dragon_skyrim/alt/ir.png"
+    },
+    {
+      "index": 55,
+      "key": "oo",
+      "label": "OO",
+      "file": "art/dragon_skyrim/alt/oo.png"
+    },
+    {
+      "index": 56,
+      "key": "ur",
+      "label": "UR",
+      "file": "art/dragon_skyrim/alt/ur.png"
+    },
+    {
+      "index": 57,
+      "key": "uu",
+      "label": "UU",
+      "file": "art/dragon_skyrim/alt/uu.png"
+    },
+    {
+      "index": 58,
+      "key": "@",
+      "label": "@",
+      "file": "art/dragon_skyrim/alt/web_at.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

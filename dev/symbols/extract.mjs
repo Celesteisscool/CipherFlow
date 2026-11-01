@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Symbol glyph extractor — authoring-time only, never part of dev/build.mjs.
  *
- *   node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>]] [--same] [--dcode-icons]]
+ *   node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>] [--dcode-extras] [--cases]] [--same] [--dcode-icons]]
  *
  * --same records that dCode publishes the same alphabet (reviewed side by side):
  * the second set is downloaded as evidence but not shipped, so the node keeps
@@ -17,6 +17,14 @@
  * every declared character, unless that character is named in --drop (hexahue's
  * empty space tile, which dCode does not publish). A named drop is recorded in
  * cipher.json and shown on the contact sheet — never silent.
+ * --dcode-extras keeps the symbols dCode publishes beyond CacheSleuth's declared set
+ * (Futurama's `! " ' - . : ;`): they are tiles in their own right, drawn from dCode's
+ * art and keyed by their own character, so the shipped set is dCode's whole table.
+ * --cases keys the letters in the case the chosen art writes (dCode's `char(65)` is
+ * `A`) and ships dCode's case-distinct glyphs as tiles of their own. Atlantis publishes
+ * lowercase `c`, `s`, `t` beside C/S/T as different shapes, so all three are real
+ * symbols, each keeping its own lowercase key and label; the extras are compared
+ * exactly rather than case-folded so `c` is not mistaken for `C`.
  *
  * Builds one cipher's glyph set from what the sources themselves declare, so no
  * character list is ever hand-typed (plan D6):
@@ -46,7 +54,7 @@ const NUMS = "0123456789".split("");
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
 
 function usage(code) {
-    console.error("usage: node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>]] [--same] [--dcode-icons]]");
+    console.error("usage: node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>] [--dcode-extras]] [--same] [--dcode-icons]]");
     process.exit(code);
 }
 
@@ -69,17 +77,16 @@ function pickDescriptor(all, url) {
 function readDescriptors() {
     const src = fs.readFileSync(CODES_JS, "utf8");
     const out = [];
-    const re = /\{name:"((?:[^"\\]|\\.)*)",url:"([^"]*)",([^}]*)\}/g;
-    let m;
-    while ((m = re.exec(src))) {
-        const rest = m[3];
+    for (const m of descriptorBodies(src)) {
+        const rest = m.rest;
         out.push({
-            name: JSON.parse(`"${m[1]}"`),
-            url: m[2],
+            name: m.name,
+            url: m.url,
             letters: field(rest, "letters"),
             numbers: field(rest, "numbers"),
             otherchars: field(rest, "otherchars"),
             othernames: field(rest, "othernames"),
+            digraphs: parseDigraphs(rest),
             lcdir: strField(rest, "lcdir"),
             ucdir: strField(rest, "ucdir"),
             up: strField(rest, "up"),
@@ -92,6 +99,36 @@ function readDescriptors() {
     return out;
 }
 
+/* Descriptors contain nested objects (`digraphs:[{seq,file}]`) and strings that may
+ * contain braces, so the old character-class capture stopped at the first digraph
+ * entry and dropped the Specials. Scan balanced braces from each `{name:"` start,
+ * skipping
+ * quoted strings, and take the whole object body. */
+function descriptorBodies(src) {
+    const out = [];
+    for (let i = src.indexOf('{name:"'); i !== -1; i = src.indexOf('{name:"', i + 1)) {
+        let depth = 0, quote = null;
+        for (let j = i; j < src.length; j++) {
+            const ch = src[j];
+            if (quote) {
+                if (ch === "\\") j++;
+                else if (ch === quote) quote = null;
+                continue;
+            }
+            if (ch === '"' || ch === "'" || ch === '`') { quote = ch; continue; }
+            if (ch === "{") depth++;
+            else if (ch === "}" && --depth === 0) {
+                const body = src.slice(i, j + 1);
+                const head = body.match(/^\{name:"((?:[^"\\]|\\.)*)",url:"([^"]*)",([\s\S]*)\}$/);
+                if (head) out.push({name: JSON.parse(`"${head[1]}"`), url: head[2], rest: head[3]});
+                i = j;
+                break;
+            }
+        }
+    }
+    return out;
+}
+
 function field(rest, name) {
     const m = rest.match(new RegExp(`(?:^|,)${name}:([^,]*(?:,(?![a-z]+:)[^,]*)*)`));
     return m ? m[1].trim() : "";
@@ -99,6 +136,47 @@ function field(rest, name) {
 function strField(rest, name) {
     const m = rest.match(new RegExp(`${name}:"([^"]*)"`));
     return m ? m[1] : "";
+}
+
+/* The source's table ends with a "Specials" group: each descriptor `digraphs` entry
+ * is ONE glyph for a multi-character sequence (dragon_skyrim: aa, ah, … @; sign:
+ * ä/ae). They are table entries, not encoder-only aliases, so they are planned as
+ * keys too. The array contains nested brackets and quoted escapes, so scan it with a
+ * depth counter instead of a greedy regex; the first sequence is the site's caption. */
+function parseDigraphs(rest) {
+    const key = rest.indexOf("digraphs:");
+    if (key < 0) return [];
+    const start = rest.indexOf("[", key);
+    if (start < 0) return [];
+    let depth = 0, quote = null, end = -1;
+    for (let i = start; i < rest.length; i++) {
+        const ch = rest[i];
+        if (quote) {
+            if (ch === "\\") i++;
+            else if (ch === quote) quote = null;
+            continue;
+        }
+        if (ch === '"' || ch === "'") { quote = ch; continue; }
+        if (ch === "[") depth++;
+        else if (ch === "]" && --depth === 0) { end = i; break; }
+    }
+    if (end < 0) return [];
+    const out = [];
+    for (const m of rest.slice(start + 1, end).matchAll(/\{([^{}]*)\}/g)) {
+        const body = m[1];
+        const file = (body.match(/\bfile:"((?:[^"\\]|\\.)*)"/) || [])[1];
+        if (!file) continue;
+        const seqs = [];
+        for (const s of body.matchAll(/\bseqs?:\s*(\[[^\]]*\]|"(?:[^"\\]|\\.)*")/g)) {
+            if (s[1].startsWith("[")) {
+                for (const q of s[1].matchAll(/"((?:[^"\\]|\\.)*)"/g)) seqs.push(unescapeJs(q[1]));
+            } else {
+                seqs.push(unescapeJs(s[1].slice(1, -1)));
+            }
+        }
+        if (seqs.length) out.push({seq: seqs[0], file});
+    }
+    return out;
 }
 
 /* The descriptor's literals are JavaScript strings, so a key must be the character
@@ -143,13 +221,14 @@ function listOf(expr) {
 /* Mirror the site's own rules (an()/on()/ga() in codetables.js):
  *   letter -> [lcdir/]lower(char).png     number -> char.png
  *   other  -> othernames[i].png           space  -> handled by othernames ("space")   */
-function planGlyphs(desc) {
+function planGlyphs(desc, {upperKeys = false} = {}) {
     const glyphs = [];
     const seen = new Set();
     // The site's caption rule (codetables.js): an up-cipher captions each tile
     // with its own character ("A" under the uppercase art, "a" under the
-    // lowercase art); everything else is captioned uppercase.
-    const labelFor = key => (desc.up ? key : key.toUpperCase());
+    // lowercase art); everything else is captioned uppercase. --cases keys by the
+    // art's own character, so the caption follows the key.
+    const labelFor = key => (desc.up || upperKeys ? key : key.toUpperCase());
     const add = (key, file) => {
         if (!file || seen.has(key)) return;
         seen.add(key);
@@ -160,10 +239,16 @@ function planGlyphs(desc) {
     // renders an "Uppercase" section ([ucdir/]UPPER.png, via its ln() rule)
     // before the "Lowercase" one ([lcdir/]lower.png, via on()), so both sets are
     // the source's alphabet — not a duplicate to drop (zodiac_killer: 62 files).
-    if (desc.up) {
+    if (upperKeys) {
+        // One art per letter, keyed the way the chosen source writes it (dCode's
+        // char(65) is `A`). The key's case is the tile's identity, which is what lets
+        // dCode's lowercase c/s/t ship beside C/S/T as their own symbols.
+        for (const ch of letters) add(ch.toUpperCase(), `${desc.lcdir ? desc.lcdir + "/" : ""}${ch.toLowerCase()}.png`);
+    } else if (desc.up) {
         for (const ch of letters) add(ch.toUpperCase(), `${desc.ucdir ? desc.ucdir + "/" : ""}${ch.toUpperCase()}.png`);
+    } else {
+        for (const ch of letters) add(ch, `${desc.lcdir ? desc.lcdir + "/" : ""}${ch.toLowerCase()}.png`);
     }
-    for (const ch of letters) add(ch, `${desc.lcdir ? desc.lcdir + "/" : ""}${ch.toLowerCase()}.png`);
     for (const n of listOf(desc.numbers)) add(n, `${n}.png`);
     const others = listOf(desc.otherchars);
     const names = listOf(desc.othernames);
@@ -174,6 +259,10 @@ function planGlyphs(desc) {
         }
         add(ch, `${names[i]}.png`);
     });
+    // The source's own "Specials" group: one glyph for a multi-character key.
+    for (const d of desc.digraphs || []) {
+        if (d.seq && d.file) add(d.seq, d.file);
+    }
     return glyphs;
 }
 
@@ -336,11 +425,21 @@ async function main() {
     // Reviewed-same alphabet: keep CacheSleuth's art, ship no second set.
     const same = args.includes("--same");
     const dcodeIcons = args.includes("--dcode-icons");
-    for (const [flag, on] of [["--same", same], ["--dcode-icons", dcodeIcons]]) {
+    const dcodeExtras = args.includes("--dcode-extras");
+    const cases = args.includes("--cases");
+    for (const [flag, on] of [["--same", same], ["--dcode-icons", dcodeIcons], ["--dcode-extras", dcodeExtras], ["--cases", cases]]) {
         if (on && !dcodePath) {
             console.error(`${flag} needs --dcode <page-path>`);
             process.exit(2);
         }
+    }
+    if (dcodeExtras && artFrom !== "dcode") {
+        console.error("--dcode-extras only applies with --art dcode");
+        process.exit(2);
+    }
+    if (cases && artFrom !== "dcode") {
+        console.error("--cases only applies with --art dcode");
+        process.exit(2);
     }
     const dropIdx = args.indexOf("--drop");
     const dropSet = new Set();
@@ -374,7 +473,7 @@ async function main() {
         process.exit(2);
     }
 
-    const glyphs = planGlyphs(desc);
+    const glyphs = planGlyphs(desc, {upperKeys: cases});
     const planned = new Set(glyphs.map(g => g.file));
     const unmapped = declared.filter(f => !planned.has(f));
     const absent = glyphs.filter(g => !declared.includes(g.file));
@@ -442,13 +541,34 @@ async function main() {
         }
     }
 
+    // --dcode-extras: dCode's own table may publish symbols CacheSleuth does not declare
+    // (Futurama's punctuation). They are real tiles of the chosen art, so they ship with
+    // their own key; install.mjs draws them from dCode by key like every other glyph.
+    const extraGlyphs = [];
+    if ((dcodeExtras || cases) && dcode && dcode.ok) {
+        // --cases compares exactly: a key is a character, and `c` is not `C` when both
+        // are shipped as different art. Otherwise case is folded, so dCode's uppercase
+        // set is recognised as the same alphabet as the descriptor's lowercase keys.
+        const norm = key => (cases ? String(key) : String(key).toLowerCase());
+        const covered = new Set(glyphs.map(g => norm(g.key)));
+        for (const g of dcode.glyphs) {
+            if (!g.ok) continue;
+            const key = String(g.key);
+            if (covered.has(norm(key))) continue;
+            covered.add(norm(key));
+            extraGlyphs.push({key, label: key});
+        }
+        console.log(`  dCode extras shipped    : ${extraGlyphs.length}${extraGlyphs.length ? " -> " + extraGlyphs.map(g => JSON.stringify(g.key)).join(", ") : ""}`);
+    }
+
     const counts = {
-        declared: glyphs.length,
+        declared: glyphs.length + extraGlyphs.length,
         uniqueFiles: new Set(results.filter(r => r.ok).map(r => r.file)).size,
         manifestFiles: declared.length,
-        downloaded: downloaded.length,
+        downloaded: downloaded.length + extraGlyphs.length,
         failed: failed.length,
-        unmapped: unmapped.length
+        unmapped: unmapped.length,
+        extras: extraGlyphs.length
     };
     const check = counts.declared === counts.downloaded && counts.failed === 0 && absent.length === 0
         && (artFrom !== "dcode" || (dcode && dcode.ok && artGap.length === 0))
@@ -460,9 +580,11 @@ async function main() {
         artFrom,
         dropped: artDropped,
         same,
+        ...(cases ? {cases: true} : {}),
         descriptor: {
             letters: desc.letters, numbers: desc.numbers,
             otherchars: desc.otherchars, othernames: desc.othernames,
+            digraphs: desc.digraphs,
             lcdir: desc.lcdir, ucdir: desc.ucdir, font: desc.font
         },
         source: {
@@ -474,7 +596,10 @@ async function main() {
             dcode: dcodePath ? {page: DCODE_BASE + dcodePath} : null
         },
         counts,
-        glyphs: results.map((r, i) => ({index: i + 1, key: r.key, label: r.label, file: r.ok ? `glyphs/${r.file}` : null, bytes: r.bytes})),
+        glyphs: [
+            ...results.map((r, i) => ({index: i + 1, key: r.key, label: r.label, file: r.ok ? `glyphs/${r.file}` : null, bytes: r.bytes})),
+            ...extraGlyphs.map((g, i) => ({index: results.length + i + 1, key: g.key, label: g.label, file: null}))
+        ],
         failed: failed.map(r => ({key: r.key, file: r.file, why: r.why})),
         unmapped,
         dcode: dcode ? {page: dcode.page, count: dcode.count, variantNames: dcode.variantNames, glyphs: dcode.glyphs} : null,

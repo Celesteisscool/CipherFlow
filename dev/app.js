@@ -9510,7 +9510,10 @@ function symbolGlyphSet(node) {
                 return {
                     index: i + 1,
                     key: mapped || key,
-                    label: mapped || key.toUpperCase(),
+                    // Caption the glyph with its own key: dCode publishes lowercase keys
+                    // as real symbols (semaphore's four special flags are a/b/c/d beside
+                    // A–Z), and uppercasing them drew a second identical A/B/C/D tile.
+                    label: mapped || key,
                     src: g.src,
                     variants: g.variants && Object.keys(g.variants).length ? g.variants : undefined
                 };

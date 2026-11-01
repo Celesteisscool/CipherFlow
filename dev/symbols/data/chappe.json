@@ -1,0 +1,442 @@
+{
+  "slug": "chappe",
+  "name": "Chappe",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=chappe",
+      "images": "https://i.cachesleuth.com/images/chappe/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/alphabet-chappe"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 36,
+    "uniqueFiles": 36,
+    "manifestFiles": 36,
+    "downloaded": 36,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/chappe/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/chappe/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/chappe/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/chappe/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/chappe/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/chappe/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/chappe/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/chappe/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/chappe/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/chappe/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/chappe/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/chappe/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/chappe/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/chappe/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/chappe/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/chappe/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/chappe/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/chappe/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/chappe/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/chappe/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/chappe/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/chappe/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/chappe/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/chappe/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/chappe/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/chappe/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/chappe/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/chappe/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/chappe/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/chappe/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/chappe/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/chappe/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/chappe/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/chappe/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/chappe/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/chappe/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/alphabet-chappe",
+    "count": 36,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "&",
+        "file": "art/chappe/_dcode/char(38).png",
+        "variants": null
+      },
+      {
+        "key": "0",
+        "file": "art/chappe/_dcode/char(48).png",
+        "variants": null
+      },
+      {
+        "key": "1",
+        "file": "art/chappe/_dcode/char(49).png",
+        "variants": null
+      },
+      {
+        "key": "2",
+        "file": "art/chappe/_dcode/char(50).png",
+        "variants": null
+      },
+      {
+        "key": "3",
+        "file": "art/chappe/_dcode/char(51).png",
+        "variants": null
+      },
+      {
+        "key": "4",
+        "file": "art/chappe/_dcode/char(52).png",
+        "variants": null
+      },
+      {
+        "key": "5",
+        "file": "art/chappe/_dcode/char(53).png",
+        "variants": null
+      },
+      {
+        "key": "6",
+        "file": "art/chappe/_dcode/char(54).png",
+        "variants": null
+      },
+      {
+        "key": "7",
+        "file": "art/chappe/_dcode/char(55).png",
+        "variants": null
+      },
+      {
+        "key": "8",
+        "file": "art/chappe/_dcode/char(56).png",
+        "variants": null
+      },
+      {
+        "key": "9",
+        "file": "art/chappe/_dcode/char(57).png",
+        "variants": null
+      },
+      {
+        "key": "A",
+        "file": "art/chappe/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "B",
+        "file": "art/chappe/_dcode/char(66).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/chappe/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/chappe/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/chappe/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "F",
+        "file": "art/chappe/_dcode/char(70).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/chappe/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/chappe/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/chappe/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "K",
+        "file": "art/chappe/_dcode/char(75).png",
+        "variants": null
+      },
+      {
+        "key": "L",
+        "file": "art/chappe/_dcode/char(76).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/chappe/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/chappe/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/chappe/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "P",
+        "file": "art/chappe/_dcode/char(80).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/chappe/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/chappe/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/chappe/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/chappe/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/chappe/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "V",
+        "file": "art/chappe/_dcode/char(86).png",
+        "variants": null
+      },
+      {
+        "key": "W",
+        "file": "art/chappe/_dcode/char(87).png",
+        "variants": null
+      },
+      {
+        "key": "X",
+        "file": "art/chappe/_dcode/char(88).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/chappe/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "Z",
+        "file": "art/chappe/_dcode/char(90).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

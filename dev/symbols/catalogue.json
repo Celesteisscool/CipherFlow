@@ -1,11 +1,31 @@
 [
   {
+    "slug": "adlam",
+    "name": "Adlam",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "signlanguage",
     "name": "American Sign Language",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "atlantis",
+    "name": "Atlantis",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 39,
+    "uniqueFiles": 36,
     "dcode": 0,
     "check": "PASS"
   },
@@ -40,6 +60,26 @@
     "check": "PASS"
   },
   {
+    "slug": "botw",
+    "name": "Breath of the Wild",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 40,
+    "uniqueFiles": 40,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "chappe",
+    "name": "Chappe",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 36,
+    "check": "PASS"
+  },
+  {
     "slug": "dancingmen",
     "name": "Dancing Men",
     "source": "both",
@@ -56,6 +96,16 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "dragon_skyrim",
+    "name": "Dragon - Skyrim",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 58,
+    "uniqueFiles": 58,
     "dcode": 0,
     "check": "PASS"
   },
@@ -77,6 +127,26 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 6,
+    "check": "PASS"
+  },
+  {
+    "slug": "futurama",
+    "name": "Futurama",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 43,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "glagolitic",
+    "name": "Glagolitic",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -120,6 +190,16 @@
     "check": "PASS"
   },
   {
+    "slug": "kryptonian",
+    "name": "Kryptonian",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "mayan",
     "name": "Mayan Numbers 1",
     "source": "both",
@@ -136,6 +216,16 @@
     "status": "ready",
     "glyphs": 59,
     "uniqueFiles": 59,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "nko",
+    "name": "N'Ko",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
     "dcode": 0,
     "check": "PASS"
   },
@@ -196,6 +286,16 @@
     "status": "ready",
     "glyphs": 28,
     "uniqueFiles": 28,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "vulcan_modern",
+    "name": "Vulcan - Modern",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS"
   },

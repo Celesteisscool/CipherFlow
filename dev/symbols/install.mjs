@@ -60,19 +60,27 @@ for (const slug of slugs.sort()) {
     // chosen, so the shipped glyph points at dCode's file. Keys/labels stay CacheSleuth's,
     // only the drawing changes, and the duplicate set is not shipped.
     const artFrom = staged.artFrom === "dcode" ? "dcode" : "cachesleuth";
-    const dcodeByKey = new Map();
+    // Exact key first, then case-folded: most sets key a letter lowercase while dCode's
+    // file is char(65)/`A`, but a case-aware set (Atlantis) ships `C` and `c` as
+    // different glyphs and must reach char(67) and char(99) respectively.
+    const dcodeExact = new Map();
+    const dcodeFold = new Map();
     if (staged.dcode) {
         for (const g of staged.dcode.glyphs) {
-            const key = String(g.key ?? "").toLowerCase();
-            if (g.file && !dcodeByKey.has(key)) dcodeByKey.set(key, g);
+            if (!g.file) continue;
+            const key = String(g.key ?? "");
+            if (!dcodeExact.has(key)) dcodeExact.set(key, g);
+            const folded = key.toLowerCase();
+            if (!dcodeFold.has(folded)) dcodeFold.set(folded, g);
         }
     }
+    const dcodeFor = key => dcodeExact.get(String(key)) || dcodeFold.get(String(key).toLowerCase());
 
     const dropSet = new Set((staged.dropped || []).map(k => String(k)));
     let artFiles = 0;
     const glyphs = [];
     for (const g of staged.glyphs) {
-        const src = artFrom === "dcode" ? dcodeByKey.get(String(g.key ?? "").toLowerCase()) : g;
+        const src = artFrom === "dcode" ? dcodeFor(g.key) : g;
         // A declared character with no art in the chosen source, named in --drop at
         // authoring time (hexahue's empty space): dropped from the shipped set.
         if (artFrom === "dcode" && !src && dropSet.has(String(g.key ?? ""))) continue;
@@ -122,6 +130,7 @@ for (const slug of slugs.sort()) {
         descriptor: staged.descriptor,
         // Only written where it is true, so re-installing does not churn the shipped ciphers.
         ...(staged.same ? {sameAsCachesleuth: true} : {}),
+        ...(staged.cases ? {cases: true} : {}),
         counts: staged.counts,
         glyphs,
         unmapped: staged.unmapped,

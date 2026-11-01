@@ -2426,6 +2426,9 @@ body.has-sym-rail .toolbar { left: 43px; }
 .sym-pv { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 0 0 auto; }
 .sym-pv img { width: 30px; height: 30px; object-fit: contain; }
 .sym-pv b { font-size: 9px; font-weight: 700; color: var(--ink); }
+/* The space between numeric glyphs. The strip keeps it visible so the reading matches
+   what was clicked: Babylonian 1 then 0 is two tiles, the 10 tile is one. */
+.sym-gap { flex: 0 0 7px; }
 
 /* Every symbol image sits on a white plate. The sources draw black-on-transparent art,
    so a white ground makes the ink read the same in either theme — the treatment the

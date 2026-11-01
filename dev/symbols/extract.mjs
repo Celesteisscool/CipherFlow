@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 /* Symbol glyph extractor — authoring-time only, never part of dev/build.mjs.
  *
- *   node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>]]]
+ *   node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>]] [--same] [--dcode-icons]]
+ *
+ * --same records that dCode publishes the same alphabet (reviewed side by side):
+ * the second set is downloaded as evidence but not shipped, so the node keeps
+ * CacheSleuth's art and has no source toggle (American Sign Language, Dotsies).
+ * --dcode-icons reads a page that draws its alphabet from the `$.cryptoarea.icons`
+ * array instead of <img class="glyph"> tags (ogham): that list is the page's own
+ * declared inventory (Ogham ships 52 — digits 0–9 and 21 letters in both cases),
+ * and it is taken whole, as dCode publishes it.
  *
  * --art dcode ships dCode's icons as the cipher's own glyphs — used where both
  * sources publish the same alphabet and dCode's art was chosen (unown, hexahue).
@@ -38,7 +46,7 @@ const NUMS = "0123456789".split("");
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
 
 function usage(code) {
-    console.error("usage: node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>]]]");
+    console.error("usage: node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>]] [--same] [--dcode-icons]]");
     process.exit(code);
 }
 
@@ -113,6 +121,16 @@ function listOf(expr) {
     if (!e || e === '""' || e === "''") return [];
     if (e === "atoz") return ATOZ.slice();
     if (e === "nums") return NUMS.slice();
+    // Some descriptors attach table metadata to the list itself: Dotsies writes
+    // `letters:atoz,indexImage:"x.png"`, and the field parser keeps the tail because the
+    // next key starts with an uppercase letter. The list is still the leading atoz/nums
+    // token; the tail only names the table's index picture, which the manifest already
+    // accounts for — so it is reported and then ignored, never hand-trimmed.
+    const tailed = e.match(/^(atoz|nums),([\s\S]*)$/);
+    if (tailed) {
+        console.warn(`  ~ descriptor list carries an attribute, ignored: ,${tailed[2]}`);
+        return tailed[1] === "atoz" ? ATOZ.slice() : NUMS.slice();
+    }
     if (/^"([^"]*)"\.split\(""\)$/.test(e)) return unescapeJs(e.match(/^"([^"]*)"/)[1]).split("");
     if (/^"([^"]*)"$/.test(e)) return unescapeJs(e.match(/^"([^"]*)"/)[1]).split("");
     if (/^new Array\(([\s\S]*)\)$/.test(e)) {
@@ -228,7 +246,7 @@ function dcodeVariants(html) {
     return out;
 }
 
-async function extractDcode(pagePath, dir) {
+async function extractDcode(pagePath, dir, {icons = false} = {}) {
     const html = await fetchText(DCODE_BASE + pagePath);
     const variantsFor = dcodeVariants(html);
     const tags = [...html.matchAll(/<img[^>]*>/g)].map(x => x[0]).filter(t => /class="glyph"/.test(t));
@@ -237,9 +255,47 @@ async function extractDcode(pagePath, dir) {
         const src = (t.match(/\bsrc="([^"]+)"/) || [])[1];
         const alt = (t.match(/\balt="([^"]*)"/) || [])[1] || "";
         if (!src || seen.has(src)) continue;
-        const code = alt.match(/char\((\d+)\)/);
-        const key = code ? String.fromCharCode(Number(code[1])) : alt;
+        // Key from the alt text where the page writes it, else from the src filename:
+        // Gravity Falls' page labels its glyphs "gravity-falls-alchemy symbol NN" while the
+        // files are still char(N).png, so keying from alt alone would caption every tile
+        // with dCode's internal symbol name. Pages that do write char(N) in the alt are
+        // unaffected — the alt still wins.
+        const fromSrc = path.basename(new URL(src, DCODE_BASE).pathname).match(/char\((\d+)\)/);
+        const code = (alt.match(/char\((\d+)\)/) || [])[1] || (fromSrc ? fromSrc[1] : null);
+        // fromCodePoint, not fromCharCode: dCode names glyphs by Unicode code point and
+        // Mayan numerals live at U+1D2E0+ — fromCharCode would truncate 119520 to U+D2E0
+        // (a Hangul syllable) and caption the tiles with the wrong characters entirely.
+        const key = code ? String.fromCodePoint(Number(code)) : alt;
         seen.set(src, key);
+    }
+    // Some pages draw the alphabet from a JS array rather than <img> tags: ogham's
+    // `$.cryptoarea.icons = ["char(48)", …]` lists every glyph its tool can write. That
+    // array IS the page's inventory (52 for Ogham: digits plus 21 letters in both cases,
+    // with no glyph published for j/k/v/w/x), so it is taken whole. The inline demo images
+    // beside it are excerpts of that list, so the static scan is replaced, not added to.
+    if (icons) {
+        const meta = html.match(/(https?:\/\/[^'"\s]+\/images)'\s*;\s*\$\.cryptoarea\.icons\s*=\s*\[([^\]]*)\]/);
+        if (meta) {
+            seen.clear();
+            for (const hit of meta[2].matchAll(/char\((\d+)\)/g)) {
+                const key = String.fromCodePoint(Number(hit[1]));
+                const src = `${meta[1]}/char(${hit[1]}).png`;
+                if (!seen.has(src)) seen.set(src, key);
+            }
+            // dCode's Ogham menu parks forfeda in the ten digit slots (char(48)–57), but
+            // its encoder never emits them for digits: typing 0–9 returns nothing, while
+            // ea/oi/ui/ae return char(50)/char(52)/char(53)/char(49). Labeling those
+            // slots 0–9 was wrong. The four the encoder confirms get their letters; the
+            // rest (marks and variants with no reachable Latin input) are not shipped
+            // rather than captioned with a guess.
+            if (/alphabet-ogham/.test(pagePath)) {
+                for (const [code, key] of Object.entries({49: "AE", 50: "EA", 52: "OI", 53: "UI"})) {
+                    const src = `${meta[1]}/char(${code}).png`;
+                    if (seen.has(src)) seen.set(src, key);
+                }
+                for (const code of [48, 51, 54, 55, 56, 57]) seen.delete(`${meta[1]}/char(${code}).png`);
+            }
+        }
     }
     const entries = [...seen.entries()].map(([src, key]) => ({src, key}));
     const glyphs = await pool(entries, 6, async e => {
@@ -276,6 +332,15 @@ async function main() {
     if (artFrom === "dcode" && !dcodePath) {
         console.error("--art dcode needs --dcode <page-path>");
         process.exit(2);
+    }
+    // Reviewed-same alphabet: keep CacheSleuth's art, ship no second set.
+    const same = args.includes("--same");
+    const dcodeIcons = args.includes("--dcode-icons");
+    for (const [flag, on] of [["--same", same], ["--dcode-icons", dcodeIcons]]) {
+        if (on && !dcodePath) {
+            console.error(`${flag} needs --dcode <page-path>`);
+            process.exit(2);
+        }
     }
     const dropIdx = args.indexOf("--drop");
     const dropSet = new Set();
@@ -358,7 +423,7 @@ async function main() {
     let artGap = [], artDropped = [];
     if (dcodePath) {
         console.log(`  dCode page             : ${dcodePath}`);
-        dcode = await extractDcode(dcodePath, stage);
+        dcode = await extractDcode(dcodePath, stage, {icons: dcodeIcons});
         console.log(`  dCode glyphs downloaded : ${dcode.count} (all PNG: ${dcode.ok})`);
         if (dcode.variantNames.length) console.log(`  dCode variant mapping   : ${dcode.variantNames.join(", ")}`);
         if (artFrom === "dcode") {
@@ -394,6 +459,7 @@ async function main() {
         name: desc.name,
         artFrom,
         dropped: artDropped,
+        same,
         descriptor: {
             letters: desc.letters, numbers: desc.numbers,
             otherchars: desc.otherchars, othernames: desc.othernames,

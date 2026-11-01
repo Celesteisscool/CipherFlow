@@ -77,6 +77,10 @@ const dcodeGrid = data.dcode ? data.dcode.glyphs.map(g => {
 
 const dcodeNote = data.dcode && data.dcode.variantNames && data.dcode.variantNames.length
     ? `Second implementation: ${data.dcode.count} symbols with a per-variant plaintext mapping (${data.dcode.variantNames.map(esc).join(", ")}) — dCode maps each symbol to its solved meaning in each cryptogram (homophonic, several symbols per letter), a different model from CacheSleuth's one-glyph-per-letter grid. The captions under this grid read \"variant: plaintext\".`
+    : data.dcode && !data.dcode.count
+    ? `dCode has a page for this cipher (<code>${esc(data.dcode.page)}</code>) but publishes no per-glyph images on it, so there is nothing to switch to and the node stays single-source (D2). This section records the check.`
+    : data.same
+    ? `dCode publishes the same alphabet for this cipher (${data.dcode ? data.dcode.count : 0} glyphs, checked against CacheSleuth's ${data.counts.declared}). The two were compared and found identical, so CacheSleuth's art stays the shipped set and the node has no source toggle. This section is provenance only.`
     : data.artFrom === "dcode"
     ? `This is the shipped art: dCode's ${data.dcode ? data.dcode.count : 0} glyphs were chosen as the cipher's own set, keyed and captioned by CacheSleuth's characters, so the node has no source toggle.${data.dropped && data.dropped.length ? ` The declared ${data.dropped.map(esc).map(k => `“${k}”`).join(", ")} tile${data.dropped.length > 1 ? "s" : ""} had no dCode art and was dropped at authoring time (\`--drop\`): dCode publishes no glyph for ${data.dropped.length > 1 ? "them" : "it"}, so ${data.dropped.length > 1 ? "they" : "it"} would draw empty anyway.` : ""} Section 2 draws these same files; this section is provenance only.`
     : `Second implementation: ${data.dcode ? data.dcode.count : 0} glyphs vs CacheSleuth's ${data.counts.declared}. Where the two sets differ (count, keys or art), the node header shows the CacheSleuth/dCode toggle (D2).`;

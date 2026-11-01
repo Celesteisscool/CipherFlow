@@ -85,8 +85,10 @@ for (const slug of slugs.sort()) {
         glyphs.push({index: glyphs.length + 1, key: g.key, label: g.label, file: ok ? `art/${slug}/${sub ? sub + "/" : ""}${rel}` : null});
     }
 
+    // `same`: the two sources publish the same alphabet (reviewed against both), so the
+    // second set is evidence only and is not shipped; the node has no source toggle.
     let dcode = null;
-    if (staged.dcode && artFrom !== "dcode") {
+    if (staged.dcode && artFrom !== "dcode" && !staged.same) {
         const dglyphs = [];
         let dcount = 0;
         for (const g of staged.dcode.glyphs) {
@@ -118,6 +120,8 @@ for (const slug of slugs.sort()) {
             dcode: staged.source.dcode || null
         },
         descriptor: staged.descriptor,
+        // Only written where it is true, so re-installing does not churn the shipped ciphers.
+        ...(staged.same ? {sameAsCachesleuth: true} : {}),
         counts: staged.counts,
         glyphs,
         unmapped: staged.unmapped,

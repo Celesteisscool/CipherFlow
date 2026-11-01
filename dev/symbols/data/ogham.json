@@ -1,0 +1,395 @@
+{
+  "slug": "ogham",
+  "name": "Ogham",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=ogham",
+      "images": "https://i.cachesleuth.com/images/ogham/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/alphabet-ogham"
+    }
+  },
+  "descriptor": {
+    "letters": "\"abcdefghilmnopqrstuz\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 20,
+    "uniqueFiles": 20,
+    "manifestFiles": 20,
+    "downloaded": 20,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/ogham/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/ogham/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/ogham/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/ogham/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/ogham/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/ogham/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/ogham/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/ogham/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/ogham/i.png"
+    },
+    {
+      "index": 10,
+      "key": "l",
+      "label": "L",
+      "file": "art/ogham/l.png"
+    },
+    {
+      "index": 11,
+      "key": "m",
+      "label": "M",
+      "file": "art/ogham/m.png"
+    },
+    {
+      "index": 12,
+      "key": "n",
+      "label": "N",
+      "file": "art/ogham/n.png"
+    },
+    {
+      "index": 13,
+      "key": "o",
+      "label": "O",
+      "file": "art/ogham/o.png"
+    },
+    {
+      "index": 14,
+      "key": "p",
+      "label": "P",
+      "file": "art/ogham/p.png"
+    },
+    {
+      "index": 15,
+      "key": "q",
+      "label": "Q",
+      "file": "art/ogham/q.png"
+    },
+    {
+      "index": 16,
+      "key": "r",
+      "label": "R",
+      "file": "art/ogham/r.png"
+    },
+    {
+      "index": 17,
+      "key": "s",
+      "label": "S",
+      "file": "art/ogham/s.png"
+    },
+    {
+      "index": 18,
+      "key": "t",
+      "label": "T",
+      "file": "art/ogham/t.png"
+    },
+    {
+      "index": 19,
+      "key": "u",
+      "label": "U",
+      "file": "art/ogham/u.png"
+    },
+    {
+      "index": 20,
+      "key": "z",
+      "label": "Z",
+      "file": "art/ogham/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/alphabet-ogham",
+    "count": 46,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "AE",
+        "file": "art/ogham/_dcode/char(49).png",
+        "variants": null
+      },
+      {
+        "key": "EA",
+        "file": "art/ogham/_dcode/char(50).png",
+        "variants": null
+      },
+      {
+        "key": "OI",
+        "file": "art/ogham/_dcode/char(52).png",
+        "variants": null
+      },
+      {
+        "key": "UI",
+        "file": "art/ogham/_dcode/char(53).png",
+        "variants": null
+      },
+      {
+        "key": "A",
+        "file": "art/ogham/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "B",
+        "file": "art/ogham/_dcode/char(66).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/ogham/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/ogham/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/ogham/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "F",
+        "file": "art/ogham/_dcode/char(70).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/ogham/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/ogham/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/ogham/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "L",
+        "file": "art/ogham/_dcode/char(76).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/ogham/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/ogham/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/ogham/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "P",
+        "file": "art/ogham/_dcode/char(80).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/ogham/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/ogham/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/ogham/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/ogham/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/ogham/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/ogham/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "Z",
+        "file": "art/ogham/_dcode/char(90).png",
+        "variants": null
+      },
+      {
+        "key": "a",
+        "file": "art/ogham/_dcode/char(97).png",
+        "variants": null
+      },
+      {
+        "key": "b",
+        "file": "art/ogham/_dcode/char(98).png",
+        "variants": null
+      },
+      {
+        "key": "c",
+        "file": "art/ogham/_dcode/char(99).png",
+        "variants": null
+      },
+      {
+        "key": "d",
+        "file": "art/ogham/_dcode/char(100).png",
+        "variants": null
+      },
+      {
+        "key": "e",
+        "file": "art/ogham/_dcode/char(101).png",
+        "variants": null
+      },
+      {
+        "key": "f",
+        "file": "art/ogham/_dcode/char(102).png",
+        "variants": null
+      },
+      {
+        "key": "g",
+        "file": "art/ogham/_dcode/char(103).png",
+        "variants": null
+      },
+      {
+        "key": "h",
+        "file": "art/ogham/_dcode/char(104).png",
+        "variants": null
+      },
+      {
+        "key": "i",
+        "file": "art/ogham/_dcode/char(105).png",
+        "variants": null
+      },
+      {
+        "key": "l",
+        "file": "art/ogham/_dcode/char(108).png",
+        "variants": null
+      },
+      {
+        "key": "m",
+        "file": "art/ogham/_dcode/char(109).png",
+        "variants": null
+      },
+      {
+        "key": "n",
+        "file": "art/ogham/_dcode/char(110).png",
+        "variants": null
+      },
+      {
+        "key": "o",
+        "file": "art/ogham/_dcode/char(111).png",
+        "variants": null
+      },
+      {
+        "key": "p",
+        "file": "art/ogham/_dcode/char(112).png",
+        "variants": null
+      },
+      {
+        "key": "q",
+        "file": "art/ogham/_dcode/char(113).png",
+        "variants": null
+      },
+      {
+        "key": "r",
+        "file": "art/ogham/_dcode/char(114).png",
+        "variants": null
+      },
+      {
+        "key": "s",
+        "file": "art/ogham/_dcode/char(115).png",
+        "variants": null
+      },
+      {
+        "key": "t",
+        "file": "art/ogham/_dcode/char(116).png",
+        "variants": null
+      },
+      {
+        "key": "u",
+        "file": "art/ogham/_dcode/char(117).png",
+        "variants": null
+      },
+      {
+        "key": "y",
+        "file": "art/ogham/_dcode/char(121).png",
+        "variants": null
+      },
+      {
+        "key": "z",
+        "file": "art/ogham/_dcode/char(122).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

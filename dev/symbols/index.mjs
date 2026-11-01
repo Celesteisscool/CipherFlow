@@ -118,6 +118,7 @@ export function glyphDataBundle() {
             name: c.name,
             source: c.source,
             artFrom: c.artFrom || "cachesleuth",
+            sameAsCachesleuth: Boolean(c.sameAsCachesleuth),
             direction: "ltr",
             caseSensitive: caseSensitiveSet(c.glyphs),
             table: c.source.cachesleuth.tableImage ? encoder(path.join(HERE, c.source.cachesleuth.tableImage)) : null,

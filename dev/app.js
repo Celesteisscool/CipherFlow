@@ -9521,15 +9521,24 @@ function symbolGlyphSet(node) {
 }
 
 /**
- * D2: the source toggle appears only when the other source publishes a complete A–Z
+ * D2: the source toggle appears only when the other source publishes a complete
  * alphabet for this cipher. A second source holding a handful of images (dCode ships 9
  * for Braille, 6 for Futhark) is not something you can transcribe with, so the node
  * stays single-source rather than offering a half-empty grid.
+ *
+ * Coverage is tested against the letters THIS cipher declares, not the Latin A–Z:
+ * Ogham's alphabet is 20 letters, so demanding 26 would hide a complete dCode set.
+ * Numbers-only sets (Babylonian, Mayan) declare no letters and never get the toggle.
  */
 function symbolToggleSources(cipher) {
     if (!cipher || !cipher.dcode || !cipher.dcode.glyphs?.length) return null;
+    const letters = new Set((cipher.glyphs || [])
+        .map(g => String(g.key ?? ""))
+        .filter(k => /^[A-Za-z]$/.test(k))
+        .map(k => k.toLowerCase()));
+    if (!letters.size) return null;
     const keys = new Set(cipher.dcode.glyphs.map(g => String(g.key ?? "").toLowerCase()));
-    if (!SYMBOL_A_TO_Z.every(ch => keys.has(ch))) return null;
+    for (const ch of letters) if (!keys.has(ch)) return null;
     // A solved per-variant mapping (Zodiac's Z408/Z340) keys each symbol to an arbitrary
     // char and carries the plaintext in variant columns instead. It used to be refused
     // here because the coverage test alone would have captioned 73 tiles with dCode's
@@ -9545,6 +9554,40 @@ function dcodeSolvedMapping(dcode) {
     const mapped = (dcode.glyphs || []).filter(g => g.variants && Object.keys(g.variants).length);
     if (!mapped.length) return false;
     return mapped.every(g => Object.values(g.variants).every(v => String(v).length === 1));
+}
+
+/**
+ * Cut transcribed text into glyphs. Most ciphers key one character per tile, but the
+ * source also ships multi-character keys (Babylonian 10–50, Mayan 10–19), and walking
+ * the string one character at a time draws the 10 tile as a 1 beside a 0. Longest key
+ * wins; a click on a multi-character tile inserts a space between entries, so 1 then 0
+ * stays two glyphs while the 10 tile stays one (and Ogham's forfeda stay separable). A
+ * cipher that publishes a space glyph of its own (braille) gets that glyph back for a space.
+ */
+function symbolTokens(text, glyphs) {
+    const keys = (glyphs || []).map(g => String(g.key ?? "")).filter(Boolean);
+    const longest = keys.reduce((n, k) => Math.max(n, k.length), 1);
+    const chars = Array.from(String(text || ""));
+    const out = [];
+    for (let i = 0; i < chars.length;) {
+        if (/\s/.test(chars[i])) {
+            // Braille ships a tile for the space itself; other sets use space only as the
+            // separator the numeric tiles insert, and draw it as a gap.
+            if (keys.includes(chars[i])) out.push({key: chars[i]});
+            else if (out.length && !out[out.length - 1].space) out.push({space: true});
+            i++;
+            continue;
+        }
+        let key = null;
+        let width = 0;
+        for (let n = Math.min(longest, chars.length - i); n >= 1; n--) {
+            const chunk = chars.slice(i, i + n).join("");
+            if (keys.includes(chunk)) { key = chunk; width = n; break; }
+        }
+        if (key !== null) { out.push({key}); i += width; }
+        else { out.push({ch: chars[i]}); i++; }
+    }
+    return out;
 }
 
 /** The strip under the grid: every character transcribed so far, as a labelled glyph. */
@@ -9567,12 +9610,16 @@ function renderSymbolPreview(el, node, set) {
         const folded = key.toLowerCase();
         if (!byFold.has(folded)) byFold.set(folded, g);
     }
-    el.innerHTML = [...text].map(ch => {
-        const glyph = byKey.get(ch) || byFold.get(ch.toLowerCase());
+    el.innerHTML = symbolTokens(text, set?.glyphs).map(token => {
+        if (token.space) return '<span class="sym-gap" aria-hidden="true"></span>';
+        // Fold case for both kinds of token: a lowercase-keyed set (most of them) still
+        // has to draw text typed in uppercase, which the old character loop handled.
+        const char = token.key !== undefined ? token.key : token.ch;
+        const glyph = char === undefined ? null : (byKey.get(char) || byFold.get(char.toLowerCase()));
         if (glyph && glyph.src) {
             return `<span class="sym-pv"><img src="${esc(glyph.src)}" alt="" draggable="false"><b>${esc(symbolDisplayLabel(glyph))}</b></span>`;
         }
-        const shown = ch.trim() ? ch : "␣";
+        const shown = token.ch.trim() ? token.ch : "␣";
         return `<span class="sym-pv sym-miss"><span class="sym-ph">${esc(shown)}</span><b>${esc(shown)}</b></span>`;
     }).join("");
     el.scrollLeft = el.scrollWidth;
@@ -9652,6 +9699,10 @@ function buildSymbolNode(node) {
     const ta = $("[data-sym-text]", wrap);
     const preview = $("[data-sym-preview]", wrap);
     const tilesLabel = $("[data-sym-tiles-count]", wrap);
+    // Multi-character keys get a space between entries: without it two digit tiles could
+    // fuse into a longer key, and Ogham's forfeda (AE, OI) would be ambiguous with the
+    // letters A and E clicked separately.
+    const multiKey = set.glyphs.some(g => Array.from(String(g.key ?? "")).length > 1);
     ta.value = String(node.text || "");
     wrap.__text = ta.value;
     renderSymbolPreview(preview, node, set);
@@ -9671,7 +9722,11 @@ function buildSymbolNode(node) {
         if (tile) {
             const glyph = set.glyphs[Number(tile.dataset.glyph)];
             if (!glyph) return;
-            ta.value = String(node.text || "") + glyph.key;
+            // A multi-character tile (Babylonian 10, Ogham AE) needs a separator before it,
+            // or the next click would read back as part of the same key.
+            const text = String(node.text || "");
+            const sep = multiKey && text && !/\s$/.test(text) ? " " : "";
+            ta.value = text + sep + glyph.key;
             sync();
             return;
         }

@@ -1,0 +1,175 @@
+{
+  "slug": "tengwar",
+  "name": "Tengwar",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=tengwar",
+      "images": "https://i.cachesleuth.com/images/tengwar/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdefghijklmnoprstuvwx\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 23,
+    "uniqueFiles": 23,
+    "manifestFiles": 23,
+    "downloaded": 23,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/tengwar/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/tengwar/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/tengwar/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/tengwar/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/tengwar/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/tengwar/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/tengwar/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/tengwar/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/tengwar/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/tengwar/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/tengwar/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/tengwar/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/tengwar/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/tengwar/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/tengwar/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/tengwar/p.png"
+    },
+    {
+      "index": 17,
+      "key": "r",
+      "label": "R",
+      "file": "art/tengwar/r.png"
+    },
+    {
+      "index": 18,
+      "key": "s",
+      "label": "S",
+      "file": "art/tengwar/s.png"
+    },
+    {
+      "index": 19,
+      "key": "t",
+      "label": "T",
+      "file": "art/tengwar/t.png"
+    },
+    {
+      "index": 20,
+      "key": "u",
+      "label": "U",
+      "file": "art/tengwar/u.png"
+    },
+    {
+      "index": 21,
+      "key": "v",
+      "label": "V",
+      "file": "art/tengwar/v.png"
+    },
+    {
+      "index": 22,
+      "key": "w",
+      "label": "W",
+      "file": "art/tengwar/w.png"
+    },
+    {
+      "index": 23,
+      "key": "x",
+      "label": "X",
+      "file": "art/tengwar/x.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

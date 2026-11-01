@@ -1,0 +1,601 @@
+{
+  "slug": "gravity_falls_bill",
+  "name": "Gravity Falls - Bill",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=gravity_falls_bill",
+      "images": "https://i.cachesleuth.com/images/gravity_falls_bill/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/gravity-falls-ciphers"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 26,
+    "uniqueFiles": 26,
+    "manifestFiles": 26,
+    "downloaded": 26,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/gravity_falls_bill/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/gravity_falls_bill/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/gravity_falls_bill/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/gravity_falls_bill/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/gravity_falls_bill/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/gravity_falls_bill/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/gravity_falls_bill/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/gravity_falls_bill/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/gravity_falls_bill/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/gravity_falls_bill/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/gravity_falls_bill/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/gravity_falls_bill/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/gravity_falls_bill/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/gravity_falls_bill/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/gravity_falls_bill/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/gravity_falls_bill/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/gravity_falls_bill/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/gravity_falls_bill/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/gravity_falls_bill/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/gravity_falls_bill/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/gravity_falls_bill/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/gravity_falls_bill/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/gravity_falls_bill/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/gravity_falls_bill/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/gravity_falls_bill/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/gravity_falls_bill/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/gravity-falls-ciphers",
+    "count": 80,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "V",
+        "file": "art/gravity_falls_bill/_dcode/char(86).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/gravity_falls_bill/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/gravity_falls_bill/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/gravity_falls_bill/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "K",
+        "file": "art/gravity_falls_bill/_dcode/char(75).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/gravity_falls_bill/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/gravity_falls_bill/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/gravity_falls_bill/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/gravity_falls_bill/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/gravity_falls_bill/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/gravity_falls_bill/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/gravity_falls_bill/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/gravity_falls_bill/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "P",
+        "file": "art/gravity_falls_bill/_dcode/char(80).png",
+        "variants": null
+      },
+      {
+        "key": "X",
+        "file": "art/gravity_falls_bill/_dcode/char(88).png",
+        "variants": null
+      },
+      {
+        "key": "V",
+        "file": "art/gravity_falls_bill/_dcode/char(86).png",
+        "variants": null
+      },
+      {
+        "key": "A",
+        "file": "art/gravity_falls_bill/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/gravity_falls_bill/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/gravity_falls_bill/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "K",
+        "file": "art/gravity_falls_bill/_dcode/char(75).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/gravity_falls_bill/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/gravity_falls_bill/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/gravity_falls_bill/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/gravity_falls_bill/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/gravity_falls_bill/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "X",
+        "file": "art/gravity_falls_bill/_dcode/char(88).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/gravity_falls_bill/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/gravity_falls_bill/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/gravity_falls_bill/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/gravity_falls_bill/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/gravity_falls_bill/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "K",
+        "file": "art/gravity_falls_bill/_dcode/char(75).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/gravity_falls_bill/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/gravity_falls_bill/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/gravity_falls_bill/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/gravity_falls_bill/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "L",
+        "file": "art/gravity_falls_bill/_dcode/char(76).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/gravity_falls_bill/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "J",
+        "file": "art/gravity_falls_bill/_dcode/char(74).png",
+        "variants": null
+      },
+      {
+        "key": "A",
+        "file": "art/gravity_falls_bill/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/gravity_falls_bill/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "J",
+        "file": "art/gravity_falls_bill/_dcode/char(74).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/gravity_falls_bill/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/gravity_falls_bill/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/gravity_falls_bill/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/gravity_falls_bill/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/gravity_falls_bill/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/gravity_falls_bill/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "A",
+        "file": "art/gravity_falls_bill/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/gravity_falls_bill/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/gravity_falls_bill/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/gravity_falls_bill/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/gravity_falls_bill/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "P",
+        "file": "art/gravity_falls_bill/_dcode/char(80).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/gravity_falls_bill/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "J",
+        "file": "art/gravity_falls_bill/_dcode/char(74).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/gravity_falls_bill/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "F",
+        "file": "art/gravity_falls_bill/_dcode/char(70).png",
+        "variants": null
+      },
+      {
+        "key": "B",
+        "file": "art/gravity_falls_bill/_dcode/char(66).png",
+        "variants": null
+      },
+      {
+        "key": "W",
+        "file": "art/gravity_falls_bill/_dcode/char(87).png",
+        "variants": null
+      },
+      {
+        "key": "W",
+        "file": "art/gravity_falls_bill/_dcode/char(87).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/gravity_falls_bill/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/gravity_falls_bill/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/gravity_falls_bill/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/gravity_falls_bill/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "L",
+        "file": "art/gravity_falls_bill/_dcode/char(76).png",
+        "variants": null
+      },
+      {
+        "key": "B",
+        "file": "art/gravity_falls_bill/_dcode/char(66).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/gravity_falls_bill/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/gravity_falls_bill/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "J",
+        "file": "art/gravity_falls_bill/_dcode/char(74).png",
+        "variants": null
+      },
+      {
+        "key": "V",
+        "file": "art/gravity_falls_bill/_dcode/char(86).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/gravity_falls_bill/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/gravity_falls_bill/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/gravity_falls_bill/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "A",
+        "file": "art/gravity_falls_bill/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/gravity_falls_bill/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/gravity_falls_bill/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "W",
+        "file": "art/gravity_falls_bill/_dcode/char(87).png",
+        "variants": null
+      },
+      {
+        "key": "K",
+        "file": "art/gravity_falls_bill/_dcode/char(75).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/gravity_falls_bill/_dcode/char(68).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

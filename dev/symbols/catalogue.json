@@ -1,5 +1,15 @@
 [
   {
+    "slug": "signlanguage",
+    "name": "American Sign Language",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "aurebesh",
     "name": "Aurebesh",
     "source": "both",
@@ -7,6 +17,16 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 35,
+    "check": "PASS"
+  },
+  {
+    "slug": "babylonian",
+    "name": "Babylonian Numerals",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 24,
+    "uniqueFiles": 24,
+    "dcode": 15,
     "check": "PASS"
   },
   {
@@ -30,6 +50,16 @@
     "check": "PASS"
   },
   {
+    "slug": "dotsies",
+    "name": "Dotsies",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "enochian",
     "name": "Enochian",
     "source": "both",
@@ -50,6 +80,16 @@
     "check": "PASS"
   },
   {
+    "slug": "gravity_falls_bill",
+    "name": "Gravity Falls - Bill",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 80,
+    "check": "PASS"
+  },
+  {
     "slug": "hexahue",
     "name": "Hexahue",
     "source": "dcode",
@@ -57,6 +97,56 @@
     "glyphs": 38,
     "uniqueFiles": 39,
     "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "hylian",
+    "name": "Hylian",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 62,
+    "uniqueFiles": 62,
+    "dcode": 26,
+    "check": "PASS"
+  },
+  {
+    "slug": "klingon",
+    "name": "Klingon",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 26,
+    "check": "PASS"
+  },
+  {
+    "slug": "mayan",
+    "name": "Mayan Numbers 1",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 20,
+    "uniqueFiles": 20,
+    "dcode": 20,
+    "check": "PASS"
+  },
+  {
+    "slug": "music",
+    "name": "Music Sheet",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 59,
+    "uniqueFiles": 59,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "ogham",
+    "name": "Ogham",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 20,
+    "uniqueFiles": 20,
+    "dcode": 46,
     "check": "PASS"
   },
   {
@@ -77,6 +167,16 @@
     "glyphs": 30,
     "uniqueFiles": 30,
     "dcode": 30,
+    "check": "PASS"
+  },
+  {
+    "slug": "tengwar",
+    "name": "Tengwar",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 23,
+    "uniqueFiles": 23,
+    "dcode": 0,
     "check": "PASS"
   },
   {

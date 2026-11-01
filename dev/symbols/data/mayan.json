@@ -1,0 +1,265 @@
+{
+  "slug": "mayan",
+  "name": "Mayan Numbers 1",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=mayan",
+      "images": "https://i.cachesleuth.com/images/mayan/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/mayan-numbers"
+    }
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "new Array(\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\",\"15\",\"16\",\"17\",\"18\",\"19\")",
+    "otherchars": "",
+    "othernames": "",
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 20,
+    "uniqueFiles": 20,
+    "manifestFiles": 20,
+    "downloaded": 20,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "0",
+      "label": "0",
+      "file": "art/mayan/0.png"
+    },
+    {
+      "index": 2,
+      "key": "1",
+      "label": "1",
+      "file": "art/mayan/1.png"
+    },
+    {
+      "index": 3,
+      "key": "2",
+      "label": "2",
+      "file": "art/mayan/2.png"
+    },
+    {
+      "index": 4,
+      "key": "3",
+      "label": "3",
+      "file": "art/mayan/3.png"
+    },
+    {
+      "index": 5,
+      "key": "4",
+      "label": "4",
+      "file": "art/mayan/4.png"
+    },
+    {
+      "index": 6,
+      "key": "5",
+      "label": "5",
+      "file": "art/mayan/5.png"
+    },
+    {
+      "index": 7,
+      "key": "6",
+      "label": "6",
+      "file": "art/mayan/6.png"
+    },
+    {
+      "index": 8,
+      "key": "7",
+      "label": "7",
+      "file": "art/mayan/7.png"
+    },
+    {
+      "index": 9,
+      "key": "8",
+      "label": "8",
+      "file": "art/mayan/8.png"
+    },
+    {
+      "index": 10,
+      "key": "9",
+      "label": "9",
+      "file": "art/mayan/9.png"
+    },
+    {
+      "index": 11,
+      "key": "10",
+      "label": "10",
+      "file": "art/mayan/10.png"
+    },
+    {
+      "index": 12,
+      "key": "11",
+      "label": "11",
+      "file": "art/mayan/11.png"
+    },
+    {
+      "index": 13,
+      "key": "12",
+      "label": "12",
+      "file": "art/mayan/12.png"
+    },
+    {
+      "index": 14,
+      "key": "13",
+      "label": "13",
+      "file": "art/mayan/13.png"
+    },
+    {
+      "index": 15,
+      "key": "14",
+      "label": "14",
+      "file": "art/mayan/14.png"
+    },
+    {
+      "index": 16,
+      "key": "15",
+      "label": "15",
+      "file": "art/mayan/15.png"
+    },
+    {
+      "index": 17,
+      "key": "16",
+      "label": "16",
+      "file": "art/mayan/16.png"
+    },
+    {
+      "index": 18,
+      "key": "17",
+      "label": "17",
+      "file": "art/mayan/17.png"
+    },
+    {
+      "index": 19,
+      "key": "18",
+      "label": "18",
+      "file": "art/mayan/18.png"
+    },
+    {
+      "index": 20,
+      "key": "19",
+      "label": "19",
+      "file": "art/mayan/19.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/mayan-numbers",
+    "count": 20,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "𝋠",
+        "file": "art/mayan/_dcode/char(119520).png",
+        "variants": null
+      },
+      {
+        "key": "𝋡",
+        "file": "art/mayan/_dcode/char(119521).png",
+        "variants": null
+      },
+      {
+        "key": "𝋦",
+        "file": "art/mayan/_dcode/char(119526).png",
+        "variants": null
+      },
+      {
+        "key": "𝋲",
+        "file": "art/mayan/_dcode/char(119538).png",
+        "variants": null
+      },
+      {
+        "key": "𝋢",
+        "file": "art/mayan/_dcode/char(119522).png",
+        "variants": null
+      },
+      {
+        "key": "𝋣",
+        "file": "art/mayan/_dcode/char(119523).png",
+        "variants": null
+      },
+      {
+        "key": "𝋤",
+        "file": "art/mayan/_dcode/char(119524).png",
+        "variants": null
+      },
+      {
+        "key": "𝋥",
+        "file": "art/mayan/_dcode/char(119525).png",
+        "variants": null
+      },
+      {
+        "key": "𝋧",
+        "file": "art/mayan/_dcode/char(119527).png",
+        "variants": null
+      },
+      {
+        "key": "𝋨",
+        "file": "art/mayan/_dcode/char(119528).png",
+        "variants": null
+      },
+      {
+        "key": "𝋩",
+        "file": "art/mayan/_dcode/char(119529).png",
+        "variants": null
+      },
+      {
+        "key": "𝋪",
+        "file": "art/mayan/_dcode/char(119530).png",
+        "variants": null
+      },
+      {
+        "key": "𝋫",
+        "file": "art/mayan/_dcode/char(119531).png",
+        "variants": null
+      },
+      {
+        "key": "𝋬",
+        "file": "art/mayan/_dcode/char(119532).png",
+        "variants": null
+      },
+      {
+        "key": "𝋭",
+        "file": "art/mayan/_dcode/char(119533).png",
+        "variants": null
+      },
+      {
+        "key": "𝋮",
+        "file": "art/mayan/_dcode/char(119534).png",
+        "variants": null
+      },
+      {
+        "key": "𝋯",
+        "file": "art/mayan/_dcode/char(119535).png",
+        "variants": null
+      },
+      {
+        "key": "𝋰",
+        "file": "art/mayan/_dcode/char(119536).png",
+        "variants": null
+      },
+      {
+        "key": "𝋱",
+        "file": "art/mayan/_dcode/char(119537).png",
+        "variants": null
+      },
+      {
+        "key": "𝋳",
+        "file": "art/mayan/_dcode/char(119539).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

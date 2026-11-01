@@ -2829,6 +2829,9 @@ const IMAGE_MAGIC = [
     {mime: "image/jpeg", bytes: [0xff, 0xd8, 0xff]},
     {mime: "image/gif", bytes: [0x47, 0x49, 0x46, 0x38]},
     {mime: "image/bmp", bytes: [0x42, 0x4d]},
+    // Render Image accepts .ico too; its bytes have to be sniffed here now that the
+    // node flows the image itself rather than the presented HTML data URL.
+    {mime: "image/x-icon", bytes: [0x00, 0x00, 0x01, 0x00]},
     {mime: "image/webp", bytes: [0x52, 0x49, 0x46, 0x46]}
 ];
 function imageMimeOf(bytes) {
@@ -5367,6 +5370,10 @@ function dishBytes(dish) {
     if (ArrayBuffer.isView(value)) return new Uint8Array(value.buffer, value.byteOffset, value.byteLength).slice();
     // Byte arrays travel as one character per byte; true strings are text.
     if (typeof value === "string") return dish.type === DISH_BYTE_ARRAY ? latin1ToBytes(value) : enc.encode(value);
+    // A byteArray dish cloned inside the worker (Render Image, Play Media) arrives as a
+    // plain Array of 0-255 numbers, not a typed array. It is still the raw payload, and
+    // it has to win over the presented HTML in `result` so the next node gets the image.
+    if (dish.type === DISH_BYTE_ARRAY && Array.isArray(value)) return Uint8Array.from(value);
     return null;
 }
 
@@ -8899,10 +8906,10 @@ function bindCanvasEvents(stageEl, layerEl) {
             zoomAt(ev.clientX, ev.clientY, Math.exp(-ev.deltaY * 0.0014));
         }
     }, {passive: false});
-    // Scrolling inside a scrollable part of a node (the Magic ranking, a preview, a
-    // text box) must scroll that element, not zoom the canvas underneath it.
+    // Scrolling inside a scrollable part of a node (the Magic ranking, a preview, the
+    // symbol grid, a text box) must scroll that element, not zoom the canvas underneath it.
     layerEl.addEventListener("wheel", ev => {
-        if (ev.target.closest(".magic-list, .preview pre, .file-list, .control, .collapsed-ports")) {
+        if (ev.target.closest(".magic-list, .preview pre, .file-list, .control, .collapsed-ports, .glyph-grid")) {
             ev.stopPropagation();
         }
     }, {passive: true});

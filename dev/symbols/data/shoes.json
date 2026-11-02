@@ -1,0 +1,489 @@
+{
+  "slug": "shoes",
+  "name": "Shoes Code",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=shoes",
+      "images": "https://i.cachesleuth.com/images/shoes/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "new Array(\"\\xC4\",\"\\xD6\",\"\\xDC\",\"\\xDF\",\"\\xE4\",\"\\xF6\",\"\\xFC\",\".\",\",\",\"-\",\"!\",\"?\",\"\\xB0\")",
+    "othernames": "new Array(\"AE_umlaut\",\"OE_umlaut\",\"UE_umlaut\",\"SZ_umlaut\",\"_ae_umlaut\",\"_oe_umlaut\",\"_ue_umlaut\",\"dot\",\"comma\",\"dash\",\"exclamation\",\"question\",\"degree\")",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "uc",
+    "font": ""
+  },
+  "counts": {
+    "declared": 75,
+    "uniqueFiles": 75,
+    "manifestFiles": 75,
+    "downloaded": 75,
+    "failed": 0,
+    "unmapped": 0,
+    "extras": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/shoes/uc/A.png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/shoes/uc/B.png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/shoes/uc/C.png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/shoes/uc/D.png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/shoes/uc/E.png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/shoes/uc/F.png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/shoes/uc/G.png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/shoes/uc/H.png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/shoes/uc/I.png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/shoes/uc/J.png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/shoes/uc/K.png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/shoes/uc/L.png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/shoes/uc/M.png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/shoes/uc/N.png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/shoes/uc/O.png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/shoes/uc/P.png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/shoes/uc/Q.png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/shoes/uc/R.png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/shoes/uc/S.png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/shoes/uc/T.png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/shoes/uc/U.png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/shoes/uc/V.png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/shoes/uc/W.png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/shoes/uc/X.png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/shoes/uc/Y.png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/shoes/uc/Z.png"
+    },
+    {
+      "index": 27,
+      "key": "a",
+      "label": "a",
+      "file": "art/shoes/a.png"
+    },
+    {
+      "index": 28,
+      "key": "b",
+      "label": "b",
+      "file": "art/shoes/b.png"
+    },
+    {
+      "index": 29,
+      "key": "c",
+      "label": "c",
+      "file": "art/shoes/c.png"
+    },
+    {
+      "index": 30,
+      "key": "d",
+      "label": "d",
+      "file": "art/shoes/d.png"
+    },
+    {
+      "index": 31,
+      "key": "e",
+      "label": "e",
+      "file": "art/shoes/e.png"
+    },
+    {
+      "index": 32,
+      "key": "f",
+      "label": "f",
+      "file": "art/shoes/f.png"
+    },
+    {
+      "index": 33,
+      "key": "g",
+      "label": "g",
+      "file": "art/shoes/g.png"
+    },
+    {
+      "index": 34,
+      "key": "h",
+      "label": "h",
+      "file": "art/shoes/h.png"
+    },
+    {
+      "index": 35,
+      "key": "i",
+      "label": "i",
+      "file": "art/shoes/i.png"
+    },
+    {
+      "index": 36,
+      "key": "j",
+      "label": "j",
+      "file": "art/shoes/j.png"
+    },
+    {
+      "index": 37,
+      "key": "k",
+      "label": "k",
+      "file": "art/shoes/k.png"
+    },
+    {
+      "index": 38,
+      "key": "l",
+      "label": "l",
+      "file": "art/shoes/l.png"
+    },
+    {
+      "index": 39,
+      "key": "m",
+      "label": "m",
+      "file": "art/shoes/m.png"
+    },
+    {
+      "index": 40,
+      "key": "n",
+      "label": "n",
+      "file": "art/shoes/n.png"
+    },
+    {
+      "index": 41,
+      "key": "o",
+      "label": "o",
+      "file": "art/shoes/o.png"
+    },
+    {
+      "index": 42,
+      "key": "p",
+      "label": "p",
+      "file": "art/shoes/p.png"
+    },
+    {
+      "index": 43,
+      "key": "q",
+      "label": "q",
+      "file": "art/shoes/q.png"
+    },
+    {
+      "index": 44,
+      "key": "r",
+      "label": "r",
+      "file": "art/shoes/r.png"
+    },
+    {
+      "index": 45,
+      "key": "s",
+      "label": "s",
+      "file": "art/shoes/s.png"
+    },
+    {
+      "index": 46,
+      "key": "t",
+      "label": "t",
+      "file": "art/shoes/t.png"
+    },
+    {
+      "index": 47,
+      "key": "u",
+      "label": "u",
+      "file": "art/shoes/u.png"
+    },
+    {
+      "index": 48,
+      "key": "v",
+      "label": "v",
+      "file": "art/shoes/v.png"
+    },
+    {
+      "index": 49,
+      "key": "w",
+      "label": "w",
+      "file": "art/shoes/w.png"
+    },
+    {
+      "index": 50,
+      "key": "x",
+      "label": "x",
+      "file": "art/shoes/x.png"
+    },
+    {
+      "index": 51,
+      "key": "y",
+      "label": "y",
+      "file": "art/shoes/y.png"
+    },
+    {
+      "index": 52,
+      "key": "z",
+      "label": "z",
+      "file": "art/shoes/z.png"
+    },
+    {
+      "index": 53,
+      "key": "0",
+      "label": "0",
+      "file": "art/shoes/0.png"
+    },
+    {
+      "index": 54,
+      "key": "1",
+      "label": "1",
+      "file": "art/shoes/1.png"
+    },
+    {
+      "index": 55,
+      "key": "2",
+      "label": "2",
+      "file": "art/shoes/2.png"
+    },
+    {
+      "index": 56,
+      "key": "3",
+      "label": "3",
+      "file": "art/shoes/3.png"
+    },
+    {
+      "index": 57,
+      "key": "4",
+      "label": "4",
+      "file": "art/shoes/4.png"
+    },
+    {
+      "index": 58,
+      "key": "5",
+      "label": "5",
+      "file": "art/shoes/5.png"
+    },
+    {
+      "index": 59,
+      "key": "6",
+      "label": "6",
+      "file": "art/shoes/6.png"
+    },
+    {
+      "index": 60,
+      "key": "7",
+      "label": "7",
+      "file": "art/shoes/7.png"
+    },
+    {
+      "index": 61,
+      "key": "8",
+      "label": "8",
+      "file": "art/shoes/8.png"
+    },
+    {
+      "index": 62,
+      "key": "9",
+      "label": "9",
+      "file": "art/shoes/9.png"
+    },
+    {
+      "index": 63,
+      "key": "Ä",
+      "label": "Ä",
+      "file": "art/shoes/AE_umlaut.png"
+    },
+    {
+      "index": 64,
+      "key": "Ö",
+      "label": "Ö",
+      "file": "art/shoes/OE_umlaut.png"
+    },
+    {
+      "index": 65,
+      "key": "Ü",
+      "label": "Ü",
+      "file": "art/shoes/UE_umlaut.png"
+    },
+    {
+      "index": 66,
+      "key": "ß",
+      "label": "ß",
+      "file": "art/shoes/SZ_umlaut.png"
+    },
+    {
+      "index": 67,
+      "key": "ä",
+      "label": "ä",
+      "file": "art/shoes/_ae_umlaut.png"
+    },
+    {
+      "index": 68,
+      "key": "ö",
+      "label": "ö",
+      "file": "art/shoes/_oe_umlaut.png"
+    },
+    {
+      "index": 69,
+      "key": "ü",
+      "label": "ü",
+      "file": "art/shoes/_ue_umlaut.png"
+    },
+    {
+      "index": 70,
+      "key": ".",
+      "label": ".",
+      "file": "art/shoes/dot.png"
+    },
+    {
+      "index": 71,
+      "key": ",",
+      "label": ",",
+      "file": "art/shoes/comma.png"
+    },
+    {
+      "index": 72,
+      "key": "-",
+      "label": "-",
+      "file": "art/shoes/dash.png"
+    },
+    {
+      "index": 73,
+      "key": "!",
+      "label": "!",
+      "file": "art/shoes/exclamation.png"
+    },
+    {
+      "index": 74,
+      "key": "?",
+      "label": "?",
+      "file": "art/shoes/question.png"
+    },
+    {
+      "index": 75,
+      "key": "°",
+      "label": "°",
+      "file": "art/shoes/degree.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

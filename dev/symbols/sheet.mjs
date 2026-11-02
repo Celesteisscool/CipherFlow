@@ -39,8 +39,8 @@ const dataUrl = file => {
     return `data:image/png;base64,${fs.readFileSync(abs).toString("base64")}`;
 };
 
-function tile(g) {
-    const src = g.file ? dataUrl(g.file) : null;
+function tile(g, srcOverride) {
+    const src = srcOverride !== undefined ? srcOverride : (g.file ? dataUrl(g.file) : null);
     const label = esc(g.label ?? g.key ?? "?");
     return `<figure class="tile${src ? "" : " missing"}">
         ${src ? `<img src="${src}" alt="glyph ${esc(g.key)}">` : `<span class="ph">?</span>`}
@@ -49,22 +49,45 @@ function tile(g) {
     </figure>`;
 }
 
+// The committed set, where this cipher has one: the node draws these files, and for an
+// ink-tight cipher they are install.mjs's cropped squares rather than the sources' wide
+// canvases (eternity's ink is 84x121 inside 164x384). A sheet drawn from staging would
+// show a drawing the node never renders, so section 2 reads the shipped art instead.
+const shippedPath = path.join(ROOT, "dev", "symbols", "data", `${slug}.json`);
+const shippedSet = fs.existsSync(shippedPath) ? JSON.parse(fs.readFileSync(shippedPath, "utf8")) : null;
+const shippedUrl = rel => {
+    const abs = path.join(ROOT, "dev", "symbols", rel);
+    return fs.existsSync(abs) ? `data:image/png;base64,${fs.readFileSync(abs).toString("base64")}` : null;
+};
+const inkTight = Boolean(shippedSet?.tightArt)
+    && shippedSet.glyphs.every(g => g.file && fs.existsSync(path.join(ROOT, "dev", "symbols", g.file)));
+
 // What the node will actually draw: CacheSleuth's grid, or dCode's icons matched by
 // key where both sources publish the same alphabet and dCode's art was chosen
-// (`artFrom: "dcode"`) — the latter ships without a source toggle.
-const dcodeByKey = new Map();
+// (`artFrom: "dcode"`) — the latter ships without a source toggle. Exact key first,
+// then case-folded, the order install.mjs ships by: a case-aware set (Atlantis) ships
+// `C` and `c` as different glyphs and must reach char(67) and char(99) respectively, so
+// folding first drew the capital's art under the lowercase tile.
+const dcodeExact = new Map();
+const dcodeFold = new Map();
 for (const g of data.dcode?.glyphs || []) {
-    const key = String(g.key ?? "").toLowerCase();
-    if (g.file && !dcodeByKey.has(key)) dcodeByKey.set(key, g);
+    if (!g.file) continue;
+    const key = String(g.key ?? "");
+    if (!dcodeExact.has(key)) dcodeExact.set(key, g);
+    const folded = key.toLowerCase();
+    if (!dcodeFold.has(folded)) dcodeFold.set(folded, g);
 }
+const dcodeFor = key => dcodeExact.get(String(key)) || dcodeFold.get(String(key).toLowerCase());
 // Declared characters dropped because the chosen art has no tile for them (--drop)
 // leave the set entirely — the same rule install.mjs ships by.
 const dropSet = new Set((data.dropped || []).map(k => String(k)));
-const shipped = data.artFrom === "dcode"
+const chosen = data.artFrom === "dcode"
     ? data.glyphs.filter(g => !dropSet.has(String(g.key ?? "")))
-        .map(g => ({...g, file: dcodeByKey.get(String(g.key ?? "").toLowerCase())?.file || null}))
+        .map(g => ({...g, file: dcodeFor(g.key)?.file || null}))
     : data.glyphs;
-const ourGrid = shipped.map(tile).join("\n");
+const ourGrid = inkTight
+    ? shippedSet.glyphs.map(g => tile(g, shippedUrl(g.file))).join("\n")
+    : chosen.map(g => tile(g)).join("\n");
 const dcodeGrid = data.dcode ? data.dcode.glyphs.map(g => {
     const vs = g.variants
         ? `<span class="variants">${Object.entries(g.variants).map(([n, v]) => `${esc(n)}: ${esc(v)}`).join(" · ")}</span>`
@@ -145,7 +168,7 @@ const html = `<!doctype html>
   </section>
 
   <section class="col">
-    <h2>2 · Ours — ${data.artFrom === "dcode" ? "dCode art (chosen), our letter mapping" : "CacheSleuth art, our letter mapping"}</h2>
+    <h2>2 · Ours — ${data.artFrom === "dcode" ? "dCode art (chosen), our letter mapping" : "CacheSleuth art, our letter mapping"}${inkTight ? " · ink-tight as shipped" : ""}</h2>
     <div class="grid">
 ${ourGrid}
     </div>

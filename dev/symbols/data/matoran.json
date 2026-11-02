@@ -21,6 +21,10 @@
     "ucdir": "",
     "font": ""
   },
+  "note": {
+    "text": "The outer shapes can also be hexagons — see",
+    "href": "https://www.dcode.fr/langage-matoran"
+  },
   "counts": {
     "declared": 36,
     "uniqueFiles": 36,

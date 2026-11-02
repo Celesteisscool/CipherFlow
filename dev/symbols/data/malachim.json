@@ -1,0 +1,247 @@
+{
+  "slug": "malachim",
+  "name": "Malachim",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=malachim",
+      "images": "https://i.cachesleuth.com/images/malachim/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/alphabet-malachim"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 26,
+    "uniqueFiles": 26,
+    "manifestFiles": 26,
+    "downloaded": 26,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/malachim/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/malachim/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/malachim/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/malachim/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/malachim/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/malachim/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/malachim/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/malachim/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/malachim/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/malachim/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/malachim/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/malachim/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/malachim/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/malachim/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/malachim/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/malachim/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/malachim/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/malachim/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/malachim/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/malachim/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/malachim/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/malachim/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/malachim/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/malachim/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/malachim/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/malachim/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/alphabet-malachim",
+    "count": 9,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "מ",
+        "file": "art/malachim/_dcode/char(1502).png",
+        "variants": null
+      },
+      {
+        "key": "א",
+        "file": "art/malachim/_dcode/char(1488).png",
+        "variants": null
+      },
+      {
+        "key": "ל",
+        "file": "art/malachim/_dcode/char(1500).png",
+        "variants": null
+      },
+      {
+        "key": "ג",
+        "file": "art/malachim/_dcode/char(1490).png",
+        "variants": null
+      },
+      {
+        "key": "ח",
+        "file": "art/malachim/_dcode/char(1495).png",
+        "variants": null
+      },
+      {
+        "key": "י",
+        "file": "art/malachim/_dcode/char(1497).png",
+        "variants": null
+      },
+      {
+        "key": "נ",
+        "file": "art/malachim/_dcode/char(1504).png",
+        "variants": null
+      },
+      {
+        "key": "ר",
+        "file": "art/malachim/_dcode/char(1512).png",
+        "variants": null
+      },
+      {
+        "key": "פ",
+        "file": "art/malachim/_dcode/char(1508).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

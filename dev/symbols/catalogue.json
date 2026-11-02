@@ -100,6 +100,16 @@
     "check": "PASS"
   },
   {
+    "slug": "blork",
+    "name": "Blork",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 48,
+    "uniqueFiles": 48,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "borg",
     "name": "Borg",
     "source": "cachesleuth",
@@ -130,6 +140,16 @@
     "check": "PASS"
   },
   {
+    "slug": "bynar",
+    "name": "Bynar",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 62,
+    "uniqueFiles": 62,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "chappe",
     "name": "Chappe",
     "source": "both",
@@ -146,6 +166,16 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "cybertronic",
+    "name": "Cybertronic",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 40,
+    "uniqueFiles": 40,
     "dcode": 0,
     "check": "PASS"
   },
@@ -380,6 +410,16 @@
     "check": "PASS"
   },
   {
+    "slug": "malachim",
+    "name": "Malachim",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 9,
+    "check": "PASS"
+  },
+  {
     "slug": "matoran",
     "name": "Matoran",
     "source": "cachesleuth",
@@ -420,6 +460,16 @@
     "check": "PASS"
   },
   {
+    "slug": "murray1796",
+    "name": "Murray Version 4",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 41,
+    "uniqueFiles": 41,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "music",
     "name": "Music Sheet",
     "source": "cachesleuth",
@@ -437,6 +487,16 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "nazcaan",
+    "name": "Nazcaan",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 9,
     "check": "PASS"
   },
   {
@@ -467,6 +527,16 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 26,
+    "check": "PASS"
+  },
+  {
+    "slug": "romulan",
+    "name": "Romulan",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 62,
+    "uniqueFiles": 62,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -520,11 +590,31 @@
     "check": "PASS"
   },
   {
+    "slug": "solresol",
+    "name": "Solresol",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 7,
+    "uniqueFiles": 7,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "spintype",
+    "name": "Spintype",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 40,
+    "uniqueFiles": 40,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "stray",
     "name": "Stray",
     "source": "dcode",
     "status": "ready",
-    "glyphs": 35,
+    "glyphs": 57,
     "uniqueFiles": 35,
     "dcode": 0,
     "check": "PASS"
@@ -566,6 +656,16 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "ulog",
+    "name": "Ulog",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 51,
+    "uniqueFiles": 51,
     "dcode": 0,
     "check": "PASS"
   },

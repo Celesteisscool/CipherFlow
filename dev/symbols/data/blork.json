@@ -1,0 +1,326 @@
+{
+  "slug": "blork",
+  "name": "Blork",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=blork",
+      "images": "https://i.cachesleuth.com/images/blork/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdefghijklmnoprstuvwyz\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "lc",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 48,
+    "uniqueFiles": 48,
+    "manifestFiles": 48,
+    "downloaded": 48,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/blork/A.png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/blork/B.png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/blork/C.png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/blork/D.png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/blork/E.png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/blork/F.png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/blork/G.png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/blork/H.png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/blork/I.png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/blork/J.png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/blork/K.png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/blork/L.png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/blork/M.png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/blork/N.png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/blork/O.png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/blork/P.png"
+    },
+    {
+      "index": 17,
+      "key": "R",
+      "label": "R",
+      "file": "art/blork/R.png"
+    },
+    {
+      "index": 18,
+      "key": "S",
+      "label": "S",
+      "file": "art/blork/S.png"
+    },
+    {
+      "index": 19,
+      "key": "T",
+      "label": "T",
+      "file": "art/blork/T.png"
+    },
+    {
+      "index": 20,
+      "key": "U",
+      "label": "U",
+      "file": "art/blork/U.png"
+    },
+    {
+      "index": 21,
+      "key": "V",
+      "label": "V",
+      "file": "art/blork/V.png"
+    },
+    {
+      "index": 22,
+      "key": "W",
+      "label": "W",
+      "file": "art/blork/W.png"
+    },
+    {
+      "index": 23,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/blork/Y.png"
+    },
+    {
+      "index": 24,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/blork/Z.png"
+    },
+    {
+      "index": 25,
+      "key": "a",
+      "label": "a",
+      "file": "art/blork/lc/a.png"
+    },
+    {
+      "index": 26,
+      "key": "b",
+      "label": "b",
+      "file": "art/blork/lc/b.png"
+    },
+    {
+      "index": 27,
+      "key": "c",
+      "label": "c",
+      "file": "art/blork/lc/c.png"
+    },
+    {
+      "index": 28,
+      "key": "d",
+      "label": "d",
+      "file": "art/blork/lc/d.png"
+    },
+    {
+      "index": 29,
+      "key": "e",
+      "label": "e",
+      "file": "art/blork/lc/e.png"
+    },
+    {
+      "index": 30,
+      "key": "f",
+      "label": "f",
+      "file": "art/blork/lc/f.png"
+    },
+    {
+      "index": 31,
+      "key": "g",
+      "label": "g",
+      "file": "art/blork/lc/g.png"
+    },
+    {
+      "index": 32,
+      "key": "h",
+      "label": "h",
+      "file": "art/blork/lc/h.png"
+    },
+    {
+      "index": 33,
+      "key": "i",
+      "label": "i",
+      "file": "art/blork/lc/i.png"
+    },
+    {
+      "index": 34,
+      "key": "j",
+      "label": "j",
+      "file": "art/blork/lc/j.png"
+    },
+    {
+      "index": 35,
+      "key": "k",
+      "label": "k",
+      "file": "art/blork/lc/k.png"
+    },
+    {
+      "index": 36,
+      "key": "l",
+      "label": "l",
+      "file": "art/blork/lc/l.png"
+    },
+    {
+      "index": 37,
+      "key": "m",
+      "label": "m",
+      "file": "art/blork/lc/m.png"
+    },
+    {
+      "index": 38,
+      "key": "n",
+      "label": "n",
+      "file": "art/blork/lc/n.png"
+    },
+    {
+      "index": 39,
+      "key": "o",
+      "label": "o",
+      "file": "art/blork/lc/o.png"
+    },
+    {
+      "index": 40,
+      "key": "p",
+      "label": "p",
+      "file": "art/blork/lc/p.png"
+    },
+    {
+      "index": 41,
+      "key": "r",
+      "label": "r",
+      "file": "art/blork/lc/r.png"
+    },
+    {
+      "index": 42,
+      "key": "s",
+      "label": "s",
+      "file": "art/blork/lc/s.png"
+    },
+    {
+      "index": 43,
+      "key": "t",
+      "label": "t",
+      "file": "art/blork/lc/t.png"
+    },
+    {
+      "index": 44,
+      "key": "u",
+      "label": "u",
+      "file": "art/blork/lc/u.png"
+    },
+    {
+      "index": 45,
+      "key": "v",
+      "label": "v",
+      "file": "art/blork/lc/v.png"
+    },
+    {
+      "index": 46,
+      "key": "w",
+      "label": "w",
+      "file": "art/blork/lc/w.png"
+    },
+    {
+      "index": 47,
+      "key": "y",
+      "label": "y",
+      "file": "art/blork/lc/y.png"
+    },
+    {
+      "index": 48,
+      "key": "z",
+      "label": "z",
+      "file": "art/blork/lc/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

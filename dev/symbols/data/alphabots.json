@@ -1,0 +1,440 @@
+{
+  "slug": "alphabots",
+  "name": "Alphabots",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=alphabots",
+      "images": "https://i.cachesleuth.com/images/alphabots/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "new Array(\"!\",\"%\",\"&\",\".\",\":\")",
+    "othernames": "new Array(\"exclamation\",\"percent\",\"ampersand\",\"period\",\"colon\")",
+    "digraphs": [],
+    "lcdir": "alphabots_lc",
+    "ucdir": "alphabots_uc",
+    "font": ""
+  },
+  "counts": {
+    "declared": 67,
+    "uniqueFiles": 67,
+    "manifestFiles": 67,
+    "downloaded": 67,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/alphabots/alphabots_uc/A.png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/alphabots/alphabots_uc/B.png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/alphabots/alphabots_uc/C.png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/alphabots/alphabots_uc/D.png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/alphabots/alphabots_uc/E.png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/alphabots/alphabots_uc/F.png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/alphabots/alphabots_uc/G.png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/alphabots/alphabots_uc/H.png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/alphabots/alphabots_uc/I.png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/alphabots/alphabots_uc/J.png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/alphabots/alphabots_uc/K.png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/alphabots/alphabots_uc/L.png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/alphabots/alphabots_uc/M.png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/alphabots/alphabots_uc/N.png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/alphabots/alphabots_uc/O.png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/alphabots/alphabots_uc/P.png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/alphabots/alphabots_uc/Q.png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/alphabots/alphabots_uc/R.png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/alphabots/alphabots_uc/S.png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/alphabots/alphabots_uc/T.png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/alphabots/alphabots_uc/U.png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/alphabots/alphabots_uc/V.png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/alphabots/alphabots_uc/W.png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/alphabots/alphabots_uc/X.png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/alphabots/alphabots_uc/Y.png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/alphabots/alphabots_uc/Z.png"
+    },
+    {
+      "index": 27,
+      "key": "a",
+      "label": "a",
+      "file": "art/alphabots/alphabots_lc/a.png"
+    },
+    {
+      "index": 28,
+      "key": "b",
+      "label": "b",
+      "file": "art/alphabots/alphabots_lc/b.png"
+    },
+    {
+      "index": 29,
+      "key": "c",
+      "label": "c",
+      "file": "art/alphabots/alphabots_lc/c.png"
+    },
+    {
+      "index": 30,
+      "key": "d",
+      "label": "d",
+      "file": "art/alphabots/alphabots_lc/d.png"
+    },
+    {
+      "index": 31,
+      "key": "e",
+      "label": "e",
+      "file": "art/alphabots/alphabots_lc/e.png"
+    },
+    {
+      "index": 32,
+      "key": "f",
+      "label": "f",
+      "file": "art/alphabots/alphabots_lc/f.png"
+    },
+    {
+      "index": 33,
+      "key": "g",
+      "label": "g",
+      "file": "art/alphabots/alphabots_lc/g.png"
+    },
+    {
+      "index": 34,
+      "key": "h",
+      "label": "h",
+      "file": "art/alphabots/alphabots_lc/h.png"
+    },
+    {
+      "index": 35,
+      "key": "i",
+      "label": "i",
+      "file": "art/alphabots/alphabots_lc/i.png"
+    },
+    {
+      "index": 36,
+      "key": "j",
+      "label": "j",
+      "file": "art/alphabots/alphabots_lc/j.png"
+    },
+    {
+      "index": 37,
+      "key": "k",
+      "label": "k",
+      "file": "art/alphabots/alphabots_lc/k.png"
+    },
+    {
+      "index": 38,
+      "key": "l",
+      "label": "l",
+      "file": "art/alphabots/alphabots_lc/l.png"
+    },
+    {
+      "index": 39,
+      "key": "m",
+      "label": "m",
+      "file": "art/alphabots/alphabots_lc/m.png"
+    },
+    {
+      "index": 40,
+      "key": "n",
+      "label": "n",
+      "file": "art/alphabots/alphabots_lc/n.png"
+    },
+    {
+      "index": 41,
+      "key": "o",
+      "label": "o",
+      "file": "art/alphabots/alphabots_lc/o.png"
+    },
+    {
+      "index": 42,
+      "key": "p",
+      "label": "p",
+      "file": "art/alphabots/alphabots_lc/p.png"
+    },
+    {
+      "index": 43,
+      "key": "q",
+      "label": "q",
+      "file": "art/alphabots/alphabots_lc/q.png"
+    },
+    {
+      "index": 44,
+      "key": "r",
+      "label": "r",
+      "file": "art/alphabots/alphabots_lc/r.png"
+    },
+    {
+      "index": 45,
+      "key": "s",
+      "label": "s",
+      "file": "art/alphabots/alphabots_lc/s.png"
+    },
+    {
+      "index": 46,
+      "key": "t",
+      "label": "t",
+      "file": "art/alphabots/alphabots_lc/t.png"
+    },
+    {
+      "index": 47,
+      "key": "u",
+      "label": "u",
+      "file": "art/alphabots/alphabots_lc/u.png"
+    },
+    {
+      "index": 48,
+      "key": "v",
+      "label": "v",
+      "file": "art/alphabots/alphabots_lc/v.png"
+    },
+    {
+      "index": 49,
+      "key": "w",
+      "label": "w",
+      "file": "art/alphabots/alphabots_lc/w.png"
+    },
+    {
+      "index": 50,
+      "key": "x",
+      "label": "x",
+      "file": "art/alphabots/alphabots_lc/x.png"
+    },
+    {
+      "index": 51,
+      "key": "y",
+      "label": "y",
+      "file": "art/alphabots/alphabots_lc/y.png"
+    },
+    {
+      "index": 52,
+      "key": "z",
+      "label": "z",
+      "file": "art/alphabots/alphabots_lc/z.png"
+    },
+    {
+      "index": 53,
+      "key": "0",
+      "label": "0",
+      "file": "art/alphabots/0.png"
+    },
+    {
+      "index": 54,
+      "key": "1",
+      "label": "1",
+      "file": "art/alphabots/1.png"
+    },
+    {
+      "index": 55,
+      "key": "2",
+      "label": "2",
+      "file": "art/alphabots/2.png"
+    },
+    {
+      "index": 56,
+      "key": "3",
+      "label": "3",
+      "file": "art/alphabots/3.png"
+    },
+    {
+      "index": 57,
+      "key": "4",
+      "label": "4",
+      "file": "art/alphabots/4.png"
+    },
+    {
+      "index": 58,
+      "key": "5",
+      "label": "5",
+      "file": "art/alphabots/5.png"
+    },
+    {
+      "index": 59,
+      "key": "6",
+      "label": "6",
+      "file": "art/alphabots/6.png"
+    },
+    {
+      "index": 60,
+      "key": "7",
+      "label": "7",
+      "file": "art/alphabots/7.png"
+    },
+    {
+      "index": 61,
+      "key": "8",
+      "label": "8",
+      "file": "art/alphabots/8.png"
+    },
+    {
+      "index": 62,
+      "key": "9",
+      "label": "9",
+      "file": "art/alphabots/9.png"
+    },
+    {
+      "index": 63,
+      "key": "!",
+      "label": "!",
+      "file": "art/alphabots/exclamation.png"
+    },
+    {
+      "index": 64,
+      "key": "%",
+      "label": "%",
+      "file": "art/alphabots/percent.png"
+    },
+    {
+      "index": 65,
+      "key": "&",
+      "label": "&",
+      "file": "art/alphabots/ampersand.png"
+    },
+    {
+      "index": 66,
+      "key": ".",
+      "label": ".",
+      "file": "art/alphabots/period.png"
+    },
+    {
+      "index": 67,
+      "key": ":",
+      "label": ":",
+      "file": "art/alphabots/colon.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

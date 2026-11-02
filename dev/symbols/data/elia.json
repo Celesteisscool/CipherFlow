@@ -1,0 +1,762 @@
+{
+  "slug": "elia",
+  "name": "Elia",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=elia",
+      "images": "https://i.cachesleuth.com/images/elia/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/elian-script"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 36,
+    "uniqueFiles": 36,
+    "manifestFiles": 36,
+    "downloaded": 36,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/elia/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/elia/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/elia/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/elia/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/elia/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/elia/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/elia/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/elia/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/elia/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/elia/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/elia/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/elia/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/elia/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/elia/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/elia/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/elia/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/elia/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/elia/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/elia/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/elia/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/elia/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/elia/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/elia/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/elia/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/elia/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/elia/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/elia/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/elia/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/elia/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/elia/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/elia/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/elia/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/elia/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/elia/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/elia/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/elia/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/elian-script",
+    "count": 91,
+    "variantNames": [
+      "A",
+      "J"
+    ],
+    "glyphs": [
+      {
+        "key": "A",
+        "file": "art/elia/_dcode/char(65).png",
+        "variants": {
+          "A": ",",
+          "J": ",,,"
+        }
+      },
+      {
+        "key": "B",
+        "file": "art/elia/_dcode/char(66).png",
+        "variants": {
+          "A": ",",
+          "J": ",,,"
+        }
+      },
+      {
+        "key": "C",
+        "file": "art/elia/_dcode/char(67).png",
+        "variants": {
+          "A": ",",
+          "J": ",,,"
+        }
+      },
+      {
+        "key": "D",
+        "file": "art/elia/_dcode/char(68).png",
+        "variants": {
+          "A": ",",
+          "J": ",,,"
+        }
+      },
+      {
+        "key": "E",
+        "file": "art/elia/_dcode/char(69).png",
+        "variants": {
+          "A": ",,,,,,,",
+          "J": ",,,,,,,"
+        }
+      },
+      {
+        "key": "F",
+        "file": "art/elia/_dcode/char(70).png",
+        "variants": {
+          "A": ",",
+          "J": ",,,"
+        }
+      },
+      {
+        "key": "G",
+        "file": "art/elia/_dcode/char(71).png",
+        "variants": {
+          "A": ",",
+          "J": ",,,"
+        }
+      },
+      {
+        "key": "H",
+        "file": "art/elia/_dcode/char(72).png",
+        "variants": {
+          "A": ",",
+          "J": ",,,"
+        }
+      },
+      {
+        "key": "I",
+        "file": "art/elia/_dcode/char(73).png",
+        "variants": {
+          "A": ","
+        }
+      },
+      {
+        "key": "J",
+        "file": "art/elia/_dcode/char(74).png",
+        "variants": {
+          "A": ",,,"
+        }
+      },
+      {
+        "key": "K",
+        "file": "art/elia/_dcode/char(75).png",
+        "variants": {
+          "A": ",,,"
+        }
+      },
+      {
+        "key": "L",
+        "file": "art/elia/_dcode/char(76).png",
+        "variants": {
+          "A": ",,,"
+        }
+      },
+      {
+        "key": "M",
+        "file": "art/elia/_dcode/char(77).png",
+        "variants": {
+          "A": ",,,"
+        }
+      },
+      {
+        "key": "N",
+        "file": "art/elia/_dcode/char(78).png",
+        "variants": {
+          "A": ",,,,,,,"
+        }
+      },
+      {
+        "key": "O",
+        "file": "art/elia/_dcode/char(79).png",
+        "variants": {
+          "A": ",,,"
+        }
+      },
+      {
+        "key": "P",
+        "file": "art/elia/_dcode/char(80).png",
+        "variants": {
+          "A": ",,,"
+        }
+      },
+      {
+        "key": "Q",
+        "file": "art/elia/_dcode/char(81).png",
+        "variants": {
+          "A": ",,,"
+        }
+      },
+      {
+        "key": "R",
+        "file": "art/elia/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/elia/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/elia/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/elia/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "V",
+        "file": "art/elia/_dcode/char(86).png",
+        "variants": null
+      },
+      {
+        "key": "W",
+        "file": "art/elia/_dcode/char(87).png",
+        "variants": null
+      },
+      {
+        "key": "X",
+        "file": "art/elia/_dcode/char(88).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/elia/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "Z",
+        "file": "art/elia/_dcode/char(90).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59200).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59216).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59232).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59248).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59264).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59265).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59266).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59267).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59268).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59269).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59270).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59280).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59392).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59408).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59424).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59440).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59441).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59442).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59443).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59444).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59456).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59457).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59458).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59459).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59460).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59472).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59473).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59474).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59475).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59476).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59488).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59489).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59490).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59491).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59492).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59504).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59505).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59506).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59507).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59508).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59509).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59510).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59511).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59512).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59513).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59514).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59515).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59516).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59517).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59518).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59520).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59521).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59522).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59523).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59524).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59536).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59537).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59538).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59539).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59540).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59648).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59649).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59650).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59651).png",
+        "variants": null
+      },
+      {
+        "key": "",
+        "file": "art/elia/_dcode/char(59652).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

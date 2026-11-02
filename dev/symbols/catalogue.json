@@ -10,12 +10,32 @@
     "check": "PASS"
   },
   {
+    "slug": "alphabots",
+    "name": "Alphabots",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 67,
+    "uniqueFiles": 67,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "signlanguage",
     "name": "American Sign Language",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "anillo",
+    "name": "Anillo",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 62,
+    "uniqueFiles": 62,
     "dcode": 0,
     "check": "PASS"
   },
@@ -47,6 +67,26 @@
     "glyphs": 24,
     "uniqueFiles": 24,
     "dcode": 15,
+    "check": "PASS"
+  },
+  {
+    "slug": "ballet",
+    "name": "Ballet",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 35,
+    "uniqueFiles": 35,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "birdsonawire",
+    "name": "Birds On A Wire",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -110,6 +150,16 @@
     "check": "PASS"
   },
   {
+    "slug": "draconic",
+    "name": "Draconic",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 28,
+    "check": "PASS"
+  },
+  {
     "slug": "dragon_skyrim",
     "name": "Dragon - Skyrim",
     "source": "cachesleuth",
@@ -120,6 +170,16 @@
     "check": "PASS"
   },
   {
+    "slug": "elia",
+    "name": "Elia",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 91,
+    "check": "PASS"
+  },
+  {
     "slug": "enochian",
     "name": "Enochian",
     "source": "both",
@@ -127,6 +187,16 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 22,
+    "check": "PASS"
+  },
+  {
+    "slug": "eternity",
+    "name": "Eternity",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -156,6 +226,16 @@
     "status": "ready",
     "glyphs": 43,
     "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "galactic",
+    "name": "Galactic",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS"
   },
@@ -360,6 +440,16 @@
     "check": "PASS"
   },
   {
+    "slug": "stray",
+    "name": "Stray",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 35,
+    "uniqueFiles": 35,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "tengwar",
     "name": "Tengwar",
     "source": "cachesleuth",
@@ -377,6 +467,16 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 24,
+    "check": "PASS"
+  },
+  {
+    "slug": "tictactoe",
+    "name": "Tic Tac Toe",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
     "check": "PASS"
   },
   {

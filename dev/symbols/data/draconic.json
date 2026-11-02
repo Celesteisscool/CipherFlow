@@ -1,0 +1,402 @@
+{
+  "slug": "draconic",
+  "name": "Draconic",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=draconic",
+      "images": "https://i.cachesleuth.com/images/draconic/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/draconic-dragon-language"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 36,
+    "uniqueFiles": 36,
+    "manifestFiles": 36,
+    "downloaded": 36,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/draconic/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/draconic/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/draconic/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/draconic/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/draconic/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/draconic/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/draconic/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/draconic/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/draconic/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/draconic/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/draconic/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/draconic/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/draconic/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/draconic/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/draconic/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/draconic/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/draconic/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/draconic/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/draconic/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/draconic/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/draconic/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/draconic/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/draconic/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/draconic/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/draconic/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/draconic/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/draconic/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/draconic/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/draconic/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/draconic/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/draconic/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/draconic/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/draconic/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/draconic/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/draconic/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/draconic/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/draconic-dragon-language",
+    "count": 28,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "I",
+        "file": "art/draconic/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "1",
+        "file": "art/draconic/_dcode/char(49).png",
+        "variants": null
+      },
+      {
+        "key": "Z",
+        "file": "art/draconic/_dcode/char(90).png",
+        "variants": null
+      },
+      {
+        "key": "5",
+        "file": "art/draconic/_dcode/char(53).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/draconic/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/draconic/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "0",
+        "file": "art/draconic/_dcode/char(48).png",
+        "variants": null
+      },
+      {
+        "key": "6",
+        "file": "art/draconic/_dcode/char(54).png",
+        "variants": null
+      },
+      {
+        "key": "P",
+        "file": "art/draconic/_dcode/char(80).png",
+        "variants": null
+      },
+      {
+        "key": "A",
+        "file": "art/draconic/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/draconic/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "7",
+        "file": "art/draconic/_dcode/char(55).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/draconic/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/draconic/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/draconic/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/draconic/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/draconic/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/draconic/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "L",
+        "file": "art/draconic/_dcode/char(76).png",
+        "variants": null
+      },
+      {
+        "key": "2",
+        "file": "art/draconic/_dcode/char(50).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/draconic/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/draconic/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/draconic/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/draconic/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/draconic/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/draconic/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/draconic/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/draconic/_dcode/char(69).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

@@ -9547,6 +9547,12 @@ function symbolToggleSources(cipher) {
         .filter(k => /^[A-Za-z]$/.test(k))
         .map(k => k.toLowerCase()));
     if (!letters.size) return null;
+    // A page can key its glyphs by internal code points rather than by the character they
+    // mean: elia's page ships 91 icons, 43 of them captioned with private-use characters
+    // nothing can type, and only a scrambled 26 of the Latin letters. Switching to a set
+    // like that puts unreadable tiles on the node, so it is not a source to offer — the
+    // letter-coverage test alone would have accepted it.
+    if (cipher.dcode.glyphs.some(g => /[\uE000-\uF8FF]/.test(String(g.key ?? "")))) return null;
     const keys = new Set(cipher.dcode.glyphs.map(g => String(g.key ?? "").toLowerCase()));
     for (const ch of letters) if (!keys.has(ch)) return null;
     // A solved per-variant mapping (Zodiac's Z408/Z340) keys each symbol to an arbitrary

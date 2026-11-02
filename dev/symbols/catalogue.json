@@ -60,6 +60,16 @@
     "check": "PASS"
   },
   {
+    "slug": "autobot",
+    "name": "Autobot",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "babylonian",
     "name": "Babylonian Numerals",
     "source": "both",
@@ -86,6 +96,16 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "borg",
+    "name": "Borg",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 52,
+    "uniqueFiles": 52,
     "dcode": 0,
     "check": "PASS"
   },
@@ -137,6 +157,16 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 26,
+    "check": "PASS"
+  },
+  {
+    "slug": "dorabella",
+    "name": "Dorabella",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 24,
     "check": "PASS"
   },
   {
@@ -200,6 +230,16 @@
     "check": "PASS"
   },
   {
+    "slug": "ewok",
+    "name": "Ewok",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "fez",
     "name": "Fez",
     "source": "cachesleuth",
@@ -236,6 +276,16 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "gardner",
+    "name": "Gardner",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 46,
+    "uniqueFiles": 46,
     "dcode": 0,
     "check": "PASS"
   },
@@ -290,6 +340,16 @@
     "check": "PASS"
   },
   {
+    "slug": "iching",
+    "name": "IChing Hexagrams",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 64,
+    "uniqueFiles": 64,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "klingon",
     "name": "Klingon",
     "source": "both",
@@ -320,6 +380,16 @@
     "check": "PASS"
   },
   {
+    "slug": "matoran",
+    "name": "Matoran",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "mayan",
     "name": "Mayan Numbers 1",
     "source": "both",
@@ -327,6 +397,16 @@
     "glyphs": 20,
     "uniqueFiles": 20,
     "dcode": 20,
+    "check": "PASS"
+  },
+  {
+    "slug": "minimoys",
+    "name": "Minimoys",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 9,
     "check": "PASS"
   },
   {
@@ -447,6 +527,16 @@
     "glyphs": 35,
     "uniqueFiles": 35,
     "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "templar",
+    "name": "Templar",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 25,
     "check": "PASS"
   },
   {

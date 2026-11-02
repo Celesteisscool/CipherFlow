@@ -1,0 +1,327 @@
+{
+  "slug": "templar",
+  "name": "Templar",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=templar",
+      "images": "https://i.cachesleuth.com/images/templar/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/templars-cipher"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 26,
+    "uniqueFiles": 26,
+    "manifestFiles": 26,
+    "downloaded": 26,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/templar/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/templar/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/templar/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/templar/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/templar/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/templar/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/templar/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/templar/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/templar/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/templar/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/templar/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/templar/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/templar/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/templar/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/templar/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/templar/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/templar/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/templar/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/templar/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/templar/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/templar/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/templar/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/templar/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/templar/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/templar/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/templar/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/templars-cipher",
+    "count": 25,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "A",
+        "file": "art/templar/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "B",
+        "file": "art/templar/_dcode/char(66).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/templar/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/templar/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/templar/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "F",
+        "file": "art/templar/_dcode/char(70).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/templar/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/templar/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/templar/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "K",
+        "file": "art/templar/_dcode/char(75).png",
+        "variants": null
+      },
+      {
+        "key": "L",
+        "file": "art/templar/_dcode/char(76).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/templar/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/templar/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/templar/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "P",
+        "file": "art/templar/_dcode/char(80).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/templar/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/templar/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/templar/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/templar/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/templar/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "V",
+        "file": "art/templar/_dcode/char(86).png",
+        "variants": null
+      },
+      {
+        "key": "W",
+        "file": "art/templar/_dcode/char(87).png",
+        "variants": null
+      },
+      {
+        "key": "X",
+        "file": "art/templar/_dcode/char(88).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/templar/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "Z",
+        "file": "art/templar/_dcode/char(90).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

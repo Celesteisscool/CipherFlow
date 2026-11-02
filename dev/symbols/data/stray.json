@@ -23,168 +23,170 @@
     "ucdir": "",
     "font": ""
   },
+  "cases": true,
   "counts": {
-    "declared": 35,
+    "declared": 57,
     "uniqueFiles": 35,
     "manifestFiles": 35,
-    "downloaded": 35,
+    "downloaded": 57,
     "failed": 0,
-    "unmapped": 0
+    "unmapped": 0,
+    "extras": 22
   },
   "glyphs": [
     {
       "index": 1,
-      "key": "a",
+      "key": "A",
       "label": "A",
-      "file": "art/stray/_dcode/char(97).png"
+      "file": "art/stray/_dcode/char(65).png"
     },
     {
       "index": 2,
-      "key": "b",
+      "key": "B",
       "label": "B",
-      "file": "art/stray/_dcode/char(98).png"
+      "file": "art/stray/_dcode/char(66).png"
     },
     {
       "index": 3,
-      "key": "c",
+      "key": "C",
       "label": "C",
-      "file": "art/stray/_dcode/char(99).png"
+      "file": "art/stray/_dcode/char(67).png"
     },
     {
       "index": 4,
-      "key": "d",
+      "key": "D",
       "label": "D",
-      "file": "art/stray/_dcode/char(100).png"
+      "file": "art/stray/_dcode/char(68).png"
     },
     {
       "index": 5,
-      "key": "e",
+      "key": "E",
       "label": "E",
-      "file": "art/stray/_dcode/char(101).png"
+      "file": "art/stray/_dcode/char(69).png"
     },
     {
       "index": 6,
-      "key": "f",
+      "key": "F",
       "label": "F",
-      "file": "art/stray/_dcode/char(102).png"
+      "file": "art/stray/_dcode/char(70).png"
     },
     {
       "index": 7,
-      "key": "g",
+      "key": "G",
       "label": "G",
-      "file": "art/stray/_dcode/char(103).png"
+      "file": "art/stray/_dcode/char(71).png"
     },
     {
       "index": 8,
-      "key": "h",
+      "key": "H",
       "label": "H",
-      "file": "art/stray/_dcode/char(104).png"
+      "file": "art/stray/_dcode/char(72).png"
     },
     {
       "index": 9,
-      "key": "i",
+      "key": "I",
       "label": "I",
-      "file": "art/stray/_dcode/char(105).png"
+      "file": "art/stray/_dcode/char(73).png"
     },
     {
       "index": 10,
-      "key": "j",
+      "key": "J",
       "label": "J",
-      "file": "art/stray/_dcode/char(106).png"
+      "file": "art/stray/_dcode/char(74).png"
     },
     {
       "index": 11,
-      "key": "k",
+      "key": "K",
       "label": "K",
-      "file": "art/stray/_dcode/char(107).png"
+      "file": "art/stray/_dcode/char(75).png"
     },
     {
       "index": 12,
-      "key": "l",
+      "key": "L",
       "label": "L",
-      "file": "art/stray/_dcode/char(108).png"
+      "file": "art/stray/_dcode/char(76).png"
     },
     {
       "index": 13,
-      "key": "m",
+      "key": "M",
       "label": "M",
-      "file": "art/stray/_dcode/char(109).png"
+      "file": "art/stray/_dcode/char(77).png"
     },
     {
       "index": 14,
-      "key": "n",
+      "key": "N",
       "label": "N",
-      "file": "art/stray/_dcode/char(110).png"
+      "file": "art/stray/_dcode/char(78).png"
     },
     {
       "index": 15,
-      "key": "o",
+      "key": "O",
       "label": "O",
-      "file": "art/stray/_dcode/char(111).png"
+      "file": "art/stray/_dcode/char(79).png"
     },
     {
       "index": 16,
-      "key": "p",
+      "key": "P",
       "label": "P",
-      "file": "art/stray/_dcode/char(112).png"
+      "file": "art/stray/_dcode/char(80).png"
     },
     {
       "index": 17,
-      "key": "q",
+      "key": "Q",
       "label": "Q",
       "file": "art/stray/_dcode/char(81).png"
     },
     {
       "index": 18,
-      "key": "r",
+      "key": "R",
       "label": "R",
-      "file": "art/stray/_dcode/char(114).png"
+      "file": "art/stray/_dcode/char(82).png"
     },
     {
       "index": 19,
-      "key": "s",
+      "key": "S",
       "label": "S",
-      "file": "art/stray/_dcode/char(115).png"
+      "file": "art/stray/_dcode/char(83).png"
     },
     {
       "index": 20,
-      "key": "t",
+      "key": "T",
       "label": "T",
-      "file": "art/stray/_dcode/char(116).png"
+      "file": "art/stray/_dcode/char(84).png"
     },
     {
       "index": 21,
-      "key": "u",
+      "key": "U",
       "label": "U",
-      "file": "art/stray/_dcode/char(117).png"
+      "file": "art/stray/_dcode/char(85).png"
     },
     {
       "index": 22,
-      "key": "v",
+      "key": "V",
       "label": "V",
-      "file": "art/stray/_dcode/char(118).png"
+      "file": "art/stray/_dcode/char(86).png"
     },
     {
       "index": 23,
-      "key": "w",
+      "key": "W",
       "label": "W",
-      "file": "art/stray/_dcode/char(119).png"
+      "file": "art/stray/_dcode/char(87).png"
     },
     {
       "index": 24,
-      "key": "x",
+      "key": "X",
       "label": "X",
       "file": "art/stray/_dcode/char(88).png"
     },
     {
       "index": 25,
-      "key": "y",
+      "key": "Y",
       "label": "Y",
       "file": "art/stray/_dcode/char(89).png"
     },
     {
       "index": 26,
-      "key": "z",
+      "key": "Z",
       "label": "Z",
       "file": "art/stray/_dcode/char(90).png"
     },
@@ -241,6 +243,138 @@
       "key": "9",
       "label": "9",
       "file": "art/stray/_dcode/char(57).png"
+    },
+    {
+      "index": 36,
+      "key": "a",
+      "label": "a",
+      "file": "art/stray/_dcode/char(97).png"
+    },
+    {
+      "index": 37,
+      "key": "b",
+      "label": "b",
+      "file": "art/stray/_dcode/char(98).png"
+    },
+    {
+      "index": 38,
+      "key": "c",
+      "label": "c",
+      "file": "art/stray/_dcode/char(99).png"
+    },
+    {
+      "index": 39,
+      "key": "d",
+      "label": "d",
+      "file": "art/stray/_dcode/char(100).png"
+    },
+    {
+      "index": 40,
+      "key": "e",
+      "label": "e",
+      "file": "art/stray/_dcode/char(101).png"
+    },
+    {
+      "index": 41,
+      "key": "f",
+      "label": "f",
+      "file": "art/stray/_dcode/char(102).png"
+    },
+    {
+      "index": 42,
+      "key": "g",
+      "label": "g",
+      "file": "art/stray/_dcode/char(103).png"
+    },
+    {
+      "index": 43,
+      "key": "h",
+      "label": "h",
+      "file": "art/stray/_dcode/char(104).png"
+    },
+    {
+      "index": 44,
+      "key": "j",
+      "label": "j",
+      "file": "art/stray/_dcode/char(106).png"
+    },
+    {
+      "index": 45,
+      "key": "i",
+      "label": "i",
+      "file": "art/stray/_dcode/char(105).png"
+    },
+    {
+      "index": 46,
+      "key": "k",
+      "label": "k",
+      "file": "art/stray/_dcode/char(107).png"
+    },
+    {
+      "index": 47,
+      "key": "l",
+      "label": "l",
+      "file": "art/stray/_dcode/char(108).png"
+    },
+    {
+      "index": 48,
+      "key": "m",
+      "label": "m",
+      "file": "art/stray/_dcode/char(109).png"
+    },
+    {
+      "index": 49,
+      "key": "n",
+      "label": "n",
+      "file": "art/stray/_dcode/char(110).png"
+    },
+    {
+      "index": 50,
+      "key": "o",
+      "label": "o",
+      "file": "art/stray/_dcode/char(111).png"
+    },
+    {
+      "index": 51,
+      "key": "p",
+      "label": "p",
+      "file": "art/stray/_dcode/char(112).png"
+    },
+    {
+      "index": 52,
+      "key": "r",
+      "label": "r",
+      "file": "art/stray/_dcode/char(114).png"
+    },
+    {
+      "index": 53,
+      "key": "s",
+      "label": "s",
+      "file": "art/stray/_dcode/char(115).png"
+    },
+    {
+      "index": 54,
+      "key": "t",
+      "label": "t",
+      "file": "art/stray/_dcode/char(116).png"
+    },
+    {
+      "index": 55,
+      "key": "u",
+      "label": "u",
+      "file": "art/stray/_dcode/char(117).png"
+    },
+    {
+      "index": 56,
+      "key": "v",
+      "label": "v",
+      "file": "art/stray/_dcode/char(118).png"
+    },
+    {
+      "index": 57,
+      "key": "w",
+      "label": "w",
+      "file": "art/stray/_dcode/char(119).png"
     }
   ],
   "unmapped": [],

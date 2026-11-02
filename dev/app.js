@@ -9702,7 +9702,13 @@ function buildSymbolNode(node) {
             return `<button type="button" data-sym-variant="${esc(v)}" class="${on}" title="${esc(title)}">${v ? esc(v.toUpperCase()) : "Normal"}</button>`;
         }).join("")}</span>`
         : "";
+    // A note carried by the cipher itself, printed above the grid (matoran: dCode documents a
+    // hexagonal outline for the same alphabet, which no second glyph set exists to switch to).
+    const note = cipher.note && cipher.note.text
+        ? `<div class="sym-note">${esc(cipher.note.text)}${cipher.note.href ? ` <a href="${esc(cipher.note.href)}" target="_blank" rel="noopener">dCode</a>` : ""}</div>`
+        : "";
     wrap.innerHTML = `
+        ${note}
         <div class="io-row sym-bar">
             ${sourceControl}${variantControl}
             <button type="button" class="mini-btn sym-clear" data-sym-clear title="Clear the transcription">Clear</button>

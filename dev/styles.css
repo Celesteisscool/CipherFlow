@@ -2374,6 +2374,13 @@ body.has-sym-rail .toolbar { left: 43px; }
 .sym-src button.on { background: var(--accent); color: #fff; }
 .sym-src-fixed { font-size: 10px; font-weight: 620; color: var(--muted); margin-left: auto; }
 .sym-clear { margin-left: 8px; }
+.sym-note {
+    font-size: 10px;
+    line-height: 1.35;
+    color: var(--muted);
+    margin: 0 0 6px;
+}
+.sym-note a { color: var(--accent); }
 .glyph-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));

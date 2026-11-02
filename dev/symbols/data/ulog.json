@@ -1,0 +1,405 @@
+{
+  "slug": "ulog",
+  "name": "Ulog",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=ulog",
+      "images": "https://i.cachesleuth.com/images/ulog/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [
+      {
+        "seq": "ä",
+        "file": "alt/AE_umlaut.png"
+      },
+      {
+        "seq": "ö",
+        "file": "alt/OE_umlaut.png"
+      },
+      {
+        "seq": "ü",
+        "file": "alt/UE_umlaut.png"
+      },
+      {
+        "seq": "ß",
+        "file": "alt/SZ_umlaut.png"
+      },
+      {
+        "seq": "ch",
+        "file": "alt/ch.png"
+      },
+      {
+        "seq": "ng",
+        "file": "alt/ng.png"
+      },
+      {
+        "seq": "sh",
+        "file": "alt/sh.png"
+      },
+      {
+        "seq": "th",
+        "file": "alt/th.png"
+      },
+      {
+        "seq": "tsch",
+        "file": "alt/tsch.png"
+      },
+      {
+        "seq": "c_",
+        "file": "alt/C_.png"
+      },
+      {
+        "seq": "j_",
+        "file": "alt/J_.png"
+      },
+      {
+        "seq": "th_",
+        "file": "alt/th_.png"
+      },
+      {
+        "seq": "10",
+        "file": "alt/10.png"
+      },
+      {
+        "seq": "11",
+        "file": "alt/11.png"
+      },
+      {
+        "seq": "12",
+        "file": "alt/12.png"
+      }
+    ],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 51,
+    "uniqueFiles": 51,
+    "manifestFiles": 51,
+    "downloaded": 51,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/ulog/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/ulog/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/ulog/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/ulog/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/ulog/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/ulog/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/ulog/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/ulog/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/ulog/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/ulog/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/ulog/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/ulog/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/ulog/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/ulog/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/ulog/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/ulog/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/ulog/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/ulog/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/ulog/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/ulog/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/ulog/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/ulog/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/ulog/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/ulog/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/ulog/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/ulog/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/ulog/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/ulog/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/ulog/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/ulog/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/ulog/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/ulog/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/ulog/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/ulog/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/ulog/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/ulog/9.png"
+    },
+    {
+      "index": 37,
+      "key": "ä",
+      "label": "Ä",
+      "file": "art/ulog/alt/AE_umlaut.png"
+    },
+    {
+      "index": 38,
+      "key": "ö",
+      "label": "Ö",
+      "file": "art/ulog/alt/OE_umlaut.png"
+    },
+    {
+      "index": 39,
+      "key": "ü",
+      "label": "Ü",
+      "file": "art/ulog/alt/UE_umlaut.png"
+    },
+    {
+      "index": 40,
+      "key": "ß",
+      "label": "SS",
+      "file": "art/ulog/alt/SZ_umlaut.png"
+    },
+    {
+      "index": 41,
+      "key": "ch",
+      "label": "CH",
+      "file": "art/ulog/alt/ch.png"
+    },
+    {
+      "index": 42,
+      "key": "ng",
+      "label": "NG",
+      "file": "art/ulog/alt/ng.png"
+    },
+    {
+      "index": 43,
+      "key": "sh",
+      "label": "SH",
+      "file": "art/ulog/alt/sh.png"
+    },
+    {
+      "index": 44,
+      "key": "th",
+      "label": "TH",
+      "file": "art/ulog/alt/th.png"
+    },
+    {
+      "index": 45,
+      "key": "tsch",
+      "label": "TSCH",
+      "file": "art/ulog/alt/tsch.png"
+    },
+    {
+      "index": 46,
+      "key": "c_",
+      "label": "C_",
+      "file": "art/ulog/alt/C_.png"
+    },
+    {
+      "index": 47,
+      "key": "j_",
+      "label": "J_",
+      "file": "art/ulog/alt/J_.png"
+    },
+    {
+      "index": 48,
+      "key": "th_",
+      "label": "TH_",
+      "file": "art/ulog/alt/th_.png"
+    },
+    {
+      "index": 49,
+      "key": "10",
+      "label": "10",
+      "file": "art/ulog/alt/10.png"
+    },
+    {
+      "index": 50,
+      "key": "11",
+      "label": "11",
+      "file": "art/ulog/alt/11.png"
+    },
+    {
+      "index": 51,
+      "key": "12",
+      "label": "12",
+      "file": "art/ulog/alt/12.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

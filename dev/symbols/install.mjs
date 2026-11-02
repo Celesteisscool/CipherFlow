@@ -285,6 +285,10 @@ for (const slug of slugs.sort()) {
             dcode: staged.source.dcode || null
         },
         descriptor: staged.descriptor,
+        // An editorial note the cipher's node prints above its grid (matoran's hexagonal
+        // variant, documented by dCode rather than published as a second set). Carried from
+        // the previous install when a re-stage predates the note, and written only when set.
+        ...(staged.note || previous?.note ? {note: staged.note || previous.note} : {}),
         // Only written where it is true, so re-installing does not churn the shipped ciphers.
         ...(tight ? {tightArt: true} : {}),
         ...(staged.same ? {sameAsCachesleuth: true} : {}),

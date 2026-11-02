@@ -58,6 +58,10 @@ Scale it to the change, and stop when it is proven:
 - anything that ships: rebuild, confirm the build exited 0
 - behaviour change: one targeted check of that behaviour (serve with
   `node dev/serve.mjs 8788` and inspect the actual case)
+- changed symbol art: `node dev/symbols/verify-source.mjs [slug ...] [--dcode]` — per glyph,
+  bytes against the file the live source publishes for that key (URL derived from the
+  shipped `art/<slug>/` path); exits 1 only on a CacheSleuth mismatch, `--dcode` is
+  informational because those pages drift
 
 That is the ceiling, not the floor. Do **not** build benchmark cards, 19-case suites,
 multi-step UI walkthroughs, or fresh test harnesses for a one-line fix. Re-running a suite

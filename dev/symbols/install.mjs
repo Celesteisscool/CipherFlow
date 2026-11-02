@@ -14,6 +14,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 import {fileURLToPath} from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -21,6 +22,152 @@ const STAGE_ROOT = "/tmp/symstage";
 const ART_DIR = path.join(HERE, "art");
 const DATA_DIR = path.join(HERE, "data");
 const CATALOGUE = path.join(HERE, "catalogue.json");
+
+/* ---------------------------------------------------------------- ink-tight art
+ * The sources publish a wide canvas with the drawing floating in it (eternity's ink
+ * is 84x121 inside 164x384), and the host draws every glyph with `object-fit: contain`
+ * in a 30px tile. Containing the canvas renders the drawing at ~7x9 px however large
+ * the tile is. A staged cipher may therefore ask for `tightArt`: the shipped PNG is
+ * cropped to its ink box and centred on a square transparent canvas, so the drawing
+ * fills the tile. Lossless — ink pixels are copied 1:1, never resampled.
+ */
+const INK_PAD = 0.06; // margin each side, as a fraction of the square's side
+
+function decodePng(buf) {
+    let p = 8, ihdr = null;
+    const idat = [];
+    while (p < buf.length) {
+        const len = buf.readUInt32BE(p);
+        const type = buf.toString("ascii", p + 4, p + 8);
+        const data = buf.subarray(p + 8, p + 8 + len);
+        if (type === "IHDR") ihdr = {w: data.readUInt32BE(0), h: data.readUInt32BE(4), depth: data[8], color: data[9], interlace: data[12]};
+        else if (type === "IDAT") idat.push(data);
+        else if (type === "IEND") break;
+        p += 12 + len;
+    }
+    if (!ihdr || ihdr.depth !== 8 || ihdr.interlace) return null;
+    const ch = {0: 1, 2: 3, 4: 2, 6: 4}[ihdr.color];
+    if (!ch) return null;
+    const raw = zlib.inflateSync(Buffer.concat(idat));
+    const stride = ihdr.w * ch;
+    if (raw.length < ihdr.h * (stride + 1)) return null;
+    const px = Buffer.alloc(ihdr.h * stride);
+    let pos = 0;
+    for (let y = 0; y < ihdr.h; y++) {
+        const f = raw[pos++];
+        const line = raw.subarray(pos, pos + stride);
+        pos += stride;
+        const prev = y ? px.subarray((y - 1) * stride, y * stride) : null;
+        const cur = px.subarray(y * stride, (y + 1) * stride);
+        for (let x = 0; x < stride; x++) {
+            const a = x >= ch ? cur[x - ch] : 0;
+            const b = prev ? prev[x] : 0;
+            const c = x >= ch && prev ? prev[x - ch] : 0;
+            let v = line[x];
+            if (f === 1) v += a;
+            else if (f === 2) v += b;
+            else if (f === 3) v += (a + b) >> 1;
+            else if (f === 4) {
+                const pa = Math.abs(b - c), pb = Math.abs(a - c), pc = Math.abs(a + b - 2 * c);
+                v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+            }
+            cur[x] = v & 255;
+        }
+    }
+    return {...ihdr, ch, stride, px};
+}
+
+/** Bounding box of every pixel that reads as ink — visible, and not a white ghost. */
+function inkBox(img) {
+    let x0 = img.w, y0 = img.h, x1 = -1, y1 = -1;
+    for (let y = 0; y < img.h; y++) {
+        for (let x = 0; x < img.w; x++) {
+            const i = y * img.stride + x * img.ch;
+            const alpha = img.ch === 4 ? img.px[i + 3] : img.ch === 2 ? img.px[i + 1] : 255;
+            if (alpha <= 16) continue;
+            const r = img.px[i];
+            const g = img.ch >= 3 ? img.px[i + 1] : r;
+            const b = img.ch >= 3 ? img.px[i + 2] : r;
+            if (Math.min(r, g, b) >= 200) continue;
+            if (x < x0) x0 = x;
+            if (x > x1) x1 = x;
+            if (y < y0) y0 = y;
+            if (y > y1) y1 = y;
+        }
+    }
+    return x1 < 0 ? null : {x0, y0, w: x1 - x0 + 1, h: y1 - y0 + 1};
+}
+
+const CRC = (() => {
+    const t = new Int32Array(256);
+    for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+        t[n] = c;
+    }
+    return t;
+})();
+const crc32 = buf => {
+    let c = ~0;
+    for (const b of buf) c = CRC[(c ^ b) & 255] ^ (c >>> 8);
+    return ~c >>> 0;
+};
+const chunk = (type, data) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const body = Buffer.concat([Buffer.from(type, "ascii"), data]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(body));
+    return Buffer.concat([len, body, crc]);
+};
+function encodePng(w, h, rgba) {
+    const stride = w * 4;
+    const raw = Buffer.alloc(h * (stride + 1));
+    for (let y = 0; y < h; y++) rgba.copy(raw, y * (stride + 1) + 1, y * stride, (y + 1) * stride);
+    const ihdr = Buffer.alloc(13);
+    ihdr.writeUInt32BE(w, 0);
+    ihdr.writeUInt32BE(h, 4);
+    ihdr[8] = 8;
+    ihdr[9] = 6; // RGBA
+    return Buffer.concat([
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+        chunk("IHDR", ihdr),
+        chunk("IDAT", zlib.deflateSync(raw, {level: 9})),
+        chunk("IEND", Buffer.alloc(0))
+    ]);
+}
+
+/** Cropped-to-ink square copy of a PNG, or null when the art needs no change. */
+function tightenPng(buf) {
+    const img = decodePng(buf);
+    if (!img) return null;
+    const box = inkBox(img);
+    if (!box) return null;
+    if (box.x0 === 0 && box.y0 === 0 && box.w === img.w && box.h === img.h) return null;
+    const side = Math.max(2, Math.round(Math.max(box.w, box.h) / (1 - 2 * INK_PAD)));
+    const ox = Math.floor((side - box.w) / 2);
+    const oy = Math.floor((side - box.h) / 2);
+    const out = Buffer.alloc(side * side * 4); // transparent ground, ink centred
+    for (let y = 0; y < box.h; y++) {
+        for (let x = 0; x < box.w; x++) {
+            const si = (box.y0 + y) * img.stride + (box.x0 + x) * img.ch;
+            const di = ((oy + y) * side + ox + x) * 4;
+            if (img.ch >= 3) {
+                out[di] = img.px[si];
+                out[di + 1] = img.px[si + 1];
+                out[di + 2] = img.px[si + 2];
+                out[di + 3] = img.ch === 4 ? img.px[si + 3] : 255;
+            } else if (img.ch === 2) {
+                out[di] = out[di + 1] = out[di + 2] = img.px[si];
+                out[di + 3] = img.px[si + 1];
+            } else {
+                out[di] = out[di + 1] = out[di + 2] = img.px[si];
+                out[di + 3] = 255;
+            }
+        }
+    }
+    return encodePng(side, side, out);
+}
 
 if (!fs.existsSync(STAGE_ROOT)) {
     console.error(`no staging at ${STAGE_ROOT} — run dev/symbols/extract.mjs first`);
@@ -41,6 +188,12 @@ for (const slug of slugs.sort()) {
     const stage = path.join(STAGE_ROOT, slug);
     const staged = JSON.parse(fs.readFileSync(path.join(stage, "cipher.json"), "utf8"));
 
+    // Ink-tight art is asked for at staging time, but recorded here, so re-installing a
+    // cipher from a staging tree that predates the flag keeps the treatment.
+    const dataFile = path.join(DATA_DIR, `${slug}.json`);
+    const previous = fs.existsSync(dataFile) ? JSON.parse(fs.readFileSync(dataFile, "utf8")) : null;
+    const tight = Boolean(staged.tightArt ?? previous?.tightArt);
+
     if (staged.check !== "PASS") failures.push(`${slug}: count check ${staged.check}`);
 
     // fresh art dir for this cipher
@@ -53,6 +206,10 @@ for (const slug of slugs.sort()) {
         if (!fs.existsSync(src)) return false;
         fs.mkdirSync(path.dirname(to), {recursive: true});
         fs.copyFileSync(src, to);
+        if (tight && /\.png$/i.test(to)) {
+            const tightened = tightenPng(fs.readFileSync(to));
+            if (tightened) fs.writeFileSync(to, tightened);
+        }
         return true;
     };
 
@@ -129,6 +286,7 @@ for (const slug of slugs.sort()) {
         },
         descriptor: staged.descriptor,
         // Only written where it is true, so re-installing does not churn the shipped ciphers.
+        ...(tight ? {tightArt: true} : {}),
         ...(staged.same ? {sameAsCachesleuth: true} : {}),
         ...(staged.cases ? {cases: true} : {}),
         counts: staged.counts,
@@ -138,7 +296,7 @@ for (const slug of slugs.sort()) {
         dcode,
         check: staged.check
     };
-    fs.writeFileSync(path.join(DATA_DIR, `${slug}.json`), JSON.stringify(installed, null, 2));
+    fs.writeFileSync(dataFile, JSON.stringify(installed, null, 2));
 
     const missing = glyphs.filter(g => !g.file).length;
     if (missing) failures.push(`${slug}: ${missing} glyph(s) with no art`);
@@ -153,7 +311,7 @@ for (const slug of slugs.sort()) {
         dcode: dcode ? dcode.count : 0,
         check: staged.check
     });
-    console.log(`${slug.padEnd(14)} ${String(glyphs.length).padStart(3)} glyphs  ${String(artFiles).padStart(3)} art  dcode ${String(dcode ? dcode.count : 0).padStart(2)}  ${staged.check}${(staged.dropped || []).length ? `  dropped ${JSON.stringify(staged.dropped)}` : ""}`);
+    console.log(`${slug.padEnd(14)} ${String(glyphs.length).padStart(3)} glyphs  ${String(artFiles).padStart(3)} art  dcode ${String(dcode ? dcode.count : 0).padStart(2)}  ${staged.check}${tight ? "  tight" : ""}${(staged.dropped || []).length ? `  dropped ${JSON.stringify(staged.dropped)}` : ""}`);
 }
 
 rows.sort((a, b) => a.name.localeCompare(b.name));

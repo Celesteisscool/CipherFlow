@@ -1,0 +1,250 @@
+{
+  "slug": "stray",
+  "name": "Stray",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=stray",
+      "images": "https://i.cachesleuth.com/images/stray/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/alphabet-stray"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"123456789\".split(\"\")",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 35,
+    "uniqueFiles": 35,
+    "manifestFiles": 35,
+    "downloaded": 35,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/stray/_dcode/char(97).png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/stray/_dcode/char(98).png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/stray/_dcode/char(99).png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/stray/_dcode/char(100).png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/stray/_dcode/char(101).png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/stray/_dcode/char(102).png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/stray/_dcode/char(103).png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/stray/_dcode/char(104).png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/stray/_dcode/char(105).png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/stray/_dcode/char(106).png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/stray/_dcode/char(107).png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/stray/_dcode/char(108).png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/stray/_dcode/char(109).png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/stray/_dcode/char(110).png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/stray/_dcode/char(111).png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/stray/_dcode/char(112).png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/stray/_dcode/char(81).png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/stray/_dcode/char(114).png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/stray/_dcode/char(115).png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/stray/_dcode/char(116).png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/stray/_dcode/char(117).png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/stray/_dcode/char(118).png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/stray/_dcode/char(119).png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/stray/_dcode/char(88).png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/stray/_dcode/char(89).png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/stray/_dcode/char(90).png"
+    },
+    {
+      "index": 27,
+      "key": "1",
+      "label": "1",
+      "file": "art/stray/_dcode/char(49).png"
+    },
+    {
+      "index": 28,
+      "key": "2",
+      "label": "2",
+      "file": "art/stray/_dcode/char(50).png"
+    },
+    {
+      "index": 29,
+      "key": "3",
+      "label": "3",
+      "file": "art/stray/_dcode/char(51).png"
+    },
+    {
+      "index": 30,
+      "key": "4",
+      "label": "4",
+      "file": "art/stray/_dcode/char(52).png"
+    },
+    {
+      "index": 31,
+      "key": "5",
+      "label": "5",
+      "file": "art/stray/_dcode/char(53).png"
+    },
+    {
+      "index": 32,
+      "key": "6",
+      "label": "6",
+      "file": "art/stray/_dcode/char(54).png"
+    },
+    {
+      "index": 33,
+      "key": "7",
+      "label": "7",
+      "file": "art/stray/_dcode/char(55).png"
+    },
+    {
+      "index": 34,
+      "key": "8",
+      "label": "8",
+      "file": "art/stray/_dcode/char(56).png"
+    },
+    {
+      "index": 35,
+      "key": "9",
+      "label": "9",
+      "file": "art/stray/_dcode/char(57).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

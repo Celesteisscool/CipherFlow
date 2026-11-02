@@ -1,0 +1,251 @@
+{
+  "slug": "ballet",
+  "name": "Ballet",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=ballet",
+      "images": "https://i.cachesleuth.com/images/ballet/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/alphabet-ballet"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"123456789\".split(\"\")",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "sameAsCachesleuth": true,
+  "counts": {
+    "declared": 35,
+    "uniqueFiles": 35,
+    "manifestFiles": 35,
+    "downloaded": 35,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/ballet/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/ballet/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/ballet/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/ballet/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/ballet/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/ballet/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/ballet/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/ballet/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/ballet/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/ballet/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/ballet/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/ballet/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/ballet/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/ballet/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/ballet/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/ballet/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/ballet/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/ballet/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/ballet/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/ballet/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/ballet/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/ballet/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/ballet/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/ballet/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/ballet/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/ballet/z.png"
+    },
+    {
+      "index": 27,
+      "key": "1",
+      "label": "1",
+      "file": "art/ballet/1.png"
+    },
+    {
+      "index": 28,
+      "key": "2",
+      "label": "2",
+      "file": "art/ballet/2.png"
+    },
+    {
+      "index": 29,
+      "key": "3",
+      "label": "3",
+      "file": "art/ballet/3.png"
+    },
+    {
+      "index": 30,
+      "key": "4",
+      "label": "4",
+      "file": "art/ballet/4.png"
+    },
+    {
+      "index": 31,
+      "key": "5",
+      "label": "5",
+      "file": "art/ballet/5.png"
+    },
+    {
+      "index": 32,
+      "key": "6",
+      "label": "6",
+      "file": "art/ballet/6.png"
+    },
+    {
+      "index": 33,
+      "key": "7",
+      "label": "7",
+      "file": "art/ballet/7.png"
+    },
+    {
+      "index": 34,
+      "key": "8",
+      "label": "8",
+      "file": "art/ballet/8.png"
+    },
+    {
+      "index": 35,
+      "key": "9",
+      "label": "9",
+      "file": "art/ballet/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

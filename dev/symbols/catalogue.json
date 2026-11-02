@@ -80,6 +80,16 @@
     "check": "PASS"
   },
   {
+    "slug": "covenant",
+    "name": "Covenant",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "dancingmen",
     "name": "Dancing Men",
     "source": "both",
@@ -120,6 +130,16 @@
     "check": "PASS"
   },
   {
+    "slug": "fez",
+    "name": "Fez",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "futhark",
     "name": "Futhark",
     "source": "both",
@@ -136,6 +156,16 @@
     "status": "ready",
     "glyphs": 43,
     "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "gerudo",
+    "name": "Gerudo - Zelda",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS"
   },
@@ -200,6 +230,16 @@
     "check": "PASS"
   },
   {
+    "slug": "lunar",
+    "name": "Lunar",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "mayan",
     "name": "Mayan Numbers 1",
     "source": "both",
@@ -207,6 +247,16 @@
     "glyphs": 20,
     "uniqueFiles": 20,
     "dcode": 20,
+    "check": "PASS"
+  },
+  {
+    "slug": "moon",
+    "name": "Moon",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -240,6 +290,16 @@
     "check": "PASS"
   },
   {
+    "slug": "outerrim",
+    "name": "Outer Rim",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "pigpen",
     "name": "Pig Pen Version 1",
     "source": "both",
@@ -250,6 +310,26 @@
     "check": "PASS"
   },
   {
+    "slug": "rosicrucian",
+    "name": "Rosicrucian",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "rm4scc",
+    "name": "Royal Mail (RM4SCC)",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 38,
+    "uniqueFiles": 38,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "semaphore",
     "name": "Semaphore Flags",
     "source": "both",
@@ -257,6 +337,26 @@
     "glyphs": 30,
     "uniqueFiles": 30,
     "dcode": 30,
+    "check": "PASS"
+  },
+  {
+    "slug": "shoes",
+    "name": "Shoes Code",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 75,
+    "uniqueFiles": 75,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "simlish",
+    "name": "Simlish (From The Sims)",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 52,
+    "uniqueFiles": 52,
+    "dcode": 0,
     "check": "PASS"
   },
   {

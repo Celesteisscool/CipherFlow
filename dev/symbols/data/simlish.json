@@ -1,0 +1,353 @@
+{
+  "slug": "simlish",
+  "name": "Simlish (From The Sims)",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=simlish",
+      "images": "https://i.cachesleuth.com/images/simlish/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/simlish-language"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "UPPERCASE",
+    "font": ""
+  },
+  "sameAsCachesleuth": true,
+  "counts": {
+    "declared": 52,
+    "uniqueFiles": 52,
+    "manifestFiles": 52,
+    "downloaded": 52,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/simlish/UPPERCASE/A.png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/simlish/UPPERCASE/B.png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/simlish/UPPERCASE/C.png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/simlish/UPPERCASE/D.png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/simlish/UPPERCASE/E.png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/simlish/UPPERCASE/F.png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/simlish/UPPERCASE/G.png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/simlish/UPPERCASE/H.png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/simlish/UPPERCASE/I.png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/simlish/UPPERCASE/J.png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/simlish/UPPERCASE/K.png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/simlish/UPPERCASE/L.png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/simlish/UPPERCASE/M.png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/simlish/UPPERCASE/N.png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/simlish/UPPERCASE/O.png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/simlish/UPPERCASE/P.png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/simlish/UPPERCASE/Q.png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/simlish/UPPERCASE/R.png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/simlish/UPPERCASE/S.png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/simlish/UPPERCASE/T.png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/simlish/UPPERCASE/U.png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/simlish/UPPERCASE/V.png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/simlish/UPPERCASE/W.png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/simlish/UPPERCASE/X.png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/simlish/UPPERCASE/Y.png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/simlish/UPPERCASE/Z.png"
+    },
+    {
+      "index": 27,
+      "key": "a",
+      "label": "a",
+      "file": "art/simlish/a.png"
+    },
+    {
+      "index": 28,
+      "key": "b",
+      "label": "b",
+      "file": "art/simlish/b.png"
+    },
+    {
+      "index": 29,
+      "key": "c",
+      "label": "c",
+      "file": "art/simlish/c.png"
+    },
+    {
+      "index": 30,
+      "key": "d",
+      "label": "d",
+      "file": "art/simlish/d.png"
+    },
+    {
+      "index": 31,
+      "key": "e",
+      "label": "e",
+      "file": "art/simlish/e.png"
+    },
+    {
+      "index": 32,
+      "key": "f",
+      "label": "f",
+      "file": "art/simlish/f.png"
+    },
+    {
+      "index": 33,
+      "key": "g",
+      "label": "g",
+      "file": "art/simlish/g.png"
+    },
+    {
+      "index": 34,
+      "key": "h",
+      "label": "h",
+      "file": "art/simlish/h.png"
+    },
+    {
+      "index": 35,
+      "key": "i",
+      "label": "i",
+      "file": "art/simlish/i.png"
+    },
+    {
+      "index": 36,
+      "key": "j",
+      "label": "j",
+      "file": "art/simlish/j.png"
+    },
+    {
+      "index": 37,
+      "key": "k",
+      "label": "k",
+      "file": "art/simlish/k.png"
+    },
+    {
+      "index": 38,
+      "key": "l",
+      "label": "l",
+      "file": "art/simlish/l.png"
+    },
+    {
+      "index": 39,
+      "key": "m",
+      "label": "m",
+      "file": "art/simlish/m.png"
+    },
+    {
+      "index": 40,
+      "key": "n",
+      "label": "n",
+      "file": "art/simlish/n.png"
+    },
+    {
+      "index": 41,
+      "key": "o",
+      "label": "o",
+      "file": "art/simlish/o.png"
+    },
+    {
+      "index": 42,
+      "key": "p",
+      "label": "p",
+      "file": "art/simlish/p.png"
+    },
+    {
+      "index": 43,
+      "key": "q",
+      "label": "q",
+      "file": "art/simlish/q.png"
+    },
+    {
+      "index": 44,
+      "key": "r",
+      "label": "r",
+      "file": "art/simlish/r.png"
+    },
+    {
+      "index": 45,
+      "key": "s",
+      "label": "s",
+      "file": "art/simlish/s.png"
+    },
+    {
+      "index": 46,
+      "key": "t",
+      "label": "t",
+      "file": "art/simlish/t.png"
+    },
+    {
+      "index": 47,
+      "key": "u",
+      "label": "u",
+      "file": "art/simlish/u.png"
+    },
+    {
+      "index": 48,
+      "key": "v",
+      "label": "v",
+      "file": "art/simlish/v.png"
+    },
+    {
+      "index": 49,
+      "key": "w",
+      "label": "w",
+      "file": "art/simlish/w.png"
+    },
+    {
+      "index": 50,
+      "key": "x",
+      "label": "x",
+      "file": "art/simlish/x.png"
+    },
+    {
+      "index": 51,
+      "key": "y",
+      "label": "y",
+      "file": "art/simlish/y.png"
+    },
+    {
+      "index": 52,
+      "key": "z",
+      "label": "z",
+      "file": "art/simlish/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

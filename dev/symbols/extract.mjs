@@ -244,9 +244,14 @@ function planGlyphs(desc, {upperKeys = false} = {}) {
         // char(65) is `A`). The key's case is the tile's identity, which is what lets
         // dCode's lowercase c/s/t ship beside C/S/T as their own symbols.
         for (const ch of letters) add(ch.toUpperCase(), `${desc.lcdir ? desc.lcdir + "/" : ""}${ch.toLowerCase()}.png`);
-    } else if (desc.up) {
-        for (const ch of letters) add(ch.toUpperCase(), `${desc.ucdir ? desc.ucdir + "/" : ""}${ch.toUpperCase()}.png`);
     } else {
+        // Regression guard (found on shoes, batch 5): the batch-4 refactor moved this
+        // into `else if (desc.up)` / `else`, so up:"1" ciphers lost their lowercase set
+        // (zodiac re-staged as 36 instead of 62). Both cases are planned together, as
+        // batch 2 did — the else-less fall-through is the point.
+        if (desc.up) {
+            for (const ch of letters) add(ch.toUpperCase(), `${desc.ucdir ? desc.ucdir + "/" : ""}${ch.toUpperCase()}.png`);
+        }
         for (const ch of letters) add(ch, `${desc.lcdir ? desc.lcdir + "/" : ""}${ch.toLowerCase()}.png`);
     }
     for (const n of listOf(desc.numbers)) add(n, `${n}.png`);
@@ -568,7 +573,9 @@ async function main() {
         downloaded: downloaded.length + extraGlyphs.length,
         failed: failed.length,
         unmapped: unmapped.length,
-        extras: extraGlyphs.length
+        // Written only where true, like `same`: re-staging a shipped cipher keeps its
+        // committed counts byte-identical instead of gaining a spurious "extras": 0.
+        ...(extraGlyphs.length ? {extras: extraGlyphs.length} : {})
     };
     const check = counts.declared === counts.downloaded && counts.failed === 0 && absent.length === 0
         && (artFrom !== "dcode" || (dcode && dcode.ok && artGap.length === 0))

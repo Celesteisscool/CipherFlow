@@ -10,6 +10,26 @@
     "check": "PASS"
   },
   {
+    "slug": "alienlanguage",
+    "name": "Alien Language",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "alphabetcode",
+    "name": "Alphabet Code",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "alphabots",
     "name": "Alphabots",
     "source": "cachesleuth",
@@ -30,12 +50,112 @@
     "check": "PASS"
   },
   {
+    "slug": "amohibia",
+    "name": "Amohibia",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "ancientalien",
+    "name": "Ancient Alien",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "ancienthylian",
+    "name": "Ancient Hylian",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "andorian",
+    "name": "Andorian",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "anillo",
     "name": "Anillo",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 62,
     "uniqueFiles": 62,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "antilife",
+    "name": "Anti-Life",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "antiker",
+    "name": "Antiker",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "aquarius",
+    "name": "Aquarius",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "arcadian",
+    "name": "Arcadian",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "astronomy",
+    "name": "Astronony Symbols",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 16,
+    "uniqueFiles": 16,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "ath",
+    "name": "Ath",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
     "dcode": 0,
     "check": "PASS"
   },
@@ -70,6 +190,26 @@
     "check": "PASS"
   },
   {
+    "slug": "baal",
+    "name": "Baal",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "baaldiagonal",
+    "name": "Baal Diagonal",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "babylonian",
     "name": "Babylonian Numerals",
     "source": "both",
@@ -77,6 +217,16 @@
     "glyphs": 24,
     "uniqueFiles": 24,
     "dcode": 15,
+    "check": "PASS"
+  },
+  {
+    "slug": "backslash",
+    "name": "Backslash",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
     "check": "PASS"
   },
   {

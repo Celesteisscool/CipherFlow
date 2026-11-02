@@ -34,19 +34,26 @@ const CATALOGUE = path.join(HERE, "catalogue.json");
 const INK_PAD = 0.06; // margin each side, as a fraction of the square's side
 
 function decodePng(buf) {
-    let p = 8, ihdr = null;
+    let p = 8, ihdr = null, plte = null, trns = null;
     const idat = [];
     while (p < buf.length) {
         const len = buf.readUInt32BE(p);
         const type = buf.toString("ascii", p + 4, p + 8);
         const data = buf.subarray(p + 8, p + 8 + len);
         if (type === "IHDR") ihdr = {w: data.readUInt32BE(0), h: data.readUInt32BE(4), depth: data[8], color: data[9], interlace: data[12]};
+        else if (type === "PLTE") plte = data;
+        else if (type === "tRNS") trns = data;
         else if (type === "IDAT") idat.push(data);
         else if (type === "IEND") break;
         p += 12 + len;
     }
-    if (!ihdr || ihdr.depth !== 8 || ihdr.interlace) return null;
-    const ch = {0: 1, 2: 3, 4: 2, 6: 4}[ihdr.color];
+    if (!ihdr || ihdr.interlace) return null;
+    // Palette art (colour type 3, depths 1-8) is what most CacheSleuth glyphs use. It has to be
+    // expanded here or the ink box cannot be read: `tightArt` was silently a no-op on those
+    // files until batch 9, which is why andorian and antilife stayed tiny after the first pass.
+    const palette = ihdr.color === 3;
+    if (palette ? (!plte || ![1, 2, 4, 8].includes(ihdr.depth)) : ihdr.depth !== 8) return null;
+    const ch = palette ? 1 : {0: 1, 2: 3, 4: 2, 6: 4}[ihdr.color];
     if (!ch) return null;
     const raw = zlib.inflateSync(Buffer.concat(idat));
     const stride = ihdr.w * ch;
@@ -74,7 +81,25 @@ function decodePng(buf) {
             cur[x] = v & 255;
         }
     }
-    return {...ihdr, ch, stride, px};
+    if (!palette) return {...ihdr, ch, stride, px};
+    const out = Buffer.alloc(ihdr.w * ihdr.h * 4);
+    const maxv = (1 << Math.min(ihdr.depth, 8)) - 1;
+    const index = (x, y) => {
+        const bit = x * ihdr.depth;
+        const byte = px[y * stride + (bit >> 3)];
+        return (byte >> (8 - ihdr.depth - (bit & 7))) & maxv;
+    };
+    for (let y = 0; y < ihdr.h; y++) {
+        for (let x = 0; x < ihdr.w; x++) {
+            const i = index(x, y);
+            const o = (y * ihdr.w + x) * 4;
+            out[o] = plte[i * 3] ?? 0;
+            out[o + 1] = plte[i * 3 + 1] ?? 0;
+            out[o + 2] = plte[i * 3 + 2] ?? 0;
+            out[o + 3] = trns && i < trns.length ? trns[i] : 255;
+        }
+    }
+    return {...ihdr, depth: 8, color: 6, ch: 4, stride: ihdr.w * 4, px: out};
 }
 
 /** Bounding box of every pixel that reads as ink — visible, and not a white ghost. */

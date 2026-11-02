@@ -1,0 +1,134 @@
+{
+  "slug": "astronomy",
+  "name": "Astronony Symbols",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=astronomy",
+      "images": "https://i.cachesleuth.com/images/astronomy/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdef\".split(\"\")",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 16,
+    "uniqueFiles": 16,
+    "manifestFiles": 16,
+    "downloaded": 16,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/astronomy/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/astronomy/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/astronomy/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/astronomy/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/astronomy/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/astronomy/f.png"
+    },
+    {
+      "index": 7,
+      "key": "0",
+      "label": "0",
+      "file": "art/astronomy/0.png"
+    },
+    {
+      "index": 8,
+      "key": "1",
+      "label": "1",
+      "file": "art/astronomy/1.png"
+    },
+    {
+      "index": 9,
+      "key": "2",
+      "label": "2",
+      "file": "art/astronomy/2.png"
+    },
+    {
+      "index": 10,
+      "key": "3",
+      "label": "3",
+      "file": "art/astronomy/3.png"
+    },
+    {
+      "index": 11,
+      "key": "4",
+      "label": "4",
+      "file": "art/astronomy/4.png"
+    },
+    {
+      "index": 12,
+      "key": "5",
+      "label": "5",
+      "file": "art/astronomy/5.png"
+    },
+    {
+      "index": 13,
+      "key": "6",
+      "label": "6",
+      "file": "art/astronomy/6.png"
+    },
+    {
+      "index": 14,
+      "key": "7",
+      "label": "7",
+      "file": "art/astronomy/7.png"
+    },
+    {
+      "index": 15,
+      "key": "8",
+      "label": "8",
+      "file": "art/astronomy/8.png"
+    },
+    {
+      "index": 16,
+      "key": "9",
+      "label": "9",
+      "file": "art/astronomy/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

@@ -10,6 +10,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
+import {cipherTags, cipherTagShares} from "./tags.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(HERE, "data");
@@ -117,6 +118,12 @@ export function glyphDataBundle() {
         ciphers[c.slug] = {
             name: c.name,
             source: c.source,
+            // Measured from the art at build time (dev/symbols/tags.mjs), so the panel's tag
+            // pills and the wand's scan agree without either of them decoding a glyph.
+            tags: cipherTags(c),
+            // The same measurement graded, per tag: the share of this cipher's own drawings
+            // that carry it, which is what its near misses are worth when a picture is ranked.
+            tagShares: cipherTagShares(c),
             artFrom: c.artFrom || "cachesleuth",
             sameAsCachesleuth: Boolean(c.sameAsCachesleuth),
             direction: "ltr",

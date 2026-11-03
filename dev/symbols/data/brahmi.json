@@ -1,0 +1,206 @@
+{
+  "slug": "brahmi",
+  "name": "Brahmi",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=brahmi",
+      "images": "https://i.cachesleuth.com/images/brahmi/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "new Array(\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"20\",\"30\",\"40\",\"50\",\"60\",\"70\",\"80\",\"90\",\"100\",\"200\",\"300\",\"400\",\"500\",\"1000\",\"2000\",\"3000\",\"4000\",\"5000\")",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 28,
+    "uniqueFiles": 28,
+    "manifestFiles": 28,
+    "downloaded": 28,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "1",
+      "label": "1",
+      "file": "art/brahmi/1.png"
+    },
+    {
+      "index": 2,
+      "key": "2",
+      "label": "2",
+      "file": "art/brahmi/2.png"
+    },
+    {
+      "index": 3,
+      "key": "3",
+      "label": "3",
+      "file": "art/brahmi/3.png"
+    },
+    {
+      "index": 4,
+      "key": "4",
+      "label": "4",
+      "file": "art/brahmi/4.png"
+    },
+    {
+      "index": 5,
+      "key": "5",
+      "label": "5",
+      "file": "art/brahmi/5.png"
+    },
+    {
+      "index": 6,
+      "key": "6",
+      "label": "6",
+      "file": "art/brahmi/6.png"
+    },
+    {
+      "index": 7,
+      "key": "7",
+      "label": "7",
+      "file": "art/brahmi/7.png"
+    },
+    {
+      "index": 8,
+      "key": "8",
+      "label": "8",
+      "file": "art/brahmi/8.png"
+    },
+    {
+      "index": 9,
+      "key": "9",
+      "label": "9",
+      "file": "art/brahmi/9.png"
+    },
+    {
+      "index": 10,
+      "key": "10",
+      "label": "10",
+      "file": "art/brahmi/10.png"
+    },
+    {
+      "index": 11,
+      "key": "20",
+      "label": "20",
+      "file": "art/brahmi/20.png"
+    },
+    {
+      "index": 12,
+      "key": "30",
+      "label": "30",
+      "file": "art/brahmi/30.png"
+    },
+    {
+      "index": 13,
+      "key": "40",
+      "label": "40",
+      "file": "art/brahmi/40.png"
+    },
+    {
+      "index": 14,
+      "key": "50",
+      "label": "50",
+      "file": "art/brahmi/50.png"
+    },
+    {
+      "index": 15,
+      "key": "60",
+      "label": "60",
+      "file": "art/brahmi/60.png"
+    },
+    {
+      "index": 16,
+      "key": "70",
+      "label": "70",
+      "file": "art/brahmi/70.png"
+    },
+    {
+      "index": 17,
+      "key": "80",
+      "label": "80",
+      "file": "art/brahmi/80.png"
+    },
+    {
+      "index": 18,
+      "key": "90",
+      "label": "90",
+      "file": "art/brahmi/90.png"
+    },
+    {
+      "index": 19,
+      "key": "100",
+      "label": "100",
+      "file": "art/brahmi/100.png"
+    },
+    {
+      "index": 20,
+      "key": "200",
+      "label": "200",
+      "file": "art/brahmi/200.png"
+    },
+    {
+      "index": 21,
+      "key": "300",
+      "label": "300",
+      "file": "art/brahmi/300.png"
+    },
+    {
+      "index": 22,
+      "key": "400",
+      "label": "400",
+      "file": "art/brahmi/400.png"
+    },
+    {
+      "index": 23,
+      "key": "500",
+      "label": "500",
+      "file": "art/brahmi/500.png"
+    },
+    {
+      "index": 24,
+      "key": "1000",
+      "label": "1000",
+      "file": "art/brahmi/1000.png"
+    },
+    {
+      "index": 25,
+      "key": "2000",
+      "label": "2000",
+      "file": "art/brahmi/2000.png"
+    },
+    {
+      "index": 26,
+      "key": "3000",
+      "label": "3000",
+      "file": "art/brahmi/3000.png"
+    },
+    {
+      "index": 27,
+      "key": "4000",
+      "label": "4000",
+      "file": "art/brahmi/4000.png"
+    },
+    {
+      "index": 28,
+      "key": "5000",
+      "label": "5000",
+      "file": "art/brahmi/5000.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

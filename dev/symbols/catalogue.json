@@ -1,5 +1,15 @@
 [
   {
+    "slug": "25paircode",
+    "name": "25-Pair Color Code",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 25,
+    "uniqueFiles": 25,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "adlam",
     "name": "Adlam",
     "source": "cachesleuth",
@@ -190,6 +200,16 @@
     "check": "PASS"
   },
   {
+    "slug": "baku",
+    "name": "Ba'ku",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "baal",
     "name": "Baal",
     "source": "cachesleuth",
@@ -240,8 +260,38 @@
     "check": "PASS"
   },
   {
+    "slug": "beams",
+    "name": "Beams",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "beardedmen",
+    "name": "Bearded Men",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "birdsonawire",
     "name": "Birds On A Wire",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "blokscript",
+    "name": "Blokscript",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 26,
@@ -260,12 +310,52 @@
     "check": "PASS"
   },
   {
+    "slug": "blox",
+    "name": "Blox",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 38,
+    "uniqueFiles": 38,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "book",
+    "name": "Book",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 30,
+    "uniqueFiles": 30,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "borg",
     "name": "Borg",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 52,
     "uniqueFiles": 52,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "box",
+    "name": "Box",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "brahmi",
+    "name": "Brahmi",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 28,
+    "uniqueFiles": 28,
     "dcode": 0,
     "check": "PASS"
   },
@@ -290,12 +380,52 @@
     "check": "PASS"
   },
   {
+    "slug": "builder",
+    "name": "Builder Code - Marvel",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "bynar",
     "name": "Bynar",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 62,
     "uniqueFiles": 62,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "caps",
+    "name": "Caps",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 35,
+    "uniqueFiles": 35,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "centaur",
+    "name": "Centaur",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "centauri",
+    "name": "Centauri",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 35,
+    "uniqueFiles": 35,
     "dcode": 0,
     "check": "PASS"
   },
@@ -307,6 +437,16 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 36,
+    "check": "PASS"
+  },
+  {
+    "slug": "chappe2",
+    "name": "Chappe 2",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -717,6 +857,16 @@
     "glyphs": 30,
     "uniqueFiles": 30,
     "dcode": 30,
+    "check": "PASS"
+  },
+  {
+    "slug": "chainofdeath",
+    "name": "Shadow Chain of Death",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 28,
+    "uniqueFiles": 28,
+    "dcode": 0,
     "check": "PASS"
   },
   {

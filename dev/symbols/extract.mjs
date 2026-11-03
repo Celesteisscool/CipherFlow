@@ -211,8 +211,40 @@ function listOf(expr) {
     }
     if (/^"([^"]*)"\.split\(""\)$/.test(e)) return unescapeJs(e.match(/^"([^"]*)"/)[1]).split("");
     if (/^"([^"]*)"$/.test(e)) return unescapeJs(e.match(/^"([^"]*)"/)[1]).split("");
-    if (/^new Array\(([\s\S]*)\)$/.test(e)) {
-        const inner = e.replace(/^new Array\(/, "").replace(/\)$/, "");
+    // The site's two other list shapes: a bare array literal (25paircode writes
+    // `numbers:["1","2",…,"25"]`) and a base list with extras appended (chainofdeath
+    // writes `atoz.concat("_")`). Both are plain character lists, so they are read the
+    // same way rather than hand-typed.
+    const concat = e.match(/^(atoz|nums)\.concat\(([\s\S]*)\)$/);
+    if (concat) {
+        const base = concat[1] === "atoz" ? ATOZ.slice() : NUMS.slice();
+        return base.concat([...concat[2].matchAll(/"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g)].map(x => unescapeJs(x[1] ?? x[2])));
+    }
+    if (/^\[[\s\S]*\]$/.test(e)) {
+        return [...e.matchAll(/"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g)].map(x => unescapeJs(x[1] ?? x[2]));
+    }
+    if (/^new Array\(/.test(e)) {
+        // Balance parentheses from the opening one, skipping quoted strings: braille's list
+        // contains "(" and ")" as entries of their own, so an anchored regex either stops
+        // inside a value or drags along the attribute that follows the list (blox writes
+        // `othernames:new Array("space","period"),indexImage:"b.png"`, which reached this
+        // function with the tail attached and threw). The list ends at its own closing
+        // paren; a tail is table metadata the manifest already accounts for, so it is
+        // reported and ignored exactly like the `atoz,indexImage:` case above.
+        const open = "new Array".length;
+        let depth = 0, quote = null, end = -1;
+        for (let i = open; i < e.length; i++) {
+            const c = e[i];
+            if (quote) {
+                if (c === "\\") i++;
+                else if (c === quote) quote = null;
+            } else if (c === '"' || c === "'") quote = c;
+            else if (c === "(") depth++;
+            else if (c === ")" && --depth === 0) { end = i; break; }
+        }
+        if (end < 0) throw new Error(`unbalanced descriptor expression: ${e}`);
+        if (end < e.length - 1) console.warn(`  ~ descriptor list carries an attribute, ignored: ${e.slice(end + 1)}`);
+        const inner = e.slice(open + 1, end);
         return [...inner.matchAll(/"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g)].map(x => unescapeJs(x[1] ?? x[2]));
     }
     throw new Error(`unhandled descriptor expression: ${e}`);

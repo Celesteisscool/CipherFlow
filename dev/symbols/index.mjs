@@ -11,24 +11,16 @@ import fs from "node:fs";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
 import {cipherTags, cipherTagShares} from "./tags.mjs";
+import {artDataUrl} from "./artpack.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(HERE, "data");
 const ART_DIR = path.join(HERE, "art");
 const CATALOGUE = path.join(HERE, "catalogue.json");
 
-const encoder = new DataURICache();
-function DataURICache() {
-    const memo = new Map();
-    return abs => {
-        if (memo.has(abs)) return memo.get(abs);
-        const url = fs.existsSync(abs)
-            ? "data:image/png;base64," + fs.readFileSync(abs).toString("base64")
-            : null;
-        memo.set(abs, url);
-        return url;
-    };
-}
+// Art is packed, not merely base64'd: artpack.mjs re-encodes each drawing at the size the UI
+// actually draws it (dev/symbols/artpack.mjs), which is most of what index.html's weight was.
+const encoder = abs => (fs.existsSync(abs) ? artDataUrl(abs) : null);
 
 function rows() {
     if (!fs.existsSync(CATALOGUE)) return [];

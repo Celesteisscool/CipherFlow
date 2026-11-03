@@ -94,7 +94,7 @@ const ICONS = {
     // Three inputs funnelling into one wire, and the same shape reversed for Expand.
     bundle: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 3h3.4l3.2 5h4.6M1.8 13h3.4l3.2-5M1.8 8h3.4"/><path d="m11.4 5.9 2.2 2.1-2.2 2.1"/></svg>',
     split: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 3h-3.4L7.6 8H3M14.2 13h-3.4L7.6 8M14.2 8H7.6"/><path d="m4.4 5.9-2.2 2.1 2.2 2.1"/></svg>',
-    help: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M6.1 6.2a1.95 1.95 0 1 1 2.7 1.85c-.65.28-.85.65-.85 1.3"/><path d="M8 11.6v.15"/></svg>'
+    help: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M6.1 6.2a1.95 1.95 0 1 1 2.7 1.85c-.65.28-.85.65-.85 1.3"/><path d="M8 11.6v.15"/></svg>',
 };
 
 const svg = (name, cls = "") => String(ICONS[name] || "").replace("<svg", `<svg class="${cls}"`);
@@ -9470,6 +9470,61 @@ const SYMBOL_RAIL_ICON = '<svg viewBox="0 0 16 16" fill="none" stroke="currentCo
 let symbolDrawerEl = null;
 let symbolRailBtn = null;
 
+// The tag pills narrow the list under them: what is selected is the filter, and a cipher is
+// listed when it carries enough of it.
+let symbolTagFilter = new Set();
+
+// The tag vocabulary and its measurements are inlined ahead of this script by dev/build.mjs
+// from dev/symbols/tagmath.js, so the panel and the build tag the art with the same code.
+const CFTAGS = globalThis.CFTAGS || null;
+
+// How much of the chosen tag set a cipher has to carry to be listed. Not all of it: the tags
+// are coarse, and demanding every one turns four pills into an empty list on a single miss.
+// The row prints the share it does carry, so the list says how good each candidate is instead
+// of pretending they are all equal.
+const SYMBOL_TAG_MATCH_MIN = 0.75;
+
+/**
+ * That floor in whole tags. Three tags admit two, four admit three, and a set of two still
+ * has to be met in full — rounding never opens a list to an alphabet that agrees with only
+ * half of it. Without this a three-pill filter could only ever answer "all three", because
+ * nothing can carry two and a quarter tags.
+ */
+function symbolTagFloor(count) {
+    return Math.max(1, Math.round(count * SYMBOL_TAG_MATCH_MIN));
+}
+
+/**
+ * How much of a tag set one cipher looks like. A tag on a cipher means most of its drawings
+ * carry it, not all of them, so this is graded rather than a yes/no count: a tag the cipher
+ * has counts in full, and one it does not is worth the share of its drawings that carry it.
+ * Counting yes/no is what made a picture measuring three tags answerable only as "100%" or
+ * "67%", with nothing in between to show a near miss.
+ *
+ * The exception is a tag whose group the cipher decided the other way. Filled art is both
+ * thin-stroked and dense, so a Bold cipher can have most of its drawings reading as Thin
+ * too; crediting that would list Bold alphabets under the Thin pill, which is the one thing
+ * the groups exist to prevent.
+ */
+function symbolTagMatch(cipher, tags) {
+    const own = (cipher && cipher.tags) || [];
+    const shares = (cipher && cipher.tagShares) || null;
+    const set = tags || [];
+    const hits = [];
+    let sum = 0;
+    for (const tag of set) {
+        if (own.includes(tag)) {
+            hits.push(tag);
+            sum += 1;
+            continue;
+        }
+        if (!shares) continue;
+        const settled = (CFTAGS ? CFTAGS.exclusiveOf(tag) : []).some(other => own.includes(other));
+        if (!settled) sum += Math.min(1, Number(shares[tag]) || 0);
+    }
+    return {hits, pct: set.length ? sum / set.length : 1};
+}
+
 function readGlyphData() {
     try {
         const el = typeof document !== "undefined" && document.getElementById("glyphData");
@@ -9858,9 +9913,11 @@ function initSymbolPanel() {
         </div>
         <aside class="sym-drawer${open ? " open" : ""}" id="symDrawer" aria-label="Symbol ciphers">
             <div class="sym-head">
-                <span class="sym-title">Symbol ciphers <span class="count-badge">${slugs.length}</span></span>
+                <span class="sym-title">Symbol ciphers <span class="count-badge" id="symCount" title="${slugs.length} symbol ciphers">${slugs.length}</span>
+                    <button type="button" class="sym-reset" id="symReset" title="Clear every tag" hidden>Reset</button></span>
                 <button class="icon-button" id="symClose" title="Close symbol ciphers">${iconFill("x")}</button>
             </div>
+            <div class="sym-tags" id="symTags" role="group" aria-label="Narrow the list by tag"></div>
             <div class="search-wrap sym-search">
                 <input id="symSearch" class="search-input" placeholder="Search symbol ciphers" autocomplete="off" spellcheck="false" aria-label="Search symbol ciphers">
             </div>
@@ -9874,25 +9931,103 @@ function initSymbolPanel() {
     document.body.classList.toggle("sym-drawer-open", open);
     const list = document.getElementById("symList");
     const search = document.getElementById("symSearch");
+    const tagBar = document.getElementById("symTags");
+    const countBadge = document.getElementById("symCount");
+    const resetBtn = document.getElementById("symReset");
+    // How many ciphers each tag leaves behind. A pill that matches nothing is not drawn.
+    const tagTotals = {};
+    for (const slug of slugs) for (const tag of SYMBOLS.ciphers[slug].tags || []) tagTotals[tag] = (tagTotals[tag] || 0) + 1;
+    const renderTags = () => {
+        if (!tagBar || !CFTAGS) return;
+        // Each group is drawn as its own cluster, because the pills inside one are
+        // alternatives rather than additions: a drawing is Thin or Bold, never both.
+        tagBar.innerHTML = CFTAGS.TAG_GROUPS.map(group => {
+            const pills = group.filter(tag => tagTotals[tag]).map(tag => {
+                const on = symbolTagFilter.has(tag);
+                return `<button type="button" class="sym-tag${on ? " on" : ""}" data-sym-tag="${tag}" aria-pressed="${on}" title="${tagTotals[tag]} of ${slugs.length} ciphers${on ? " — click to clear" : " — click to narrow the list"}">${esc(CFTAGS.TAG_LABELS[tag] || tag)}</button>`;
+            }).join("");
+            return pills ? `<span class="sym-tag-group">${pills}</span>` : "";
+        }).join("");
+    };
+    // The count in the header is the list's own count: what the tags (and the search) leave
+    // behind, not the whole catalogue. It turns accent-coloured while a tag is applied, so a
+    // narrowed list is never mistaken for everything. Reset sits beside it, where the number
+    // it explains is.
+    const renderHead = shown => {
+        const tagged = symbolTagFilter.size > 0;
+        if (countBadge) {
+            countBadge.textContent = shown;
+            countBadge.classList.toggle("on", tagged);
+            // The tooltip follows the number rather than the tags alone, so a search that
+            // narrows the list without colouring the badge still says why the count is short.
+            countBadge.title = tagged
+                ? `${shown} of ${slugs.length} symbol ciphers match the chosen tags`
+                : shown === slugs.length
+                    ? `${slugs.length} symbol ciphers`
+                    : `${shown} of ${slugs.length} symbol ciphers match the search`;
+        }
+        if (resetBtn) resetBtn.hidden = !tagged;
+    };
+    // Choosing a pill releases its alternatives, so the filter never asks for two tags that
+    // no drawing can have at once.
+    const chooseTag = tag => {
+        const wasOn = symbolTagFilter.has(tag);
+        for (const other of CFTAGS ? CFTAGS.exclusiveOf(tag) : []) symbolTagFilter.delete(other);
+        if (wasOn) symbolTagFilter.delete(tag);
+        else symbolTagFilter.add(tag);
+        renderTags();
+        renderList();
+    };
+    if (tagBar) tagBar.addEventListener("click", ev => {
+        const pill = ev.target.closest("[data-sym-tag]");
+        if (pill) chooseTag(pill.dataset.symTag);
+    });
+    // Only offered while something is selected, so it is never a dead control.
+    if (resetBtn) resetBtn.addEventListener("click", () => {
+        symbolTagFilter.clear();
+        renderTags();
+        renderList();
+    });
 
     const renderList = () => {
         const q = String(search.value || "").trim().toLowerCase();
+        const tags = [...symbolTagFilter];
         const rows = slugs
             .map(slug => ({slug, ...SYMBOLS.ciphers[slug]}))
             .filter(c => !q || c.name.toLowerCase().includes(q) || c.slug.includes(q))
-            .sort((a, b) => a.name.localeCompare(b.name));
+            // The pills narrow the list, but not all the way to "every tag in the set": one
+            // tag short is still a candidate, and so is a cipher whose misses are near ones.
+            .map(c => ({...c, match: symbolTagMatch(c, tags)}))
+            .filter(c => !tags.length || c.match.hits.length >= symbolTagFloor(tags.length) || c.match.pct >= SYMBOL_TAG_MATCH_MIN)
+            // Best match first, then alphabetically: the strongest candidates are what the
+            // list is for, and with no tags chosen every row ties at 100% and stays A-Z.
+            .sort((a, b) => b.match.pct - a.match.pct || a.name.localeCompare(b.name));
+        renderHead(rows.length);
         if (!rows.length) {
-            list.innerHTML = `<div class="search-empty">No symbol cipher matches “${esc(search.value || "")}”.</div>`;
+            const labels = tags.map(tag => CFTAGS?.TAG_LABELS?.[tag] || tag);
+            const named = labels.map(tag => esc(tag)).join(" + ");
+            const why = labels.length > 1
+                ? `No cipher matches ${symbolTagFloor(labels.length)} or more of ${named}`
+                : `No cipher is ${named}`;
+            list.innerHTML = labels.length
+                ? `<div class="search-empty">${why}${q ? ` and “${esc(search.value)}”` : ""}.</div>`
+                : `<div class="search-empty">No symbol cipher matches “${esc(search.value || "")}”.</div>`;
             return;
         }
         list.innerHTML = rows.map(c => {
             // Ten samples fill the row's 5x2 grid in styles.css.
             const samples = c.glyphs.slice(0, 10).map(g =>
                 g.src ? `<img src="${esc(g.src)}" alt="" loading="lazy" draggable="false">` : "").join("");
+            // The percentage is only meaningful against a chosen set of tags, so it appears
+            // with them and never on the unfiltered list.
+            const badge = tags.length
+                ? `<span class="sym-detect-badge" title="Shape match to the chosen tags">${Math.round(c.match.pct * 100)}%</span>`
+                : "";
             return `<button class="sym-row" data-sym-slug="${esc(c.slug)}" title="Add ${esc(c.name)} to the canvas">
                 <span class="sym-row-main">
                     <span class="sym-row-head">
                         <span class="sym-row-name">${esc(c.name)}</span>
+                        ${badge}
                         <span class="sym-row-meta">- ${c.glyphs.length} symbols${symbolToggleSources(c) ? " · both sources" : ""}</span>
                     </span>
                     <span class="sym-row-samples" aria-hidden="true">${samples}</span>
@@ -9901,6 +10036,7 @@ function initSymbolPanel() {
         }).join("");
     };
     renderList();
+    renderTags();
 
     document.getElementById("symRailBtn").addEventListener("click", () =>
         setSymbolDrawer(!symbolDrawerEl.classList.contains("open")));

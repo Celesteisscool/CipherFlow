@@ -95,6 +95,9 @@ const meta = fs.readFileSync(path.join(ROOT, "dev/meta.json"), "utf8");
 const tests = fs.readFileSync(path.join(ROOT, "dev/testplan.json"), "utf8");
 const css = fs.readFileSync(path.join(ROOT, "dev/styles.css"), "utf8");
 const app = fs.readFileSync(path.join(ROOT, "dev/app.js"), "utf8");
+// The symbol tag vocabulary and its measurements, shared with the build scripts: the app
+// runs this exact file over a picture, dev/symbols/tags.mjs runs it over the shipped art.
+const tagMath = fs.readFileSync(path.join(ROOT, "dev/symbols/tagmath.js"), "utf8");
 
 // Symbol ciphers travel as one JSON island of data URLs: the panel and the node draw
 // straight from it, so a single-file offline build never fetches a glyph at runtime.
@@ -363,6 +366,10 @@ ${css}
 ${engineB64}
 </script>
 ${moduleTags}
+
+<script>
+${tagMath}
+</script>
 
 <script>
 ${app}

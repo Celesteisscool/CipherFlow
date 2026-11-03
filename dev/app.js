@@ -8909,7 +8909,7 @@ function bindCanvasEvents(stageEl, layerEl) {
     // Scrolling inside a scrollable part of a node (the Magic ranking, a preview, the
     // symbol grid, a text box) must scroll that element, not zoom the canvas underneath it.
     layerEl.addEventListener("wheel", ev => {
-        if (ev.target.closest(".magic-list, .preview pre, .file-list, .control, .collapsed-ports, .glyph-grid")) {
+        if (ev.target.closest(".magic-list, .preview pre, .file-list, .control, .collapsed-ports, .glyph-grid, .sym-preview")) {
             ev.stopPropagation();
         }
     }, {passive: true});
@@ -9611,7 +9611,7 @@ function renderSymbolPreview(el, node, set) {
     if (!el) return;
     const text = String(node.text || "");
     if (!text) {
-        el.innerHTML = '<span class="sym-hint">Click a glyph to start transcribing.</span>';
+        el.innerHTML = '<span class="sym-hint">Click a symbol to start transcribing.</span>';
         return;
     }
     // Exact keys win before case is folded, and the first entry keeps a fold: some sets
@@ -9638,7 +9638,9 @@ function renderSymbolPreview(el, node, set) {
         const shown = token.ch.trim() ? token.ch : "␣";
         return `<span class="sym-pv sym-miss"><span class="sym-ph">${esc(shown)}</span><b>${esc(shown)}</b></span>`;
     }).join("");
-    el.scrollLeft = el.scrollWidth;
+    // The strip wraps rather than scrolling sideways, so the newest symbol can only be
+    // hidden below the fold; following it down keeps the last click in view.
+    el.scrollTop = el.scrollHeight;
 }
 
 function updateSymbolCounts(wrap, set) {
@@ -9647,7 +9649,7 @@ function updateSymbolCounts(wrap, set) {
     // selector is data-sym-tiles, and writing text into it would empty the grid.
     const gridCount = $("[data-sym-tiles-count]", wrap);
     const chars = $("[data-sym-chars]", wrap);
-    if (gridCount) gridCount.textContent = `${set?.glyphs?.length ?? 0} glyphs`;
+    if (gridCount) gridCount.textContent = `${set?.glyphs?.length ?? 0} symbols`;
     if (chars) chars.textContent = `${String(wrap.__text ?? "").length} chars`;
 }
 
@@ -9684,7 +9686,7 @@ function buildSymbolNode(node) {
     const solved = variantNames.length > 0 && dcodeSolvedMapping(cipher.dcode);
     const sourceTitle = src => src === "cachesleuth"
         ? "Draw this cipher as CacheSleuth publishes it"
-        : `Draw this cipher as dCode publishes it${solved ? ` — each glyph captioned with its ${variantNames.join("/")} letters` : ""}`;
+        : `Draw this cipher as dCode publishes it${solved ? ` — each symbol captioned with its ${variantNames.join("/")} letters` : ""}`;
     const fixedSource = cipher.artFrom === "dcode" ? "dCode" : "CacheSleuth";
     const sourceControl = sources
         ? `<span class="io-label">Source</span><span class="seg sym-src">${sources.map(src =>
@@ -9715,7 +9717,7 @@ function buildSymbolNode(node) {
         </div>
         <div class="glyph-grid" data-sym-tiles>${tiles}</div>
         <div class="sym-preview" data-sym-preview></div>
-        <textarea class="control typed-input" data-sym-text rows="2" spellcheck="false" placeholder="Click a glyph to transcribe"></textarea>
+        <textarea class="control typed-input" data-sym-text rows="2" spellcheck="false" placeholder="Click a symbol to transcribe"></textarea>
         <div class="node-foot"><span class="bytes" data-sym-tiles-count></span><span style="margin-left:auto" class="bytes" data-sym-chars></span></div>
     `;
     const ta = $("[data-sym-text]", wrap);
@@ -9728,7 +9730,26 @@ function buildSymbolNode(node) {
     ta.value = String(node.text || "");
     wrap.__text = ta.value;
     renderSymbolPreview(preview, node, set);
-    if (tilesLabel) tilesLabel.textContent = `${set.glyphs.length} glyphs`;
+    // The output box is exactly as tall as its text. Clearing the height first lets
+    // scrollHeight report the content height, so the field grows line by line and never
+    // scrolls; the two extra pixels are its top and bottom border (border-box).
+    const fitText = () => {
+        ta.style.height = "auto";
+        ta.style.height = `${ta.scrollHeight + 2}px`;
+    };
+    // Width changes re-wrap the text (a resized card, a different zoom), so re-measure. Only
+    // a width change qualifies: writing the height fires this observer too, and acting on
+    // that would loop.
+    let lastWidth = 0;
+    new ResizeObserver(() => {
+        const w = ta.offsetWidth;
+        if (w === lastWidth) return;
+        lastWidth = w;
+        fitText();
+    }).observe(ta);
+    // The node is not in the document yet while this function builds it; measure next frame.
+    requestAnimationFrame(fitText);
+    if (tilesLabel) tilesLabel.textContent = `${set.glyphs.length} symbols`;
     updateSymbolCounts(wrap, set);
 
     const sync = () => {
@@ -9737,6 +9758,7 @@ function buildSymbolNode(node) {
         node._sig = "";
         renderSymbolPreview(preview, node, symbolGlyphSet(node) || set);
         updateSymbolCounts(wrap, set);
+        fitText();
         onGraphEdited();
     };
     wrap.addEventListener("click", ev => {
@@ -9864,14 +9886,17 @@ function initSymbolPanel() {
             return;
         }
         list.innerHTML = rows.map(c => {
-            const samples = c.glyphs.slice(0, 5).map(g =>
+            // Ten samples fill the row's 5x2 grid in styles.css.
+            const samples = c.glyphs.slice(0, 10).map(g =>
                 g.src ? `<img src="${esc(g.src)}" alt="" loading="lazy" draggable="false">` : "").join("");
             return `<button class="sym-row" data-sym-slug="${esc(c.slug)}" title="Add ${esc(c.name)} to the canvas">
                 <span class="sym-row-main">
-                    <span class="sym-row-name">${esc(c.name)}</span>
+                    <span class="sym-row-head">
+                        <span class="sym-row-name">${esc(c.name)}</span>
+                        <span class="sym-row-meta">- ${c.glyphs.length} symbols${symbolToggleSources(c) ? " · both sources" : ""}</span>
+                    </span>
                     <span class="sym-row-samples" aria-hidden="true">${samples}</span>
                 </span>
-                <span class="sym-row-meta">${c.glyphs.length} glyphs${symbolToggleSources(c) ? " · both sources" : ""}</span>
             </button>`;
         }).join("");
     };

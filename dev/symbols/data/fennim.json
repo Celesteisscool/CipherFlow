@@ -1,0 +1,410 @@
+{
+  "slug": "fennim",
+  "name": "Fennim",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=fennim",
+      "images": "https://i.cachesleuth.com/images/fennim/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "lower",
+    "ucdir": "upper",
+    "font": "fennim"
+  },
+  "counts": {
+    "declared": 62,
+    "uniqueFiles": 62,
+    "manifestFiles": 62,
+    "downloaded": 62,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/fennim/upper/A.png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/fennim/upper/B.png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/fennim/upper/C.png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/fennim/upper/D.png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/fennim/upper/E.png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/fennim/upper/F.png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/fennim/upper/G.png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/fennim/upper/H.png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/fennim/upper/I.png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/fennim/upper/J.png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/fennim/upper/K.png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/fennim/upper/L.png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/fennim/upper/M.png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/fennim/upper/N.png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/fennim/upper/O.png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/fennim/upper/P.png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/fennim/upper/Q.png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/fennim/upper/R.png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/fennim/upper/S.png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/fennim/upper/T.png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/fennim/upper/U.png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/fennim/upper/V.png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/fennim/upper/W.png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/fennim/upper/X.png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/fennim/upper/Y.png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/fennim/upper/Z.png"
+    },
+    {
+      "index": 27,
+      "key": "a",
+      "label": "a",
+      "file": "art/fennim/lower/a.png"
+    },
+    {
+      "index": 28,
+      "key": "b",
+      "label": "b",
+      "file": "art/fennim/lower/b.png"
+    },
+    {
+      "index": 29,
+      "key": "c",
+      "label": "c",
+      "file": "art/fennim/lower/c.png"
+    },
+    {
+      "index": 30,
+      "key": "d",
+      "label": "d",
+      "file": "art/fennim/lower/d.png"
+    },
+    {
+      "index": 31,
+      "key": "e",
+      "label": "e",
+      "file": "art/fennim/lower/e.png"
+    },
+    {
+      "index": 32,
+      "key": "f",
+      "label": "f",
+      "file": "art/fennim/lower/f.png"
+    },
+    {
+      "index": 33,
+      "key": "g",
+      "label": "g",
+      "file": "art/fennim/lower/g.png"
+    },
+    {
+      "index": 34,
+      "key": "h",
+      "label": "h",
+      "file": "art/fennim/lower/h.png"
+    },
+    {
+      "index": 35,
+      "key": "i",
+      "label": "i",
+      "file": "art/fennim/lower/i.png"
+    },
+    {
+      "index": 36,
+      "key": "j",
+      "label": "j",
+      "file": "art/fennim/lower/j.png"
+    },
+    {
+      "index": 37,
+      "key": "k",
+      "label": "k",
+      "file": "art/fennim/lower/k.png"
+    },
+    {
+      "index": 38,
+      "key": "l",
+      "label": "l",
+      "file": "art/fennim/lower/l.png"
+    },
+    {
+      "index": 39,
+      "key": "m",
+      "label": "m",
+      "file": "art/fennim/lower/m.png"
+    },
+    {
+      "index": 40,
+      "key": "n",
+      "label": "n",
+      "file": "art/fennim/lower/n.png"
+    },
+    {
+      "index": 41,
+      "key": "o",
+      "label": "o",
+      "file": "art/fennim/lower/o.png"
+    },
+    {
+      "index": 42,
+      "key": "p",
+      "label": "p",
+      "file": "art/fennim/lower/p.png"
+    },
+    {
+      "index": 43,
+      "key": "q",
+      "label": "q",
+      "file": "art/fennim/lower/q.png"
+    },
+    {
+      "index": 44,
+      "key": "r",
+      "label": "r",
+      "file": "art/fennim/lower/r.png"
+    },
+    {
+      "index": 45,
+      "key": "s",
+      "label": "s",
+      "file": "art/fennim/lower/s.png"
+    },
+    {
+      "index": 46,
+      "key": "t",
+      "label": "t",
+      "file": "art/fennim/lower/t.png"
+    },
+    {
+      "index": 47,
+      "key": "u",
+      "label": "u",
+      "file": "art/fennim/lower/u.png"
+    },
+    {
+      "index": 48,
+      "key": "v",
+      "label": "v",
+      "file": "art/fennim/lower/v.png"
+    },
+    {
+      "index": 49,
+      "key": "w",
+      "label": "w",
+      "file": "art/fennim/lower/w.png"
+    },
+    {
+      "index": 50,
+      "key": "x",
+      "label": "x",
+      "file": "art/fennim/lower/x.png"
+    },
+    {
+      "index": 51,
+      "key": "y",
+      "label": "y",
+      "file": "art/fennim/lower/y.png"
+    },
+    {
+      "index": 52,
+      "key": "z",
+      "label": "z",
+      "file": "art/fennim/lower/z.png"
+    },
+    {
+      "index": 53,
+      "key": "0",
+      "label": "0",
+      "file": "art/fennim/0.png"
+    },
+    {
+      "index": 54,
+      "key": "1",
+      "label": "1",
+      "file": "art/fennim/1.png"
+    },
+    {
+      "index": 55,
+      "key": "2",
+      "label": "2",
+      "file": "art/fennim/2.png"
+    },
+    {
+      "index": 56,
+      "key": "3",
+      "label": "3",
+      "file": "art/fennim/3.png"
+    },
+    {
+      "index": 57,
+      "key": "4",
+      "label": "4",
+      "file": "art/fennim/4.png"
+    },
+    {
+      "index": 58,
+      "key": "5",
+      "label": "5",
+      "file": "art/fennim/5.png"
+    },
+    {
+      "index": 59,
+      "key": "6",
+      "label": "6",
+      "file": "art/fennim/6.png"
+    },
+    {
+      "index": 60,
+      "key": "7",
+      "label": "7",
+      "file": "art/fennim/7.png"
+    },
+    {
+      "index": 61,
+      "key": "8",
+      "label": "8",
+      "file": "art/fennim/8.png"
+    },
+    {
+      "index": 62,
+      "key": "9",
+      "label": "9",
+      "file": "art/fennim/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

@@ -1,0 +1,122 @@
+{
+  "slug": "dna",
+  "name": "DNA",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=dna",
+      "images": "https://i.cachesleuth.com/images/dna/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdghkmnrstvy\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": "dna"
+  },
+  "counts": {
+    "declared": 14,
+    "uniqueFiles": 14,
+    "manifestFiles": 14,
+    "downloaded": 14,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/dna/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/dna/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/dna/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/dna/d.png"
+    },
+    {
+      "index": 5,
+      "key": "g",
+      "label": "G",
+      "file": "art/dna/g.png"
+    },
+    {
+      "index": 6,
+      "key": "h",
+      "label": "H",
+      "file": "art/dna/h.png"
+    },
+    {
+      "index": 7,
+      "key": "k",
+      "label": "K",
+      "file": "art/dna/k.png"
+    },
+    {
+      "index": 8,
+      "key": "m",
+      "label": "M",
+      "file": "art/dna/m.png"
+    },
+    {
+      "index": 9,
+      "key": "n",
+      "label": "N",
+      "file": "art/dna/n.png"
+    },
+    {
+      "index": 10,
+      "key": "r",
+      "label": "R",
+      "file": "art/dna/r.png"
+    },
+    {
+      "index": 11,
+      "key": "s",
+      "label": "S",
+      "file": "art/dna/s.png"
+    },
+    {
+      "index": 12,
+      "key": "t",
+      "label": "T",
+      "file": "art/dna/t.png"
+    },
+    {
+      "index": 13,
+      "key": "v",
+      "label": "V",
+      "file": "art/dna/v.png"
+    },
+    {
+      "index": 14,
+      "key": "y",
+      "label": "Y",
+      "file": "art/dna/y.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

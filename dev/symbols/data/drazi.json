@@ -1,0 +1,254 @@
+{
+  "slug": "drazi",
+  "name": "Drazi",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=drazi",
+      "images": "https://i.cachesleuth.com/images/drazi/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": "drazi"
+  },
+  "counts": {
+    "declared": 36,
+    "uniqueFiles": 36,
+    "manifestFiles": 36,
+    "downloaded": 36,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/drazi/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/drazi/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/drazi/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/drazi/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/drazi/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/drazi/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/drazi/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/drazi/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/drazi/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/drazi/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/drazi/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/drazi/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/drazi/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/drazi/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/drazi/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/drazi/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/drazi/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/drazi/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/drazi/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/drazi/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/drazi/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/drazi/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/drazi/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/drazi/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/drazi/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/drazi/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/drazi/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/drazi/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/drazi/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/drazi/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/drazi/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/drazi/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/drazi/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/drazi/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/drazi/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/drazi/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

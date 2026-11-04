@@ -2208,3 +2208,54 @@ only their catalogue rows — staging holds the whole batch, and the old full re
 catalogue got clobbered earlier in this batch. `BATCH.md` §4/§5 says so.
 
 `index.html` rebuilt: 32,326,013 bytes (was 32,340,174; the 37 dCode PNGs are what left).
+
+---
+
+## Batch 12 — 25 ciphers (catalogue 125 → 150)
+
+**Phase 1 (batch 12) — selection.** Manifest order, alphabetically, skipping slugs with no
+CacheSleuth descriptor: `bacon` (no descriptor), `fiveneedletelegraph` (no descriptor).
+Then two count-check failures during staging, dropped and replaced by the next candidates:
+
+- `barcode39` — 37 declared / 37 downloaded but COUNT CHECK FAIL (duplicate key plan).
+- `doctor` — 26 declared / 25 downloaded (one glyph has no file in the manifest).
+
+Batch: dinotopian, dli, dna, dniletters, dninumbers, doop, dots, drac, dragon, dragon2, drazi,
+droid, dwemeri, efkolia, egyptian, etruscan, fabrini, fairy, fakoo, fennim, ferengi, flags,
+fonic, forerunner, foursquare.
+
+**Phase 2 (batch 12) — largest first.** `fennim` (62 files) is the largest in the batch:
+`dcode-find` → NO PAGE, staged single-source, 62/62, COUNT CHECK PASS.
+
+**dcode-find ordering.** The lookup reads the declared keys from `dev/symbols/data/<slug>.json`
+or `/tmp/symstage/<slug>/cipher.json`. Run before staging, it reports
+`declared keys : unknown` and can only conclude from names — for 24 of this batch's 25 that
+printed a `NO PAGE` that was not yet evidence. Re-running it after staging (keys known) is the
+correct order and is what this batch's verdicts are based on. Only one page in the whole batch
+was found: `dinotopian` → `/dinotopia-alphabet` (36/36 keys, title agrees) — the one cipher
+with a second set (it was installed with the toggle, then reviewed and switched to dCode's art
+alone; see the review-fix note at the end of this section).
+
+Fixed after the batch in `dev/symbols/dcode-find.mjs`: with no shipped and no staged set it now
+runs `extract.mjs` for the cipher itself and stops loudly if staging fails, so the premature
+`NO PAGE` cannot be produced by getting the order wrong again (`--no-stage` restores the old
+keys-only behaviour). Verified on `gnommish`, which now reports `28/31 — missing "äöü"` against
+`/gnommish-alphabet` instead of a bare `NO PAGE`.
+
+**Ink-tight gate.** Measured every staged glyph's rendered long axis in a 30 px tile: medians
+12.6–28.1 px, none under the 12 px gate, so `tightArt` stayed off for all 25.
+
+**Review fix — `dinotopian` drawn from dCode.** Reviewed against CacheSleuth's grid, the two
+sources publish the same 36-character alphabet (same drawings, same keys); dCode's icons are
+simply the bigger raster. So the cipher ships one set, dCode's: re-staged with
+`extract.mjs dinotopian --dcode /dinotopia-alphabet --art dcode`, installed as a subset, and
+now `artFrom: "dcode"`, `dcode: null`, catalogue `source: "dcode"`, no source toggle — the same
+shape as `stray`. `verify-source.mjs dinotopian --dcode` reports `dCode art, 36 glyphs` with
+`dCode 36/36` matched to the live page. The shipped art is `art/dinotopian/_dcode/*`.
+
+Measured in the tile's own 44 px box (drawing fitted, ink box long axis): dCode's median is
+**39.0 px** against CacheSleuth's **26.3 px** for the same 36 keys — CacheSleuth's drawings float
+inside 343×384 canvases where dCode's 25×32 icons are almost all ink, which is the size
+difference the review saw. In the shipped node all 36 tiles measure dCode's ink (0 match
+CacheSleuth), so what draws is the chosen set. `index.html` rebuilt: 35,434,684 bytes
+(was 35,507,790).

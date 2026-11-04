@@ -21,6 +21,9 @@
  *               two sources extract.mjs reads
  *   coverage    our declared keys (data JSON, else /tmp/symstage/<slug>/cipher.json)
  *               against that inventory, case-folded for letters
+ *   staging     when neither exists, extract.mjs runs first: coverage cannot be measured
+ *               without the keys, and the art gate has nothing to compare, so a verdict
+ *               printed without them is not evidence (--no-stage restores the old order)
  *
  * A page is only SELECTED when it passes BOTH gates:
  *   coverage 100%  every declared key exists in the page's inventory, and
@@ -39,8 +42,10 @@ import path from "node:path";
 import zlib from "node:zlib";
 import crypto from "node:crypto";
 import {fileURLToPath} from "node:url";
+import {spawnSync} from "node:child_process";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, "..", "..");
 const DCODE = "https://www.dcode.fr";
 const SITEMAP_URL = DCODE + "/sitemap.xml";
 const SITEMAP_CACHE = "/tmp/dcode-urls.txt";
@@ -56,7 +61,7 @@ const STOP = new Set([
 ]);
 
 function usage(code = 2) {
-    console.error("usage: node dev/symbols/dcode-find.mjs <slug> [--name \"Display Name\"] [--keys \"abc…\"] [--all] [--top N] [--refresh] [--no-shape]");
+    console.error("usage: node dev/symbols/dcode-find.mjs <slug> [--name \"Display Name\"] [--keys \"abc…\"] [--all] [--top N] [--refresh] [--no-stage] [--no-shape]");
     process.exit(code);
 }
 
@@ -87,6 +92,19 @@ function cipherName(slug) {
         const rows = JSON.parse(fs.readFileSync(CATALOGUE, "utf8"));
         const row = (Array.isArray(rows) ? rows : []).find(r => r.slug === slug);
         return row ? row.name : null;
+    } catch {
+        return null;
+    }
+}
+
+// The source's own name for the cipher, as extract.mjs recorded it. Better than the slug for
+// the name pass ("dniletters" scores nothing; "D'Ni Letters" does), and it exists exactly
+// when the declared keys do.
+function stagedName(slug) {
+    try {
+        const p = path.join(STAGE_ROOT, slug, "cipher.json");
+        if (!fs.existsSync(p)) return null;
+        return JSON.parse(fs.readFileSync(p, "utf8")).name || null;
     } catch {
         return null;
     }
@@ -424,6 +442,7 @@ async function main() {
     let refresh = false;
     let showAll = false;
     let noShape = false;
+    let noStage = false;
     let top = 10;
     for (let i = 0; i < args.length; i++) {
         const a = args[i];
@@ -432,6 +451,7 @@ async function main() {
         else if (a === "--refresh") refresh = true;
         else if (a === "--all") showAll = true;
         else if (a === "--no-shape") noShape = true;
+        else if (a === "--no-stage") noStage = true;
         else if (a === "--top") top = Math.max(1, Number(args[++i]) || 10);
         else if (a.startsWith("-")) usage(2);
         else positional.push(a);
@@ -440,7 +460,23 @@ async function main() {
 
     const slug = positional[0].toLowerCase().replace(/[^a-z0-9_]/g, "");
     if (!slug) usage(2);
-    const name = nameFlag || positional.slice(1).join(" ") || cipherName(slug) || slug;
+    // Every gate below compares OUR declared keys against the page. Without them coverage
+    // is unmeasurable and the art pass has nothing to compare, so the name pass alone would
+    // print a NO PAGE that means "not staged" rather than "no page" — exactly what happened
+    // for 24 of batch 12's 25 ciphers. Stage first, so one command still gives one answer.
+    if (!keysFlag && !noStage && !declaredKeys(slug)) {
+        console.log(`no declared keys yet — staging ${slug} with extract.mjs`);
+        const run = spawnSync(process.execPath, [path.join(HERE, "extract.mjs"), slug], {encoding: "utf8"});
+        const said = `${run.stdout || ""}${run.stderr || ""}`.trim().split("\n").filter(Boolean).slice(-5);
+        if (said.length) console.log(said.map(l => "  " + l).join("\n"));
+        if (run.status !== 0) {
+            console.error(`\nSTAGING FAILED for ${slug} (exit ${run.status}). Without the declared keys this lookup has nothing to measure, so it is not a NO PAGE.`);
+            process.exit(run.status || 1);
+        }
+        console.log("");
+    }
+
+    const name = nameFlag || positional.slice(1).join(" ") || stagedName(slug) || cipherName(slug) || slug;
     const declared = keysFlag ? {keys: [...keysFlag], from: "--keys"} : declaredKeys(slug);
     const keys = declared ? declared.keys : null;
 
@@ -458,7 +494,7 @@ async function main() {
     const candidates = showAll ? scored : scored.slice(0, top);
 
     console.log(`cipher        : ${name} (${slug})`);
-    console.log(`declared keys : ${keys ? `${keys.length}${keys.length <= 40 ? " — " + keys.join("") : ""} (from ${declared.from})` : "unknown — no data file and nothing staged; pass --keys or stage first"}`);
+    console.log(`declared keys : ${keys ? `${keys.length}${keys.length <= 40 ? " — " + keys.join("") : ""} (from ${declared.from})` : "unknown — not shipped and not staged; pass --keys, or stage it (--no-stage skips the auto-stage)"}`);
     console.log(`dCode sitemap : ${urls.length} page URLs (${cached ? "cached " + SITEMAP_CACHE : "fetched"})`);
     console.log(`candidates    : ${scored.length} scored${showAll ? "" : ` of ${scored.length}, showing ${candidates.length}`}`);
     console.log("");

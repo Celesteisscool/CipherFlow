@@ -1,0 +1,200 @@
+{
+  "slug": "color",
+  "name": "Color",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=color",
+      "images": "https://i.cachesleuth.com/images/color/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "new Array(\" \")",
+    "othernames": "new Array(\"space\")",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 27,
+    "uniqueFiles": 27,
+    "manifestFiles": 27,
+    "downloaded": 27,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/color/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/color/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/color/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/color/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/color/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/color/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/color/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/color/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/color/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/color/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/color/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/color/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/color/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/color/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/color/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/color/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/color/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/color/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/color/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/color/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/color/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/color/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/color/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/color/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/color/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/color/z.png"
+    },
+    {
+      "index": 27,
+      "key": " ",
+      "label": " ",
+      "file": "art/color/space.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

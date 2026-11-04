@@ -1,0 +1,263 @@
+{
+  "slug": "circularglyphs",
+  "name": "Circular Glyphs",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=circularglyphs",
+      "images": "https://i.cachesleuth.com/images/circularglyphs/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/circular-glyphs-alphabet"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "new Array(\" \")",
+    "othernames": "new Array(\"space\")",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": "circularglyphs"
+  },
+  "sameAsCachesleuth": true,
+  "counts": {
+    "declared": 37,
+    "uniqueFiles": 37,
+    "manifestFiles": 37,
+    "downloaded": 37,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/circularglyphs/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/circularglyphs/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/circularglyphs/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/circularglyphs/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/circularglyphs/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/circularglyphs/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/circularglyphs/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/circularglyphs/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/circularglyphs/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/circularglyphs/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/circularglyphs/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/circularglyphs/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/circularglyphs/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/circularglyphs/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/circularglyphs/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/circularglyphs/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/circularglyphs/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/circularglyphs/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/circularglyphs/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/circularglyphs/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/circularglyphs/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/circularglyphs/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/circularglyphs/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/circularglyphs/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/circularglyphs/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/circularglyphs/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/circularglyphs/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/circularglyphs/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/circularglyphs/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/circularglyphs/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/circularglyphs/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/circularglyphs/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/circularglyphs/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/circularglyphs/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/circularglyphs/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/circularglyphs/9.png"
+    },
+    {
+      "index": 37,
+      "key": " ",
+      "label": " ",
+      "file": "art/circularglyphs/space.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

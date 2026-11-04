@@ -1,0 +1,110 @@
+{
+  "slug": "colormusic",
+  "name": "Color Music",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=colormusic",
+      "images": "https://i.cachesleuth.com/images/colormusic/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "new Array(\"a\",\"b\")",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 12,
+    "uniqueFiles": 12,
+    "manifestFiles": 12,
+    "downloaded": 12,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/colormusic/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/colormusic/b.png"
+    },
+    {
+      "index": 3,
+      "key": "0",
+      "label": "0",
+      "file": "art/colormusic/0.png"
+    },
+    {
+      "index": 4,
+      "key": "1",
+      "label": "1",
+      "file": "art/colormusic/1.png"
+    },
+    {
+      "index": 5,
+      "key": "2",
+      "label": "2",
+      "file": "art/colormusic/2.png"
+    },
+    {
+      "index": 6,
+      "key": "3",
+      "label": "3",
+      "file": "art/colormusic/3.png"
+    },
+    {
+      "index": 7,
+      "key": "4",
+      "label": "4",
+      "file": "art/colormusic/4.png"
+    },
+    {
+      "index": 8,
+      "key": "5",
+      "label": "5",
+      "file": "art/colormusic/5.png"
+    },
+    {
+      "index": 9,
+      "key": "6",
+      "label": "6",
+      "file": "art/colormusic/6.png"
+    },
+    {
+      "index": 10,
+      "key": "7",
+      "label": "7",
+      "file": "art/colormusic/7.png"
+    },
+    {
+      "index": 11,
+      "key": "8",
+      "label": "8",
+      "file": "art/colormusic/8.png"
+    },
+    {
+      "index": 12,
+      "key": "9",
+      "label": "9",
+      "file": "art/colormusic/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

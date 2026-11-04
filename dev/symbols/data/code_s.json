@@ -1,0 +1,254 @@
+{
+  "slug": "code_s",
+  "name": "Code S",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=code_s",
+      "images": "https://i.cachesleuth.com/images/code_s/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 36,
+    "uniqueFiles": 36,
+    "manifestFiles": 36,
+    "downloaded": 36,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/code_s/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/code_s/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/code_s/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/code_s/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/code_s/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/code_s/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/code_s/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/code_s/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/code_s/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/code_s/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/code_s/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/code_s/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/code_s/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/code_s/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/code_s/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/code_s/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/code_s/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/code_s/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/code_s/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/code_s/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/code_s/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/code_s/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/code_s/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/code_s/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/code_s/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/code_s/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/code_s/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/code_s/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/code_s/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/code_s/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/code_s/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/code_s/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/code_s/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/code_s/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/code_s/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/code_s/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

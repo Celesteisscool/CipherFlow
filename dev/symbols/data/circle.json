@@ -1,0 +1,230 @@
+{
+  "slug": "circle",
+  "name": "Circle",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=circle",
+      "images": "https://i.cachesleuth.com/images/circle/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz.concat(\"_\")",
+    "numbers": "\"1234\"",
+    "otherchars": "new Array(\" \")",
+    "othernames": "new Array(\"space\")",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 32,
+    "uniqueFiles": 32,
+    "manifestFiles": 32,
+    "downloaded": 32,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/circle/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/circle/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/circle/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/circle/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/circle/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/circle/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/circle/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/circle/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/circle/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/circle/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/circle/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/circle/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/circle/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/circle/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/circle/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/circle/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/circle/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/circle/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/circle/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/circle/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/circle/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/circle/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/circle/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/circle/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/circle/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/circle/z.png"
+    },
+    {
+      "index": 27,
+      "key": "_",
+      "label": "_",
+      "file": "art/circle/_.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/circle/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/circle/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/circle/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/circle/4.png"
+    },
+    {
+      "index": 32,
+      "key": " ",
+      "label": " ",
+      "file": "art/circle/space.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

@@ -1,0 +1,194 @@
+{
+  "slug": "colortokki",
+  "name": "ColorTokki",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=colortokki",
+      "images": "https://i.cachesleuth.com/images/colortokki/",
+      "tableImage": "art/colortokki/table-example.png"
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 26,
+    "uniqueFiles": 26,
+    "manifestFiles": 26,
+    "downloaded": 26,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/colortokki/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/colortokki/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/colortokki/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/colortokki/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/colortokki/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/colortokki/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/colortokki/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/colortokki/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/colortokki/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/colortokki/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/colortokki/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/colortokki/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/colortokki/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/colortokki/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/colortokki/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/colortokki/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/colortokki/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/colortokki/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/colortokki/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/colortokki/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/colortokki/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/colortokki/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/colortokki/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/colortokki/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/colortokki/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/colortokki/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

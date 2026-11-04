@@ -120,8 +120,16 @@ button svg { flex: 0 0 auto; }
 .boot-title { margin-top: 15px; font-size: 19px; font-weight: 680; letter-spacing: -.02em; }
 .boot-sub { margin-top: 3px; color: var(--faint); font-size: 10.5px; }
 .boot-status { margin-top: 17px; color: var(--muted); font-size: 11px; }
-.boot-bar {
+/* A measured bar, not a slide: the fill width is a percentage the script sets. The markup
+ * ships a small share for the page load itself; the loader script right under the splash
+ * carries that estimate through the parse, and app.js takes over with measured values. */
+.boot-progress {
     margin-top: 11px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.boot-bar {
     width: 210px;
     height: 3px;
     border-radius: 99px;
@@ -131,14 +139,19 @@ button svg { flex: 0 0 auto; }
 .boot-bar-fill {
     display: block;
     height: 100%;
-    width: 34%;
+    width: 4%;
     border-radius: inherit;
     background: var(--accent);
-    animation: boot-slide 1.15s ease-in-out infinite;
+    transition: width 220ms linear;
 }
-@keyframes boot-slide { from { transform: translateX(-105%); } to { transform: translateX(300%); } }
+.boot-pct {
+    min-width: 30px;
+    color: var(--faint);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+}
 .boot.error .boot-spinner,
-.boot.error .boot-bar { display: none; }
+.boot.error .boot-progress { display: none; }
 .boot.error .boot-status { color: var(--danger); font-weight: 600; }
 .boot-error {
     margin-top: 10px;
@@ -152,7 +165,11 @@ button svg { flex: 0 0 auto; }
     line-height: 1.5;
     overflow-wrap: anywhere;
 }
+/* .btn-primary sets display: inline-flex, which outranks the browser's own rule for
+ * [hidden] — so the retry button, which is hidden until the engine fails, needs the
+ * hide stated by name or it sits on the splash from the first paint. */
 .boot-retry { margin-top: 13px; }
+.boot-retry[hidden] { display: none; }
 
 /* The shell is exactly one viewport tall and never grows: the canvas, the node list
  * and the lab each scroll internally, so tall content cannot push the page or leave

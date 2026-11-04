@@ -165,11 +165,34 @@ ${css}
         <div class="boot-title">CipherFlow</div>
         <div class="boot-sub">Offline node editor — everything runs in this page</div>
         <div class="boot-status" id="bootStatus">Loading the embedded engine…</div>
-        <div class="boot-bar" aria-hidden="true"><span class="boot-bar-fill"></span></div>
+        <div class="boot-progress" aria-hidden="true">
+            <div class="boot-bar"><span class="boot-bar-fill" id="bootBarFill"></span></div>
+            <span class="boot-pct" id="bootPct">4%</span>
+        </div>
         <div class="boot-error" id="bootError" hidden></div>
         <button class="btn-primary boot-retry" id="bootRetry" hidden>Reload</button>
     </div>
 </div>
+<script>
+/* Sits directly under the splash so it runs before the payload islands below are parsed,
+ * which is most of a cold load and is invisible to the app, whose script comes last. The
+ * browser reports nothing while it parses, so this stretch is a clock-based estimate: it is
+ * capped at the first measured stage, and app.js takes the bar over the moment it runs. */
+(function () {
+    var shell = document.getElementById("boot");
+    var fill = document.getElementById("bootBarFill");
+    var label = document.getElementById("bootPct");
+    if (!shell || !fill) return;
+    var from = 4, to = 40, ms = 5000, t0 = performance.now();
+    var timer = setInterval(function () {
+        if (window.__bootApp || !document.getElementById("bootBarFill")) { clearInterval(timer); return; }
+        var t = Math.min(1, (performance.now() - t0) / ms);
+        var pct = from + (to - from) * (1 - Math.pow(1 - t, 3));
+        fill.style.width = pct.toFixed(1) + "%";
+        if (label) label.textContent = Math.round(pct) + "%";
+    }, 100);
+})();
+</script>
 
 <div id="app">
     <main class="stage" id="stage">
@@ -361,7 +384,7 @@ ${css}
 
 <script type="application/json" id="metaData">${jsonForScript(meta)}</script>
 <script type="application/json" id="testData">${jsonForScript(tests)}</script>
-<script type="application/json" id="glyphData">${jsonForScript(JSON.stringify(glyphs))}</script>
+<script type="application/json" id="glyphData" data-ciphers="${glyphStats.ciphers}">${jsonForScript(JSON.stringify(glyphs))}</script>
 <script type="text/plain" id="engineGzip">
 ${engineB64}
 </script>

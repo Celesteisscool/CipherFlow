@@ -280,12 +280,31 @@ function downloadBlob(blob, name) {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
-async function gunzipBase64(b64) {
+/* A gzip stream's trailer states how many bytes it decompresses to, so an embedded payload
+ * can report progress as an exact fraction of the work rather than as an estimate. */
+function gzipIsize(bytes) {
+    const n = bytes.length;
+    if (n < 18 || bytes[0] !== 0x1f || bytes[1] !== 0x8b) return 0;
+    return (bytes[n - 4] | (bytes[n - 3] << 8) | (bytes[n - 2] << 16) | (bytes[n - 1] << 24)) >>> 0;
+}
+async function gunzipBase64(b64, onProgress) {
     const raw = b64ToBytes(b64);
     if (typeof DecompressionStream === "undefined") {
         throw new Error("This browser does not support embedded gzip. Use a current Chrome, Edge, Firefox or Safari.");
     }
-    const stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream("gzip"));
+    const total = onProgress ? gzipIsize(raw) : 0;
+    let stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream("gzip"));
+    if (total) {
+        // Count what comes out: the splash bar can then fill with bytes actually unpacked.
+        let seen = 0;
+        stream = stream.pipeThrough(new TransformStream({
+            transform(chunk, controller) {
+                seen += chunk.length;
+                onProgress(Math.min(1, seen / total));
+                controller.enqueue(chunk);
+            }
+        }));
+    }
     return new TextDecoder("utf-8").decode(await new Response(stream).arrayBuffer());
 }
 
@@ -494,6 +513,9 @@ function opAccent(op) {
 // The inline worker source is the same for every engine, and unpacks to several megabytes.
 // Decode it once: the Magic pool starts three more engines from it.
 let engineSourceCache = null;
+// How much of one start() unpacking the payload accounts for. The rest is the worker
+// compiling it, which reports nothing from inside, so the splash splits its bar this way.
+const UNPACK_SHARE = 0.3;
 class ChefEngine {
     constructor() {
         this.worker = null;
@@ -504,6 +526,8 @@ class ChefEngine {
         this.seq = 0;
         this.lastError = "";
         this.onStatus = null;
+        // 0..1 across one start(), for the splash bar. Pool engines leave it null.
+        this.onProgress = null;
         this.moduleWaiters = new Map();
         this.modulesSent = new Set();
         this.modulePromises = new Map();
@@ -556,8 +580,10 @@ class ChefEngine {
         if (this.loading) return this.loading;
         this.loading = (async () => {
             this.setStatus("loading", "Unpacking the embedded engine…");
-            const source = await this.source();
+            this.report(0);
+            const source = await this.source(f => this.report(f * UNPACK_SHARE));
             this.setStatus("loading", "Starting the local engine…");
+            this.report(UNPACK_SHARE);
             const url = URL.createObjectURL(new Blob([source + "\n//# sourceURL=cipherflow-chef-worker.js"], {type: "text/javascript"}));
             let worker;
             try {
@@ -590,6 +616,7 @@ class ChefEngine {
             this.bakesWithData = 0;
             this.loaded = true;
             this.setStatus("ready");
+            this.report(1);
         })().catch(err => {
             this.lastError = err.message || String(err);
             this.setStatus("error");
@@ -606,11 +633,18 @@ class ChefEngine {
         if (this.onStatus) this.onStatus(status, detail);
     }
 
-    async source() {
-        if (engineSourceCache) return engineSourceCache;
+    report(fraction) {
+        if (this.onProgress) this.onProgress(Math.max(0, Math.min(1, fraction)));
+    }
+
+    async source(onProgress) {
+        if (engineSourceCache) {
+            if (onProgress) onProgress(1);
+            return engineSourceCache;
+        }
         const b64 = $("#engineGzip").textContent.trim().replace(/\s+/g, "");
         if (!b64) throw new Error("The embedded engine payload is missing.");
-        engineSourceCache = await gunzipBase64(b64);
+        engineSourceCache = await gunzipBase64(b64, onProgress);
         return engineSourceCache;
     }
 
@@ -9324,8 +9358,48 @@ function closeHelp() {
  * The shell is unusable until the embedded engine has started, so a splash covers it
  * and reports progress. It fades away once the engine is ready and the first run has
  * settled; if the engine cannot start it stays put and explains why.
+ *
+ * The bar is a measure, not a slide. Its markup ships part-filled because loading the page
+ * is the first stage and no script is running yet; from then on every value comes from
+ * something that actually happened — bytes decompressed, the worker answering, the first
+ * pass finishing.
  */
 const boot = {shownAt: performance.now(), done: false, engineReady: false};
+const BOOT_BAR = {
+    pct: 4,                   // what the CSS ships: the page has begun to load
+    engineBand: [40, 95],     // where the engine's own start-up lives, readyAt just below
+    readyAt: 97,              // engine up; the bar completes when the splash is dismissed
+    easeTimer: null
+};
+
+function bootProgress(pct) {
+    // Milestones arrive out of order across a restart, and the bar must never walk back.
+    const next = Math.max(BOOT_BAR.pct, Math.min(100, Number(pct) || 0));
+    BOOT_BAR.pct = next;
+    // From here the numbers are measured, so the pre-app loader script stands down.
+    window.__bootApp = true;
+    const fill = $("#bootBarFill");
+    if (fill) fill.style.width = next.toFixed(1) + "%";
+    const label = $("#bootPct");
+    if (label) label.textContent = Math.round(next) + "%";
+}
+/* The worker compiling the engine reports nothing from inside, so that stage eases toward
+ * its own ceiling on a fixed clock. It can never pass the ceiling, and the next real
+ * milestone overrides it. */
+function bootEase(ceiling, ms) {
+    bootStopEase();
+    const from = BOOT_BAR.pct;
+    const startedAt = performance.now();
+    BOOT_BAR.easeTimer = setInterval(() => {
+        const t = Math.min(1, (performance.now() - startedAt) / ms);
+        bootProgress(from + (ceiling - from) * (1 - Math.pow(1 - t, 3)));
+        if (t >= 1) bootStopEase();
+    }, 80);
+}
+function bootStopEase() {
+    if (BOOT_BAR.easeTimer) clearInterval(BOOT_BAR.easeTimer);
+    BOOT_BAR.easeTimer = null;
+}
 function bootStatus(text) {
     const el = $("#bootStatus");
     if (el && text) el.textContent = text;
@@ -9349,6 +9423,8 @@ function bootFailed(message) {
 function hideBoot() {
     if (boot.done || !boot.engineReady) return;
     boot.done = true;
+    bootStopEase();
+    bootProgress(100);
     const el = $("#boot");
     if (!el) return;
     // Hold it for a beat so a fast start does not read as a flicker.
@@ -9356,11 +9432,17 @@ function hideBoot() {
     setTimeout(() => {
         el.classList.add("done");
         setTimeout(() => el.remove(), 420);
+        // Off the boot path: the drawer builds now, so its first open is instant.
+        setTimeout(() => symbolBuildList?.(), 0);
     }, wait);
 }
 
 /* ================================================================ init */
 async function init() {
+    bootStatus("Preparing the interface…");
+    // Building the shell happens at the foot of the engine's band: it is the last thing
+    // before the payload is unpacked.
+    bootProgress(BOOT_BAR.engineBand[0]);
     initTheme();
     state = loadLocalGraph();
     currentGraphName = readCurrentGraphName();
@@ -9405,13 +9487,24 @@ async function init() {
         else label.innerHTML = `<span style="color:var(--danger)">Engine error</span> · ${esc(engine.lastError || "restarting")}`;
         if (status === "error") {
             setRunStatus("error", "Embedded engine error");
+            bootStopEase();
             bootFailed(engine.lastError || "The embedded engine reported an error.");
         } else if (status === "ready") {
             boot.engineReady = true;
+            bootStopEase();
+            bootProgress(BOOT_BAR.readyAt);
             bootStatus("Ready");
         } else if (detail) {
             bootStatus(detail);
         }
+    };
+    // Unpacking reports the bytes it has produced; the worker compile has no signal, so it
+    // eases to the top of the band and the bar completes only when the engine is ready.
+    engine.onProgress = fraction => {
+        if (fraction >= 1) return;
+        const [lo, hi] = BOOT_BAR.engineBand;
+        if (fraction >= UNPACK_SHARE) bootEase(hi, 1400);
+        else bootProgress(lo + fraction * (hi - lo));
     };
 
     bindPaletteSearch(paletteSearch, $("#searchClear"));
@@ -9459,7 +9552,13 @@ async function init() {
  * where every `src` is already a data: URL, and a cipher is only in the island if its
  * count check passed and all of its art was on disk.
  */
-const SYMBOLS = readGlyphData();
+// Parsed on first use: nothing on the canvas needs the island until a symbol cipher is
+// involved, and it is the biggest thing in the page. `SYMBOLS.ciphers` keeps every call
+// site as it was; `glyphCipherCount()` answers the panel's count without parsing.
+let glyphDataParsed = null;
+const SYMBOLS = {get ciphers() { return readGlyphData().ciphers; }};
+// Set by initSymbolPanel; lets the drawer build its list when it is first needed.
+let symbolBuildList = null;
 const SYMBOL_COLOR = "#8b5cf6";
 const SYMBOL_STORAGE_KEY = "cf.symbolsPanelOpen";
 const SYMBOL_A_TO_Z = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -9526,14 +9625,24 @@ function symbolTagMatch(cipher, tags) {
 }
 
 function readGlyphData() {
+    if (glyphDataParsed) return glyphDataParsed;
     try {
         const el = typeof document !== "undefined" && document.getElementById("glyphData");
         if (!el) return {ciphers: {}};
         const parsed = JSON.parse(el.textContent || "{}");
-        return parsed && typeof parsed === "object" && parsed.ciphers ? parsed : {ciphers: {}};
+        glyphDataParsed = parsed && typeof parsed === "object" && parsed.ciphers ? parsed : {ciphers: {}};
     } catch {
-        return {ciphers: {}};
+        glyphDataParsed = {ciphers: {}};
     }
+    return glyphDataParsed;
+}
+
+/* How many ciphers the island holds, without parsing it: dev/build.mjs bakes the figure onto
+ * the tag, so the rail and the drawer header can count while the island is still untouched. */
+function glyphCipherCount() {
+    if (glyphDataParsed) return Object.keys(glyphDataParsed.ciphers).length;
+    const el = typeof document !== "undefined" && document.getElementById("glyphData");
+    return Number(el?.dataset?.ciphers) || 0;
 }
 
 function symbolCipher(slug) {
@@ -9893,27 +10002,30 @@ function setSymbolDrawer(open) {
     document.body.classList.toggle("sym-drawer-open", Boolean(open));
     try { localStorage.setItem(SYMBOL_STORAGE_KEY, open ? "1" : "0"); } catch { /* private mode */ }
     if (open) {
+        symbolBuildList?.();
         const search = $("#symSearch", symbolDrawerEl);
         if (search) search.focus();
     }
 }
 
 function initSymbolPanel() {
-    const slugs = Object.keys(SYMBOLS.ciphers);
-    if (!slugs.length || symbolDrawerEl) return;
+    const total = glyphCipherCount();
+    if (!total || symbolDrawerEl) return;
+    let slugsCache = null;
+    const slugs = () => (slugsCache || (slugsCache = Object.keys(SYMBOLS.ciphers)));
     let open = false;
     try { open = localStorage.getItem(SYMBOL_STORAGE_KEY) === "1"; } catch { /* private mode */ }
     document.body.insertAdjacentHTML("beforeend", `
         <div class="sym-rail">
-            <button class="sym-rail-btn" id="symRailBtn" aria-expanded="${open}" aria-controls="symDrawer" title="Symbol ciphers (${slugs.length})">
+            <button class="sym-rail-btn" id="symRailBtn" aria-expanded="${open}" aria-controls="symDrawer" title="Symbol ciphers (${total})">
                 <span class="sym-rail-icon" aria-hidden="true">${SYMBOL_RAIL_ICON}</span>
                 <span class="sym-rail-label">Symbols</span>
-                <span class="sym-rail-count">${slugs.length}</span>
+                <span class="sym-rail-count">${total}</span>
             </button>
         </div>
         <aside class="sym-drawer${open ? " open" : ""}" id="symDrawer" aria-label="Symbol ciphers">
             <div class="sym-head">
-                <span class="sym-title">Symbol ciphers <span class="count-badge" id="symCount" title="${slugs.length} symbol ciphers">${slugs.length}</span>
+                <span class="sym-title">Symbol ciphers <span class="count-badge" id="symCount" title="${total} symbol ciphers">${total}</span>
                     <button type="button" class="sym-reset" id="symReset" title="Clear every tag" hidden>Reset</button></span>
                 <button class="icon-button" id="symClose" title="Close symbol ciphers">${iconFill("x")}</button>
             </div>
@@ -9935,16 +10047,26 @@ function initSymbolPanel() {
     const countBadge = document.getElementById("symCount");
     const resetBtn = document.getElementById("symReset");
     // How many ciphers each tag leaves behind. A pill that matches nothing is not drawn.
-    const tagTotals = {};
-    for (const slug of slugs) for (const tag of SYMBOLS.ciphers[slug].tags || []) tagTotals[tag] = (tagTotals[tag] || 0) + 1;
+    // Counting tags needs the island parsed, so it happens the first time the pills are
+    // actually drawn rather than in the middle of boot.
+    let tagTotals = null;
+    const countTags = () => {
+        if (tagTotals) return tagTotals;
+        tagTotals = {};
+        for (const slug of slugs()) {
+            for (const tag of SYMBOLS.ciphers[slug].tags || []) tagTotals[tag] = (tagTotals[tag] || 0) + 1;
+        }
+        return tagTotals;
+    };
     const renderTags = () => {
         if (!tagBar || !CFTAGS) return;
+        const totals = countTags();
         // Each group is drawn as its own cluster, because the pills inside one are
         // alternatives rather than additions: a drawing is Thin or Bold, never both.
         tagBar.innerHTML = CFTAGS.TAG_GROUPS.map(group => {
-            const pills = group.filter(tag => tagTotals[tag]).map(tag => {
+            const pills = group.filter(tag => totals[tag]).map(tag => {
                 const on = symbolTagFilter.has(tag);
-                return `<button type="button" class="sym-tag${on ? " on" : ""}" data-sym-tag="${tag}" aria-pressed="${on}" title="${tagTotals[tag]} of ${slugs.length} ciphers${on ? " — click to clear" : " — click to narrow the list"}">${esc(CFTAGS.TAG_LABELS[tag] || tag)}</button>`;
+                return `<button type="button" class="sym-tag${on ? " on" : ""}" data-sym-tag="${tag}" aria-pressed="${on}" title="${totals[tag]} of ${total} ciphers${on ? " — click to clear" : " — click to narrow the list"}">${esc(CFTAGS.TAG_LABELS[tag] || tag)}</button>`;
             }).join("");
             return pills ? `<span class="sym-tag-group">${pills}</span>` : "";
         }).join("");
@@ -9961,10 +10083,10 @@ function initSymbolPanel() {
             // The tooltip follows the number rather than the tags alone, so a search that
             // narrows the list without colouring the badge still says why the count is short.
             countBadge.title = tagged
-                ? `${shown} of ${slugs.length} symbol ciphers match the chosen tags`
-                : shown === slugs.length
-                    ? `${slugs.length} symbol ciphers`
-                    : `${shown} of ${slugs.length} symbol ciphers match the search`;
+                ? `${shown} of ${total} symbol ciphers match the chosen tags`
+                : shown === total
+                    ? `${total} symbol ciphers`
+                    : `${shown} of ${total} symbol ciphers match the search`;
         }
         if (resetBtn) resetBtn.hidden = !tagged;
     };
@@ -9992,7 +10114,7 @@ function initSymbolPanel() {
     const renderList = () => {
         const q = String(search.value || "").trim().toLowerCase();
         const tags = [...symbolTagFilter];
-        const rows = slugs
+        const rows = slugs()
             .map(slug => ({slug, ...SYMBOLS.ciphers[slug]}))
             .filter(c => !q || c.name.toLowerCase().includes(q) || c.slug.includes(q))
             // The pills narrow the list, but not all the way to "every tag in the set": one
@@ -10035,8 +10157,16 @@ function initSymbolPanel() {
             </button>`;
         }).join("");
     };
-    renderList();
-    renderTags();
+    // Deferred: the island parse and a hundred rows of sample art cost more than the rest
+    // of init, and none of it is visible until the drawer opens.
+    let listBuilt = false;
+    const buildList = () => {
+        if (listBuilt) return;
+        listBuilt = true;
+        renderTags();
+        renderList();
+    };
+    symbolBuildList = buildList;
 
     document.getElementById("symRailBtn").addEventListener("click", () =>
         setSymbolDrawer(!symbolDrawerEl.classList.contains("open")));

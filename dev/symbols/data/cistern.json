@@ -1,0 +1,254 @@
+{
+  "slug": "cistern",
+  "name": "Cistern",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=cistern",
+      "images": "https://i.cachesleuth.com/images/cistern/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "new Array(\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"20\",\"30\",\"40\",\"50\",\"60\",\"70\",\"80\",\"90\",\"100\",\"200\",\"300\",\"400\",\"500\",\"600\",\"700\",\"800\",\"900\",\"1000\",\"2000\",\"3000\",\"4000\",\"5000\",\"6000\",\"7000\",\"8000\",\"9000\")",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 36,
+    "uniqueFiles": 36,
+    "manifestFiles": 36,
+    "downloaded": 36,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "1",
+      "label": "1",
+      "file": "art/cistern/1.png"
+    },
+    {
+      "index": 2,
+      "key": "2",
+      "label": "2",
+      "file": "art/cistern/2.png"
+    },
+    {
+      "index": 3,
+      "key": "3",
+      "label": "3",
+      "file": "art/cistern/3.png"
+    },
+    {
+      "index": 4,
+      "key": "4",
+      "label": "4",
+      "file": "art/cistern/4.png"
+    },
+    {
+      "index": 5,
+      "key": "5",
+      "label": "5",
+      "file": "art/cistern/5.png"
+    },
+    {
+      "index": 6,
+      "key": "6",
+      "label": "6",
+      "file": "art/cistern/6.png"
+    },
+    {
+      "index": 7,
+      "key": "7",
+      "label": "7",
+      "file": "art/cistern/7.png"
+    },
+    {
+      "index": 8,
+      "key": "8",
+      "label": "8",
+      "file": "art/cistern/8.png"
+    },
+    {
+      "index": 9,
+      "key": "9",
+      "label": "9",
+      "file": "art/cistern/9.png"
+    },
+    {
+      "index": 10,
+      "key": "10",
+      "label": "10",
+      "file": "art/cistern/10.png"
+    },
+    {
+      "index": 11,
+      "key": "20",
+      "label": "20",
+      "file": "art/cistern/20.png"
+    },
+    {
+      "index": 12,
+      "key": "30",
+      "label": "30",
+      "file": "art/cistern/30.png"
+    },
+    {
+      "index": 13,
+      "key": "40",
+      "label": "40",
+      "file": "art/cistern/40.png"
+    },
+    {
+      "index": 14,
+      "key": "50",
+      "label": "50",
+      "file": "art/cistern/50.png"
+    },
+    {
+      "index": 15,
+      "key": "60",
+      "label": "60",
+      "file": "art/cistern/60.png"
+    },
+    {
+      "index": 16,
+      "key": "70",
+      "label": "70",
+      "file": "art/cistern/70.png"
+    },
+    {
+      "index": 17,
+      "key": "80",
+      "label": "80",
+      "file": "art/cistern/80.png"
+    },
+    {
+      "index": 18,
+      "key": "90",
+      "label": "90",
+      "file": "art/cistern/90.png"
+    },
+    {
+      "index": 19,
+      "key": "100",
+      "label": "100",
+      "file": "art/cistern/100.png"
+    },
+    {
+      "index": 20,
+      "key": "200",
+      "label": "200",
+      "file": "art/cistern/200.png"
+    },
+    {
+      "index": 21,
+      "key": "300",
+      "label": "300",
+      "file": "art/cistern/300.png"
+    },
+    {
+      "index": 22,
+      "key": "400",
+      "label": "400",
+      "file": "art/cistern/400.png"
+    },
+    {
+      "index": 23,
+      "key": "500",
+      "label": "500",
+      "file": "art/cistern/500.png"
+    },
+    {
+      "index": 24,
+      "key": "600",
+      "label": "600",
+      "file": "art/cistern/600.png"
+    },
+    {
+      "index": 25,
+      "key": "700",
+      "label": "700",
+      "file": "art/cistern/700.png"
+    },
+    {
+      "index": 26,
+      "key": "800",
+      "label": "800",
+      "file": "art/cistern/800.png"
+    },
+    {
+      "index": 27,
+      "key": "900",
+      "label": "900",
+      "file": "art/cistern/900.png"
+    },
+    {
+      "index": 28,
+      "key": "1000",
+      "label": "1000",
+      "file": "art/cistern/1000.png"
+    },
+    {
+      "index": 29,
+      "key": "2000",
+      "label": "2000",
+      "file": "art/cistern/2000.png"
+    },
+    {
+      "index": 30,
+      "key": "3000",
+      "label": "3000",
+      "file": "art/cistern/3000.png"
+    },
+    {
+      "index": 31,
+      "key": "4000",
+      "label": "4000",
+      "file": "art/cistern/4000.png"
+    },
+    {
+      "index": 32,
+      "key": "5000",
+      "label": "5000",
+      "file": "art/cistern/5000.png"
+    },
+    {
+      "index": 33,
+      "key": "6000",
+      "label": "6000",
+      "file": "art/cistern/6000.png"
+    },
+    {
+      "index": 34,
+      "key": "7000",
+      "label": "7000",
+      "file": "art/cistern/7000.png"
+    },
+    {
+      "index": 35,
+      "key": "8000",
+      "label": "8000",
+      "file": "art/cistern/8000.png"
+    },
+    {
+      "index": 36,
+      "key": "9000",
+      "label": "9000",
+      "file": "art/cistern/9000.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

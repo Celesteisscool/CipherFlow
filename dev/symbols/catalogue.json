@@ -450,6 +450,193 @@
     "check": "PASS"
   },
   {
+    "slug": "chappe3",
+    "name": "Chappe 3",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 10,
+    "uniqueFiles": 10,
+    "dcode": 4,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "chinesecode",
+    "name": "Chinese Code",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "chocolate",
+    "name": "Chocolate",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 23,
+    "uniqueFiles": 23,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "circle",
+    "name": "Circle",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 32,
+    "uniqueFiles": 32,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "circles",
+    "name": "Circles",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 35,
+    "uniqueFiles": 35,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "circularglyphs",
+    "name": "Circular Glyphs",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 37,
+    "uniqueFiles": 37,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "cistern",
+    "name": "Cistern",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "clutter",
+    "name": "Clutter",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "code_s",
+    "name": "Code S",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "codescript",
+    "name": "Codescript",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "coldcode",
+    "name": "Cold Code",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "color",
+    "name": "Color",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 27,
+    "uniqueFiles": 27,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "colormusic",
+    "name": "Color Music",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 12,
+    "uniqueFiles": 12,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "colorsquares",
+    "name": "Colored Squares",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "colorhoney",
+    "name": "ColorHoney",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "colortokki",
+    "name": "ColorTokki",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "conway",
+    "name": "Conway",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "covenant",
     "name": "Covenant",
     "source": "cachesleuth",
@@ -470,6 +657,28 @@
     "check": "PASS"
   },
   {
+    "slug": "dadaurka",
+    "name": "Dada Urka",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 27,
+    "uniqueFiles": 27,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "dagger",
+    "name": "Dagger",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 9,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "dancingmen",
     "name": "Dancing Men",
     "source": "both",
@@ -478,6 +687,72 @@
     "uniqueFiles": 36,
     "dcode": 26,
     "check": "PASS"
+  },
+  {
+    "slug": "dancingmen2",
+    "name": "Dancing Men 2",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "dancingmen3",
+    "name": "Dancing Men 3",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 52,
+    "uniqueFiles": 52,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "deadspyscrawls",
+    "name": "Dead Spy Scrawls",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "decepticon",
+    "name": "Decepticon",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "demonscript",
+    "name": "Demon Script",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "devanagari",
+    "name": "Devanagari Numerals",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 10,
+    "uniqueFiles": 10,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
   },
   {
     "slug": "dorabella",

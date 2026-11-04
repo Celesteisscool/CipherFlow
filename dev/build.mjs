@@ -219,6 +219,7 @@ ${css}
                 <h1 class="sidebar-title">Node list</h1>
                 <span class="count-badge"><span id="opCount">0</span> ops</span>
                 <button class="icon-button" id="themeBtn" title="Toggle dark / light mode"></button>
+                <a class="icon-button" id="githubBtn" href="https://github.com/Celesteisscool/CipherFlow" target="_blank" rel="noopener noreferrer" title="CipherFlow on GitHub" aria-label="CipherFlow on GitHub"></a>
                 <button class="icon-button" id="helpBtn" title="How this works"></button>
                 <button class="icon-button" id="labOpenBtn" title="Open the verification lab"></button>
                 <button class="icon-button sidebar-close" id="sidebarCloseBtn" title="Close node list"></button>
@@ -290,6 +291,11 @@ ${css}
             <button class="icon-button lab-close" id="helpClose" title="Close"></button>
         </div>
         <div class="help-body">
+            <div class="help-links">
+                <a href="https://github.com/Celesteisscool/CipherFlow" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+                <span aria-hidden="true">·</span>
+                <a href="https://github.com/Celesteisscool/CipherFlow/issues/new" target="_blank" rel="noopener noreferrer">Report an issue</a>
+            </div>
             <div class="help-section">
                 <h3>Build a graph</h3>
                 <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Fstring, Switch and Magic), <b>Bundles</b> (Compact, Expand and Pick, the nodes that carry lists) and <b>Operations</b> by category.</p>

@@ -1,0 +1,350 @@
+{
+  "slug": "dancingmen3",
+  "name": "Dancing Men 3",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=dancingmen3",
+      "images": "https://i.cachesleuth.com/images/dancingmen3/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "lower",
+    "ucdir": "upper",
+    "font": ""
+  },
+  "counts": {
+    "declared": 52,
+    "uniqueFiles": 52,
+    "manifestFiles": 52,
+    "downloaded": 52,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/dancingmen3/upper/A.png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/dancingmen3/upper/B.png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/dancingmen3/upper/C.png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/dancingmen3/upper/D.png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/dancingmen3/upper/E.png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/dancingmen3/upper/F.png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/dancingmen3/upper/G.png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/dancingmen3/upper/H.png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/dancingmen3/upper/I.png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/dancingmen3/upper/J.png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/dancingmen3/upper/K.png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/dancingmen3/upper/L.png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/dancingmen3/upper/M.png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/dancingmen3/upper/N.png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/dancingmen3/upper/O.png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/dancingmen3/upper/P.png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/dancingmen3/upper/Q.png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/dancingmen3/upper/R.png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/dancingmen3/upper/S.png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/dancingmen3/upper/T.png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/dancingmen3/upper/U.png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/dancingmen3/upper/V.png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/dancingmen3/upper/W.png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/dancingmen3/upper/X.png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/dancingmen3/upper/Y.png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/dancingmen3/upper/Z.png"
+    },
+    {
+      "index": 27,
+      "key": "a",
+      "label": "a",
+      "file": "art/dancingmen3/lower/a.png"
+    },
+    {
+      "index": 28,
+      "key": "b",
+      "label": "b",
+      "file": "art/dancingmen3/lower/b.png"
+    },
+    {
+      "index": 29,
+      "key": "c",
+      "label": "c",
+      "file": "art/dancingmen3/lower/c.png"
+    },
+    {
+      "index": 30,
+      "key": "d",
+      "label": "d",
+      "file": "art/dancingmen3/lower/d.png"
+    },
+    {
+      "index": 31,
+      "key": "e",
+      "label": "e",
+      "file": "art/dancingmen3/lower/e.png"
+    },
+    {
+      "index": 32,
+      "key": "f",
+      "label": "f",
+      "file": "art/dancingmen3/lower/f.png"
+    },
+    {
+      "index": 33,
+      "key": "g",
+      "label": "g",
+      "file": "art/dancingmen3/lower/g.png"
+    },
+    {
+      "index": 34,
+      "key": "h",
+      "label": "h",
+      "file": "art/dancingmen3/lower/h.png"
+    },
+    {
+      "index": 35,
+      "key": "i",
+      "label": "i",
+      "file": "art/dancingmen3/lower/i.png"
+    },
+    {
+      "index": 36,
+      "key": "j",
+      "label": "j",
+      "file": "art/dancingmen3/lower/j.png"
+    },
+    {
+      "index": 37,
+      "key": "k",
+      "label": "k",
+      "file": "art/dancingmen3/lower/k.png"
+    },
+    {
+      "index": 38,
+      "key": "l",
+      "label": "l",
+      "file": "art/dancingmen3/lower/l.png"
+    },
+    {
+      "index": 39,
+      "key": "m",
+      "label": "m",
+      "file": "art/dancingmen3/lower/m.png"
+    },
+    {
+      "index": 40,
+      "key": "n",
+      "label": "n",
+      "file": "art/dancingmen3/lower/n.png"
+    },
+    {
+      "index": 41,
+      "key": "o",
+      "label": "o",
+      "file": "art/dancingmen3/lower/o.png"
+    },
+    {
+      "index": 42,
+      "key": "p",
+      "label": "p",
+      "file": "art/dancingmen3/lower/p.png"
+    },
+    {
+      "index": 43,
+      "key": "q",
+      "label": "q",
+      "file": "art/dancingmen3/lower/q.png"
+    },
+    {
+      "index": 44,
+      "key": "r",
+      "label": "r",
+      "file": "art/dancingmen3/lower/r.png"
+    },
+    {
+      "index": 45,
+      "key": "s",
+      "label": "s",
+      "file": "art/dancingmen3/lower/s.png"
+    },
+    {
+      "index": 46,
+      "key": "t",
+      "label": "t",
+      "file": "art/dancingmen3/lower/t.png"
+    },
+    {
+      "index": 47,
+      "key": "u",
+      "label": "u",
+      "file": "art/dancingmen3/lower/u.png"
+    },
+    {
+      "index": 48,
+      "key": "v",
+      "label": "v",
+      "file": "art/dancingmen3/lower/v.png"
+    },
+    {
+      "index": 49,
+      "key": "w",
+      "label": "w",
+      "file": "art/dancingmen3/lower/w.png"
+    },
+    {
+      "index": 50,
+      "key": "x",
+      "label": "x",
+      "file": "art/dancingmen3/lower/x.png"
+    },
+    {
+      "index": 51,
+      "key": "y",
+      "label": "y",
+      "file": "art/dancingmen3/lower/y.png"
+    },
+    {
+      "index": 52,
+      "key": "z",
+      "label": "z",
+      "file": "art/dancingmen3/lower/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

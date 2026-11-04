@@ -1,0 +1,176 @@
+{
+  "slug": "chocolate",
+  "name": "Chocolate",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=chocolate",
+      "images": "https://i.cachesleuth.com/images/chocolate/",
+      "tableImage": "art/chocolate/table-legend.png"
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdefghijklmnoprstuwyz\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 23,
+    "uniqueFiles": 23,
+    "manifestFiles": 23,
+    "downloaded": 23,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/chocolate/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/chocolate/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/chocolate/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/chocolate/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/chocolate/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/chocolate/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/chocolate/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/chocolate/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/chocolate/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/chocolate/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/chocolate/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/chocolate/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/chocolate/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/chocolate/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/chocolate/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/chocolate/p.png"
+    },
+    {
+      "index": 17,
+      "key": "r",
+      "label": "R",
+      "file": "art/chocolate/r.png"
+    },
+    {
+      "index": 18,
+      "key": "s",
+      "label": "S",
+      "file": "art/chocolate/s.png"
+    },
+    {
+      "index": 19,
+      "key": "t",
+      "label": "T",
+      "file": "art/chocolate/t.png"
+    },
+    {
+      "index": 20,
+      "key": "u",
+      "label": "U",
+      "file": "art/chocolate/u.png"
+    },
+    {
+      "index": 21,
+      "key": "w",
+      "label": "W",
+      "file": "art/chocolate/w.png"
+    },
+    {
+      "index": 22,
+      "key": "y",
+      "label": "Y",
+      "file": "art/chocolate/y.png"
+    },
+    {
+      "index": 23,
+      "key": "z",
+      "label": "Z",
+      "file": "art/chocolate/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

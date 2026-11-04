@@ -2123,3 +2123,88 @@ publishes, and which page CacheSleuth's "Chappe 2" actually follows is still uni
 
 The pass itself is authoring-side only (`/tmp/shapepass.mjs`, art cached in `/tmp/shape-art`); no
 committed tool changed, and no cipher's data file was altered by it.
+
+**Phase 1 (batch 11) — selection, staging, install and build, 2026-11-03** ✅
+
+Batch size **25** (the catalogue held 100 when the batch opened, so the 100-cipher rule applies).
+Candidates are manifest slugs not yet shipped, alphabetically:
+
+- **bacon** — skipped, no descriptor in `codes.js`.
+- **barcode39** — dropped again: 37 declared (its descriptor declares a space) against 36 published,
+  `COUNT CHECK: FAIL`. Replaced by **devanagari**, the next candidate.
+- **Shipped 25:** chappe3, chinesecode, chocolate, circle, circles, circularglyphs, cistern,
+  clutter, code_s, codescript, coldcode, color, colorhoney, colormusic, colorsquares, colortokki,
+  conway, dadaurka, dagger, dancingmen2, dancingmen3, deadspyscrawls, decepticon, demonscript,
+  devanagari.
+
+**dCode lookups (`dcode-find.mjs`, each after staging so the declared keys are real).** Nineteen of
+twenty-five return `NO PAGE`. Four pages were found, and only one ships as a source:
+
+- `circularglyphs` → `/circular-glyphs-alphabet`, 37/37 keys, art 0.88 (name gate 0.67, art gate
+  decides). **The batch's only source toggle.**
+- `dancingmen3` → `/dancing-men-cipher`, art **0.84** over 52 keys — genuinely the same set, but the
+  page publishes **one case**: 26 glyphs against 52 declared. The toggle rule counts letters, not
+  case pairs, so it would offer a switch that halves the grid. Staged **single-source** and the
+  evidence removed, the same call made for `matoran` (plan §8). The rule gap is the one recorded
+  there and is still open.
+- `chappe3` → `/chappe-code` selects on name agreement 1.00 (the variant-number blind spot already
+  recorded for `chappe2`), but its digits measure **0.10** median dilated IoU against ours — a
+  different Chappe table. Evidence kept (4 glyphs, no key coverage), no toggle.
+- `dagger` → `/daggers-alphabet`, 26/26 by inventory but only **9** glyphs extractable
+  (`SECRTMAGI`), so coverage fails and no toggle is offered.
+
+**Counts:** 25/25 `COUNT CHECK: PASS`, **705 symbols**, 0 missing art, 0 non-PNG.
+
+**`tightArt`:** off for all 25. Rendered ink long axis in a 30 px tile runs 15.8–28.1 px (median per
+cipher); the smallest single glyphs (`clutter` 5.5, `decepticon` 7.2, `coldcode` 7.6) are outliers in
+otherwise large sets, and the flag is per cipher.
+
+**Install:** `install.mjs` rebuilds `catalogue.json` from the staging tree alone, and the tree had
+been cleared at the start of the run, so the first pass wrote **26 rows** and built a 17 MB page. Data
+and art were already complete (125/125); the catalogue was restored from `HEAD` and the 25 rows merged
+in install's own shape, then the page rebuilt. **This is a runbook hazard**: BATCH.md §4's restore step
+protects shipped data/art but not the catalogue, which is regenerated wholesale.
+
+Churn outside the batch: **0** shipped data changes, **0** shipped art changes. The `barcode39`
+leftovers from the failed stage (untracked `data/barcode39.json`, `art/barcode39/`) were removed.
+
+**Build:** `index.html` 29,951,869 → **32,339,438 bytes** (+2,387,569); island **125 ciphers /
+4,190 symbols**.
+
+**Verification:** sheets for all 25 (125 in `reports/sheets/`); `verify-source` **3,985 glyphs
+byte-identical**, 0 mismatched, 0 unreachable; browser pass **256/256** over the shipped page — all
+25 place from the panel, tile counts and captions match, every tile a real PNG, 0 placeholders,
+feet read `N symbols`, the toggle appears on `circularglyphs` alone, first-tile transcription correct
+on all 25. The toggle switch itself was driven with a real CDP press/release (`/tmp/toggle-probe.mjs`):
+37 dCode tiles, caption `␣`. A synthetic `MouseEvent` does **not** flip it — that was the harness,
+not the app.
+
+**Tool gap found, not fixed:** `install.mjs`/`verify-source.mjs` `decodePng` uses `w * ch` as the
+palette row stride, which is only right at 8-bit depth; sub-byte palette art (depth 1 and 4 — `color`
+27 glyphs, `colormusic` 12, `cistern` 24, `circularglyphs` 1) fails to decode, so those sets cannot
+be ink-measured or tightened. Same class as the palette gap fixed in batch 9.
+
+**Not committed** — awaiting sign-off, per §9.5.
+
+### Batch 11 review fixes (2026-11-04)
+
+Two ciphers changed after the user's sheet review; nothing else in the batch moved.
+
+- **coldcode** — zoomed. Its CacheSleuth art is a 101x384 canvas with the drawing floating in
+  it (ink 22x100 to 53x280), so a 44 px sheet tile drew the glyph 11–32 px tall and the app's
+  30 px tile drew it 7.6–21.9 px. Re-staged with `tightArt`, which crops to the ink box and
+  centres it on a square (install.mjs's existing treatment, as for eternity): the sheet now
+  draws every glyph at 38.6–38.8 px of its 44 px tile, and the packed art the node serves fills
+  the tile (ink share 1.00). CacheSleuth keys/labels unchanged — verifier: 26/26 ink-tight.
+- **circularglyphs** — no toggle. Compared the two sets glyph by glyph off the sheet: dCode's
+  32x32 icons are the same drawings as CacheSleuth's 422x384 canvases (A, K, 3 all confirmed
+  side by side). Marked `same` at staging, so the second set is evidence only: `dcode` dropped
+  from `data/circularglyphs.json`, `_dcode/` art removed, catalogue row back to
+  `source: "cachesleuth"`. Verifier: 37/37.
+
+Touching that also had to be safe: `install.mjs` now takes slugs
+(`node dev/symbols/install.mjs coldcode circularglyphs`), installing only those and patching
+only their catalogue rows — staging holds the whole batch, and the old full rewrite is how the
+catalogue got clobbered earlier in this batch. `BATCH.md` §4/§5 says so.
+
+`index.html` rebuilt: 32,326,013 bytes (was 32,340,174; the 37 dCode PNGs are what left).

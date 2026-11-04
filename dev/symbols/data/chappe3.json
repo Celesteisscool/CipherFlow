@@ -1,0 +1,126 @@
+{
+  "slug": "chappe3",
+  "name": "Chappe 3",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=chappe3",
+      "images": "https://i.cachesleuth.com/images/chappe3/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/chappe-code"
+    }
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 10,
+    "uniqueFiles": 10,
+    "manifestFiles": 10,
+    "downloaded": 10,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "0",
+      "label": "0",
+      "file": "art/chappe3/0.png"
+    },
+    {
+      "index": 2,
+      "key": "1",
+      "label": "1",
+      "file": "art/chappe3/1.png"
+    },
+    {
+      "index": 3,
+      "key": "2",
+      "label": "2",
+      "file": "art/chappe3/2.png"
+    },
+    {
+      "index": 4,
+      "key": "3",
+      "label": "3",
+      "file": "art/chappe3/3.png"
+    },
+    {
+      "index": 5,
+      "key": "4",
+      "label": "4",
+      "file": "art/chappe3/4.png"
+    },
+    {
+      "index": 6,
+      "key": "5",
+      "label": "5",
+      "file": "art/chappe3/5.png"
+    },
+    {
+      "index": 7,
+      "key": "6",
+      "label": "6",
+      "file": "art/chappe3/6.png"
+    },
+    {
+      "index": 8,
+      "key": "7",
+      "label": "7",
+      "file": "art/chappe3/7.png"
+    },
+    {
+      "index": 9,
+      "key": "8",
+      "label": "8",
+      "file": "art/chappe3/8.png"
+    },
+    {
+      "index": 10,
+      "key": "9",
+      "label": "9",
+      "file": "art/chappe3/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/chappe-code",
+    "count": 4,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "+",
+        "file": "art/chappe3/_dcode/char(43).png",
+        "variants": null
+      },
+      {
+        "key": "3",
+        "file": "art/chappe3/_dcode/char(51).png",
+        "variants": null
+      },
+      {
+        "key": "\u0004",
+        "file": "art/chappe3/_dcode/char(4).png",
+        "variants": null
+      },
+      {
+        "key": ".",
+        "file": "art/chappe3/_dcode/char(46).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

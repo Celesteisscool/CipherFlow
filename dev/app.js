@@ -95,6 +95,8 @@ const ICONS = {
     bundle: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 3h3.4l3.2 5h4.6M1.8 13h3.4l3.2-5M1.8 8h3.4"/><path d="m11.4 5.9 2.2 2.1-2.2 2.1"/></svg>',
     split: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 3h-3.4L7.6 8H3M14.2 13h-3.4L7.6 8M14.2 8H7.6"/><path d="m4.4 5.9-2.2 2.1 2.2 2.1"/></svg>',
     help: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M6.1 6.2a1.95 1.95 0 1 1 2.7 1.85c-.65.28-.85.65-.85 1.3"/><path d="M8 11.6v.15"/></svg>',
+    // GitHub's mark, filled: the one icon here that is a brand rather than a drawn glyph.
+    github: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>',
 };
 
 const svg = (name, cls = "") => String(ICONS[name] || "").replace("<svg", `<svg class="${cls}"`);
@@ -9471,6 +9473,7 @@ async function init() {
     $("#snapBtnIcon").innerHTML = svg("snap");
     initSnap();
     $("#themeBtn").innerHTML = iconFill(document.documentElement.dataset.theme === "dark" ? "sun" : "moon");
+    $("#githubBtn").innerHTML = iconFill("github");
     $("#labOpenBtn").innerHTML = iconFill("flask");
     $("#sidebarCloseBtn").innerHTML = iconFill("x");
     $("#labClose").innerHTML = iconFill("x");
@@ -10149,6 +10152,7 @@ function initSymbolPanel() {
                 <span class="sym-row-main">
                     <span class="sym-row-head">
                         <span class="sym-row-name">${esc(c.name)}</span>
+                        ${c.new ? `<span class="sym-new" title="Added in the newest batch">New</span>` : ""}
                         ${badge}
                         <span class="sym-row-meta">- ${c.glyphs.length} symbols${symbolToggleSources(c) ? " · both sources" : ""}</span>
                     </span>

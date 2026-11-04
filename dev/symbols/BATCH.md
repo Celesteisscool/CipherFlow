@@ -135,8 +135,8 @@ node dev/build.mjs
 stat -c '%s' index.html
 ```
 
-`install.mjs` rewrites every cipher from `/tmp/symstage`, so **restore everything that is not a
-new cipher**:
+`install.mjs` with no arguments rewrites the catalogue from every cipher in `/tmp/symstage`, so a
+new batch needs **everything that is not a new cipher restored**:
 
 ```bash
 for f in $(git diff --name-only -- dev/symbols/data dev/symbols/art); do
@@ -151,9 +151,13 @@ rm -f dev/symbols/art/*/_dcode/char\(*\).png   # only if untracked drift appeare
 Then verify by hash that no non-target data file or art file changed, and that the catalogue diff
 is exactly `N` added rows.
 
+For a later fix to a shipped cipher, name the slugs instead — `node dev/symbols/install.mjs
+coldcode` installs just that one and patches only its catalogue row (the `new` marks and every
+other row are left as they stand), so no restore step is needed.
+
 ---
 
-## 5. Sheets
+## 5. Sheets and the inventory checklist
 
 ```bash
 for slug in <new slugs>; do node dev/symbols/sheet.mjs "$slug"; done
@@ -162,6 +166,23 @@ ls -la reports/sheets/<new slugs>.html
 
 Each sheet states its own tile counts (`ours` / `dCode`). The sheet is what the user reviews, so a
 sheet that fails to build is a blocking error, not a warning.
+
+**Then refresh the checklist** — `reports/symbol-ciphers-inventory.md` is generated, never edited:
+
+```bash
+node dev/symbols/inventory.mjs        # add --refresh to re-fetch both source lists
+```
+
+**Mark the batch in the catalogue.** Add `"new": true` to each new row of
+`dev/symbols/catalogue.json` (drop it from the previous batch's rows) — the panel prints a **New**
+pill on those rows, which is how the newest ciphers are found in a list this long. A full
+`install.mjs` run rewrites the catalogue without the flag, so this is a follow-up edit, not a
+staging one; a subset install (named slugs) keeps it.
+
+Run it after `install.mjs`, so the tick marks describe what this batch actually shipped. It reads
+CacheSleuth's `codes.js` and dCode's `/symbols-ciphers` index, diff them against
+`catalogue.json`, and rewrite all five sections; it exits 1 rather than write a file whose counts
+do not add up. Paste its printed figures into the report (§7).
 
 ---
 
@@ -207,6 +228,7 @@ Batch <n> — <N> ciphers, catalogue <before> → <after>, index.html <bytes> (<
 | Name   | slug | 36     | 36          | 26    | no     | reports/sheets/slug.html |
 
 Symbols added: <sum> · art files: <sum> · toggles added: <list or none>
+Inventory: CacheSleuth <done>/<total> (<pct>%), <left> left · dCode <bound> bound / <twin> twin / <fresh> uncatalogued
 Blocked/skipped: <slug — reason> (or "none")
 Browser pass: <n>/<n> · verify-source: <n> glyphs matched, 0 mismatched
 ```
@@ -243,6 +265,7 @@ question 2 with "yes", commit and stop.
 - [ ] `dev/build.mjs` exit 0, bytes recorded
 - [ ] catalogue rows == data files == art dirs; 0 tiles without art
 - [ ] a sheet exists for every new cipher and lists both sources' counts
+- [ ] `node dev/symbols/inventory.mjs` exits 0 and its counts match the report
 - [ ] browser pass all green, `verify-source` 0 mismatches
 - [ ] report posted with links, counts per source, and the three questions
 - [ ] **nothing committed yet**

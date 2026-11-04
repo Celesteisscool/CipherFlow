@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 /* Promotes staged extractions into the committed data layer.
  *
- *   node dev/symbols/install.mjs
+ *   node dev/symbols/install.mjs [slug ...]
  *
- * For every /tmp/symstage/<slug>/cipher.json it writes:
+ * With no arguments, installs every /tmp/symstage/<slug>/cipher.json and rewrites the
+ * catalogue from them. With slugs, installs only those and patches their rows, leaving
+ * the rest of the catalogue alone — staging normally holds a whole batch, so a one-cipher
+ * re-install must not truncate the list.
+ *
+ * For every installed cipher it writes:
  *   dev/symbols/art/<slug>/<file>         CacheSleuth glyph PNGs
  *   dev/symbols/art/<slug>/_dcode/<file>  dCode's PNGs (the second implementation)
  *   dev/symbols/data/<slug>.json          metadata, art paths repo-relative
@@ -198,7 +203,16 @@ if (!fs.existsSync(STAGE_ROOT)) {
     console.error(`no staging at ${STAGE_ROOT} — run dev/symbols/extract.mjs first`);
     process.exit(2);
 }
-const slugs = fs.readdirSync(STAGE_ROOT).filter(s => fs.existsSync(path.join(STAGE_ROOT, s, "cipher.json")));
+const only = process.argv.slice(2).filter(a => !a.startsWith("-"));
+let slugs = fs.readdirSync(STAGE_ROOT).filter(s => fs.existsSync(path.join(STAGE_ROOT, s, "cipher.json")));
+if (only.length) {
+    const missing = only.filter(s => !slugs.includes(s));
+    if (missing.length) {
+        console.error(`not staged: ${missing.join(", ")} — run dev/symbols/extract.mjs first`);
+        process.exit(2);
+    }
+    slugs = only;
+}
 if (!slugs.length) {
     console.error("staging is empty — run dev/symbols/extract.mjs first");
     process.exit(2);
@@ -344,8 +358,18 @@ for (const slug of slugs.sort()) {
 }
 
 rows.sort((a, b) => a.name.localeCompare(b.name));
-fs.writeFileSync(CATALOGUE, JSON.stringify(rows, null, 2) + "\n");
-console.log(`\ncatalogue: ${rows.length} ciphers -> ${path.relative(process.cwd(), CATALOGUE)}`);
+// A subset install patches its own rows and keeps every other one as it stands, with the
+// fields install does not own (`new` marks the batch routine sets) intact.
+let catalogueRows = rows;
+if (only.length) {
+    const previousRows = fs.existsSync(CATALOGUE) ? JSON.parse(fs.readFileSync(CATALOGUE, "utf8")) : [];
+    const patch = new Map(rows.map(r => [r.slug, r]));
+    catalogueRows = previousRows.map(r => (patch.has(r.slug) ? {...r, ...patch.get(r.slug)} : r));
+    for (const r of rows) if (!previousRows.some(p => p.slug === r.slug)) catalogueRows.push(r);
+    catalogueRows.sort((a, b) => a.name.localeCompare(b.name));
+}
+fs.writeFileSync(CATALOGUE, JSON.stringify(catalogueRows, null, 2) + "\n");
+console.log(`\ncatalogue: ${catalogueRows.length} ciphers -> ${path.relative(process.cwd(), CATALOGUE)}`);
 console.log(`art: ${path.relative(process.cwd(), ART_DIR)}  data: ${path.relative(process.cwd(), DATA_DIR)}`);
 
 if (failures.length) {

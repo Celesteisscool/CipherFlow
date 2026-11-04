@@ -1315,6 +1315,17 @@ select.control { padding-right: 4px; }
 }
 .brand-mark svg { width: 12px; height: 12px; stroke: currentColor; fill: none; }
 .sidebar-title-row { display: flex; align-items: center; gap: 8px; }
+/* The GitHub link sits in that row as an anchor, so it borrows the icon button's square and
+ * drops the link colour and underline a bare anchor would otherwise bring. */
+a.icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: var(--muted);
+    text-decoration: none;
+}
+a.icon-button:hover { color: var(--ink); }
 .sidebar-title {
     margin: 0;
     font-size: 22px;
@@ -1875,6 +1886,19 @@ select.control { padding-right: 4px; }
     font-size: 11px;
     line-height: 1.56;
 }
+/* Where the source lives and where a bug goes, above the first section: that is what someone
+ * opening this is most often looking for. */
+.help-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 13px;
+    padding-bottom: 2px;
+    font-size: 10.5px;
+}
+.help-links a { color: var(--accent); font-weight: 620; text-decoration: none; }
+.help-links a:hover { text-decoration: underline; }
+.help-links span { color: var(--faint); }
 .help-section { padding: 12px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 65%, transparent); }
 .help-section:last-child { border-bottom: 0; padding-bottom: 4px; }
 .help-section h3 {
@@ -2443,6 +2467,17 @@ body.has-sym-rail .toolbar { left: 43px; }
     border-radius: 4px;
 }
 .sym-row-meta { font-size: 9.5px; color: var(--faint); }
+/* The newest batch is marked, so a 125-row list still shows what changed since last time. */
+.sym-new {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+}
 
 /* The node: source bar, glyph grid, preview strip, transcribed text. */
 .node.type-symbol { width: 360px; }

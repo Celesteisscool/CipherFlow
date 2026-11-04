@@ -65,8 +65,12 @@ count and say so if another cipher turns out larger).
 **Find its dCode page first — never guess a slug:**
 
 ```bash
-node dev/symbols/dcode-find.mjs <slug>
+node dev/symbols/dcode-find.mjs <slug>     # stages the cipher itself when it is not staged
 ```
+
+Coverage is measured against the cipher's declared keys, so the lookup stages an unstaged
+cipher with `extract.mjs` before deciding, and stops loudly if staging fails. A verdict it
+printed without them is not evidence.
 
 This matches the cipher's name against dCode's own sitemap (with 1–2 edit tolerance, so
 `amohibia` reaches `amphibia`) and then verifies the candidate page's glyph inventory against the
@@ -104,8 +108,8 @@ Otherwise print its glyph count, art files, source and check result, then go to 
 ## 3. Stage the rest of the batch
 
 ```bash
-node dev/symbols/dcode-find.mjs <slug>                  # SELECTED / NO PAGE, per cipher
-node dev/symbols/extract.mjs <slug> [--dcode /<page>]   # --dcode only on SELECTED
+node dev/symbols/dcode-find.mjs <slug>                  # stages, then SELECTED / NO PAGE
+node dev/symbols/extract.mjs <slug> [--dcode /<page>]   # re-stage; --dcode only on SELECTED
 ```
 
 Automatic per-cipher decisions, applied without asking:
@@ -278,7 +282,7 @@ question 2 with "yes", commit and stop.
 |---|---|
 | One cipher fails its count check | drop it, take the next candidate, name it in the report |
 | The largest cipher fails | stop the run before installing anything; report the cause |
-| dCode page missing | only after `dcode-find.mjs` prints `NO PAGE` — stage single-source, record it, no toggle |
+| dCode page missing | only after `dcode-find.mjs` prints `NO PAGE` with the declared keys known (it stages first) — then stage single-source, record it, no toggle |
 | dCode page captcha-walled | stage single-source, record it, no toggle |
 | Install churns shipped files | restore by hash/`git checkout`, re-verify, then continue |
 | Build fails | stop, leave `index.html` as it was, report |

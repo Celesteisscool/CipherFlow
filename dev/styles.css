@@ -2389,6 +2389,9 @@ body.has-sym-rail .toolbar { left: 43px; }
     background: color-mix(in srgb, var(--accent) 16%, transparent);
     color: var(--accent);
 }
+/* "New" is the newest batch rather than a shape, so it keeps the row badge's uppercase
+   label at the pills' size: still one row of filters, but visibly a different question. */
+.sym-tag-new { text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
 /* The header's count is the list's own count, so while a tag is applied it turns accent-
    coloured: a narrowed list must not read as the whole catalogue. */
 .count-badge.on {

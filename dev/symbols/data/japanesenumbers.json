@@ -1,0 +1,122 @@
+{
+  "slug": "japanesenumbers",
+  "name": "Japanese Numbers",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=japanesenumbers",
+      "images": "https://i.cachesleuth.com/images/japanesenumbers/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "new Array(\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"100\",\"1000\",\"10000\")",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 14,
+    "uniqueFiles": 14,
+    "manifestFiles": 14,
+    "downloaded": 14,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "0",
+      "label": "0",
+      "file": "art/japanesenumbers/0.png"
+    },
+    {
+      "index": 2,
+      "key": "1",
+      "label": "1",
+      "file": "art/japanesenumbers/1.png"
+    },
+    {
+      "index": 3,
+      "key": "2",
+      "label": "2",
+      "file": "art/japanesenumbers/2.png"
+    },
+    {
+      "index": 4,
+      "key": "3",
+      "label": "3",
+      "file": "art/japanesenumbers/3.png"
+    },
+    {
+      "index": 5,
+      "key": "4",
+      "label": "4",
+      "file": "art/japanesenumbers/4.png"
+    },
+    {
+      "index": 6,
+      "key": "5",
+      "label": "5",
+      "file": "art/japanesenumbers/5.png"
+    },
+    {
+      "index": 7,
+      "key": "6",
+      "label": "6",
+      "file": "art/japanesenumbers/6.png"
+    },
+    {
+      "index": 8,
+      "key": "7",
+      "label": "7",
+      "file": "art/japanesenumbers/7.png"
+    },
+    {
+      "index": 9,
+      "key": "8",
+      "label": "8",
+      "file": "art/japanesenumbers/8.png"
+    },
+    {
+      "index": 10,
+      "key": "9",
+      "label": "9",
+      "file": "art/japanesenumbers/9.png"
+    },
+    {
+      "index": 11,
+      "key": "10",
+      "label": "10",
+      "file": "art/japanesenumbers/10.png"
+    },
+    {
+      "index": 12,
+      "key": "100",
+      "label": "100",
+      "file": "art/japanesenumbers/100.png"
+    },
+    {
+      "index": 13,
+      "key": "1000",
+      "label": "1000",
+      "file": "art/japanesenumbers/1000.png"
+    },
+    {
+      "index": 14,
+      "key": "10000",
+      "label": "10000",
+      "file": "art/japanesenumbers/10000.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

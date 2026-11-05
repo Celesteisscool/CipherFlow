@@ -2259,3 +2259,100 @@ inside 343×384 canvases where dCode's 25×32 icons are almost all ink, which is
 difference the review saw. In the shipped node all 36 tiles measure dCode's ink (0 match
 CacheSleuth), so what draws is the chosen set. `index.html` rebuilt: 35,434,684 bytes
 (was 35,507,790).
+
+---
+
+## Batch 13 — 25 ciphers (catalogue 150 → 175)
+
+**Phase 1 (batch 13) — selection, staging, install and build, 2026-11-04.** N = 25 (the
+catalogue is over 100, so the batch size is 25). Candidates are manifest slugs not yet in the
+catalogue, alphabetically, `N` taken after skips:
+
+- `bacon`, `fiveneedletelegraph` — no CacheSleuth descriptor (`grep` on codes.js returns 0), the
+  same two batch 12 passed over.
+- `barcode39` — 37 declared / 36 in the manifest (`space.png` would 404), COUNT CHECK FAIL. Same
+  reason as batch 12; unchanged upstream.
+- `giovannifontana` — 46 declared / 28 in the manifest: 18 uppercase `uc/*.png` entries do not
+  exist, so 28/46 download and the check fails. Dropped.
+- `hyach` — 36 declared / 26 in the manifest (no digit art), 26/36. Dropped.
+- `doctor` — batch 12 recorded 25/26 and dropped it; this run downloads **26/26, PASS**, so it is
+  the first cipher in the batch rather than a skip.
+
+Batch: doctor, freezemarks, fringe, futurama2, gaim, galacticalphabetmedia, geocacheid,
+glagolitic2, gnommish, gravity_falls_author, gravity_falls_journal, greatmachine, hexacode,
+hieratic, hvd, hylian64, hymmnos, iconian, illuminati_1, illuminati_2, indianajones,
+japanesenumbers, jenks, kabouter, kabouter_1947.
+
+**Phase 2 (batch 13) — largest first.** `geocacheid` (72 manifest files) is the largest:
+staged 72/72, COUNT CHECK PASS, `dcode-find` → `NO PAGE` (no sitemap candidate at all), so it is
+single-source. Pipeline sound; continued.
+
+**dCode lookup.** Run after staging, so every verdict had the declared keys:
+
+- `futurama2` → `SELECTED /futurama-alien-2-alphabet` (art 0.87 over 57 keys, next different
+  alphabet 0.35, name 0.67 < 0.80). dCode publishes 36 glyphs to our 26; toggle shipped.
+- `gravity_falls_author` → `SELECTED /gravity-falls-author-cipher` (26/26 keys, title agrees).
+- `gravity_falls_journal` → `SELECTED /gravity-falls-journal-3` (26/26 keys, title agrees).
+- `hymmnos` → `SELECTED /hymnos-alphabet` (52 glyphs; covers every declared letter, publishes no
+  digits). Toggle shipped on the app's rule (`symbolToggleSources`: letters, no private-use
+  keys), the same shape the already-shipped `hylian` has — its dCode page also stops at letters.
+- Everything else `NO PAGE`, with the failing gate recorded: `gnommish`
+  `/gnommish-alphabet` 28/31 (missing äöü), `galacticalphabetmedia` closest art 0.31
+  (`/standard-galactic-alphabet`), `kabouter` 0.47 and `kabouter_1947` 0.50
+  (`/outer-rim-basic-alphabet`), `giovannifontana` 0.47 (`/webdings-font`); `gaim`,
+  `glagolitic2`, `hieratic`, `hvd`, `iconian`, `indianajones`, `japanesenumbers`, `jenks` have no
+  name candidate in the sitemap.
+
+**Ink-tight gate.** Measured every staged glyph's rendered long axis in a 30 px tile: medians
+11.0–28.4 px. One cipher is under the 12 px gate — `gravity_falls_journal` (median 11.0,
+range 8.7–14.4) — so `tightArt` is set for it, installed as a subset (`install.mjs
+gravity_falls_journal`, which crops the art to its ink box and keeps the batch's `new` flags),
+and its sheet rebuilt. The other 24 stay untightened (lowest: hymmnos 12.9, greatmachine 13.5,
+gravity_falls_author 13.8).
+
+**Install and build.** Subset install of the 25 slugs (a full install would also pick up the three
+staged-but-failed ciphers). Hash snapshot before/after: **0** pre-existing data files and **0**
+pre-existing art files changed; only the 25 art dirs and data files are new. Catalogue 175 rows ==
+175 data files == 175 art dirs, 0 tiles without art. `index.html` rebuilt at **39,820,969** bytes
+(was 35,443,229; +4,377,740 for 626 new shipped glyphs plus 140 dCode glyphs). `new: true` is on
+this batch's 25 rows and cleared from batch 12's.
+
+**Sheets and checklist.** 25 sheets written (175 total). `inventory.mjs` exits 0: CacheSleuth
+**175/306 (57%)**, 131 left; dCode 156 pages — 22 bound, 34 twin, 100 uncatalogued.
+
+**Browser pass.** 254/254 checks over the shipped page (boot splash, rail/panel counts at 175,
+search "gravity" → the three Gravity Falls sets, 25 nodes placed, per node: tile count, captions,
+PNG art, no placeholder, foot count, toggle present only where dCode covers the letters, fixed
+label otherwise, no variant bar, no note, first tile transcription; multi-key tiles for
+japanesenumbers). `verify-source.mjs`: 5,535 glyphs byte-identical, 0 mismatched; re-run for
+`gravity_falls_journal` after the tight install, 26/26.
+
+Nothing committed — awaiting sign-off.
+
+## Batch 13 amendment — four source/art calls (2026-11-04)
+
+Review settled four of the batch's source choices. Applied as a subset re-install
+(`install.mjs` on the four slugs) plus their sheets; no new ciphers.
+
+- **Hymmnos** — CacheSleuth art stays, because dCode publishes the 52 letters and no digits to
+  CacheSleuth's 62. `tightArt` is now on: rendered ink goes from **12.9 px** median (9.1–23.7)
+  to **26.4 px** in the 30 px tile, so the script draws at a readable size.
+- **Gravity Falls - Journal** — CacheSleuth art stays, "the two sets are the same", so `same` is
+  set: the dCode second set and its toggle are gone (26 glyphs, `tightArt` unchanged).
+- **Gravity Falls - Author** — dCode art now ships (`artFrom: "dcode"`), same alphabet on both
+  sides, so the toggle is gone; 26 glyphs, no `tightArt` (ink 22.0 px).
+- **Futurama 2** — dCode art ships. Its page yielded 36 images: the A–Z alphabet plus ten glyphs
+  scraped from the page's worked example (keyed Q M 8 . 5 B ; 6 9 D). Those ten are dropped, so
+  the dCode set is 26 in A–Z order and the grid reads A…Z instead of the scrambled prefix.
+  Single-source now: no toggle.
+
+**Verification.** `install.mjs` PASS for all four; `verify-source.mjs` PASS (88 glyphs — Hymmnos
+62/62 and Journal 26/26 byte-identical to live CacheSleuth, both ink-tight; Author and Futurama 2
+reported as dCode art). `index.html` rebuilt at **39,594,342** bytes (175 ciphers, 5,776 shipped
+symbols). Browser pass **51/51** over the shipped page: island `artFrom`/`dcode` metadata, tile
+counts 62/26/26/26, A–Z captions in order, no toggle for the three single-source ciphers, fixed
+source labels, square packed art for the ink-tight sets, first-tile transcription, and the New
+pill still narrowing 175 → 25. Inventory regenerated: CacheSleuth 175/306, dCode 156 pages
+(20 bound, 35 twin, 101 uncatalogued). Sheets rewritten for the four.
+
+Nothing committed.

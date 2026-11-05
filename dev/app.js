@@ -10195,6 +10195,9 @@ function initSymbolPanel() {
     // Counting tags needs the island parsed, so it happens the first time the pills are
     // actually drawn rather than in the middle of boot.
     let tagTotals = null;
+    // The newest batch is a filter of its own, not a shape tag: `new` comes from the
+    // catalogue row, so it is applied beside the tag matcher rather than through it.
+    let newOnly = false;
     const countTags = () => {
         if (tagTotals) return tagTotals;
         tagTotals = {};
@@ -10206,9 +10209,14 @@ function initSymbolPanel() {
     const renderTags = () => {
         if (!tagBar || !CFTAGS) return;
         const totals = countTags();
+        const fresh = slugs().filter(slug => SYMBOLS.ciphers[slug].new).length;
+        // "New" leads the bar in its own group, so choosing it never releases a shape tag.
+        const newPill = fresh
+            ? `<span class="sym-tag-group"><button type="button" class="sym-tag sym-tag-new${newOnly ? " on" : ""}" data-sym-new aria-pressed="${newOnly}" title="${fresh} of ${total} ciphers were added in the newest batch${newOnly ? " — click to show every cipher again" : " — click to show only those"}">New</button></span>`
+            : "";
         // Each group is drawn as its own cluster, because the pills inside one are
         // alternatives rather than additions: a drawing is Thin or Bold, never both.
-        tagBar.innerHTML = CFTAGS.TAG_GROUPS.map(group => {
+        tagBar.innerHTML = newPill + CFTAGS.TAG_GROUPS.map(group => {
             const pills = group.filter(tag => totals[tag]).map(tag => {
                 const on = symbolTagFilter.has(tag);
                 return `<button type="button" class="sym-tag${on ? " on" : ""}" data-sym-tag="${tag}" aria-pressed="${on}" title="${totals[tag]} of ${total} ciphers${on ? " — click to clear" : " — click to narrow the list"}">${esc(CFTAGS.TAG_LABELS[tag] || tag)}</button>`;
@@ -10222,18 +10230,21 @@ function initSymbolPanel() {
     // it explains is.
     const renderHead = shown => {
         const tagged = symbolTagFilter.size > 0;
+        const narrowed = tagged || newOnly;
         if (countBadge) {
             countBadge.textContent = shown;
-            countBadge.classList.toggle("on", tagged);
+            countBadge.classList.toggle("on", narrowed);
             // The tooltip follows the number rather than the tags alone, so a search that
             // narrows the list without colouring the badge still says why the count is short.
             countBadge.title = tagged
-                ? `${shown} of ${total} symbol ciphers match the chosen tags`
-                : shown === total
-                    ? `${total} symbol ciphers`
-                    : `${shown} of ${total} symbol ciphers match the search`;
+                ? `${shown} of ${total} symbol ciphers match the chosen tags${newOnly ? " and the newest batch" : ""}`
+                : newOnly
+                    ? `${shown} of ${total} symbol ciphers were added in the newest batch`
+                    : shown === total
+                        ? `${total} symbol ciphers`
+                        : `${shown} of ${total} symbol ciphers match the search`;
         }
-        if (resetBtn) resetBtn.hidden = !tagged;
+        if (resetBtn) resetBtn.hidden = !narrowed;
     };
     // Choosing a pill releases its alternatives, so the filter never asks for two tags that
     // no drawing can have at once.
@@ -10246,12 +10257,19 @@ function initSymbolPanel() {
         renderList();
     };
     if (tagBar) tagBar.addEventListener("click", ev => {
+        if (ev.target.closest("[data-sym-new]")) {
+            newOnly = !newOnly;
+            renderTags();
+            renderList();
+            return;
+        }
         const pill = ev.target.closest("[data-sym-tag]");
         if (pill) chooseTag(pill.dataset.symTag);
     });
     // Only offered while something is selected, so it is never a dead control.
     if (resetBtn) resetBtn.addEventListener("click", () => {
         symbolTagFilter.clear();
+        newOnly = false;
         renderTags();
         renderList();
     });
@@ -10262,6 +10280,7 @@ function initSymbolPanel() {
         const rows = slugs()
             .map(slug => ({slug, ...SYMBOLS.ciphers[slug]}))
             .filter(c => !q || c.name.toLowerCase().includes(q) || c.slug.includes(q))
+            .filter(c => !newOnly || c.new)
             // The pills narrow the list, but not all the way to "every tag in the set": one
             // tag short is still a candidate, and so is a cipher whose misses are near ones.
             .map(c => ({...c, match: symbolTagMatch(c, tags)}))
@@ -10277,8 +10296,10 @@ function initSymbolPanel() {
                 ? `No cipher matches ${symbolTagFloor(labels.length)} or more of ${named}`
                 : `No cipher is ${named}`;
             list.innerHTML = labels.length
-                ? `<div class="search-empty">${why}${q ? ` and “${esc(search.value)}”` : ""}.</div>`
-                : `<div class="search-empty">No symbol cipher matches “${esc(search.value || "")}”.</div>`;
+                ? `<div class="search-empty">${why}${newOnly ? " in the newest batch" : ""}${q ? ` and “${esc(search.value)}”` : ""}.</div>`
+                : newOnly
+                    ? `<div class="search-empty">No cipher added in the newest batch${q ? ` matches “${esc(search.value)}”` : " matches the search"}.</div>`
+                    : `<div class="search-empty">No symbol cipher matches “${esc(search.value || "")}”.</div>`;
             return;
         }
         list.innerHTML = rows.map(c => {

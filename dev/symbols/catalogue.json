@@ -647,8 +647,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "dninumbers",
@@ -658,8 +657,7 @@
     "glyphs": 25,
     "uniqueFiles": 25,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "dadaurka",
@@ -759,8 +757,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "dli",
@@ -770,8 +767,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "dna",
@@ -780,6 +776,16 @@
     "status": "ready",
     "glyphs": 14,
     "uniqueFiles": 14,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "doctor",
+    "name": "Doctor",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS",
     "new": true
@@ -792,8 +798,7 @@
     "glyphs": 28,
     "uniqueFiles": 28,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "dorabella",
@@ -813,8 +818,7 @@
     "glyphs": 32,
     "uniqueFiles": 32,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "dotsies",
@@ -834,8 +838,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "draconic",
@@ -865,8 +868,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "dragon",
@@ -876,8 +878,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "drazi",
@@ -887,8 +888,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "droid",
@@ -898,8 +898,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "dwemeri",
@@ -909,8 +908,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "efkolia",
@@ -920,8 +918,7 @@
     "glyphs": 52,
     "uniqueFiles": 52,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "egyptian",
@@ -931,8 +928,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "elia",
@@ -972,8 +968,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "ewok",
@@ -993,8 +988,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "fairy",
@@ -1004,8 +998,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "fakoo",
@@ -1015,8 +1008,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "fennim",
@@ -1026,8 +1018,7 @@
     "glyphs": 62,
     "uniqueFiles": 62,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "ferengi",
@@ -1037,8 +1028,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "fez",
@@ -1058,8 +1048,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "fonic",
@@ -1069,8 +1058,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "forerunner",
@@ -1080,12 +1068,32 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "foursquare",
     "name": "Four Square",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "freezemarks",
+    "name": "Freeze Marks",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 10,
+    "uniqueFiles": 10,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "fringe",
+    "name": "Fringe",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 26,
@@ -1115,6 +1123,28 @@
     "check": "PASS"
   },
   {
+    "slug": "futurama2",
+    "name": "Futurama 2",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "gaim",
+    "name": "Gaim",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "galactic",
     "name": "Galactic",
     "source": "cachesleuth",
@@ -1125,6 +1155,17 @@
     "check": "PASS"
   },
   {
+    "slug": "galacticalphabetmedia",
+    "name": "Galactic 2",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "gardner",
     "name": "Gardner",
     "source": "cachesleuth",
@@ -1133,6 +1174,17 @@
     "uniqueFiles": 46,
     "dcode": 0,
     "check": "PASS"
+  },
+  {
+    "slug": "geocacheid",
+    "name": "Geocache Attributes",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 72,
+    "uniqueFiles": 72,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
   },
   {
     "slug": "gerudo",
@@ -1155,6 +1207,39 @@
     "check": "PASS"
   },
   {
+    "slug": "glagolitic2",
+    "name": "Glagolitic 2",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "gnommish",
+    "name": "Gnommish",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 31,
+    "uniqueFiles": 31,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "gravity_falls_author",
+    "name": "Gravity Falls - Author",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "gravity_falls_bill",
     "name": "Gravity Falls - Bill",
     "source": "both",
@@ -1163,6 +1248,39 @@
     "uniqueFiles": 26,
     "dcode": 80,
     "check": "PASS"
+  },
+  {
+    "slug": "gravity_falls_journal",
+    "name": "Gravity Falls - Journal",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "greatmachine",
+    "name": "Great Machine",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "hexacode",
+    "name": "Hexacode",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
   },
   {
     "slug": "hexahue",
@@ -1175,6 +1293,28 @@
     "check": "PASS"
   },
   {
+    "slug": "hieratic",
+    "name": "Hieratic",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "hvd",
+    "name": "HVD",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "hylian",
     "name": "Hylian",
     "source": "both",
@@ -1185,6 +1325,28 @@
     "check": "PASS"
   },
   {
+    "slug": "hylian64",
+    "name": "Hylian 64",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "hymmnos",
+    "name": "Hymmnos",
+    "source": "both",
+    "status": "ready",
+    "glyphs": 62,
+    "uniqueFiles": 62,
+    "dcode": 52,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "iching",
     "name": "IChing Hexagrams",
     "source": "cachesleuth",
@@ -1193,6 +1355,94 @@
     "uniqueFiles": 64,
     "dcode": 0,
     "check": "PASS"
+  },
+  {
+    "slug": "iconian",
+    "name": "Iconian",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "illuminati_1",
+    "name": "Illuminati Version 1",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "illuminati_2",
+    "name": "Illuminati Version 2",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "indianajones",
+    "name": "Indiana Jones",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "japanesenumbers",
+    "name": "Japanese Numbers",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 14,
+    "uniqueFiles": 14,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "jenks",
+    "name": "Jenks",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "kabouter",
+    "name": "Kabouter",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "kabouter_1947",
+    "name": "Kabouter 1947 Version",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
   },
   {
     "slug": "klingon",

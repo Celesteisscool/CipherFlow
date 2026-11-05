@@ -1911,7 +1911,7 @@
         "uniqueFiles": 26,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "minbari",
@@ -1922,7 +1922,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "minimoys",
@@ -1944,7 +1944,7 @@
         "uniqueFiles": 10,
         "dcode": 20,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "mirrornumbers2",
@@ -1955,7 +1955,7 @@
         "uniqueFiles": 10,
         "dcode": 20,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "moon",
@@ -1977,7 +1977,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "morseircle",
@@ -1988,7 +1988,7 @@
         "uniqueFiles": 26,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "murray2007",
@@ -1999,7 +1999,7 @@
         "uniqueFiles": 42,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "murray2016",
@@ -2010,7 +2010,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "murray2003",
@@ -2021,7 +2021,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "murray1796",
@@ -2065,7 +2065,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "nato",
@@ -2076,7 +2076,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "nazcaan",
@@ -2098,7 +2098,7 @@
         "uniqueFiles": 26,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "numberpadlines",
@@ -2109,7 +2109,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "numikki",
@@ -2120,7 +2120,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "ogham",
@@ -2142,7 +2142,7 @@
         "uniqueFiles": 62,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "orkhon",
@@ -2153,7 +2153,7 @@
         "uniqueFiles": 26,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "outerrim",
@@ -2175,7 +2175,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "pasley",
@@ -2186,7 +2186,7 @@
         "uniqueFiles": 26,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "pentadic",
@@ -2197,7 +2197,7 @@
         "uniqueFiles": 10,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "pictish_swirl",
@@ -2208,7 +2208,7 @@
         "uniqueFiles": 26,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "pigpen",
@@ -2230,7 +2230,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "pipeline",
@@ -2241,7 +2241,7 @@
         "uniqueFiles": 36,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "pixel",
@@ -2252,7 +2252,7 @@
         "uniqueFiles": 26,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "planet",
@@ -2263,7 +2263,7 @@
         "uniqueFiles": 10,
         "dcode": 0,
         "check": "PASS",
-        "new": true
+        "new": false
     },
     {
         "slug": "planetbarcode",
@@ -2272,6 +2272,193 @@
         "status": "ready",
         "glyphs": 10,
         "uniqueFiles": 10,
+        "dcode": 0,
+        "check": "PASS",
+        "new": false
+    },
+    {
+        "slug": "poolballs",
+        "name": "Pool Balls",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 16,
+        "uniqueFiles": 16,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "popham",
+        "name": "Popham",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "postnetbarcode",
+        "name": "Postnet Barcode",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 10,
+        "uniqueFiles": 10,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "precursor",
+        "name": "Precursor",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 26,
+        "uniqueFiles": 26,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "predacon",
+        "name": "Predacon",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "predator",
+        "name": "Predator",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "preservers",
+        "name": "Preservers",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "puzzle",
+        "name": "Puzzle",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 41,
+        "uniqueFiles": 41,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "puzzle_code_black",
+        "name": "Puzzle Code (Black)",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 62,
+        "uniqueFiles": 62,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "quadoo",
+        "name": "Quadoo",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "r2units",
+        "name": "R2 Units - Star Wars",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 9,
+        "uniqueFiles": 9,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "reality",
+        "name": "Reality",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 26,
+        "uniqueFiles": 26,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "redherring",
+        "name": "Red Herring",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 10,
+        "uniqueFiles": 10,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "resident_alien",
+        "name": "Resident Alien",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "retrospection",
+        "name": "Retrospection",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 26,
+        "uniqueFiles": 26,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "rich",
+        "name": "Rich",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 26,
+        "uniqueFiles": 26,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "riddler",
+        "name": "Riddler",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 25,
+        "uniqueFiles": 25,
         "dcode": 0,
         "check": "PASS",
         "new": true
@@ -2310,6 +2497,50 @@
         "new": false
     },
     {
+        "slug": "sanluca",
+        "name": "San Luca",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 21,
+        "uniqueFiles": 21,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "seltorian",
+        "name": "Seltorian",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "semaphore_stickmen",
+        "name": "Semaphore - Stick Men",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "semaphore_clock",
+        "name": "Semaphore Clocks",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 30,
+        "uniqueFiles": 30,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
         "slug": "semaphore",
         "name": "Semaphore Flags",
         "source": "both",
@@ -2319,6 +2550,28 @@
         "dcode": 30,
         "check": "PASS",
         "new": false
+    },
+    {
+        "slug": "semaphore_man",
+        "name": "Semaphore Man",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 31,
+        "uniqueFiles": 31,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
+        "slug": "semaphore_trousers",
+        "name": "Semaphore Trousers",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 27,
+        "uniqueFiles": 27,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
     },
     {
         "slug": "chainofdeath",
@@ -2332,6 +2585,17 @@
         "new": false
     },
     {
+        "slug": "sheliak",
+        "name": "Sheliak",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 36,
+        "uniqueFiles": 36,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
+    },
+    {
         "slug": "shoes",
         "name": "Shoes Code",
         "source": "cachesleuth",
@@ -2341,6 +2605,17 @@
         "dcode": 0,
         "check": "PASS",
         "new": false
+    },
+    {
+        "slug": "sign",
+        "name": "Sign",
+        "source": "cachesleuth",
+        "status": "ready",
+        "glyphs": 42,
+        "uniqueFiles": 42,
+        "dcode": 0,
+        "check": "PASS",
+        "new": true
     },
     {
         "slug": "simlish",

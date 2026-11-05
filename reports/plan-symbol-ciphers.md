@@ -2452,3 +2452,61 @@ over its 36-glyph page; re-staged and the affected checks re-run green. `verify-
 **732 glyphs byte-identical**, 0 mismatched, 0 unreachable.
 
 Nothing committed — awaiting sign-off.
+
+**Phase 1 (batch 16) — selection, staging, install and build, 2026-11-04.** N = 25 (catalogue 225).
+Candidates are manifest slugs not yet shipped, alphabetically, N taken after skips:
+
+- `bacon`, `fiveneedletelegraph`, `goldbug`, `kenny`, `letterstonumbers`, `lotrperiodic`,
+  `natophonetic`, `periodictable`, `resistor` — no CacheSleuth descriptor.
+- `barcode39`, `giovannifontana`, `hyach` — carried from batch 14's COUNT CHECK FAIL; `nyctographic`
+  — carried from batch 15. Not re-staged this run.
+- `shadow` — 37 declared / 35 manifest, `_.png` and `0.png` 404 upstream: COUNT CHECK FAIL.
+  Dropped, and `sheliak` took the slot.
+- `segmentdisplay` — staged from `/7-segment-display`, then dropped after review (its 128-icon
+  ASCII table was not the wanted set); `sign` took the slot.
+
+Batch: puzzle_code_black, poolballs, popham, postnetbarcode, precursor, predacon, predator,
+preservers, puzzle, quadoo, r2units, reality, redherring, resident_alien, retrospection, rich,
+riddler, sanluca, seltorian, semaphore_clock, semaphore_man, semaphore_stickmen,
+semaphore_trousers, sheliak, sign.
+
+**Phase 2 (batch 16) — largest first.** `puzzle_code_black` (62 manifest files) staged 62/62,
+COUNT CHECK PASS. `dcode-find` matched only sliding-puzzle solvers, all 0 glyphs — `NO PAGE`,
+single-source. Pipeline sound; staging continued.
+
+**dCode lookup.** One page passed selection: `segmentdisplay` → `/7-segment-display` (name 0.80,
+16/16 keys). It was dropped after review: the page's icon table is all 128 ASCII characters
+(NUL–DEL), not the cipher's declared set. `sign` took the slot; no dCode page matches it
+(`/american-sign-language` and `/french-sign-language` cover 26/42 keys at 62%,
+`/maritime-signals-code` 36/42 at 86%, none past the coverage/title gates) — single-source.
+Everything else returned `NO PAGE` with its declared keys in hand: `semaphore_clock` closest at
+27/30 (`/\@` missing), `semaphore_man` 26/31, `r2units` art 0.60 against the 0.65 gate,
+`resident_alien` 0.41. No toggles.
+
+**Ink-tight gate.** Medians 14.8–30.0 px in the 30 px tile; none under the 12 px gate, so
+`tightArt` is off for all 25 (lowest: sanluca 14.8, riddler 15.6, predator 15.8).
+`retrospection`'s art is 4-bit palette and the batch-14 ink script assumes one byte per pixel, so
+it was re-measured with the correct row stride: 28.1 px. `install.mjs`'s `decodePng` carries the
+same byte-per-pixel assumption, so `tightArt` would silently no-op on depth-4 art if it were ever
+needed.
+
+**Install and build.** Subset install of the 25 slugs. Hash snapshot before/after: all **225**
+pre-existing data files and all **7,971** pre-existing art files unchanged; only the 25 new data
+files and 25 art dirs appear. Catalogue 250 rows == 250 data files == 250 art dirs, 8,028
+symbols, 0 tiles without art. Batch art: 752 glyph PNGs (none dCode's), no table legend.
+`index.html` rebuilt at **49,767,385** bytes (was 46,113,177; +3,654,208). `new: true` is on this
+batch's 25 rows and cleared from batch 15's.
+
+**Sheets and checklist.** 25 sheets written (250 total). `inventory.mjs` exits 0: CacheSleuth
+**250/306 (82%)**, 56 left; dCode 156 pages — 20 bound, 36 twin, 100 uncatalogued.
+
+**Browser pass.** 257/257 checks over the shipped page (panel and header at 250, New pill
+isolating 25 and Reset restoring 250, 25 nodes placed; per node: tile count, captions in source
+order, PNG art that decodes, no placeholder, foot count, no toggle, fixed CacheSleuth label, no
+variant bar, first-tile transcription). That pass included the original 16-glyph `segmentdisplay`
+node; after the swap, `sign` was re-checked 16/16 with 42 tiles, captions in order, decodable art,
+foot reading 42 symbols, fixed CacheSleuth label and no toggle. `verify-source.mjs` had already
+confirmed 710 CacheSleuth glyphs from the batch byte-identical with 0 mismatched; `sign`
+re-verifies 42/42 byte-identical, 0 mismatched.
+
+Nothing committed — awaiting sign-off.

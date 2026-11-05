@@ -1,0 +1,188 @@
+{
+  "slug": "riddler",
+  "name": "Riddler",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=riddler",
+      "images": "https://i.cachesleuth.com/images/riddler/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdefghiklmnopqrstuvwxyz\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 25,
+    "uniqueFiles": 25,
+    "manifestFiles": 25,
+    "downloaded": 25,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/riddler/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/riddler/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/riddler/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/riddler/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/riddler/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/riddler/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/riddler/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/riddler/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/riddler/i.png"
+    },
+    {
+      "index": 10,
+      "key": "k",
+      "label": "K",
+      "file": "art/riddler/k.png"
+    },
+    {
+      "index": 11,
+      "key": "l",
+      "label": "L",
+      "file": "art/riddler/l.png"
+    },
+    {
+      "index": 12,
+      "key": "m",
+      "label": "M",
+      "file": "art/riddler/m.png"
+    },
+    {
+      "index": 13,
+      "key": "n",
+      "label": "N",
+      "file": "art/riddler/n.png"
+    },
+    {
+      "index": 14,
+      "key": "o",
+      "label": "O",
+      "file": "art/riddler/o.png"
+    },
+    {
+      "index": 15,
+      "key": "p",
+      "label": "P",
+      "file": "art/riddler/p.png"
+    },
+    {
+      "index": 16,
+      "key": "q",
+      "label": "Q",
+      "file": "art/riddler/q.png"
+    },
+    {
+      "index": 17,
+      "key": "r",
+      "label": "R",
+      "file": "art/riddler/r.png"
+    },
+    {
+      "index": 18,
+      "key": "s",
+      "label": "S",
+      "file": "art/riddler/s.png"
+    },
+    {
+      "index": 19,
+      "key": "t",
+      "label": "T",
+      "file": "art/riddler/t.png"
+    },
+    {
+      "index": 20,
+      "key": "u",
+      "label": "U",
+      "file": "art/riddler/u.png"
+    },
+    {
+      "index": 21,
+      "key": "v",
+      "label": "V",
+      "file": "art/riddler/v.png"
+    },
+    {
+      "index": 22,
+      "key": "w",
+      "label": "W",
+      "file": "art/riddler/w.png"
+    },
+    {
+      "index": 23,
+      "key": "x",
+      "label": "X",
+      "file": "art/riddler/x.png"
+    },
+    {
+      "index": 24,
+      "key": "y",
+      "label": "Y",
+      "file": "art/riddler/y.png"
+    },
+    {
+      "index": 25,
+      "key": "z",
+      "label": "Z",
+      "file": "art/riddler/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

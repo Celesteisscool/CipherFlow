@@ -2401,3 +2401,54 @@ variant bar, first-tile and multi-key transcription; `kargi`'s packed art square
 crop). `verify-source.mjs`: **768 glyphs byte-identical**, 0 mismatched, 0 unreachable.
 
 Nothing committed — awaiting sign-off.
+
+**Phase 1 (batch 15) — selection, staging, install and build, 2026-11-04.** N = 25 (catalogue 200).
+Candidates are manifest slugs not yet shipped, alphabetically, N taken after skips:
+
+- `bacon`, `fiveneedletelegraph`, `goldbug`, `kenny`, `letterstonumbers`, `lotrperiodic`,
+  `natophonetic`, `periodictable` — no CacheSleuth descriptor, so they cannot be staged.
+- `barcode39` (37 declared / 36 manifest), `giovannifontana` (46/28), `hyach` (36/26) — carried
+  from batch 14's COUNT CHECK FAIL; not re-staged this run.
+- `nyctographic` — 47 declared / 36 manifest, 11 punctuation PNGs (`ampersand`, `apostrophe`,
+  `colon`, `comma`, `doublequote`, `exclamation`, `lparen`, `period`, `question`, `rparen`,
+  `semicolon`) 404 upstream: COUNT CHECK FAIL. Dropped, and `planetbarcode` took the slot.
+
+Batch: mesoppotanic, minbari, mirrornumbers1, mirrornumbers2, morseircle, morsemountain,
+murray2003, murray2007, murray2016, narn, nato, nuha, numberpadlines, numikki, orkhon, pakmara,
+pasley, pentadic, pictish_swirl, pigpen2, pipeline, pixel, planet, ophidean, planetbarcode.
+
+**Phase 2 (batch 15) — largest first.** `ophidean` (62 manifest files) staged 62/62, COUNT CHECK
+PASS. `dcode-find` SELECTED `/ophidian-alphabet-ultima` (100% of keys, art 0.77 over 72 keys,
+title 0.67) — but that page publishes only 36 glyphs for a 62-key upper/lower alphabet, so the
+second set cannot cover the declared keys and the node would draw a half grid. Re-staged
+single-source; the page is recorded as evidence, not shipped.
+
+**dCode lookup.** `mirrornumbers1` (art 0.94) and `mirrornumbers2` (0.75) SELECTED
+`/mirror-digits`; both declare digits only, and numbers-only sets never show the toggle (D17),
+so the 20-glyph dCode set ships as evidence without a source switch. Every other slug returned
+`NO PAGE` with its declared keys in hand — e.g. mesoppotanic's only near miss is the 0-glyph
+`/alphabet-phonetique-otan`, and nato's `/semaphore-flag` covers 26/36 keys. No other toggles.
+
+**Ink-tight gate.** Medians 15.4–28.1 px in the 30 px tile; none under the 12 px gate, so
+`tightArt` is off for all 25 (lowest: mesoppotanic 15.4, morsemountain 16.0, pipeline 17.4).
+
+**Install and build.** Subset install of the 25 slugs. Hash snapshot before/after: all **200**
+pre-existing data files and all **7,198** pre-existing art files unchanged; only the 25 new data
+files and 25 art dirs appear. Catalogue 225 rows == 225 data files == 225 art dirs, 7,276
+symbols, 0 tiles without art. Batch art: 732 CacheSleuth glyph PNGs + 40 dCode evidence PNGs +
+`pigpen2`'s table legend (773 files).
+`index.html` rebuilt at **46,113,177** bytes (was 42,923,004; +3,190,173). `new: true` is on this
+batch's 25 rows and cleared from batch 14's.
+
+**Sheets and checklist.** 25 sheets written (225 total); `ophidean` was regenerated after the
+single-source re-stage. `inventory.mjs` exits 0: CacheSleuth **225/306 (74%)**, 81 left; dCode
+156 pages — 20 bound, 35 twin, 101 uncatalogued.
+
+**Browser pass.** 256/256 checks over the shipped page (panel and header at 225, New pill
+isolating 25 and Reset restoring 225, 25 nodes placed; per node: tile count, captions in source
+order, PNG art that decodes, no placeholder, foot count, no toggle, fixed CacheSleuth label, no
+variant bar, first-tile transcription). The first run caught `ophidean` offering a dCode toggle
+over its 36-glyph page; re-staged and the affected checks re-run green. `verify-source.mjs`:
+**732 glyphs byte-identical**, 0 mismatched, 0 unreachable.
+
+Nothing committed — awaiting sign-off.

@@ -997,6 +997,18 @@ function expandOutputs(node) {
 function pickIndex(node) {
     return clamp(Math.round(Number(node?.pickIndex)) || 1, 1, MAX_PICK_INDEX);
 }
+// The separator box takes the literal character people mean, plus the escapes they type for
+// the ones that cannot be shown in a box: \n, \t, \r and a literal backslash.
+function forkSeparator(node) {
+    const raw = typeof node?.forkSep === "string" ? node.forkSep : ",";
+    return raw.replace(/\\(n|t|r|\\)/g, (_, c) => ({n: "\n", t: "\t", r: "\r", "\\": "\\"}[c]));
+}
+// An empty separator splits nothing: in JavaScript it would mean "between every character",
+// which is not what a box labelled "split on" says. A split that finds nothing is one part.
+function forkParts(text, separator) {
+    if (!separator) return [String(text)];
+    return String(text).split(separator);
+}
 // Compact and Expand names are cosmetic: they label the rows, never the wire keys. Keeping
 // them as arrays means a port keeps its name when the count is changed and changed back.
 function normalizePortNames(raw) {
@@ -1092,6 +1104,11 @@ function makeNode(type, opts = {}) {
         // How many separate outputs one bundled wire is spread across.
         node.outCount = clamp(Math.round(Number(opts.outCount)) || 3, 1, MAX_FN_PORTS);
         node.inNames = normalizePortNames(opts.inNames);
+        node.outNames = normalizePortNames(opts.outNames);
+    } else if (type === "fork") {
+        // One text, split on a character, and the parts carried out on a single bundled wire.
+        node.text = opts.text ?? "";
+        node.forkSep = typeof opts.forkSep === "string" ? opts.forkSep : ",";
         node.outNames = normalizePortNames(opts.outNames);
     } else if (type === "pick") {
         // Which one-based entry of the incoming bundle should come out.
@@ -1244,6 +1261,7 @@ function cleanNodeForSave(n) {
         outNames: Array.isArray(n.outNames) && n.outNames.some(name => String(name || "").trim())
             ? n.outNames.slice(0, MAX_FN_PORTS).map(name => String(name ?? "")) : undefined,
         pickIndex: n.type === "pick" ? pickIndex(n) : undefined,
+        forkSep: n.type === "fork" ? String(n.forkSep ?? "") : undefined,
         cases: n.cases ? cloneValue(n.cases) : undefined,
         switchDefault: n.switchDefault,
         ports: n.ports ? cloneValue(n.ports) : undefined,
@@ -1328,7 +1346,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "compact", "expand", "pick", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1361,6 +1379,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             inNames: raw.inNames,
             outNames: raw.outNames,
             pickIndex: raw.pickIndex,
+            forkSep: typeof raw.forkSep === "string" ? raw.forkSep : ",",
             cases: readSwitchCases(raw.cases),
             switchDefault: typeof raw.switchDefault === "string" ? raw.switchDefault : "",
             ports: Array.isArray(raw.ports) && raw.ports.length ? raw.ports.map(p => ({...p})) : undefined,
@@ -1642,7 +1661,9 @@ function nodeById(id) {
 }
 function sourceTitle(node) {
     if (!node) return "Unknown";
-    if (node.type === "op") return node.op;
+    // Every node's own title wins: an operation can be renamed too, so a graph can say what
+    // a step means ("Strip the salt") instead of repeating the operation's catalogue name.
+    if (node.type === "op") return node.title || node.op;
     if (node.type === "input") return node.title || TEXT_NODE_TITLE;
     if (node.type === "file") return node.title || node.fileName || FILE_NODE_TITLE;
     if (node.type === "pngchunks") return node.title || "PNG Chunks";
@@ -1655,9 +1676,10 @@ function sourceTitle(node) {
     if (node.type === "compact") return node.title || "Compact";
     if (node.type === "expand") return node.title || "Expand";
     if (node.type === "pick") return node.title || "Pick";
+    if (node.type === "fork") return node.title || "Fork";
     if (node.type === "fn") return node.title || functionById(node.fnId)?.name || "Function";
-    if (node.type === "fnin") return "Function input";
-    if (node.type === "fnout") return "Function output";
+    if (node.type === "fnin") return node.title || "Function input";
+    if (node.type === "fnout") return node.title || "Function output";
     return node.title || node.type;
 }
 function nodeAccent(node) {
@@ -1678,6 +1700,7 @@ function nodeCategoryLabel(node) {
     if (node.type === "compact") return "Compact";
     if (node.type === "expand") return "Expand";
     if (node.type === "pick") return "Pick";
+    if (node.type === "fork") return "Fork";
     if (node.type === "fn") return "Function";
     if (node.type === "fnin") return "Fn input";
     if (node.type === "fnout") return "Fn output";
@@ -1729,7 +1752,12 @@ function buildNode(node) {
     el.style.top = node.y + "px";
     el.style.setProperty("--node-accent", nodeAccent(node));
 
-    const title = node.type === "op" ? node.op : (node.title || sourceTitle(node));
+    const title = node.title || sourceTitle(node);
+    // An instance's pencil is the way back into the definition, since its title now renames
+    // like every other node's.
+    const openFn = node.type === "fn" && functionById(node.fnId)
+        ? `<button class="node-mini node-open-fn" data-action="fn-edit" data-node="${node.id}" title="Open this function">${iconFill("edit")}</button>`
+        : "";
     const cat = nodeCategoryLabel(node);
     // A resized node is a fixed box, kept on the node so it survives saves. Collapsing drops
     // the height so the card stays compact; expanding brings it back.
@@ -1742,6 +1770,7 @@ function buildNode(node) {
             <span class="node-dot"></span>
             <span class="node-title" data-node-title>${esc(title)}</span>
             <span class="node-cat">${esc(cat)}</span>
+            ${openFn}
             <button class="node-mini node-collapse" data-action="toggle-collapse" data-node="${node.id}" title="${node.collapsed ? "Expand node" : "Collapse node"}">${iconFill("chevron")}</button>
             <button class="node-close" data-action="delete-node" data-node="${node.id}" title="Delete node">${iconFill("x")}</button>
         </div>
@@ -1779,6 +1808,8 @@ function buildNode(node) {
         body.appendChild(buildCompactNode(node));
     } else if (node.type === "expand") {
         body.appendChild(buildExpandNode(node));
+    } else if (node.type === "fork") {
+        body.appendChild(buildForkNode(node));
     } else if (node.type === "pick") {
         body.appendChild(buildPickNode(node));
     } else if (node.type === "fn") {
@@ -1824,9 +1855,9 @@ function buildNode(node) {
     titleEl.addEventListener("dblclick", ev => {
         ev.preventDefault();
         ev.stopPropagation();
-        // Double-clicking a function opens it; anything else renames in place.
-        if (node.type === "fn" && functionById(node.fnId)) openFunctionEditor(functionById(node.fnId));
-        else beginTitleEdit(node, titleEl);
+        // Any node renames in place, an operation and a function instance included; a
+        // function's head carries a pencil for opening its definition.
+        beginTitleEdit(node, titleEl);
     });
     const close = $(".node-close", el);
     close.innerHTML = `${iconFill("x")}`;
@@ -1861,7 +1892,7 @@ function collapsedPorts(node) {
         for (let i = 0; i < templatePorts(node); i++) ports.push({name: "in:" + i, label: "In " + (i + 1)});
     } else if (node.type === "compact") {
         for (let i = 0; i < compactInputs(node); i++) ports.push({name: "in:" + i, label: portNameAt(node, "in", i, "In " + (i + 1))});
-    } else if (node.type === "expand" || node.type === "pick") {
+    } else if (node.type === "expand" || node.type === "pick" || node.type === "fork") {
         ports.push({name: "main", label: portNameAt(node, "in", 0, "In")});
     } else if (node.type === "switch") {
         // Every port a case can be wired on gets an anchor, so its wire survives collapsing.
@@ -2298,6 +2329,63 @@ function buildPickNode(node) {
     wrap.appendChild(row);
     wrap.appendChild(buildPreview(node));
     wrap.appendChild(buildError(node));
+    return wrap;
+}
+
+/* Fork is the text-level sibling of Compact: one text in, split on a character, and the parts
+ * carried out on a single bundled wire — the same value Compact would have made of them, so
+ * Expand, Pick and every operation read it like any other list. Nothing is dropped: a text
+ * with a hundred lines is a hundred values on the wire.
+ */
+function buildForkNode(node) {
+    const wrap = document.createElement("div");
+    wrap.appendChild(fnNote("Splits one text on a character and carries the parts as one bundled wire. Operations after it run once per part."));
+    const edge = edgeInto(node.id, "main");
+    wrap.appendChild(mainInputRow(node, "Text in"));
+
+    // The text comes first and the separator that cuts it second. With nothing wired in this
+    // box is the input; a wire takes over, exactly as the text node's own box does.
+    if (!edge) {
+        const ta = document.createElement("textarea");
+        ta.className = "control typed-input";
+        ta.rows = 2;
+        ta.spellcheck = false;
+        ta.setAttribute("data-fork-text", "");
+        ta.placeholder = "Text to split — or pipe it in";
+        ta.value = String(node.text || "");
+        ta.addEventListener("input", () => {
+            node.text = ta.value;
+            node._sig = "";
+            onGraphEdited();
+        });
+        wrap.appendChild(ta);
+    }
+
+    const sepRow = document.createElement("div");
+    sepRow.className = "arg-row";
+    sepRow.innerHTML = `<div class="arg-label-row"><span class="arg-name">Split on</span></div>
+        <input class="control" data-fork-sep value="${esc(node.forkSep ?? ",")}" placeholder="," spellcheck="false">`;
+    const sep = $("[data-fork-sep]", sepRow);
+    sep.addEventListener("input", () => {
+        node.forkSep = sep.value;
+        node._sig = "";
+        onGraphEdited();
+    });
+    wrap.appendChild(sepRow);
+
+    const outRow = document.createElement("div");
+    outRow.className = "io-row join-row bundle-out";
+    outRow.innerHTML = `${portNameInputHtml(node, "out", 0, "Bundled wire")}<span class="out-slot" data-port-slot="out"></span>`;
+    wrap.appendChild(outRow);
+    const foot = document.createElement("div");
+    foot.className = "node-foot";
+    foot.innerHTML = `<span class="bytes" data-fork-parts></span>`;
+    wrap.appendChild(foot);
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    const parts = $("[data-fork-parts]", wrap);
+    if (parts && node._forkParts) parts.textContent = `${node._forkParts} part${node._forkParts === 1 ? "" : "s"}`;
+    for (const input of $$("[data-port-name-side]", wrap)) bindPortNameInput(input, node);
     return wrap;
 }
 
@@ -3160,7 +3248,6 @@ function refreshAllPreviews() {
 }
 
 function beginTitleEdit(node, titleEl) {
-    if (node.type === "op") return;
     const original = titleEl.textContent;
     titleEl.contentEditable = "true";
     titleEl.focus();
@@ -3257,12 +3344,12 @@ function handlePointOnEdge(edge, a, b) {
     return clear || mid;
 }
 
-// Whether this wire carries a bundle: a Compact's output always does, and so does any wire
-// leaving a node whose last value was a list (an operation maps over a list and keeps it).
+// Whether this wire carries a bundle: Compact's and Fork's outputs always do, and so does any
+// wire leaving a node whose last value was a list (an operation maps over a list and keeps it).
 function edgeIsBundled(edge) {
     const from = nodeById(edge.from);
     if (!from) return false;
-    if (from.type === "compact") return true;
+    if (from.type === "compact" || from.type === "fork") return true;
     const value = from._portOutputs ? from._portOutputs.get(edge.fromPort || "out") : from._output;
     return isListValue(value);
 }
@@ -4106,7 +4193,7 @@ function resolveNodeArgs(node, incoming, results) {
         if (src.error) upstreamError = src.error;
         sigs.push("arg" + i + ":" + src.sig);
         if (!src.bytes) continue;
-        values[i] = wireArgValue(arg, src.bytes);
+        values[i] = wireArgValue(arg, src.bytes, values[i]);
     }
     return {values: args.map((arg, i) => normalizeArgForRecipe(arg, values[i])), upstreamError, sigs};
 }
@@ -4115,7 +4202,11 @@ function resolveNodeArgs(node, incoming, results) {
 // the bytes as text; a number is parsed; a switch reads as on/off; a dropdown is matched
 // against its own options (by value or by label) so a wire can pick a mode as well as
 // supply a key. Anything that matches nothing is handed over as the raw text.
-function wireArgValue(arg, bytes) {
+// A two-part argument (a string plus a mode dropdown, as Find / Replace's Find has) keeps the
+// mode the node already shows and takes the wire as its string, read the way that mode says:
+// Hex mode reads the bytes as hex, every other mode reads them as text. Forcing every wire
+// into Hex was what made a wired Find string search for "61" instead of "a".
+function wireArgValue(arg, bytes, current) {
     const text = utf8(bytes);
     switch (arg.type) {
         case "number": {
@@ -4126,8 +4217,12 @@ function wireArgValue(arg, bytes) {
             const v = text.trim().toLowerCase();
             return !(v === "" || v === "0" || v === "false" || v === "no" || v === "off" || v === "disabled");
         }
-        case "toggleString":
-            return {string: bytesToHex(bytes), option: "Hex"};
+        case "toggleString": {
+            const option = current && typeof current === "object" && current.option
+                ? String(current.option)
+                : String((Array.isArray(arg.toggleValues) && arg.toggleValues[0]) || "Hex");
+            return {string: /^hex$/i.test(option) ? bytesToHex(bytes, "") : utf8(bytes), option};
+        }
         case "option":
         case "argSelector":
         case "editableOption":
@@ -4229,6 +4324,12 @@ function inputSignature(node, incoming, results, opts) {
     if (node.type === "pick") {
         const main = sourceBytesForPort(incoming, node.id, "main", results);
         return JSON.stringify(["pick", pickIndex(node), main.sig]);
+    }
+    if (node.type === "fork") {
+        // The text and the separator decide the parts; the parts themselves are the output,
+        // so they stay out of the signature.
+        const main = sourceBytesForPort(incoming, node.id, "main", results);
+        return JSON.stringify(["fork", node.forkSep, node.text || "", main.sig]);
     }
     if (node.type === "fnin") {
         // A piped sample changes what the body receives, so its wire is part of the
@@ -4981,7 +5082,8 @@ async function executeGraph(nodes, edges, opts = {}) {
         let sig = "";
         try {
             const takesMain = node.type === "op" || node.type === "input" || node.type === "file" || node.type === "switch" ||
-                node.type === "expand" || node.type === "pick" || node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
+                node.type === "expand" || node.type === "pick" || node.type === "fork" ||
+                node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
             const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
@@ -5039,7 +5141,10 @@ async function executeGraph(nodes, edges, opts = {}) {
                                 const values = cloneValue(resolved.values);
                                 for (const entry of argLists) {
                                     const item = entry.items[k] || new Uint8Array(0);
-                                    values[entry.index] = normalizeArgForRecipe(entry.arg, wireArgValue(entry.arg, item));
+                                    // The mode comes from the node's own dropdown, not from the
+                                    // entry, so every value in the bundle is read alike.
+                                    values[entry.index] = normalizeArgForRecipe(entry.arg,
+                                        wireArgValue(entry.arg, item, resolved.values[entry.index]));
                                 }
                                 const bytesIn = mainItems ? (mainItems[k] || new Uint8Array(0)) : inputBytes;
                                 const response = await engine.bakeOp(node.op, values, bytesIn.buffer.slice(bytesIn.byteOffset, bytesIn.byteOffset + bytesIn.byteLength), {
@@ -5122,6 +5227,17 @@ async function executeGraph(nodes, edges, opts = {}) {
                 sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
                 else if (!error) out = enc.encode(node.text || "");
+            } else if (node.type === "fork") {
+                // One text in, every part out on one bundled wire — the value Compact would
+                // have assembled from those parts, so the rest of the graph sees a list.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    const text = main.bytes != null ? utf8(main.bytes) : String(node.text || "");
+                    const parts = forkParts(text, forkSeparator(node));
+                    node._forkParts = parts.length;
+                    out = makeListValue(parts.map(part => enc.encode(part ?? "")));
+                }
             } else if (node.type === "join") {
                 sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
@@ -6665,6 +6781,7 @@ const GRAPH_ITEMS = [
     {type: "compact", label: "Compact", icon: "bundle", section: "Bundles", keys: "bundle list multiple values many wires combine pack gather collect", about: "Collect several wires into one bundled wire"},
     {type: "expand", label: "Expand", icon: "split", section: "Bundles", keys: "unbundle split list multiple outputs separate distribute unpack", about: "Split a bundled wire into separate outputs"},
     {type: "pick", label: "Pick", icon: "pick", section: "Bundles", keys: "bundle list select choose one single value index item extract pick", about: "Take one value out of a bundled wire"},
+    {type: "fork", label: "Fork", icon: "split", section: "Bundles", keys: "split text separator delimiter character comma newline parts bundle list divide", about: "Split text on a character into one bundled wire"},
     {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
@@ -6943,7 +7060,7 @@ function addGraphNode(type, x, y) {
     } else if (type === "switch") {
         added = makeNode("switch", {x: p.x, y: p.y, title: "Switch"});
         state.nodes.push(added);
-    } else if (type === "compact" || type === "expand" || type === "pick") {
+    } else if (type === "compact" || type === "expand" || type === "pick" || type === "fork") {
         added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
         state.nodes.push(added);
     } else if (type === "pngchunks" || type === "pdfscan" || type === "imginfo") {
@@ -9898,22 +10015,47 @@ function buildSymbolNode(node) {
     wrap.__text = ta.value;
     renderSymbolPreview(preview, node, set);
     // The output box is exactly as tall as its text. Clearing the height first lets
-    // scrollHeight report the content height, so the field grows line by line and never
-    // scrolls; the two extra pixels are its top and bottom border (border-box).
+    // scrollHeight report the content height, so the field grows line by line; the two extra
+    // pixels are its top and bottom border (border-box). An auto-height card grows with it and
+    // needs no limit. A resized card is a fixed box, so a long reading would push the field out
+    // through the card's bottom edge: there the field stops at the space left under the grid and
+    // scrolls inside itself instead of spilling.
     const fitText = () => {
         ta.style.height = "auto";
-        ta.style.height = `${ta.scrollHeight + 2}px`;
+        const want = ta.scrollHeight + 2;
+        const card = wrap.closest(".node");
+        const body = card && card.querySelector(".node-body");
+        let room = Infinity;
+        if (body && card.classList.contains("resized")) {
+            const foot = $(".node-foot", wrap);
+            const gap = parseFloat(getComputedStyle(wrap).rowGap) || 0;
+            const padBottom = parseFloat(getComputedStyle(body).paddingBottom) || 0;
+            const footH = foot
+                ? foot.offsetHeight + (parseFloat(getComputedStyle(foot).marginTop) || 0)
+                : 0;
+            room = body.clientHeight - padBottom - footH - gap - ta.offsetTop;
+        }
+        const fitted = Math.max(40, Math.min(want, room));
+        ta.style.height = `${fitted}px`;
+        ta.style.overflowY = want > fitted + 0.5 ? "auto" : "hidden";
     };
-    // Width changes re-wrap the text (a resized card, a different zoom), so re-measure. Only
-    // a width change qualifies: writing the height fires this observer too, and acting on
-    // that would loop.
+    // Width changes re-wrap the text (a resized card, a different zoom), and a taller or
+    // shorter card changes how much room the field has. Both re-measure; a change to neither
+    // does nothing, so the observer cannot chase its own height write.
+    const cardEl = wrap.closest(".node");
     let lastWidth = 0;
-    new ResizeObserver(() => {
+    let lastCardH = 0;
+    const refit = () => {
         const w = ta.offsetWidth;
-        if (w === lastWidth) return;
+        const h = cardEl ? cardEl.clientHeight : 0;
+        if (w === lastWidth && h === lastCardH) return;
         lastWidth = w;
+        lastCardH = h;
         fitText();
-    }).observe(ta);
+    };
+    const sizes = new ResizeObserver(refit);
+    sizes.observe(ta);
+    if (cardEl) sizes.observe(cardEl);
     // The node is not in the document yet while this function builds it; measure next frame.
     requestAnimationFrame(fitText);
     if (tilesLabel) tilesLabel.textContent = `${set.glyphs.length} symbols`;

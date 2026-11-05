@@ -80,6 +80,8 @@ const ICONS = {
     join: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h4M2 12h4M6 4v8M6 8h7"/><path d="m10.7 5.7 2.5 2.3-2.5 2.3"/></svg>',
     // Curly braces for the Fstring node: the {inputN} slots it fills in.
     template: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.1 2.4c-1.3 0-1.6.9-1.6 2v2.1c0 .9-.4 1.5-1.3 1.5.9 0 1.3.6 1.3 1.5v2.1c0 1.1.3 2 1.6 2"/><path d="M9.9 2.4c1.3 0 1.6.9 1.6 2v2.1c0 .9.4 1.5 1.3 1.5-.9 0-1.3.6-1.3 1.5v2.1c0 1.1-.3 2-1.6 2"/></svg>',
+    // A calculator for the Math node: a display strip above rows of keys.
+    math: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2.4" y="1.8" width="11.2" height="12.4" rx="1.4"/><path d="M4.8 4.4h6.4M5 7.3h.1M8 7.3h.1M11 7.3h.1M5 9.8h.1M8 9.8h.1M11 9.8h.1M5 12.3h.1M8 12.3h.1M11 12.3h.1"/></svg>',
     // Two branches for the Switch node: one input, one of several outputs.
     switch: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 8h3.4"/><path d="M5.2 8c2.4 0 2.2-4 4.6-4h2.4M5.2 8c2.4 0 2.2 4 4.6 4h2.4"/><path d="m10.6 2.3 1.7 1.7-1.7 1.7M10.6 9.7l1.7 1.7-1.7 1.7"/></svg>',
     file: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.8h5l3 3v9.4H4z"/><path d="M9 1.8v3h3M6.5 8.5h3M8 7v3"/></svg>',
@@ -446,6 +448,8 @@ function nodeInPorts(node, lookup) {
             return Array.from({length: node.joinCount || 0}, (_, i) => "join:" + i);
         case "template":
             return Array.from({length: templatePorts(node)}, (_, i) => "in:" + i);
+        case "math":
+            return Array.from({length: mathPorts(node)}, (_, i) => "in:" + i);
         case "switch":
             // The value to look up, both halves of every case, then the fallback.
             return ["main", ...(node.cases || []).flatMap((_, i) => ["key:" + i, "value:" + i]), "default"];
@@ -984,6 +988,10 @@ let fitAfterRender = false;
 function templatePorts(node) {
     return clamp(Number(node?.portCount) || 2, 1, 8);
 }
+// Math uses the same numbered ports and the same 1-8 ceiling as Fstring.
+function mathPorts(node) {
+    return clamp(Number(node?.portCount) || 2, 1, 8);
+}
 // Compact and Expand are the two halves of one idea — several values on one wire — so both
 // ask for a count and both read it through these, clamped to the same ceiling as a function.
 function compactInputs(node) {
@@ -1088,6 +1096,10 @@ function makeNode(type, opts = {}) {
         // The shape being built, with {input1}, {input2}… marking where each port lands.
         node.text = opts.text ?? "";
         node.portCount = templatePorts(opts);
+    } else if (type === "math") {
+        // The arithmetic expression, with the same numbered slots as an Fstring.
+        node.text = opts.text ?? "";
+        node.portCount = mathPorts(opts);
     } else if (type === "switch") {
         // Key/value pairs matched against the input, plus what to hand back when none match.
         node.text = opts.text ?? "";
@@ -1346,7 +1358,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "switch", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "math", "switch", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1672,6 +1684,7 @@ function sourceTitle(node) {
     if (node.type === "symbol") return node.title || symbolCipherName(node.symbolCipher);
     if (node.type === "join") return node.title || "Join";
     if (node.type === "template") return node.title || "Fstring";
+    if (node.type === "math") return node.title || "Math";
     if (node.type === "switch") return node.title || "Switch";
     if (node.type === "compact") return node.title || "Compact";
     if (node.type === "expand") return node.title || "Expand";
@@ -1696,6 +1709,7 @@ function nodeCategoryLabel(node) {
     if (node.type === "symbol") return "Symbols";
     if (node.type === "join") return "Join";
     if (node.type === "template") return "Fstring";
+    if (node.type === "math") return "Math";
     if (node.type === "switch") return "Switch";
     if (node.type === "compact") return "Compact";
     if (node.type === "expand") return "Expand";
@@ -1802,6 +1816,8 @@ function buildNode(node) {
         body.appendChild(buildJoinNode(node));
     } else if (node.type === "template") {
         body.appendChild(buildTemplateNode(node));
+    } else if (node.type === "math") {
+        body.appendChild(buildMathNode(node));
     } else if (node.type === "switch") {
         body.appendChild(buildSwitchNode(node));
     } else if (node.type === "compact") {
@@ -1890,6 +1906,8 @@ function collapsedPorts(node) {
         for (let i = 0; i < node.joinCount; i++) ports.push({name: "join:" + i, label: "In " + (i + 1)});
     } else if (node.type === "template") {
         for (let i = 0; i < templatePorts(node); i++) ports.push({name: "in:" + i, label: "In " + (i + 1)});
+    } else if (node.type === "math") {
+        for (let i = 0; i < mathPorts(node); i++) ports.push({name: "in:" + i, label: "In " + (i + 1)});
     } else if (node.type === "compact") {
         for (let i = 0; i < compactInputs(node); i++) ports.push({name: "in:" + i, label: portNameAt(node, "in", i, "In " + (i + 1))});
     } else if (node.type === "expand" || node.type === "pick" || node.type === "fork") {
@@ -2428,6 +2446,143 @@ function renderTemplate(text, values) {
         const index = Number(digits) - 1;
         return index >= 0 && index < values.length ? values[index] : whole;
     });
+}
+
+/* A math node is the arithmetic sibling of Fstring: the same {inputN} slots, but the
+ * expression is parsed and evaluated rather than interpolated. This is a small recursive
+ * descent parser, not eval, so a graph file can never run code through an expression. It
+ * understands + - * / %, parentheses, unary signs, decimal/scientific literals and ^ (or
+ * **) for powers. A port is read only when the expression names it, so an unused port can
+ * stay unwired. */
+function mathNumber(value, index) {
+    const text = String(value ?? "").trim();
+    if (!text) throw new Error(`Input ${index} is empty — wire a number into it.`);
+    if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text)) {
+        const shown = text.length > 28 ? text.slice(0, 28) + "…" : text;
+        throw new Error(`Input ${index} is not a number: “${shown}”.`);
+    }
+    const number = Number(text);
+    if (!Number.isFinite(number)) throw new Error(`Input ${index} is out of range.`);
+    return number;
+}
+function evaluateMath(expression, values) {
+    const source = String(expression ?? "");
+    let pos = 0;
+    const fail = message => { throw new Error(message); };
+    const skip = () => { while (pos < source.length && /\s/.test(source[pos])) pos++; };
+    const primary = () => {
+        skip();
+        if (source[pos] === "(") {
+            pos++;
+            const value = parseExpression();
+            skip();
+            if (source[pos] !== ")") fail("Missing a closing parenthesis.");
+            pos++;
+            return value;
+        }
+        if (source[pos] === "{") {
+            const match = /^\{input(\d+)\}/i.exec(source.slice(pos));
+            if (!match) fail(`Unknown placeholder at position ${pos + 1}.`);
+            pos += match[0].length;
+            const index = Number(match[1]);
+            if (index < 1 || index > values.length) fail(`{input${match[1]}} has no matching input port.`);
+            return mathNumber(values[index - 1], index);
+        }
+        const match = /^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?/i.exec(source.slice(pos));
+        if (!match) fail(`Expected a number or ( at position ${pos + 1}.`);
+        pos += match[0].length;
+        return Number(match[0]);
+    };
+    const unary = () => {
+        skip();
+        if (source[pos] === "+") { pos++; return unary(); }
+        if (source[pos] === "-") { pos++; return -unary(); }
+        return power();
+    };
+    const power = () => {
+        let value = primary();
+        skip();
+        if (source[pos] === "^" || (source[pos] === "*" && source[pos + 1] === "*")) {
+            pos += source[pos] === "^" ? 1 : 2;
+            value = Math.pow(value, unary());
+            if (!Number.isFinite(value)) fail("Result is not a finite number.");
+        }
+        return value;
+    };
+    const term = () => {
+        let value = unary();
+        for (;;) {
+            skip();
+            const op = source[pos];
+            if (op !== "*" && op !== "/" && op !== "%") break;
+            if (op === "*" && source[pos + 1] === "*") break;
+            pos++;
+            const right = unary();
+            if ((op === "/" || op === "%") && right === 0) fail("Division by zero.");
+            value = op === "*" ? value * right : op === "/" ? value / right : value % right;
+            if (!Number.isFinite(value)) fail("Result is not a finite number.");
+        }
+        return value;
+    };
+    const parseExpression = () => {
+        let value = term();
+        for (;;) {
+            skip();
+            const op = source[pos];
+            if (op !== "+" && op !== "-") break;
+            pos++;
+            value = op === "+" ? value + term() : value - term();
+            if (!Number.isFinite(value)) fail("Result is not a finite number.");
+        }
+        return value;
+    };
+    if (!source.trim()) fail("Type an expression first.");
+    const result = parseExpression();
+    skip();
+    if (pos < source.length) {
+        if (source[pos] === ")") fail("Unmatched closing parenthesis.");
+        fail(`Unexpected “${source[pos]}” at position ${pos + 1}.`);
+    }
+    if (!Number.isFinite(result)) fail("Result is not a finite number.");
+    return result;
+}
+// Trim the last bits of binary-float noise (0.1 + 0.2 reads as 0.3), while keeping enough
+// precision for ordinary division. Integers, including negative zero, print plainly.
+function mathResultText(value) {
+    if (Object.is(value, -0)) value = 0;
+    if (Number.isSafeInteger(value)) return String(value);
+    return String(Number(value.toPrecision(15)));
+}
+
+/* The Math node's card mirrors Fstring's numbered rows, so the expression and the ports
+ * read as one control. Add/remove grows the same 1-8 inputs; the preview shows the number. */
+function buildMathNode(node) {
+    const wrap = document.createElement("div");
+    const count = mathPorts(node);
+    let rows = "";
+    for (let i = 0; i < count; i++) {
+        const port = "in:" + i;
+        const edge = edgeInto(node.id, port);
+        const src = edge ? edgeSource(edge) : null;
+        rows += `<div class="io-row join-row">
+            <span class="port in${edge ? " connected" : ""}" data-port="${port}"></span>
+            <span class="io-label">Input ${i + 1}</span>
+            <span class="port-label">${edge ? chipHtml(src, edge) : `<span class="bytes">{input${i + 1}}</span>`}</span>
+            ${count > 1 && i === count - 1 ? `<button class="join-remove" data-action="math-remove-port" data-node="${node.id}" title="Remove the last input">${iconFill("x")}</button>` : ""}
+        </div>${edge ? `<div class="wire-hint" data-hint-port="${port}" title="What this input is carrying">${esc(wireHintFor(node, port))}</div>` : ""}`;
+    }
+    wrap.innerHTML = `<div class="arg-row"><div class="arg-label-row"><span class="arg-name">Expression</span></div>
+            <textarea class="control typed-input" data-math-text rows="2" spellcheck="false" placeholder="({input1} * {input2}) - {input3}">${esc(node.text || "")}</textarea>
+        </div>
+        <div class="fn-note">Use + - * / %, parentheses, and ^ (or **) for powers.</div>
+        ${rows}
+        <button class="join-add" data-action="math-add-port" data-node="${node.id}">${iconFill("plus")}<span>Add input</span></button>`;
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
+    const ta = $("[data-math-text]", wrap);
+    ta.addEventListener("input", () => { node.text = ta.value; node._sig = ""; onGraphEdited(); });
+    return wrap;
 }
 
 /* A switch node is a lookup table: the value on its input is compared with each case's key
@@ -3075,7 +3230,7 @@ function updatePreviewEl(wrap, node) {
     const imageUrl = (has && isImage && mode === "image") ? imageDataUrlFor(node, shown, kind) : null;
     // Text and file nodes are the display side of a graph now, so they get the roomier
     // preview the old Output node had (and its save button, below).
-    const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "switch" || node.type === "fn" ||
+    const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "math" || node.type === "switch" || node.type === "fn" ||
         node.type === "compact" || node.type === "expand" || node.type === "pick" ||
         node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
     // Every preview can lift its truncation. Text and raw count characters, so the byte
@@ -4304,6 +4459,13 @@ function inputSignature(node, incoming, results, opts) {
         }
         return JSON.stringify(["template", node.text, parts]);
     }
+    if (node.type === "math") {
+        const parts = [];
+        for (let i = 0; i < mathPorts(node); i++) {
+            parts.push(sourceBytesForPort(incoming, node.id, "in:" + i, results).sig);
+        }
+        return JSON.stringify(["math", node.text, parts]);
+    }
     if (node.type === "switch") {
         const parts = ["main", "default"];
         for (let i = 0; i < (node.cases || []).length; i++) parts.push("key:" + i, "value:" + i);
@@ -5267,6 +5429,21 @@ async function executeGraph(nodes, edges, opts = {}) {
                         values.push(src.bytes ? utf8(src.bytes) : "");
                     }
                     if (!error) out = enc.encode(renderTemplate(node.text, values));
+                }
+            } else if (node.type === "math") {
+                // Read every declared port, then let the expression pull only the slots it
+                // mentions. A port the expression never uses may be left empty.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else {
+                    const values = [];
+                    for (let i = 0; i < mathPorts(node); i++) {
+                        const src = sourceBytesForPort(incoming, node.id, "in:" + i, results);
+                        if (src.error) { error = "Upstream error: " + src.error; break; }
+                        if (isListValue(src.bytes)) { error = `Input ${i + 1} is a bundle — use Pick to choose one value.`; break; }
+                        values.push(src.bytes ? utf8(src.bytes) : "");
+                    }
+                    if (!error) out = enc.encode(mathResultText(evaluateMath(node.text, values)));
                 }
             } else if (node.type === "switch") {
                 sig = sigHash(inputSignature(node, incoming, results, opts));
@@ -6783,6 +6960,7 @@ const GRAPH_ITEMS = [
     {type: "pick", label: "Pick", icon: "pick", section: "Bundles", keys: "bundle list select choose one single value index item extract pick", about: "Take one value out of a bundled wire"},
     {type: "fork", label: "Fork", icon: "split", section: "Bundles", keys: "split text separator delimiter character comma newline parts bundle list divide", about: "Split text on a character into one bundled wire"},
     {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
+    {type: "math", label: "Math", icon: "math", keys: "arithmetic math calculate calculator formula expression add subtract multiply divide power modulo numbers input", about: "Evaluate an arithmetic expression over several inputs"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
     {type: "pngchunks", label: "PNG Chunks", icon: "file", section: "Multimedia", keys: "pngcheck png chunks crc ihdr text chunk steg metadata inspect image", about: "Validate a PNG's chunks, CRCs, dimensions and text"},
@@ -6962,7 +7140,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", SYMBOL_COLOR);
         ghost.textContent = symbolCipher(payload.slug)?.name || payload.slug;
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", switch: "Switch", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", math: "Math", switch: "Switch", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -7056,6 +7234,9 @@ function addGraphNode(type, x, y) {
         state.nodes.push(added);
     } else if (type === "template") {
         added = makeNode("template", {x: p.x, y: p.y, title: "Fstring", text: "{input1}"});
+        state.nodes.push(added);
+    } else if (type === "math") {
+        added = makeNode("math", {x: p.x, y: p.y, title: "Math", text: "{input1} + {input2}"});
         state.nodes.push(added);
     } else if (type === "switch") {
         added = makeNode("switch", {x: p.x, y: p.y, title: "Switch"});
@@ -9284,12 +9465,14 @@ function onNodeActionClick(ev) {
             renderAllNodes();
             onGraphEdited();
         }
-    } else if (action === "template-add-port" || action === "template-remove-port") {
+    } else if (action === "template-add-port" || action === "template-remove-port" ||
+               action === "math-add-port" || action === "math-remove-port") {
         ev.stopPropagation();
         if (node) {
-            const count = templatePorts(node);
-            if (action === "template-add-port") {
-                if (count >= 8) { toast("Eight inputs is the limit for one f-string.", "error"); return; }
+            const isMath = action.startsWith("math-");
+            const count = isMath ? mathPorts(node) : templatePorts(node);
+            if (action.endsWith("add-port")) {
+                if (count >= 8) { toast(`Eight inputs is the limit for one ${isMath ? "math node" : "f-string"}.`, "error"); return; }
                 node.portCount = count + 1;
             } else {
                 if (count <= 1) return;

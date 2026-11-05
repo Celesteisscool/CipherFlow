@@ -1,0 +1,164 @@
+{
+  "slug": "sanluca",
+  "name": "San Luca",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=sanluca",
+      "images": "https://i.cachesleuth.com/images/sanluca/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdefghilmnopqrstuvz\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 21,
+    "uniqueFiles": 21,
+    "manifestFiles": 21,
+    "downloaded": 21,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/sanluca/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/sanluca/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/sanluca/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/sanluca/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/sanluca/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/sanluca/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/sanluca/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/sanluca/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/sanluca/i.png"
+    },
+    {
+      "index": 10,
+      "key": "l",
+      "label": "L",
+      "file": "art/sanluca/l.png"
+    },
+    {
+      "index": 11,
+      "key": "m",
+      "label": "M",
+      "file": "art/sanluca/m.png"
+    },
+    {
+      "index": 12,
+      "key": "n",
+      "label": "N",
+      "file": "art/sanluca/n.png"
+    },
+    {
+      "index": 13,
+      "key": "o",
+      "label": "O",
+      "file": "art/sanluca/o.png"
+    },
+    {
+      "index": 14,
+      "key": "p",
+      "label": "P",
+      "file": "art/sanluca/p.png"
+    },
+    {
+      "index": 15,
+      "key": "q",
+      "label": "Q",
+      "file": "art/sanluca/q.png"
+    },
+    {
+      "index": 16,
+      "key": "r",
+      "label": "R",
+      "file": "art/sanluca/r.png"
+    },
+    {
+      "index": 17,
+      "key": "s",
+      "label": "S",
+      "file": "art/sanluca/s.png"
+    },
+    {
+      "index": 18,
+      "key": "t",
+      "label": "T",
+      "file": "art/sanluca/t.png"
+    },
+    {
+      "index": 19,
+      "key": "u",
+      "label": "U",
+      "file": "art/sanluca/u.png"
+    },
+    {
+      "index": 20,
+      "key": "v",
+      "label": "V",
+      "file": "art/sanluca/v.png"
+    },
+    {
+      "index": 21,
+      "key": "z",
+      "label": "Z",
+      "file": "art/sanluca/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

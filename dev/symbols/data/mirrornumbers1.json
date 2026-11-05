@@ -1,0 +1,206 @@
+{
+  "slug": "mirrornumbers1",
+  "name": "Mirror Numbers 1",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=mirrornumbers1",
+      "images": "https://i.cachesleuth.com/images/mirrornumbers1/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/mirror-digits"
+    }
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 10,
+    "uniqueFiles": 10,
+    "manifestFiles": 10,
+    "downloaded": 10,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "0",
+      "label": "0",
+      "file": "art/mirrornumbers1/0.png"
+    },
+    {
+      "index": 2,
+      "key": "1",
+      "label": "1",
+      "file": "art/mirrornumbers1/1.png"
+    },
+    {
+      "index": 3,
+      "key": "2",
+      "label": "2",
+      "file": "art/mirrornumbers1/2.png"
+    },
+    {
+      "index": 4,
+      "key": "3",
+      "label": "3",
+      "file": "art/mirrornumbers1/3.png"
+    },
+    {
+      "index": 5,
+      "key": "4",
+      "label": "4",
+      "file": "art/mirrornumbers1/4.png"
+    },
+    {
+      "index": 6,
+      "key": "5",
+      "label": "5",
+      "file": "art/mirrornumbers1/5.png"
+    },
+    {
+      "index": 7,
+      "key": "6",
+      "label": "6",
+      "file": "art/mirrornumbers1/6.png"
+    },
+    {
+      "index": 8,
+      "key": "7",
+      "label": "7",
+      "file": "art/mirrornumbers1/7.png"
+    },
+    {
+      "index": 9,
+      "key": "8",
+      "label": "8",
+      "file": "art/mirrornumbers1/8.png"
+    },
+    {
+      "index": 10,
+      "key": "9",
+      "label": "9",
+      "file": "art/mirrornumbers1/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/mirror-digits",
+    "count": 20,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "0",
+        "file": "art/mirrornumbers1/_dcode/char(48).png",
+        "variants": null
+      },
+      {
+        "key": "1",
+        "file": "art/mirrornumbers1/_dcode/char(49).png",
+        "variants": null
+      },
+      {
+        "key": "2",
+        "file": "art/mirrornumbers1/_dcode/char(50).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/mirrornumbers1/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "3",
+        "file": "art/mirrornumbers1/_dcode/char(51).png",
+        "variants": null
+      },
+      {
+        "key": "A",
+        "file": "art/mirrornumbers1/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "B",
+        "file": "art/mirrornumbers1/_dcode/char(66).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/mirrornumbers1/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "4",
+        "file": "art/mirrornumbers1/_dcode/char(52).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/mirrornumbers1/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "5",
+        "file": "art/mirrornumbers1/_dcode/char(53).png",
+        "variants": null
+      },
+      {
+        "key": "F",
+        "file": "art/mirrornumbers1/_dcode/char(70).png",
+        "variants": null
+      },
+      {
+        "key": "6",
+        "file": "art/mirrornumbers1/_dcode/char(54).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/mirrornumbers1/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "7",
+        "file": "art/mirrornumbers1/_dcode/char(55).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/mirrornumbers1/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "8",
+        "file": "art/mirrornumbers1/_dcode/char(56).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/mirrornumbers1/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "9",
+        "file": "art/mirrornumbers1/_dcode/char(57).png",
+        "variants": null
+      },
+      {
+        "key": "J",
+        "file": "art/mirrornumbers1/_dcode/char(74).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

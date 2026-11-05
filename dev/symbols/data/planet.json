@@ -1,0 +1,98 @@
+{
+  "slug": "planet",
+  "name": "Planet",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=planet",
+      "images": "https://i.cachesleuth.com/images/planet/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 10,
+    "uniqueFiles": 10,
+    "manifestFiles": 10,
+    "downloaded": 10,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "0",
+      "label": "0",
+      "file": "art/planet/0.png"
+    },
+    {
+      "index": 2,
+      "key": "1",
+      "label": "1",
+      "file": "art/planet/1.png"
+    },
+    {
+      "index": 3,
+      "key": "2",
+      "label": "2",
+      "file": "art/planet/2.png"
+    },
+    {
+      "index": 4,
+      "key": "3",
+      "label": "3",
+      "file": "art/planet/3.png"
+    },
+    {
+      "index": 5,
+      "key": "4",
+      "label": "4",
+      "file": "art/planet/4.png"
+    },
+    {
+      "index": 6,
+      "key": "5",
+      "label": "5",
+      "file": "art/planet/5.png"
+    },
+    {
+      "index": 7,
+      "key": "6",
+      "label": "6",
+      "file": "art/planet/6.png"
+    },
+    {
+      "index": 8,
+      "key": "7",
+      "label": "7",
+      "file": "art/planet/7.png"
+    },
+    {
+      "index": 9,
+      "key": "8",
+      "label": "8",
+      "file": "art/planet/8.png"
+    },
+    {
+      "index": 10,
+      "key": "9",
+      "label": "9",
+      "file": "art/planet/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

@@ -1,0 +1,339 @@
+{
+  "slug": "maze",
+  "name": "Maze",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=maze",
+      "images": "https://i.cachesleuth.com/images/maze/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "new Array(\" \",\".\",\",\",\";\",\":\",'\"',\"(\",\")\",\"-\")",
+    "othernames": "new Array(\"space\",\"period\",\"comma\",\"semicolon\",\"colon\",\"quote\",\"parentheses_open\",\"parentheses_close\",\"dash\")",
+    "digraphs": [
+      {
+        "seq": "10",
+        "file": "alt/10.png"
+      },
+      {
+        "seq": "11",
+        "file": "alt/11.png"
+      },
+      {
+        "seq": "12",
+        "file": "alt/12.png"
+      }
+    ],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 48,
+    "uniqueFiles": 48,
+    "manifestFiles": 48,
+    "downloaded": 48,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/maze/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/maze/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/maze/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/maze/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/maze/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/maze/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/maze/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/maze/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/maze/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/maze/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/maze/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/maze/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/maze/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/maze/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/maze/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/maze/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/maze/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/maze/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/maze/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/maze/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/maze/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/maze/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/maze/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/maze/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/maze/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/maze/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/maze/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/maze/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/maze/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/maze/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/maze/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/maze/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/maze/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/maze/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/maze/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/maze/9.png"
+    },
+    {
+      "index": 37,
+      "key": " ",
+      "label": " ",
+      "file": "art/maze/space.png"
+    },
+    {
+      "index": 38,
+      "key": ".",
+      "label": ".",
+      "file": "art/maze/period.png"
+    },
+    {
+      "index": 39,
+      "key": ",",
+      "label": ",",
+      "file": "art/maze/comma.png"
+    },
+    {
+      "index": 40,
+      "key": ";",
+      "label": ";",
+      "file": "art/maze/semicolon.png"
+    },
+    {
+      "index": 41,
+      "key": ":",
+      "label": ":",
+      "file": "art/maze/colon.png"
+    },
+    {
+      "index": 42,
+      "key": "\"",
+      "label": "\"",
+      "file": "art/maze/quote.png"
+    },
+    {
+      "index": 43,
+      "key": "(",
+      "label": "(",
+      "file": "art/maze/parentheses_open.png"
+    },
+    {
+      "index": 44,
+      "key": ")",
+      "label": ")",
+      "file": "art/maze/parentheses_close.png"
+    },
+    {
+      "index": 45,
+      "key": "-",
+      "label": "-",
+      "file": "art/maze/dash.png"
+    },
+    {
+      "index": 46,
+      "key": "10",
+      "label": "10",
+      "file": "art/maze/alt/10.png"
+    },
+    {
+      "index": 47,
+      "key": "11",
+      "label": "11",
+      "file": "art/maze/alt/11.png"
+    },
+    {
+      "index": 48,
+      "key": "12",
+      "label": "12",
+      "file": "art/maze/alt/12.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

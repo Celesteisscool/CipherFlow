@@ -1,0 +1,273 @@
+{
+  "slug": "klinzhai",
+  "name": "Klinzhai - Klingon",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=klinzhai",
+      "images": "https://i.cachesleuth.com/images/klinzhai/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abdefghijklmnoprstuvwxyz\".split(\"\")",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [
+      {
+        "seq": "ng",
+        "file": "alt/ng.png"
+      },
+      {
+        "seq": "oo",
+        "file": "alt/oo.png"
+      },
+      {
+        "seq": "th",
+        "file": "alt/th.png"
+      }
+    ],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 37,
+    "uniqueFiles": 37,
+    "manifestFiles": 37,
+    "downloaded": 37,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/klinzhai/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/klinzhai/b.png"
+    },
+    {
+      "index": 3,
+      "key": "d",
+      "label": "D",
+      "file": "art/klinzhai/d.png"
+    },
+    {
+      "index": 4,
+      "key": "e",
+      "label": "E",
+      "file": "art/klinzhai/e.png"
+    },
+    {
+      "index": 5,
+      "key": "f",
+      "label": "F",
+      "file": "art/klinzhai/f.png"
+    },
+    {
+      "index": 6,
+      "key": "g",
+      "label": "G",
+      "file": "art/klinzhai/g.png"
+    },
+    {
+      "index": 7,
+      "key": "h",
+      "label": "H",
+      "file": "art/klinzhai/h.png"
+    },
+    {
+      "index": 8,
+      "key": "i",
+      "label": "I",
+      "file": "art/klinzhai/i.png"
+    },
+    {
+      "index": 9,
+      "key": "j",
+      "label": "J",
+      "file": "art/klinzhai/j.png"
+    },
+    {
+      "index": 10,
+      "key": "k",
+      "label": "K",
+      "file": "art/klinzhai/k.png"
+    },
+    {
+      "index": 11,
+      "key": "l",
+      "label": "L",
+      "file": "art/klinzhai/l.png"
+    },
+    {
+      "index": 12,
+      "key": "m",
+      "label": "M",
+      "file": "art/klinzhai/m.png"
+    },
+    {
+      "index": 13,
+      "key": "n",
+      "label": "N",
+      "file": "art/klinzhai/n.png"
+    },
+    {
+      "index": 14,
+      "key": "o",
+      "label": "O",
+      "file": "art/klinzhai/o.png"
+    },
+    {
+      "index": 15,
+      "key": "p",
+      "label": "P",
+      "file": "art/klinzhai/p.png"
+    },
+    {
+      "index": 16,
+      "key": "r",
+      "label": "R",
+      "file": "art/klinzhai/r.png"
+    },
+    {
+      "index": 17,
+      "key": "s",
+      "label": "S",
+      "file": "art/klinzhai/s.png"
+    },
+    {
+      "index": 18,
+      "key": "t",
+      "label": "T",
+      "file": "art/klinzhai/t.png"
+    },
+    {
+      "index": 19,
+      "key": "u",
+      "label": "U",
+      "file": "art/klinzhai/u.png"
+    },
+    {
+      "index": 20,
+      "key": "v",
+      "label": "V",
+      "file": "art/klinzhai/v.png"
+    },
+    {
+      "index": 21,
+      "key": "w",
+      "label": "W",
+      "file": "art/klinzhai/w.png"
+    },
+    {
+      "index": 22,
+      "key": "x",
+      "label": "X",
+      "file": "art/klinzhai/x.png"
+    },
+    {
+      "index": 23,
+      "key": "y",
+      "label": "Y",
+      "file": "art/klinzhai/y.png"
+    },
+    {
+      "index": 24,
+      "key": "z",
+      "label": "Z",
+      "file": "art/klinzhai/z.png"
+    },
+    {
+      "index": 25,
+      "key": "0",
+      "label": "0",
+      "file": "art/klinzhai/0.png"
+    },
+    {
+      "index": 26,
+      "key": "1",
+      "label": "1",
+      "file": "art/klinzhai/1.png"
+    },
+    {
+      "index": 27,
+      "key": "2",
+      "label": "2",
+      "file": "art/klinzhai/2.png"
+    },
+    {
+      "index": 28,
+      "key": "3",
+      "label": "3",
+      "file": "art/klinzhai/3.png"
+    },
+    {
+      "index": 29,
+      "key": "4",
+      "label": "4",
+      "file": "art/klinzhai/4.png"
+    },
+    {
+      "index": 30,
+      "key": "5",
+      "label": "5",
+      "file": "art/klinzhai/5.png"
+    },
+    {
+      "index": 31,
+      "key": "6",
+      "label": "6",
+      "file": "art/klinzhai/6.png"
+    },
+    {
+      "index": 32,
+      "key": "7",
+      "label": "7",
+      "file": "art/klinzhai/7.png"
+    },
+    {
+      "index": 33,
+      "key": "8",
+      "label": "8",
+      "file": "art/klinzhai/8.png"
+    },
+    {
+      "index": 34,
+      "key": "9",
+      "label": "9",
+      "file": "art/klinzhai/9.png"
+    },
+    {
+      "index": 35,
+      "key": "ng",
+      "label": "NG",
+      "file": "art/klinzhai/alt/ng.png"
+    },
+    {
+      "index": 36,
+      "key": "oo",
+      "label": "OO",
+      "file": "art/klinzhai/alt/oo.png"
+    },
+    {
+      "index": 37,
+      "key": "th",
+      "label": "TH",
+      "file": "art/klinzhai/alt/th.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

@@ -1,0 +1,116 @@
+{
+  "slug": "kartrak",
+  "name": "KarTrak",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=kartrak",
+      "images": "https://i.cachesleuth.com/images/kartrak/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "nums.concat(\"10\")",
+    "otherchars": "new Array(\".\",\",\")",
+    "othernames": "new Array(\"start\",\"stop\")",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 13,
+    "uniqueFiles": 13,
+    "manifestFiles": 13,
+    "downloaded": 13,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "0",
+      "label": "0",
+      "file": "art/kartrak/0.png"
+    },
+    {
+      "index": 2,
+      "key": "1",
+      "label": "1",
+      "file": "art/kartrak/1.png"
+    },
+    {
+      "index": 3,
+      "key": "2",
+      "label": "2",
+      "file": "art/kartrak/2.png"
+    },
+    {
+      "index": 4,
+      "key": "3",
+      "label": "3",
+      "file": "art/kartrak/3.png"
+    },
+    {
+      "index": 5,
+      "key": "4",
+      "label": "4",
+      "file": "art/kartrak/4.png"
+    },
+    {
+      "index": 6,
+      "key": "5",
+      "label": "5",
+      "file": "art/kartrak/5.png"
+    },
+    {
+      "index": 7,
+      "key": "6",
+      "label": "6",
+      "file": "art/kartrak/6.png"
+    },
+    {
+      "index": 8,
+      "key": "7",
+      "label": "7",
+      "file": "art/kartrak/7.png"
+    },
+    {
+      "index": 9,
+      "key": "8",
+      "label": "8",
+      "file": "art/kartrak/8.png"
+    },
+    {
+      "index": 10,
+      "key": "9",
+      "label": "9",
+      "file": "art/kartrak/9.png"
+    },
+    {
+      "index": 11,
+      "key": "10",
+      "label": "10",
+      "file": "art/kartrak/10.png"
+    },
+    {
+      "index": 12,
+      "key": ".",
+      "label": ".",
+      "file": "art/kartrak/start.png"
+    },
+    {
+      "index": 13,
+      "key": ",",
+      "label": ",",
+      "file": "art/kartrak/stop.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

@@ -1,0 +1,176 @@
+{
+  "slug": "meroitan_hieroglyphs",
+  "name": "Meroitic Hieroglyphs",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=meroitan_hieroglyphs",
+      "images": "https://i.cachesleuth.com/images/meroitan_hieroglyphs/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdegijklmnopqrstuvwyz\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 23,
+    "uniqueFiles": 23,
+    "manifestFiles": 23,
+    "downloaded": 23,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/meroitan_hieroglyphs/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/meroitan_hieroglyphs/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/meroitan_hieroglyphs/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/meroitan_hieroglyphs/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/meroitan_hieroglyphs/e.png"
+    },
+    {
+      "index": 6,
+      "key": "g",
+      "label": "G",
+      "file": "art/meroitan_hieroglyphs/g.png"
+    },
+    {
+      "index": 7,
+      "key": "i",
+      "label": "I",
+      "file": "art/meroitan_hieroglyphs/i.png"
+    },
+    {
+      "index": 8,
+      "key": "j",
+      "label": "J",
+      "file": "art/meroitan_hieroglyphs/j.png"
+    },
+    {
+      "index": 9,
+      "key": "k",
+      "label": "K",
+      "file": "art/meroitan_hieroglyphs/k.png"
+    },
+    {
+      "index": 10,
+      "key": "l",
+      "label": "L",
+      "file": "art/meroitan_hieroglyphs/l.png"
+    },
+    {
+      "index": 11,
+      "key": "m",
+      "label": "M",
+      "file": "art/meroitan_hieroglyphs/m.png"
+    },
+    {
+      "index": 12,
+      "key": "n",
+      "label": "N",
+      "file": "art/meroitan_hieroglyphs/n.png"
+    },
+    {
+      "index": 13,
+      "key": "o",
+      "label": "O",
+      "file": "art/meroitan_hieroglyphs/o.png"
+    },
+    {
+      "index": 14,
+      "key": "p",
+      "label": "P",
+      "file": "art/meroitan_hieroglyphs/p.png"
+    },
+    {
+      "index": 15,
+      "key": "q",
+      "label": "Q",
+      "file": "art/meroitan_hieroglyphs/q.png"
+    },
+    {
+      "index": 16,
+      "key": "r",
+      "label": "R",
+      "file": "art/meroitan_hieroglyphs/r.png"
+    },
+    {
+      "index": 17,
+      "key": "s",
+      "label": "S",
+      "file": "art/meroitan_hieroglyphs/s.png"
+    },
+    {
+      "index": 18,
+      "key": "t",
+      "label": "T",
+      "file": "art/meroitan_hieroglyphs/t.png"
+    },
+    {
+      "index": 19,
+      "key": "u",
+      "label": "U",
+      "file": "art/meroitan_hieroglyphs/u.png"
+    },
+    {
+      "index": 20,
+      "key": "v",
+      "label": "V",
+      "file": "art/meroitan_hieroglyphs/v.png"
+    },
+    {
+      "index": 21,
+      "key": "w",
+      "label": "W",
+      "file": "art/meroitan_hieroglyphs/w.png"
+    },
+    {
+      "index": 22,
+      "key": "y",
+      "label": "Y",
+      "file": "art/meroitan_hieroglyphs/y.png"
+    },
+    {
+      "index": 23,
+      "key": "z",
+      "label": "Z",
+      "file": "art/meroitan_hieroglyphs/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

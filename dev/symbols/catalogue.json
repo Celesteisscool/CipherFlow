@@ -787,8 +787,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "doop",
@@ -1088,8 +1087,7 @@
     "glyphs": 10,
     "uniqueFiles": 10,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "fringe",
@@ -1099,8 +1097,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "futhark",
@@ -1130,8 +1127,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "gaim",
@@ -1141,8 +1137,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "galactic",
@@ -1162,8 +1157,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "gardner",
@@ -1183,8 +1177,7 @@
     "glyphs": 72,
     "uniqueFiles": 72,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "gerudo",
@@ -1214,8 +1207,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "gnommish",
@@ -1225,8 +1217,7 @@
     "glyphs": 31,
     "uniqueFiles": 31,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "gravity_falls_author",
@@ -1236,8 +1227,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "gravity_falls_bill",
@@ -1257,8 +1247,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "greatmachine",
@@ -1268,8 +1257,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "hexacode",
@@ -1279,8 +1267,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "hexahue",
@@ -1300,8 +1287,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "hvd",
@@ -1311,8 +1297,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "hylian",
@@ -1332,8 +1317,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "hymmnos",
@@ -1343,8 +1327,7 @@
     "glyphs": 62,
     "uniqueFiles": 62,
     "dcode": 52,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "iching",
@@ -1364,8 +1347,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "illuminati_1",
@@ -1375,8 +1357,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "illuminati_2",
@@ -1386,8 +1367,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "indianajones",
@@ -1397,8 +1377,7 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "japanesenumbers",
@@ -1408,8 +1387,7 @@
     "glyphs": 14,
     "uniqueFiles": 14,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "jenks",
@@ -1419,8 +1397,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "kabouter",
@@ -1430,8 +1407,7 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "kabouter_1947",
@@ -1440,6 +1416,49 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "kargi",
+    "name": "Kargi",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 31,
+    "uniqueFiles": 31,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "kartrak",
+    "name": "KarTrak",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 13,
+    "uniqueFiles": 13,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "kilrathi",
+    "name": "Kilrathi",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "kix",
+    "name": "Kix",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
     "dcode": 0,
     "check": "PASS",
     "new": true
@@ -1455,6 +1474,50 @@
     "check": "PASS"
   },
   {
+    "slug": "klinzhai",
+    "name": "Klinzhai - Klingon",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 37,
+    "uniqueFiles": 37,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "kokopelli",
+    "name": "Kokopelli",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "korean",
+    "name": "Korean",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "krakoan",
+    "name": "Krakoan",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "kryptonian",
     "name": "Kryptonian",
     "source": "cachesleuth",
@@ -1463,6 +1526,39 @@
     "uniqueFiles": 36,
     "dcode": 0,
     "check": "PASS"
+  },
+  {
+    "slug": "leprechaun",
+    "name": "Leprechaun",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "life",
+    "name": "Life",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "llort",
+    "name": "Llort",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
   },
   {
     "slug": "lunar",
@@ -1475,6 +1571,17 @@
     "check": "PASS"
   },
   {
+    "slug": "magicode",
+    "name": "Magicode",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 28,
+    "uniqueFiles": 28,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "malachim",
     "name": "Malachim",
     "source": "both",
@@ -1483,6 +1590,83 @@
     "uniqueFiles": 26,
     "dcode": 9,
     "check": "PASS"
+  },
+  {
+    "slug": "malcorian",
+    "name": "Malcorian",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "mandalorian",
+    "name": "Mandalorian",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "marain",
+    "name": "Marain",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "marain1",
+    "name": "Marain 2",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "markab",
+    "name": "Markab",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "maryqueenofscots",
+    "name": "Mary Queen of Scots",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 23,
+    "uniqueFiles": 23,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "masterofmagic",
+    "name": "Master of Magic",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
   },
   {
     "slug": "matoran",
@@ -1495,6 +1679,39 @@
     "check": "PASS"
   },
   {
+    "slug": "maximal",
+    "name": "Maximal",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 62,
+    "uniqueFiles": 62,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "maya_calander",
+    "name": "Mayan Calendar 1",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 20,
+    "uniqueFiles": 20,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "maya_calander2",
+    "name": "Mayan Calendar 2",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 19,
+    "uniqueFiles": 19,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "mayan",
     "name": "Mayan Numbers 1",
     "source": "both",
@@ -1503,6 +1720,39 @@
     "uniqueFiles": 20,
     "dcode": 20,
     "check": "PASS"
+  },
+  {
+    "slug": "mayan1",
+    "name": "Mayan Numbers 2",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 20,
+    "uniqueFiles": 20,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "maze",
+    "name": "Maze",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 48,
+    "uniqueFiles": 48,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
+    "slug": "meroitan_hieroglyphs",
+    "name": "Meroitic Hieroglyphs",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 23,
+    "uniqueFiles": 23,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
   },
   {
     "slug": "minimoys",

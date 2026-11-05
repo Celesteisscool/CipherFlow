@@ -2356,3 +2356,48 @@ pill still narrowing 175 → 25. Inventory regenerated: CacheSleuth 175/306, dCo
 (20 bound, 35 twin, 101 uncatalogued). Sheets rewritten for the four.
 
 Nothing committed.
+
+## Batch 14 — 25 ciphers (catalogue 175 → 200)
+
+**Phase 1 (batch 14) — selection, staging, install and build, 2026-11-04.** N = 25 (the catalogue
+is over 100). Candidates are manifest slugs not yet shipped, alphabetically, N taken after skips:
+
+- `bacon`, `fiveneedletelegraph`, `goldbug`, `kenny`, `letterstonumbers`, `lotrperiodic` — no
+  CacheSleuth descriptor (`extract.mjs` exits 2), so they cannot be staged at all.
+- `barcode39` (37 declared / 36 manifest, `space.png` 404), `giovannifontana` (46 declared / 28,
+  18 `uc/*.png` missing) and `hyach` (36 declared / 26, no digit art) — COUNT CHECK FAIL; re-checked
+  this run and unchanged upstream.
+
+Batch: maximal, kargi, kartrak, kilrathi, kix, klinzhai, kokopelli, korean, krakoan, leprechaun,
+life, llort, magicode, malcorian, mandalorian, marain, marain1, markab, maryqueenofscots,
+masterofmagic, maya_calander, maya_calander2, mayan1, maze, meroitan_hieroglyphs.
+
+**Phase 2 (batch 14) — largest first.** `maximal` (62 manifest files) staged 62/62, COUNT CHECK
+PASS. `dcode-find` matched only "maximum of a list/function" pages, all 0 glyphs, so `NO PAGE` —
+single-source. Pipeline sound; staging continued.
+
+**dCode lookup.** `dcode-find` on every chosen slug returned `NO PAGE` with the declared keys in
+hand, so the whole batch ships CacheSleuth art and no source toggles. These are the manifest-slug
+near misses the lookup scores and rejects, not evidence gaps.
+
+**Ink-tight gate.** Medians 11.1–30.0 px in the 30 px tile. One cipher is under the 12 px gate:
+`kargi` (median 11.1, range 3.5–11.3), so `tightArt` is set for it and installed as a subset.
+`meroitan_hieroglyphs` is 12.2 px and stays off, as does everything else (lowest after that:
+maximal 12.7, life 13.4); `maze` renders at 30.0 px.
+
+**Install and build.** Subset install of the 25 slugs. Hash snapshot before/after: all **175**
+pre-existing data files and all **6,482** pre-existing art files unchanged; only the 25 new data
+files and 25 art dirs appear. Catalogue 200 rows == 200 data files == 200 art dirs, 0 tiles
+without art. `index.html` rebuilt at **42,968,836** bytes (was 39,594,342; +3,374,494 for 768
+shipped symbols). `new: true` is on this batch's 25 rows and cleared from batch 13's.
+
+**Sheets and checklist.** 25 sheets written (200 total). `inventory.mjs` exits 0: CacheSleuth
+**200/306 (65%)**, 106 left; dCode 156 pages — 20 bound, 35 twin, 101 uncatalogued.
+
+**Browser pass.** 264/264 checks over the shipped page (panel and header count at 200, the New
+pill isolating 25 and Reset restoring 200, 25 nodes placed; per node: tile count, captions in
+source order, PNG art, no placeholder, foot "N symbols", no toggle, fixed CacheSleuth label, no
+variant bar, first-tile and multi-key transcription; `kargi`'s packed art square from the tight
+crop). `verify-source.mjs`: **768 glyphs byte-identical**, 0 mismatched, 0 unreachable.
+
+Nothing committed — awaiting sign-off.

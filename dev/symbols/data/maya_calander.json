@@ -1,0 +1,158 @@
+{
+  "slug": "maya_calander",
+  "name": "Mayan Calendar 1",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=maya_calander",
+      "images": "https://i.cachesleuth.com/images/maya_calander/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\",\"15\",\"16\",\"17\",\"18\",\"19\",\"20\"]",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 20,
+    "uniqueFiles": 20,
+    "manifestFiles": 20,
+    "downloaded": 20,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "1",
+      "label": "1",
+      "file": "art/maya_calander/1.png"
+    },
+    {
+      "index": 2,
+      "key": "2",
+      "label": "2",
+      "file": "art/maya_calander/2.png"
+    },
+    {
+      "index": 3,
+      "key": "3",
+      "label": "3",
+      "file": "art/maya_calander/3.png"
+    },
+    {
+      "index": 4,
+      "key": "4",
+      "label": "4",
+      "file": "art/maya_calander/4.png"
+    },
+    {
+      "index": 5,
+      "key": "5",
+      "label": "5",
+      "file": "art/maya_calander/5.png"
+    },
+    {
+      "index": 6,
+      "key": "6",
+      "label": "6",
+      "file": "art/maya_calander/6.png"
+    },
+    {
+      "index": 7,
+      "key": "7",
+      "label": "7",
+      "file": "art/maya_calander/7.png"
+    },
+    {
+      "index": 8,
+      "key": "8",
+      "label": "8",
+      "file": "art/maya_calander/8.png"
+    },
+    {
+      "index": 9,
+      "key": "9",
+      "label": "9",
+      "file": "art/maya_calander/9.png"
+    },
+    {
+      "index": 10,
+      "key": "10",
+      "label": "10",
+      "file": "art/maya_calander/10.png"
+    },
+    {
+      "index": 11,
+      "key": "11",
+      "label": "11",
+      "file": "art/maya_calander/11.png"
+    },
+    {
+      "index": 12,
+      "key": "12",
+      "label": "12",
+      "file": "art/maya_calander/12.png"
+    },
+    {
+      "index": 13,
+      "key": "13",
+      "label": "13",
+      "file": "art/maya_calander/13.png"
+    },
+    {
+      "index": 14,
+      "key": "14",
+      "label": "14",
+      "file": "art/maya_calander/14.png"
+    },
+    {
+      "index": 15,
+      "key": "15",
+      "label": "15",
+      "file": "art/maya_calander/15.png"
+    },
+    {
+      "index": 16,
+      "key": "16",
+      "label": "16",
+      "file": "art/maya_calander/16.png"
+    },
+    {
+      "index": 17,
+      "key": "17",
+      "label": "17",
+      "file": "art/maya_calander/17.png"
+    },
+    {
+      "index": 18,
+      "key": "18",
+      "label": "18",
+      "file": "art/maya_calander/18.png"
+    },
+    {
+      "index": 19,
+      "key": "19",
+      "label": "19",
+      "file": "art/maya_calander/19.png"
+    },
+    {
+      "index": 20,
+      "key": "20",
+      "label": "20",
+      "file": "art/maya_calander/20.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

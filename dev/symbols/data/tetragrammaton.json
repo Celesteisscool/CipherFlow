@@ -1,0 +1,158 @@
+{
+  "slug": "tetragrammaton",
+  "name": "Tetragrammaton",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=tetragrammaton",
+      "images": "https://i.cachesleuth.com/images/tetragrammaton/",
+      "tableImage": "art/tetragrammaton/table-legend.png"
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdefghilmnopqrstuz\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 20,
+    "uniqueFiles": 20,
+    "manifestFiles": 20,
+    "downloaded": 20,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/tetragrammaton/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/tetragrammaton/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/tetragrammaton/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/tetragrammaton/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/tetragrammaton/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/tetragrammaton/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/tetragrammaton/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/tetragrammaton/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/tetragrammaton/i.png"
+    },
+    {
+      "index": 10,
+      "key": "l",
+      "label": "L",
+      "file": "art/tetragrammaton/l.png"
+    },
+    {
+      "index": 11,
+      "key": "m",
+      "label": "M",
+      "file": "art/tetragrammaton/m.png"
+    },
+    {
+      "index": 12,
+      "key": "n",
+      "label": "N",
+      "file": "art/tetragrammaton/n.png"
+    },
+    {
+      "index": 13,
+      "key": "o",
+      "label": "O",
+      "file": "art/tetragrammaton/o.png"
+    },
+    {
+      "index": 14,
+      "key": "p",
+      "label": "P",
+      "file": "art/tetragrammaton/p.png"
+    },
+    {
+      "index": 15,
+      "key": "q",
+      "label": "Q",
+      "file": "art/tetragrammaton/q.png"
+    },
+    {
+      "index": 16,
+      "key": "r",
+      "label": "R",
+      "file": "art/tetragrammaton/r.png"
+    },
+    {
+      "index": 17,
+      "key": "s",
+      "label": "S",
+      "file": "art/tetragrammaton/s.png"
+    },
+    {
+      "index": 18,
+      "key": "t",
+      "label": "T",
+      "file": "art/tetragrammaton/t.png"
+    },
+    {
+      "index": 19,
+      "key": "u",
+      "label": "U",
+      "file": "art/tetragrammaton/u.png"
+    },
+    {
+      "index": 20,
+      "key": "z",
+      "label": "Z",
+      "file": "art/tetragrammaton/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

@@ -7646,6 +7646,25 @@ function initTheme() {
 }
 
 /* ================================================================ verification lab */
+// The lab keeps its last run in this browser, so closing the tab does not throw away a
+// sweep that took minutes. A rebuilt test plan changes the signature, and old results are
+// discarded rather than shown against checks that no longer exist.
+const LAB_RESULTS_KEY = "cipherflow.lab.results.v1";
+const LAB_RESULT_TEXT_LIMIT = 2000;
+// WebCrypto is absent on plain-HTTP origins other than localhost. That is an environment
+// limit, not a wrong answer, so these rows are reported as blocked rather than failed.
+const LAB_WEB_CRYPTO_REASON = "WebCrypto is not available on this page because it was opened over plain HTTP from a host other than localhost. Browsers expose it only in a secure context; open the page via localhost or HTTPS to run the PGP checks.";
+function labPlanSignature() {
+    let h = 0x811c9dc5;
+    const mix = s => {
+        for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
+    };
+    for (const t of TESTPLAN.tests) mix(`${t.kind}:${t.op}:${t.name || ""}:${t.skip ? "s" : ""}`);
+    for (const rt of TESTPLAN.roundtrips || []) mix(`rt:${rt.id}:${rt.encoder}:${rt.decoder}`);
+    for (const tr of TESTPLAN.textRoundtrips || []) mix(`tr:${tr.id}:${tr.label}`);
+    return `${(h >>> 0).toString(16)}:${TESTPLAN.tests.length}`;
+}
+const LAB_PLAN = labPlanSignature();
 const lab = {
     opened: false,
     running: false,
@@ -7653,6 +7672,11 @@ const lab = {
     tab: "ops",
     filter: "all",
     query: "",
+    resultsAt: 0,
+    saveTimer: 0,
+    batchDone: 0,
+    batchTotal: 0,
+    batchLabel: "",
     items: [
         ...TESTPLAN.tests.map((t, i) => ({
             ...t,
@@ -7705,12 +7729,15 @@ function initLab() {
     $("#labClose").addEventListener("click", closeLab);
     $("#labOpenBtn").addEventListener("click", openLab);
     $$(".lab-tab").forEach(tab => tab.addEventListener("click", () => switchLabTab(tab.dataset.labtab)));
-    $("#labRun").addEventListener("click", () => runAllTests());
+    $("#labRun").addEventListener("click", () => runTestBatch(lab.items, {label: "Running all", reset: true}));
+    $("#labRunVisible").addEventListener("click", runVisibleTests);
+    $("#labRetry").addEventListener("click", retryFailedTests);
+    $("#labClear").addEventListener("click", clearLabResults);
     $("#labStop").addEventListener("click", () => {
         lab.stopRequested = true;
         $("#labRun").disabled = true;
         $("#labStop").disabled = true;
-        setLabProgressText("Stopping after the current operation…");
+        setLabProgressText("Stopping after the current check…");
     });
     $("#labCopy").addEventListener("click", copyLabReport);
     $("#labSearch").addEventListener("input", debounce(() => {
@@ -7723,7 +7750,11 @@ function initLab() {
     });
     $("#labList").addEventListener("click", onLabListClick);
     buildIntegrationCards();
+    loadLabResults();
+    renderIntegration();
     updateLabSummary();
+    updateLabBadge();
+    updateLabRunControls();
 }
 
 function openLab() {
@@ -7732,6 +7763,8 @@ function openLab() {
     if (!lab.rowEls.size) buildLabRows();
     renderLabVisible();
     updateLabSummary();
+    updateLabBadge();
+    updateLabRunControls();
     setTimeout(() => $("#labSearch").focus(), 60);
 }
 function closeLab() {
@@ -7771,7 +7804,7 @@ function buildLabRows() {
         const kindLabel = item.kind === "official" ? "KAT" : item.kind === "roundtrip" ? "roundtrip" : item.kind === "textroundtrip" ? "pipeline" : "probe";
         const kindClass = item.kind === "official" ? "kat" : "probe";
         const subtitle = item.kind === "official"
-            ? `${esc(meta.category || "")} · ${esc(item.name || "")}${item.blockedReason ? " · blocked upstream" : item.drift ? " · known upstream drift" : ""}`
+            ? `${esc(meta.category || "")} · ${esc(item.name || "")}${item.blockedReason ? (item.blockedEnv ? " · blocked in this browser" : " · blocked upstream") : item.drift ? " · known upstream drift" : ""}`
             : item.kind === "roundtrip" ? "Encodes, then decodes, and compares the original bytes"
             : item.kind === "textroundtrip" ? "Runs the pipeline and compares the result to the input text"
             : `${esc(meta.category || "")} · live probe${item.expected !== undefined || item.expectedContains ? " · known expected output" : ""}`;
@@ -7890,7 +7923,7 @@ function renderTestDetail(item) {
             <div class="test-block"><div class="test-block-label">${item.kind === "official" ? "Expected" : "Check"}</div><pre class="${item.kind === "official" ? "" : "muted"}">${esc(expected)}</pre></div>
             <div class="test-block"><div class="test-block-label">Actual output</div><pre class="${item.error ? "test-error" : "muted"}">${esc(actual)}</pre></div>
         </div>
-        ${item.blockedReason ? `<div class="test-note">Blocked by CyberChef's browser build: ${esc(item.blockedReason)}</div>` : ""}
+        ${item.blockedReason ? `<div class="test-note">${item.blockedEnv ? "Blocked in this browser" : "Blocked by CyberChef's browser build"}: ${esc(item.blockedReason)}</div>` : ""}
         ${item.drift ? `<div class="test-note">Known upstream drift: ${esc(item.drift.note)} This check asserts the stable prefix: “${esc(item.drift.expectedPrefix)}”.</div>` : ""}
         <div class="test-actions">
             <button class="mini-btn" data-action="run-one" data-index="${item.index}">${iconFill("play")} Run this check</button>
@@ -7921,8 +7954,21 @@ function imageUrlForOutput(value) {
 function matchesLabFilter(item) {
     if (lab.query) {
         const q = lab.query.toLowerCase();
-        const hay = `${item.op || ""} ${OPS[item.op]?.category || ""} ${item.name || ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
+        // Search the result side too: after a sweep, the useful way to find a row is the
+        // error it raised or the output it produced, not just the operation's name.
+        const parts = [
+            item.op || "",
+            OPS[item.op]?.category || "",
+            item.name || "",
+            item.expectedContains || "",
+            item.input ? String(item.input).slice(0, 400) : "",
+            item.expected != null ? String(item.expected).slice(0, 400) : "",
+            item.actual ? String(item.actual).slice(0, 400) : "",
+            item.error || "",
+            item.skip || "",
+            (item.steps || []).map(step => step.op).join(" ")
+        ];
+        if (!parts.join(" ").toLowerCase().includes(q)) return false;
     }
     const f = lab.filter;
     if (f === "official" && item.kind !== "official") return false;
@@ -7935,14 +7981,13 @@ function matchesLabFilter(item) {
     return true;
 }
 function renderLabVisible() {
-    let visible = 0;
     for (const item of lab.items) {
         const row = lab.rowEls.get(item.index);
         if (!row) continue;
-        const show = matchesLabFilter(item);
-        row.style.display = show ? "" : "none";
-        if (show) visible++;
+        row.style.display = matchesLabFilter(item) ? "" : "none";
     }
+    // Whether there is a visible subset worth running changes with the filter.
+    updateLabRunControls();
 }
 function updateLabSummary() {
     const counts = {pass: 0, fail: 0, probe: 0, skip: 0, pending: 0, running: 0, blocked: 0};
@@ -7956,17 +8001,169 @@ function updateLabSummary() {
         <span class="summary-item"><span class="stat-dot pass"></span><b>${counts.pass || 0}</b> passed</span>
         <span class="summary-item"><span class="stat-dot probe"></span><b>${counts.probe || 0}</b> probes</span>
         <span class="summary-item"><span class="stat-dot fail"></span><b>${counts.fail || 0}</b> failed</span>
-        ${counts.blocked ? `<span class="summary-item"><span class="stat-dot blocked"></span><b>${counts.blocked}</b> blocked upstream</span>` : ""}
+        ${counts.blocked ? `<span class="summary-item"><span class="stat-dot blocked"></span><b>${counts.blocked}</b> blocked</span>` : ""}
         <span class="summary-item"><span class="stat-dot skip"></span><b>${counts.skip || 0}</b> skipped</span>
         <span class="summary-item" style="margin-left:auto">${counts.pending + counts.running} remaining</span>
+        <span class="summary-item lab-last" title="${lab.resultsAt ? esc(new Date(lab.resultsAt).toLocaleString()) : "No verification run has finished in this browser yet"}">${lab.resultsAt ? `Last run ${timeAgo(lab.resultsAt)}` : "Never run"}</span>
     `;
+    // While a batch runs, the bar belongs to that batch: a retry of three failures should
+    // not sit at 99% because the other 820 checks already have results.
+    if (lab.running && lab.batchTotal) {
+        $("#labProgressBar").style.width = Math.round(lab.batchDone / lab.batchTotal * 100) + "%";
+        $("#labProgressLabel").textContent = `${lab.batchLabel} ${lab.batchDone} / ${lab.batchTotal}`;
+        return;
+    }
     const done = counts.pass + counts.probe + counts.fail + counts.skip + counts.blocked;
-    const pct = Math.round(done / Math.max(1, lab.items.length) * 100);
-    $("#labProgressBar").style.width = pct + "%";
+    $("#labProgressBar").style.width = Math.round(done / Math.max(1, lab.items.length) * 100) + "%";
     $("#labProgressLabel").textContent = `${done} / ${lab.items.length}`;
 }
 function setLabProgressText(text) {
     $("#labProgressLabel").textContent = text;
+}
+function timeAgo(ts) {
+    const seconds = Math.max(0, (Date.now() - ts) / 1000);
+    if (seconds < 45) return "just now";
+    if (seconds < 3600) return `${Math.round(seconds / 60)} min ago`;
+    if (seconds < 86400) return `${Math.round(seconds / 3600)} h ago`;
+    return `${Math.round(seconds / 86400)} d ago`;
+}
+function labItemKey(item) {
+    return `${item.kind}:${item.index}`;
+}
+// Called after every check, so a long sweep can be closed and resumed without losing what
+// already ran. Writes are coalesced: 800 checks must not mean 800 localStorage writes.
+function scheduleLabSave() {
+    if (lab.saveTimer) return;
+    lab.saveTimer = setTimeout(saveLabResults, 900);
+}
+function saveLabResults() {
+    clearTimeout(lab.saveTimer);
+    lab.saveTimer = 0;
+    const items = lab.items
+        .filter(item => item.status !== "pending" && item.status !== "running")
+        .map(item => ({
+            k: labItemKey(item),
+            s: item.status,
+            // A pass only needs enough output for the row preview; a failure needs room to
+            // diagnose. Keeping 2 KB for every passing check would bloat storage now that
+            // the plan carries the full upstream corpus.
+            a: item.actual == null ? null : String(item.actual).slice(0, item.status === "pass" ? 240 : LAB_RESULT_TEXT_LIMIT),
+            e: item.error ? String(item.error).slice(0, 600) : "",
+            d: Math.round(item.duration || 0),
+            // A dynamic environment block must survive a reload; static blocked rows get
+            // their reason back from the plan.
+            env: item.blockedEnv ? 1 : 0
+        }));
+    const integration = lab.integration
+        .filter(def => def.status === "pass" || def.status === "fail")
+        .map(def => ({id: def.id, s: def.status, d: def.detail || "", t: Math.round(def.duration || 0)}));
+    try {
+        localStorage.setItem(LAB_RESULTS_KEY, JSON.stringify({v: 1, plan: LAB_PLAN, at: lab.resultsAt, items, integration}));
+    } catch {
+        // Results are a convenience; a full quota must never take the lab down with it.
+    }
+}
+function loadLabResults() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(LAB_RESULTS_KEY) || "null"); } catch {}
+    if (!saved || saved.v !== 1 || saved.plan !== LAB_PLAN) return;
+    const byKey = new Map((saved.items || []).map(row => [row.k, row]));
+    for (const item of lab.items) {
+        const row = byKey.get(labItemKey(item));
+        if (!row) continue;
+        item.status = ["pass", "fail", "probe", "skip", "blocked"].includes(row.s) ? row.s : "pending";
+        item.actual = row.a == null ? null : String(row.a);
+        item.error = row.e || "";
+        item.duration = row.d || 0;
+        item.blockedEnv = row.env === 1;
+        if (item.blockedEnv) item.blockedReason = LAB_WEB_CRYPTO_REASON;
+        // Results saved before environment blocking existed still carry the engine's
+        // WebCrypto message as a failure; reclassify them on load instead of leaving a
+        // stale red badge for a limitation of the current origin.
+        if (item.status === "fail" && /WebCrypto API is not available/i.test(item.error)) {
+            item.status = "blocked";
+            item.blockedEnv = true;
+            item.blockedReason = LAB_WEB_CRYPTO_REASON;
+        }
+    }
+    const byId = new Map((saved.integration || []).map(row => [row.id, row]));
+    for (const def of lab.integration) {
+        const row = byId.get(def.id);
+        if (!row || (row.s !== "pass" && row.s !== "fail")) continue;
+        def.status = row.s;
+        def.detail = row.d || "";
+        def.duration = row.t || 0;
+    }
+    lab.resultsAt = Number(saved.at) || 0;
+}
+function updateLabBadge() {
+    const btn = $("#labOpenBtn");
+    if (!btn) return;
+    const failed = lab.items.filter(item => item.status === "fail").length +
+        lab.integration.filter(def => def.status === "fail").length;
+    const blocked = lab.items.filter(item => item.status === "blocked").length;
+    const ran = lab.items.filter(item => ["pass", "fail", "probe", "blocked"].includes(item.status)).length +
+        lab.integration.filter(def => def.status === "pass" || def.status === "fail").length;
+    if (failed) {
+        btn.dataset.badge = failed > 99 ? "99+" : String(failed);
+        btn.title = `Open the verification lab — ${failed} check${failed === 1 ? "" : "s"} failed`;
+    } else {
+        delete btn.dataset.badge;
+        btn.title = ran
+            ? `Open the verification lab — ${ran} check${ran === 1 ? "" : "s"} passed${blocked ? `, ${blocked} blocked` : ""}`
+            : "Open the verification lab";
+    }
+}
+function labHasResults() {
+    return lab.items.some(item => !["pending", "running"].includes(item.status)) ||
+        lab.integration.some(def => def.status === "pass" || def.status === "fail");
+}
+function labFilterActive() {
+    return Boolean(lab.query.trim()) || lab.filter !== "all";
+}
+function updateLabRunControls() {
+    const run = $("#labRun");
+    const visible = $("#labRunVisible");
+    const retry = $("#labRetry");
+    const clear = $("#labClear");
+    const stop = $("#labStop");
+    if (run) {
+        run.disabled = lab.running;
+        run.textContent = lab.running ? "Running…" : labHasResults() ? "Run all again" : "Run all checks";
+    }
+    if (visible) {
+        visible.disabled = lab.running || !labFilterActive();
+        visible.title = labFilterActive()
+            ? "Run only the checks the current search and filter show"
+            : "Filter or search first to run a subset";
+    }
+    if (retry) {
+        const failed = lab.items.filter(item => item.status === "fail").length;
+        retry.disabled = lab.running || !failed;
+        retry.textContent = failed ? `Retry ${failed} failure${failed === 1 ? "" : "s"}` : "Retry failures";
+    }
+    if (clear) clear.disabled = lab.running || !labHasResults();
+    if (stop) stop.disabled = !lab.running;
+}
+function clearLabResults() {
+    if (lab.running) return;
+    for (const item of lab.items) {
+        resetLabItem(item);
+        updateTestRow(item);
+    }
+    for (const def of lab.integration) {
+        def.status = "pending";
+        def.detail = "";
+        def.duration = 0;
+    }
+    lab.resultsAt = 0;
+    try { localStorage.removeItem(LAB_RESULTS_KEY); } catch {}
+    renderIntegration();
+    renderLabVisible();
+    updateLabSummary();
+    updateLabBadge();
+    updateLabRunControls();
+    toast("Verification results cleared");
 }
 function resetLabItem(item) {
     if (item.thumbUrl) { try { URL.revokeObjectURL(item.thumbUrl); } catch {} item.thumbUrl = ""; }
@@ -7975,37 +8172,62 @@ function resetLabItem(item) {
     item.duration = 0;
     item.status = "pending";
     item.opened = false;
+    // A dynamic block depends on the current origin, so a fresh run must re-test it.
+    if (item.blockedEnv) { item.blockedEnv = false; item.blockedReason = ""; }
 }
-async function runAllTests() {
-    if (lab.running) return;
+async function runTestBatch(items, {label = "Running", reset = true} = {}) {
+    if (lab.running || !items.length) return;
     lab.running = true;
     lab.stopRequested = false;
-    $("#labRun").disabled = true;
-    $("#labStop").disabled = false;
-    $("#labRun").textContent = "Running…";
-    for (const item of lab.items) {
-        resetLabItem(item);
-        if (item.skip) item.status = "skip";
-        updateTestRow(item);
+    lab.batchDone = 0;
+    lab.batchTotal = items.length;
+    lab.batchLabel = label;
+    updateLabRunControls();
+    if (reset) {
+        for (const item of items) {
+            resetLabItem(item);
+            if (item.skip) item.status = "skip";
+            updateTestRow(item);
+        }
     }
     updateLabSummary();
-    let index = 0;
-    for (const item of lab.items) {
+    for (const item of items) {
         if (lab.stopRequested) break;
-        index++;
+        lab.batchDone++;
+        // A skipped item has no result to wait for, but it still counts as visited.
         if (item.skip) continue;
-        setLabProgressText(`Running ${index} / ${lab.items.length}`);
         await runTestItem(item, true);
-        if (lab.opened) updateLabSummary();
     }
     lab.running = false;
-    $("#labRun").disabled = false;
-    $("#labStop").disabled = true;
-    $("#labRun").textContent = "Run all again";
-    setLabProgressText(lab.stopRequested ? "Stopped" : "Complete");
+    const stopped = lab.stopRequested;
+    lab.stopRequested = false;
+    lab.resultsAt = Date.now();
+    saveLabResults();
+    updateLabRunControls();
     updateLabSummary();
-    const fails = lab.items.filter(i => i.status === "fail").length;
-    toast(lab.stopRequested ? "Verification stopped" : fails ? `Verification finished with ${fails} failure${fails === 1 ? "" : "s"}` : "All executed checks passed", fails ? "error" : "");
+    updateLabBadge();
+    const fails = items.filter(item => item.status === "fail").length;
+    toast(stopped ? "Verification stopped" : fails ? `${fails} check${fails === 1 ? "" : "s"} failed` : "All executed checks passed", fails ? "error" : "");
+}
+function runVisibleTests() {
+    const items = lab.items.filter(matchesLabFilter);
+    if (!items.length) {
+        toast("No checks match the current filter");
+        return;
+    }
+    runTestBatch(items, {label: "Running visible", reset: true});
+}
+function retryFailedTests() {
+    const items = lab.items.filter(item => item.status === "fail");
+    if (!items.length) return;
+    // No reset: the old verdict stays readable until the retry replaces it.
+    runTestBatch(items, {label: "Retrying", reset: false});
+}
+function noteLabResult() {
+    lab.resultsAt = Date.now();
+    scheduleLabSave();
+    updateLabBadge();
+    updateLabRunControls();
 }
 async function runTestItem(item, auto = false) {
     if (item.skip && !auto) {
@@ -8014,6 +8236,7 @@ async function runTestItem(item, auto = false) {
     item.status = "running";
     item.error = "";
     item.duration = 0;
+    if (item.blockedEnv) { item.blockedEnv = false; item.blockedReason = ""; }
     if (auto === false) item.opened = true;
     updateTestRow(item);
     const t0 = performance.now();
@@ -8034,6 +8257,7 @@ async function runTestItem(item, auto = false) {
             updateTestRow(item);
             if (item.opened) renderTestDetail(item);
             if (lab.opened) updateLabSummary();
+            noteLabResult();
             return;
         }
         if (item.kind === "roundtrip") {
@@ -8068,6 +8292,7 @@ async function runTestItem(item, auto = false) {
             updateTestRow(item);
             if (item.opened) renderTestDetail(item);
             if (lab.opened) updateLabSummary();
+            noteLabResult();
             return;
         }
         const recipe = item.recipe || [{op: item.op, args: OPS[item.op]?.defaults || []}];
@@ -8132,10 +8357,16 @@ async function runTestItem(item, auto = false) {
         item.status = "fail";
         item.error = err.message || String(err);
     }
+    if (item.status === "fail" && /WebCrypto API is not available/i.test(item.error || "")) {
+        item.status = "blocked";
+        item.blockedEnv = true;
+        item.blockedReason = LAB_WEB_CRYPTO_REASON;
+    }
     if (item.status === "fail" && item.blockedReason) item.status = "blocked";
     updateTestRow(item);
     if (item.opened) renderTestDetail(item);
     if (lab.opened) updateLabSummary();
+    noteLabResult();
 }
 async function onLabListClick(ev) {
     const actionEl = ev.target.closest("[data-action]");
@@ -8146,12 +8377,10 @@ async function onLabListClick(ev) {
         const item = lab.items[Number(actionEl.dataset.index)];
         if (!item || lab.running) return;
         lab.running = true;
-        $("#labRun").disabled = true;
-        $("#labStop").disabled = false;
+        updateLabRunControls();
         await runTestItem(item, false);
         lab.running = false;
-        $("#labRun").disabled = false;
-        $("#labStop").disabled = true;
+        updateLabRunControls();
         updateLabSummary();
     } else if (action === "copy-test-output") {
         ev.stopPropagation();
@@ -8172,15 +8401,37 @@ async function onLabListClick(ev) {
 async function copyLabReport() {
     const counts = {};
     for (const item of lab.items) counts[item.status] = (counts[item.status] || 0) + 1;
+    const executed = lab.items.filter(i => ["pass", "fail", "probe", "blocked"].includes(i.status));
+    const byKind = {};
+    for (const item of executed) byKind[item.kind] = (byKind[item.kind] || 0) + 1;
     const report = {
         app: "CipherFlow",
         engine: ENGINE_LABEL,
         generatedAt: new Date().toISOString(),
+        finishedAt: lab.resultsAt ? new Date(lab.resultsAt).toISOString() : null,
         operations: lab.items.length,
         knownAnswerTests: TESTPLAN.official,
         counts,
-        failures: lab.items.filter(i => i.status === "fail").map(i => ({op: i.op || i.name, error: i.error})),
-        blockedUpstream: lab.items.filter(i => i.status === "blocked").map(i => ({op: i.op, reason: i.blockedReason})),
+        executedByKind: byKind,
+        totalDurationMs: Math.round(executed.reduce((sum, item) => sum + (item.duration || 0), 0)),
+        // A failure is only actionable with the value that produced it, so the report keeps
+        // the input and both sides of the comparison alongside the message.
+        failures: lab.items.filter(i => i.status === "fail").map(i => ({
+            op: i.op || i.name,
+            check: i.name || "",
+            kind: i.kind,
+            input: i.input ? String(i.input).slice(0, 500) : undefined,
+            expected: i.expected === undefined ? undefined : String(i.expected).slice(0, 500),
+            actual: i.actual == null ? undefined : String(i.actual).slice(0, 500),
+            error: i.error
+        })),
+        wiring: lab.integration
+            .filter(def => def.status === "pass" || def.status === "fail")
+            .map(def => ({id: def.id, status: def.status, detail: def.detail})),
+        blockedUpstream: lab.items.filter(i => i.status === "blocked" && !i.blockedEnv).map(i => ({op: i.op, reason: i.blockedReason})),
+        ...(lab.items.some(i => i.status === "blocked" && i.blockedEnv) ? {
+            blockedInThisBrowser: lab.items.filter(i => i.status === "blocked" && i.blockedEnv).map(i => ({op: i.op, reason: i.blockedReason}))
+        } : {}),
         knownDrift: lab.items.filter(i => i.drift).map(i => ({op: i.op, expects: i.drift.expectedPrefix, note: i.drift.note})),
         skipped: lab.items.filter(i => i.status === "skip").map(i => ({op: i.op, reason: i.skip}))
     };
@@ -9153,6 +9404,9 @@ async function runIntegration(id) {
     lab.integrationRunning = false;
     paintIntegrationCard(def);
     refreshIntegrationSummary();
+    lab.resultsAt = Date.now();
+    scheduleLabSave();
+    updateLabBadge();
 }
 function stopIntegrations() {
     if (!lab.integrationBatch) return;
@@ -9211,6 +9465,9 @@ async function runAllIntegrations() {
     }
     const stopped = done < total;
     setIntegrationSummary(integrationSummaryLine({passed, failed, elapsed: performance.now() - t0, done, total, stopped}));
+    lab.resultsAt = Date.now();
+    saveLabResults();
+    updateLabBadge();
     toast(stopped ? `Wiring checks stopped after ${done} of ${total}` : failed ? `${failed} wiring check${failed === 1 ? "" : "s"} failed` : "All wiring checks passed", failed ? "error" : "");
 }
 
@@ -9381,7 +9638,12 @@ function bindGlobalEvents() {
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") saveLocalNow();
     });
-    window.addEventListener("beforeunload", () => { stopMagicPool(); saveLocalNow(); });
+    window.addEventListener("beforeunload", () => {
+        stopMagicPool();
+        saveLocalNow();
+        // A sweep saves on a delay; closing the tab inside that window would lose its tail.
+        if (lab.saveTimer) saveLabResults();
+    });
     window.addEventListener("resize", () => {
         scheduleEdges();
         if (window.innerWidth > 900 && sidebarOpen) closeSidebar();
@@ -10009,6 +10271,9 @@ function symbolGlyphSet(node) {
  */
 function symbolToggleSources(cipher) {
     if (!cipher || !cipher.dcode || !cipher.dcode.glyphs?.length) return null;
+    // A cipher can merge specific dCode glyphs into CacheSleuth's set (tenctonese's
+    // ampersand): the node then ships one complete grid, so there is nothing to switch to.
+    if (cipher.dcodeMerge?.length) return null;
     const letters = new Set((cipher.glyphs || [])
         .map(g => String(g.key ?? ""))
         .filter(k => /^[A-Za-z]$/.test(k))

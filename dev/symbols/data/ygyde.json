@@ -1,0 +1,242 @@
+{
+  "slug": "ygyde",
+  "name": "Ygyde",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=ygyde",
+      "images": "https://i.cachesleuth.com/images/ygyde/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdefghijklmnopqstuwxyz\".split(\"\")",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 34,
+    "uniqueFiles": 34,
+    "manifestFiles": 34,
+    "downloaded": 34,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/ygyde/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/ygyde/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/ygyde/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/ygyde/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/ygyde/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/ygyde/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/ygyde/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/ygyde/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/ygyde/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/ygyde/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/ygyde/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/ygyde/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/ygyde/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/ygyde/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/ygyde/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/ygyde/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/ygyde/q.png"
+    },
+    {
+      "index": 18,
+      "key": "s",
+      "label": "S",
+      "file": "art/ygyde/s.png"
+    },
+    {
+      "index": 19,
+      "key": "t",
+      "label": "T",
+      "file": "art/ygyde/t.png"
+    },
+    {
+      "index": 20,
+      "key": "u",
+      "label": "U",
+      "file": "art/ygyde/u.png"
+    },
+    {
+      "index": 21,
+      "key": "w",
+      "label": "W",
+      "file": "art/ygyde/w.png"
+    },
+    {
+      "index": 22,
+      "key": "x",
+      "label": "X",
+      "file": "art/ygyde/x.png"
+    },
+    {
+      "index": 23,
+      "key": "y",
+      "label": "Y",
+      "file": "art/ygyde/y.png"
+    },
+    {
+      "index": 24,
+      "key": "z",
+      "label": "Z",
+      "file": "art/ygyde/z.png"
+    },
+    {
+      "index": 25,
+      "key": "0",
+      "label": "0",
+      "file": "art/ygyde/0.png"
+    },
+    {
+      "index": 26,
+      "key": "1",
+      "label": "1",
+      "file": "art/ygyde/1.png"
+    },
+    {
+      "index": 27,
+      "key": "2",
+      "label": "2",
+      "file": "art/ygyde/2.png"
+    },
+    {
+      "index": 28,
+      "key": "3",
+      "label": "3",
+      "file": "art/ygyde/3.png"
+    },
+    {
+      "index": 29,
+      "key": "4",
+      "label": "4",
+      "file": "art/ygyde/4.png"
+    },
+    {
+      "index": 30,
+      "key": "5",
+      "label": "5",
+      "file": "art/ygyde/5.png"
+    },
+    {
+      "index": 31,
+      "key": "6",
+      "label": "6",
+      "file": "art/ygyde/6.png"
+    },
+    {
+      "index": 32,
+      "key": "7",
+      "label": "7",
+      "file": "art/ygyde/7.png"
+    },
+    {
+      "index": 33,
+      "key": "8",
+      "label": "8",
+      "file": "art/ygyde/8.png"
+    },
+    {
+      "index": 34,
+      "key": "9",
+      "label": "9",
+      "file": "art/ygyde/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

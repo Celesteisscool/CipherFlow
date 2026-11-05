@@ -335,9 +335,15 @@ for (const row of rows) {
         });
         await pool(jobs, CONCURRENCY, async ({g, rel}) => {
             const key = JSON.stringify(g.key);
-            if (!rel || rel.startsWith("_dcode/")) {
+            if (!rel) {
                 cs.missing++;
                 failures.push(`${slug} ${key}: shipped path ${g.file || "(none)"} is not a CacheSleuth file`);
+                return;
+            }
+            // A merged glyph (tenctonese's &) is dCode's file inside the shipped CacheSleuth
+            // set, so it has no CacheSleuth counterpart to compare against.
+            if (rel.startsWith("_dcode/")) {
+                cs.skipped++;
                 return;
             }
             const shipped = path.join(HERE, g.file);

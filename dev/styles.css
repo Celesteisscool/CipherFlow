@@ -1360,6 +1360,30 @@ a.icon-button:hover { color: var(--ink); }
 }
 .icon-button:hover { color: var(--ink); border-color: var(--line-strong); }
 .icon-button svg { width: 14px; height: 14px; stroke: currentColor; }
+/* The lab's unresolved-failure count rides the flask icon, so a red run is visible without
+ * opening the modal. */
+#labOpenBtn { position: relative; }
+#labOpenBtn[data-badge]::after {
+    content: attr(data-badge);
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    box-sizing: border-box;
+    border: 1.5px solid var(--panel);
+    border-radius: 99px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+}
 .search-wrap {
     position: relative;
     margin-top: 12px;
@@ -2017,6 +2041,7 @@ a.icon-button:hover { color: var(--ink); }
 }
 .summary-item { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .summary-item b { color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
+.summary-item.lab-last { color: var(--faint); }
 .stat-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--faint); }
 .stat-dot.pass { background: var(--success); }
 .stat-dot.fail { background: var(--danger); }

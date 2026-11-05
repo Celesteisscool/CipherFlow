@@ -1,0 +1,80 @@
+{
+  "slug": "snooker",
+  "name": "Snooker",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=snooker",
+      "images": "https://i.cachesleuth.com/images/snooker/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"\"",
+    "numbers": "new Array(\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\")",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 7,
+    "uniqueFiles": 7,
+    "manifestFiles": 7,
+    "downloaded": 7,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "1",
+      "label": "1",
+      "file": "art/snooker/1.png"
+    },
+    {
+      "index": 2,
+      "key": "2",
+      "label": "2",
+      "file": "art/snooker/2.png"
+    },
+    {
+      "index": 3,
+      "key": "3",
+      "label": "3",
+      "file": "art/snooker/3.png"
+    },
+    {
+      "index": 4,
+      "key": "4",
+      "label": "4",
+      "file": "art/snooker/4.png"
+    },
+    {
+      "index": 5,
+      "key": "5",
+      "label": "5",
+      "file": "art/snooker/5.png"
+    },
+    {
+      "index": 6,
+      "key": "6",
+      "label": "6",
+      "file": "art/snooker/6.png"
+    },
+    {
+      "index": 7,
+      "key": "7",
+      "label": "7",
+      "file": "art/snooker/7.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

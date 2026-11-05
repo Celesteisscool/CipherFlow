@@ -55,6 +55,10 @@ function tile(g, srcOverride) {
 // show a drawing the node never renders, so section 2 reads the shipped art instead.
 const shippedPath = path.join(ROOT, "dev", "symbols", "data", `${slug}.json`);
 const shippedSet = fs.existsSync(shippedPath) ? JSON.parse(fs.readFileSync(shippedPath, "utf8")) : null;
+// dCode glyphs merged into the shipped set (tenctonese's &) are a shipped-data fact,
+// not a staging one: carry the marker so the note and heading describe what ships.
+if (shippedSet?.dcodeMerge?.length) data.dcodeMerge = shippedSet.dcodeMerge;
+if (shippedSet?.artFrom) data.artFrom = shippedSet.artFrom;
 const shippedUrl = rel => {
     const abs = path.join(ROOT, "dev", "symbols", rel);
     return fs.existsSync(abs) ? `data:image/png;base64,${fs.readFileSync(abs).toString("base64")}` : null;
@@ -85,7 +89,9 @@ const chosen = data.artFrom === "dcode"
     ? data.glyphs.filter(g => !dropSet.has(String(g.key ?? "")))
         .map(g => ({...g, file: dcodeFor(g.key)?.file || null}))
     : data.glyphs;
-const ourGrid = inkTight
+// A shipped cipher draws the committed set, including any glyphs merged in after the
+// staging run; a cipher still in staging falls back to what the extractor downloaded.
+const ourGrid = shippedSet
     ? shippedSet.glyphs.map(g => tile(g, shippedUrl(g.file))).join("\n")
     : chosen.map(g => tile(g)).join("\n");
 const dcodeGrid = data.dcode ? data.dcode.glyphs.map(g => {
@@ -102,6 +108,8 @@ const dcodeNote = data.dcode && data.dcode.variantNames && data.dcode.variantNam
     ? `Second implementation: ${data.dcode.count} symbols with a per-variant plaintext mapping (${data.dcode.variantNames.map(esc).join(", ")}) — dCode maps each symbol to its solved meaning in each cryptogram (homophonic, several symbols per letter), a different model from CacheSleuth's one-glyph-per-letter grid. The captions under this grid read \"variant: plaintext\".`
     : data.dcode && !data.dcode.count
     ? `dCode has a page for this cipher (<code>${esc(data.dcode.page)}</code>) but publishes no per-glyph images on it, so there is nothing to switch to and the node stays single-source (D2). This section records the check.`
+    : data.dcodeMerge?.length
+    ? `CacheSleuth's ${data.counts.declared} glyphs stay the shipped set, with dCode's ${data.dcodeMerge.map(esc).map(k => `“${k}”`).join(", ")} merged in because CacheSleuth does not publish it. The rest of dCode's ${data.dcode ? data.dcode.count : 0} glyphs are provenance only, so the node has no source toggle.`
     : data.same
     ? `dCode publishes the same alphabet for this cipher (${data.dcode ? data.dcode.count : 0} glyphs, checked against CacheSleuth's ${data.counts.declared}). The two were compared and found identical, so CacheSleuth's art stays the shipped set and the node has no source toggle. This section is provenance only.`
     : data.artFrom === "dcode"
@@ -168,11 +176,11 @@ const html = `<!doctype html>
   </section>
 
   <section class="col">
-    <h2>2 · Ours — ${data.artFrom === "dcode" ? "dCode art (chosen), our letter mapping" : "CacheSleuth art, our letter mapping"}${inkTight ? " · ink-tight as shipped" : ""}</h2>
+    <h2>2 · Ours — ${data.artFrom === "dcode" ? "dCode art (chosen), our letter mapping" : `CacheSleuth art, our letter mapping${data.dcodeMerge?.length ? ` + dCode ${data.dcodeMerge.map(esc).join(", ")}` : ""}`}${inkTight ? " · ink-tight as shipped" : ""}</h2>
     <div class="grid">
 ${ourGrid}
     </div>
-    <div class="meta" style="margin-top:8px">what the node will draw: glyph above, letter beneath, index in the corner${data.artFrom === "dcode" ? " · dCode's icons, CacheSleuth's characters, no source toggle" : ""}${data.dropped && data.dropped.length ? ` · dropped ${data.dropped.map(k => JSON.stringify(k)).join(", ")} — no dCode art for it` : ""}</div>
+    <div class="meta" style="margin-top:8px">what the node will draw: glyph above, letter beneath, index in the corner${data.artFrom === "dcode" ? " · dCode's icons, CacheSleuth's characters, no source toggle" : ""}${data.dcodeMerge?.length ? ` · dCode ${data.dcodeMerge.map(k => JSON.stringify(k)).join(", ")} merged in, no source toggle` : ""}${data.dropped && data.dropped.length ? ` · dropped ${data.dropped.map(k => JSON.stringify(k)).join(", ")} — no dCode art for it` : ""}</div>
   </section>
 </div>
 
@@ -193,6 +201,6 @@ fs.mkdirSync(OUT_DIR, {recursive: true});
 const out = path.join(OUT_DIR, `${slug}.html`);
 fs.writeFileSync(out, html);
 console.log(`wrote ${out}`);
-console.log(`  tiles: ${data.glyphs.length} ours, ${data.dcode ? data.dcode.count : 0} dCode`);
+console.log(`  tiles: ${shippedSet ? shippedSet.glyphs.length : data.glyphs.length} ours, ${data.dcode ? data.dcode.count : 0} dCode`);
 console.log(`  table image: ${tableImg ? "yes" : "no"}`);
 console.log(`  size: ${(Buffer.byteLength(html) / 1024).toFixed(0)} KB`);

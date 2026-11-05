@@ -52,6 +52,8 @@ Then, for the first `N` candidates:
   returning 0.
 - **Skip** a slug whose staging fails its count check, and take the next candidate instead, so the
   batch still delivers `N`. Log every skip with its reason.
+- **Blacklisted permanently:** `segmentdisplay` — user review 2026-11-05. Never stage or ship it
+  again, even though its 16/16 stage passes.
 - Record the chosen list and the skips in `reports/plan-symbol-ciphers.md` under a new
   `**Phase 1 (batch n) — selection**` heading. No proposal, no waiting.
 

@@ -518,7 +518,10 @@ async function main() {
     console.log(`cipher: ${desc.name} (${slug})`);
     console.log(`  declared by descriptor : ${glyphs.length} characters`);
     console.log(`  files in manifest      : ${declared.length}`);
-    console.log(`  planned but not in manifest (would 404) : ${absent.length}${absent.length ? " -> " + absent.map(g => g.file).join(", ") : ""}`);
+    // The manifest can lag the image server (barcode39's space, nyctographic's
+    // punctuation): every declared file is probed directly, so a successful download
+    // is the authority, not membership in the cached list.
+    console.log(`  planned but not in manifest (probed directly) : ${absent.length}${absent.length ? " -> " + absent.map(g => g.file).join(", ") : ""}`);
     console.log(`  in manifest but unmapped (legends/other): ${unmapped.length}${unmapped.length ? " -> " + unmapped.join(", ") : ""}`);
 
     const results = await pool(glyphs, 6, async g => {
@@ -609,7 +612,7 @@ async function main() {
         // committed counts byte-identical instead of gaining a spurious "extras": 0.
         ...(extraGlyphs.length ? {extras: extraGlyphs.length} : {})
     };
-    const check = counts.declared === counts.downloaded && counts.failed === 0 && absent.length === 0
+    const check = counts.declared === counts.downloaded && counts.failed === 0
         && (artFrom !== "dcode" || (dcode && dcode.ok && artGap.length === 0))
         ? "PASS" : "FAIL";
 

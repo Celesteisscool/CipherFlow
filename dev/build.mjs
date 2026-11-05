@@ -257,14 +257,17 @@ ${css}
         </div>
         <div class="lab-tools">
             <button class="btn-primary" id="labRun">Run all checks</button>
+            <button class="btn-secondary" id="labRunVisible" disabled>Run visible</button>
+            <button class="btn-secondary" id="labRetry" disabled>Retry failures</button>
             <button class="btn-secondary" id="labStop" disabled>Stop</button>
             <button class="btn-secondary" id="labCopy">Copy report</button>
+            <button class="btn-secondary" id="labClear" disabled>Clear</button>
             <div class="lab-search"><input class="search-input" id="labSearch" placeholder="Filter operations…" autocomplete="off" spellcheck="false" aria-label="Filter checks"></div>
             <select class="lab-filter" id="labFilter" aria-label="Filter checks by result">
                 <option value="all">All checks</option>
                 <option value="run">Executed</option>
                 <option value="fail">Failures</option>
-                <option value="blocked">Blocked upstream</option>
+                <option value="blocked">Blocked</option>
                 <option value="official">Known-answer</option>
                 <option value="dcode">Recreated ops</option>
                 <option value="probes">Live probes</option>
@@ -380,7 +383,7 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Checking the operations</h3>
-                <p>The <b>flask</b> icon in the sidebar opens the verification lab: known-answer vectors, encode/decode round-trips and graph-wiring checks for every operation.</p>
+                <p>The <b>flask</b> icon in the sidebar opens the verification lab: known-answer vectors, encode/decode round-trips and graph-wiring checks for every operation. <b>Run all checks</b> sweeps the lot; search or filter first and <b>Run visible</b> covers just those rows, while <b>Retry failures</b> re-runs what came back red. Results are kept in this browser, so closing the tab does not lose a long run, and the flask carries a count of unresolved failures.</p>
             </div>
         </div>
     </div>

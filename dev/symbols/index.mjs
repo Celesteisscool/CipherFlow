@@ -117,6 +117,9 @@ export function glyphDataBundle() {
             // that carry it, which is what its near misses are worth when a picture is ranked.
             tagShares: cipherTagShares(c),
             artFrom: c.artFrom || "cachesleuth",
+            // dCode glyphs merged into CacheSleuth's shipped set (tenctonese's &), which
+            // keeps the node single-source and hides the source toggle.
+            ...(c.dcodeMerge?.length ? {dcodeMerge: c.dcodeMerge} : {}),
             sameAsCachesleuth: Boolean(c.sameAsCachesleuth),
             // The batch a cipher arrived in marks its panel row, so a full list still shows
             // what is new. Set on the catalogue row by the batch runbook (BATCH.md §5).

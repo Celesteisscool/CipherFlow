@@ -457,29 +457,6 @@ const MISSING_INPUT = {
     default: "The quick brown fox jumps over 13 lazy dogs.",
 };
 
-function officialFor(op) {
-    const candidates = OFFICIAL.filter(t => (t.recipeConfig || []).some(r => r.op === op));
-    if (!candidates.length) return null;
-    const scored = candidates.map(t => {
-        const recipe = t.recipeConfig || [];
-        const pos = recipe.findIndex(r => r.op === op);
-        const single = recipe.length === 1 && pos === 0;
-        const first = pos === 0;
-        const size = String(t.input || "").length + String(t.expectedOutput || "").length;
-        const hasAssertion = Boolean(t.expectedOutput) || t.expectedMatch || t.unexpectedMatch || t.expectedError;
-        let score = 0;
-        if (single) score += 10000;
-        if (first) score += 3000;
-        if (!t.expectedError) score += 500;
-        if (hasAssertion) score += 900;
-        if (t.expectedOutput) score += 100;
-        score -= Math.min(size, 9000) / 100;
-        score -= recipe.length * 3;
-        return { t, score };
-    }).sort((a, b) => b.score - a.score);
-    return scored[0].t;
-}
-
 function makeArgs(op, overrides = {}) {
     const base = defaultArgs(op);
     const argsMeta = CONFIG[op].args || [];
@@ -612,32 +589,69 @@ for (const spec of DCODE) {
     });
 }
 
+/* Every unique vector from the upstream suite becomes its own row. Using one "best"
+ * vector per operation hid most of the corpus: alternate argument combinations, malformed
+ * inputs, error paths and 477 multi-step recipes never ran at all. Vectors that touch a
+ * recreated operation are dropped, because upstream's expectation describes CyberChef's
+ * implementation and the recreated one has its own known-answer checks. */
+const DCODE_NAMES = new Set(DCODE.map(spec => spec.name));
+const vectorKey = t => JSON.stringify([
+    t.recipeConfig, t.input, t.inputBase64, t.expectedOutput,
+    t.expectedMatch, t.unexpectedMatch, t.expectedError
+]);
+const officialVectors = [];
+const seenVectors = new Set();
+for (const vector of OFFICIAL) {
+    const key = vectorKey(vector);
+    if (seenVectors.has(key)) continue;
+    seenVectors.add(key);
+    const recipe = vector.recipeConfig || [];
+    if (recipe.some(step => DCODE_NAMES.has(step.op))) continue;
+    officialVectors.push(vector);
+}
+const officialNameCount = new Map();
+function addOfficialVector(official, op) {
+    const recipe = official.recipeConfig || [];
+    // Upstream reuses test titles across vectors; keep them distinguishable in the list.
+    const seenName = (officialNameCount.get(official.name) || 0) + 1;
+    officialNameCount.set(official.name, seenName);
+    const item = {
+        op,
+        kind: "official",
+        name: official.name ? (seenName > 1 ? `${official.name} (${seenName})` : official.name) : op,
+        input: official.input,
+        inputBase64: official.inputBase64,
+        recipe,
+        expected: official.expectedOutput,
+        expectedError: Boolean(official.expectedError),
+    };
+    if (official.expectedMatch) item.expectedMatch = official.expectedMatch;
+    if (official.unexpectedMatch) item.unexpectedMatch = official.unexpectedMatch;
+    // A drifted step can sit anywhere in a multi-step recipe, not only first.
+    const driftStep = recipe.find(step => DRIFT[step.op]);
+    if (driftStep) item.drift = DRIFT[driftStep.op];
+    const blockedStep = recipe.find(step => BLOCKED[step.op]);
+    if (blockedStep) item.blockedReason = BLOCKED[blockedStep.op];
+    tests.push(item);
+}
+for (const official of officialVectors) addOfficialVector(official, official.recipeConfig?.[0]?.op || "");
+
+/* Some operations only appear later in an upstream recipe. They still need a row of their
+ * own, or the lab would silently stop covering them; reuse a vector that contains the op
+ * so the check keeps its real assertion instead of degrading to a default-argument smoke
+ * test. Operations with no upstream vector at all fall back to a probe. */
+const primaryCovered = new Set(tests.map(item => item.op));
 for (const name of opNames) {
-    if (DCODE.some(spec => spec.name === name)) continue;
-    const official = officialFor(name);
-    if (official) {
-        const item = {
-            op: name,
-            kind: "official",
-            name: official.name,
-            input: official.input,
-            inputBase64: official.inputBase64,
-            recipe: official.recipeConfig,
-            expected: official.expectedOutput,
-            expectedError: Boolean(official.expectedError),
-        };
-        if (official.expectedMatch) item.expectedMatch = official.expectedMatch;
-        if (official.unexpectedMatch) item.unexpectedMatch = official.unexpectedMatch;
-        const drift = DRIFT[name];
-        if (drift) item.drift = drift;
-        if (BLOCKED[name]) item.blockedReason = BLOCKED[name];
-        tests.push(item);
-    } else {
-        const probe = makeProbe(name);
-        const item = { op: name, ...probe };
-        if (BLOCKED[name]) item.blockedReason = BLOCKED[name];
-        tests.push(item);
+    if (DCODE_NAMES.has(name) || primaryCovered.has(name)) continue;
+    const vector = officialVectors.find(t => (t.recipeConfig || []).some(step => step.op === name));
+    if (vector) {
+        addOfficialVector(vector, name);
+        continue;
     }
+    const probe = makeProbe(name);
+    const item = { op: name, ...probe };
+    if (BLOCKED[name]) item.blockedReason = BLOCKED[name];
+    tests.push(item);
 }
 
 const roundtripTests = ROUNDTRIPS.map(r => ({

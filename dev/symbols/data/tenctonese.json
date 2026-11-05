@@ -1,0 +1,740 @@
+{
+  "slug": "tenctonese",
+  "name": "Tenctonese",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "dcodeMerge": ["&"],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=tenctonese",
+      "images": "https://i.cachesleuth.com/images/tenctonese/",
+      "tableImage": null
+    },
+    "dcode": {
+      "page": "https://www.dcode.fr/tenctonese-alphabet"
+    }
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "lower",
+    "ucdir": "upper",
+    "font": "tenctonese"
+  },
+  "counts": {
+    "declared": 62,
+    "uniqueFiles": 62,
+    "manifestFiles": 62,
+    "downloaded": 62,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/tenctonese/upper/A.png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/tenctonese/upper/B.png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/tenctonese/upper/C.png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/tenctonese/upper/D.png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/tenctonese/upper/E.png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/tenctonese/upper/F.png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/tenctonese/upper/G.png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/tenctonese/upper/H.png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/tenctonese/upper/I.png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/tenctonese/upper/J.png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/tenctonese/upper/K.png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/tenctonese/upper/L.png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/tenctonese/upper/M.png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/tenctonese/upper/N.png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/tenctonese/upper/O.png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/tenctonese/upper/P.png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/tenctonese/upper/Q.png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/tenctonese/upper/R.png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/tenctonese/upper/S.png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/tenctonese/upper/T.png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/tenctonese/upper/U.png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/tenctonese/upper/V.png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/tenctonese/upper/W.png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/tenctonese/upper/X.png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/tenctonese/upper/Y.png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/tenctonese/upper/Z.png"
+    },
+    {
+      "index": 27,
+      "key": "a",
+      "label": "a",
+      "file": "art/tenctonese/lower/a.png"
+    },
+    {
+      "index": 28,
+      "key": "b",
+      "label": "b",
+      "file": "art/tenctonese/lower/b.png"
+    },
+    {
+      "index": 29,
+      "key": "c",
+      "label": "c",
+      "file": "art/tenctonese/lower/c.png"
+    },
+    {
+      "index": 30,
+      "key": "d",
+      "label": "d",
+      "file": "art/tenctonese/lower/d.png"
+    },
+    {
+      "index": 31,
+      "key": "e",
+      "label": "e",
+      "file": "art/tenctonese/lower/e.png"
+    },
+    {
+      "index": 32,
+      "key": "f",
+      "label": "f",
+      "file": "art/tenctonese/lower/f.png"
+    },
+    {
+      "index": 33,
+      "key": "g",
+      "label": "g",
+      "file": "art/tenctonese/lower/g.png"
+    },
+    {
+      "index": 34,
+      "key": "h",
+      "label": "h",
+      "file": "art/tenctonese/lower/h.png"
+    },
+    {
+      "index": 35,
+      "key": "i",
+      "label": "i",
+      "file": "art/tenctonese/lower/i.png"
+    },
+    {
+      "index": 36,
+      "key": "j",
+      "label": "j",
+      "file": "art/tenctonese/lower/j.png"
+    },
+    {
+      "index": 37,
+      "key": "k",
+      "label": "k",
+      "file": "art/tenctonese/lower/k.png"
+    },
+    {
+      "index": 38,
+      "key": "l",
+      "label": "l",
+      "file": "art/tenctonese/lower/l.png"
+    },
+    {
+      "index": 39,
+      "key": "m",
+      "label": "m",
+      "file": "art/tenctonese/lower/m.png"
+    },
+    {
+      "index": 40,
+      "key": "n",
+      "label": "n",
+      "file": "art/tenctonese/lower/n.png"
+    },
+    {
+      "index": 41,
+      "key": "o",
+      "label": "o",
+      "file": "art/tenctonese/lower/o.png"
+    },
+    {
+      "index": 42,
+      "key": "p",
+      "label": "p",
+      "file": "art/tenctonese/lower/p.png"
+    },
+    {
+      "index": 43,
+      "key": "q",
+      "label": "q",
+      "file": "art/tenctonese/lower/q.png"
+    },
+    {
+      "index": 44,
+      "key": "r",
+      "label": "r",
+      "file": "art/tenctonese/lower/r.png"
+    },
+    {
+      "index": 45,
+      "key": "s",
+      "label": "s",
+      "file": "art/tenctonese/lower/s.png"
+    },
+    {
+      "index": 46,
+      "key": "t",
+      "label": "t",
+      "file": "art/tenctonese/lower/t.png"
+    },
+    {
+      "index": 47,
+      "key": "u",
+      "label": "u",
+      "file": "art/tenctonese/lower/u.png"
+    },
+    {
+      "index": 48,
+      "key": "v",
+      "label": "v",
+      "file": "art/tenctonese/lower/v.png"
+    },
+    {
+      "index": 49,
+      "key": "w",
+      "label": "w",
+      "file": "art/tenctonese/lower/w.png"
+    },
+    {
+      "index": 50,
+      "key": "x",
+      "label": "x",
+      "file": "art/tenctonese/lower/x.png"
+    },
+    {
+      "index": 51,
+      "key": "y",
+      "label": "y",
+      "file": "art/tenctonese/lower/y.png"
+    },
+    {
+      "index": 52,
+      "key": "z",
+      "label": "z",
+      "file": "art/tenctonese/lower/z.png"
+    },
+    {
+      "index": 53,
+      "key": "0",
+      "label": "0",
+      "file": "art/tenctonese/0.png"
+    },
+    {
+      "index": 54,
+      "key": "1",
+      "label": "1",
+      "file": "art/tenctonese/1.png"
+    },
+    {
+      "index": 55,
+      "key": "2",
+      "label": "2",
+      "file": "art/tenctonese/2.png"
+    },
+    {
+      "index": 56,
+      "key": "3",
+      "label": "3",
+      "file": "art/tenctonese/3.png"
+    },
+    {
+      "index": 57,
+      "key": "4",
+      "label": "4",
+      "file": "art/tenctonese/4.png"
+    },
+    {
+      "index": 58,
+      "key": "5",
+      "label": "5",
+      "file": "art/tenctonese/5.png"
+    },
+    {
+      "index": 59,
+      "key": "6",
+      "label": "6",
+      "file": "art/tenctonese/6.png"
+    },
+    {
+      "index": 60,
+      "key": "7",
+      "label": "7",
+      "file": "art/tenctonese/7.png"
+    },
+    {
+      "index": 61,
+      "key": "8",
+      "label": "8",
+      "file": "art/tenctonese/8.png"
+    },
+    {
+      "index": 62,
+      "key": "9",
+      "label": "9",
+      "file": "art/tenctonese/9.png"
+    },
+    {
+      "index": 63,
+      "key": "&",
+      "label": "&",
+      "file": "art/tenctonese/_dcode/char(38).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": {
+    "page": "/tenctonese-alphabet",
+    "count": 63,
+    "variantNames": [],
+    "glyphs": [
+      {
+        "key": "A",
+        "file": "art/tenctonese/_dcode/char(65).png",
+        "variants": null
+      },
+      {
+        "key": "B",
+        "file": "art/tenctonese/_dcode/char(66).png",
+        "variants": null
+      },
+      {
+        "key": "C",
+        "file": "art/tenctonese/_dcode/char(67).png",
+        "variants": null
+      },
+      {
+        "key": "D",
+        "file": "art/tenctonese/_dcode/char(68).png",
+        "variants": null
+      },
+      {
+        "key": "E",
+        "file": "art/tenctonese/_dcode/char(69).png",
+        "variants": null
+      },
+      {
+        "key": "F",
+        "file": "art/tenctonese/_dcode/char(70).png",
+        "variants": null
+      },
+      {
+        "key": "G",
+        "file": "art/tenctonese/_dcode/char(71).png",
+        "variants": null
+      },
+      {
+        "key": "H",
+        "file": "art/tenctonese/_dcode/char(72).png",
+        "variants": null
+      },
+      {
+        "key": "I",
+        "file": "art/tenctonese/_dcode/char(73).png",
+        "variants": null
+      },
+      {
+        "key": "J",
+        "file": "art/tenctonese/_dcode/char(74).png",
+        "variants": null
+      },
+      {
+        "key": "K",
+        "file": "art/tenctonese/_dcode/char(75).png",
+        "variants": null
+      },
+      {
+        "key": "L",
+        "file": "art/tenctonese/_dcode/char(76).png",
+        "variants": null
+      },
+      {
+        "key": "M",
+        "file": "art/tenctonese/_dcode/char(77).png",
+        "variants": null
+      },
+      {
+        "key": "N",
+        "file": "art/tenctonese/_dcode/char(78).png",
+        "variants": null
+      },
+      {
+        "key": "O",
+        "file": "art/tenctonese/_dcode/char(79).png",
+        "variants": null
+      },
+      {
+        "key": "P",
+        "file": "art/tenctonese/_dcode/char(80).png",
+        "variants": null
+      },
+      {
+        "key": "Q",
+        "file": "art/tenctonese/_dcode/char(81).png",
+        "variants": null
+      },
+      {
+        "key": "R",
+        "file": "art/tenctonese/_dcode/char(82).png",
+        "variants": null
+      },
+      {
+        "key": "S",
+        "file": "art/tenctonese/_dcode/char(83).png",
+        "variants": null
+      },
+      {
+        "key": "T",
+        "file": "art/tenctonese/_dcode/char(84).png",
+        "variants": null
+      },
+      {
+        "key": "U",
+        "file": "art/tenctonese/_dcode/char(85).png",
+        "variants": null
+      },
+      {
+        "key": "V",
+        "file": "art/tenctonese/_dcode/char(86).png",
+        "variants": null
+      },
+      {
+        "key": "W",
+        "file": "art/tenctonese/_dcode/char(87).png",
+        "variants": null
+      },
+      {
+        "key": "X",
+        "file": "art/tenctonese/_dcode/char(88).png",
+        "variants": null
+      },
+      {
+        "key": "Y",
+        "file": "art/tenctonese/_dcode/char(89).png",
+        "variants": null
+      },
+      {
+        "key": "Z",
+        "file": "art/tenctonese/_dcode/char(90).png",
+        "variants": null
+      },
+      {
+        "key": "a",
+        "file": "art/tenctonese/_dcode/char(97).png",
+        "variants": null
+      },
+      {
+        "key": "b",
+        "file": "art/tenctonese/_dcode/char(98).png",
+        "variants": null
+      },
+      {
+        "key": "c",
+        "file": "art/tenctonese/_dcode/char(99).png",
+        "variants": null
+      },
+      {
+        "key": "d",
+        "file": "art/tenctonese/_dcode/char(100).png",
+        "variants": null
+      },
+      {
+        "key": "e",
+        "file": "art/tenctonese/_dcode/char(101).png",
+        "variants": null
+      },
+      {
+        "key": "f",
+        "file": "art/tenctonese/_dcode/char(102).png",
+        "variants": null
+      },
+      {
+        "key": "g",
+        "file": "art/tenctonese/_dcode/char(103).png",
+        "variants": null
+      },
+      {
+        "key": "h",
+        "file": "art/tenctonese/_dcode/char(104).png",
+        "variants": null
+      },
+      {
+        "key": "i",
+        "file": "art/tenctonese/_dcode/char(105).png",
+        "variants": null
+      },
+      {
+        "key": "j",
+        "file": "art/tenctonese/_dcode/char(106).png",
+        "variants": null
+      },
+      {
+        "key": "k",
+        "file": "art/tenctonese/_dcode/char(107).png",
+        "variants": null
+      },
+      {
+        "key": "l",
+        "file": "art/tenctonese/_dcode/char(108).png",
+        "variants": null
+      },
+      {
+        "key": "m",
+        "file": "art/tenctonese/_dcode/char(109).png",
+        "variants": null
+      },
+      {
+        "key": "n",
+        "file": "art/tenctonese/_dcode/char(110).png",
+        "variants": null
+      },
+      {
+        "key": "o",
+        "file": "art/tenctonese/_dcode/char(111).png",
+        "variants": null
+      },
+      {
+        "key": "p",
+        "file": "art/tenctonese/_dcode/char(112).png",
+        "variants": null
+      },
+      {
+        "key": "q",
+        "file": "art/tenctonese/_dcode/char(113).png",
+        "variants": null
+      },
+      {
+        "key": "r",
+        "file": "art/tenctonese/_dcode/char(114).png",
+        "variants": null
+      },
+      {
+        "key": "s",
+        "file": "art/tenctonese/_dcode/char(115).png",
+        "variants": null
+      },
+      {
+        "key": "t",
+        "file": "art/tenctonese/_dcode/char(116).png",
+        "variants": null
+      },
+      {
+        "key": "u",
+        "file": "art/tenctonese/_dcode/char(117).png",
+        "variants": null
+      },
+      {
+        "key": "v",
+        "file": "art/tenctonese/_dcode/char(118).png",
+        "variants": null
+      },
+      {
+        "key": "w",
+        "file": "art/tenctonese/_dcode/char(119).png",
+        "variants": null
+      },
+      {
+        "key": "x",
+        "file": "art/tenctonese/_dcode/char(120).png",
+        "variants": null
+      },
+      {
+        "key": "y",
+        "file": "art/tenctonese/_dcode/char(121).png",
+        "variants": null
+      },
+      {
+        "key": "z",
+        "file": "art/tenctonese/_dcode/char(122).png",
+        "variants": null
+      },
+      {
+        "key": "0",
+        "file": "art/tenctonese/_dcode/char(48).png",
+        "variants": null
+      },
+      {
+        "key": "1",
+        "file": "art/tenctonese/_dcode/char(49).png",
+        "variants": null
+      },
+      {
+        "key": "2",
+        "file": "art/tenctonese/_dcode/char(50).png",
+        "variants": null
+      },
+      {
+        "key": "3",
+        "file": "art/tenctonese/_dcode/char(51).png",
+        "variants": null
+      },
+      {
+        "key": "4",
+        "file": "art/tenctonese/_dcode/char(52).png",
+        "variants": null
+      },
+      {
+        "key": "5",
+        "file": "art/tenctonese/_dcode/char(53).png",
+        "variants": null
+      },
+      {
+        "key": "6",
+        "file": "art/tenctonese/_dcode/char(54).png",
+        "variants": null
+      },
+      {
+        "key": "7",
+        "file": "art/tenctonese/_dcode/char(55).png",
+        "variants": null
+      },
+      {
+        "key": "8",
+        "file": "art/tenctonese/_dcode/char(56).png",
+        "variants": null
+      },
+      {
+        "key": "9",
+        "file": "art/tenctonese/_dcode/char(57).png",
+        "variants": null
+      },
+      {
+        "key": "&",
+        "file": "art/tenctonese/_dcode/char(38).png",
+        "variants": null
+      }
+    ]
+  },
+  "check": "PASS"
+}

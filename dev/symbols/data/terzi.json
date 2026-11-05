@@ -1,0 +1,164 @@
+{
+  "slug": "terzi",
+  "name": "Terzi",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=terzi",
+      "images": "https://i.cachesleuth.com/images/terzi/",
+      "tableImage": "art/terzi/table-small.png"
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "\"abcdefghijlmnoprstuvz\".split(\"\")",
+    "numbers": "\"\"",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 21,
+    "uniqueFiles": 21,
+    "manifestFiles": 21,
+    "downloaded": 21,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/terzi/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/terzi/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/terzi/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/terzi/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/terzi/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/terzi/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/terzi/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/terzi/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/terzi/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/terzi/j.png"
+    },
+    {
+      "index": 11,
+      "key": "l",
+      "label": "L",
+      "file": "art/terzi/l.png"
+    },
+    {
+      "index": 12,
+      "key": "m",
+      "label": "M",
+      "file": "art/terzi/m.png"
+    },
+    {
+      "index": 13,
+      "key": "n",
+      "label": "N",
+      "file": "art/terzi/n.png"
+    },
+    {
+      "index": 14,
+      "key": "o",
+      "label": "O",
+      "file": "art/terzi/o.png"
+    },
+    {
+      "index": 15,
+      "key": "p",
+      "label": "P",
+      "file": "art/terzi/p.png"
+    },
+    {
+      "index": 16,
+      "key": "r",
+      "label": "R",
+      "file": "art/terzi/r.png"
+    },
+    {
+      "index": 17,
+      "key": "s",
+      "label": "S",
+      "file": "art/terzi/s.png"
+    },
+    {
+      "index": 18,
+      "key": "t",
+      "label": "T",
+      "file": "art/terzi/t.png"
+    },
+    {
+      "index": 19,
+      "key": "u",
+      "label": "U",
+      "file": "art/terzi/u.png"
+    },
+    {
+      "index": 20,
+      "key": "v",
+      "label": "V",
+      "file": "art/terzi/v.png"
+    },
+    {
+      "index": 21,
+      "key": "z",
+      "label": "Z",
+      "file": "art/terzi/z.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

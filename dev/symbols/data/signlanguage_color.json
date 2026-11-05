@@ -1,0 +1,248 @@
+{
+  "slug": "signlanguage_color",
+  "name": "American Sign Language - Color",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=signlanguage_color",
+      "images": "https://i.cachesleuth.com/images/signlanguage_color/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "\"123456789\".split(\"\")",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 35,
+    "uniqueFiles": 35,
+    "manifestFiles": 35,
+    "downloaded": 35,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/signlanguage_color/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/signlanguage_color/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/signlanguage_color/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/signlanguage_color/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/signlanguage_color/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/signlanguage_color/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/signlanguage_color/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/signlanguage_color/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/signlanguage_color/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/signlanguage_color/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/signlanguage_color/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/signlanguage_color/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/signlanguage_color/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/signlanguage_color/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/signlanguage_color/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/signlanguage_color/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/signlanguage_color/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/signlanguage_color/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/signlanguage_color/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/signlanguage_color/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/signlanguage_color/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/signlanguage_color/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/signlanguage_color/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/signlanguage_color/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/signlanguage_color/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/signlanguage_color/z.png"
+    },
+    {
+      "index": 27,
+      "key": "1",
+      "label": "1",
+      "file": "art/signlanguage_color/1.png"
+    },
+    {
+      "index": 28,
+      "key": "2",
+      "label": "2",
+      "file": "art/signlanguage_color/2.png"
+    },
+    {
+      "index": 29,
+      "key": "3",
+      "label": "3",
+      "file": "art/signlanguage_color/3.png"
+    },
+    {
+      "index": 30,
+      "key": "4",
+      "label": "4",
+      "file": "art/signlanguage_color/4.png"
+    },
+    {
+      "index": 31,
+      "key": "5",
+      "label": "5",
+      "file": "art/signlanguage_color/5.png"
+    },
+    {
+      "index": 32,
+      "key": "6",
+      "label": "6",
+      "file": "art/signlanguage_color/6.png"
+    },
+    {
+      "index": 33,
+      "key": "7",
+      "label": "7",
+      "file": "art/signlanguage_color/7.png"
+    },
+    {
+      "index": 34,
+      "key": "8",
+      "label": "8",
+      "file": "art/signlanguage_color/8.png"
+    },
+    {
+      "index": 35,
+      "key": "9",
+      "label": "9",
+      "file": "art/signlanguage_color/9.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

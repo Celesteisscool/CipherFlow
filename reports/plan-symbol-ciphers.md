@@ -2510,3 +2510,106 @@ confirmed 710 CacheSleuth glyphs from the batch byte-identical with 0 mismatched
 re-verifies 42/42 byte-identical, 0 mismatched.
 
 Nothing committed — awaiting sign-off.
+
+**Phase 1 (batch 17) — selection, staging, install and build, 2026-11-05.** N = 25 (catalogue 250).
+Candidates are manifest slugs not yet shipped, alphabetically, N taken after skips:
+
+- No CacheSleuth descriptor: `bacon`, `fiveneedletelegraph`, `goldbug`, `kenny`, `letterstonumbers`,
+  `lotrperiodic`, `natophonetic`, `periodictable`, `resistor`, `starwarsperiodic`, `states`, `tap`,
+  `vanity`.
+- Carried count-check failures / not re-staged: `barcode39`, `giovannifontana`, `hyach`,
+  `nyctographic`, `shadow`, `segmentdisplay`.
+
+Batch: spaceinvaders, signlanguage_color, sith, slashandpipe, snooker, sona, spick, sprykski,
+square_glyphs, stargate_universe, sticks, sumerian, symbolica, takcha, tau, tenctonese, terzi,
+tetragrammaton, tholian, threesquare, tifinagh, time, tkon, tll_code, tomtom.
+
+**Phase 2 (batch 17) — largest first.** `spaceinvaders` (62 manifest files) staged 62/62, COUNT CHECK
+PASS; `dcode-find` found no page sharing its glyph inventory — `NO PAGE`, single-source. `tenctonese`
+is also 62 files and was the batch's only SELECTED page: `/tenctonese-alphabet`, 63 dCode glyphs
+covering all 62 declared keys plus `&`.
+
+**Phase 3 (batch 17) — staging.** 25/25 COUNT CHECK PASS, no drops: 773 symbols, 63 dCode glyphs,
+839 new art files (773 CacheSleuth + 63 dCode + 3 source tables for terzi, tetragrammaton,
+threesquare). Toggle eligibility: `tenctonese` only (dCode covers every declared letter and digit);
+the other 24 stay single-source with the fixed CacheSleuth label. No multi-character keys and no
+cipher notes in this batch.
+
+**Install and build.** Subset install of the 25 slugs. Hash snapshot before/after: all 250
+pre-existing data files and every pre-existing art file unchanged; only the 25 new data files and 25
+art dirs appear. Catalogue 275 rows == 275 data files == 275 art dirs, 8,801 symbols, 0 tiles
+without art. `index.html` rebuilt at **54,198,820** bytes (was 51,411,252; **+2,787,568**; the
+working tree already carried the uncommitted verification-lab rebuild, so this delta is against the
+pre-batch build, not batch 16's committed 49,767,385). `new: true` is on this batch's 25 rows and
+cleared from batch 16's.
+
+**Sheets and checklist.** 25 sheets written (275 total). `inventory.mjs` exits 0: CacheSleuth
+**275/306 (90%)**, 31 left; dCode 156 pages — 21 bound, 37 twin, 98 uncatalogued.
+
+**Browser pass.** 291/291 checks over the shipped page: panel and header at 275, New pill isolating
+25 and every row carrying the pill, 25 nodes placed and matched by title; per node tile count,
+captions in source order, PNG art that decodes, no placeholder, foot count, toggle decision and
+fixed label, no variant bar, no note, single-character keys, first-tile transcription. `tenctonese`
+switched to dCode (63 tiles, `&` present, 62 labels unchanged) and back to 62 CacheSleuth tiles.
+
+**Source check.** `verify-source.mjs`: **8,508 CacheSleuth glyphs byte-identical, 0 mismatched,
+0 unreachable, 293 keyed to dCode art — VERIFY: PASS** (232s).
+
+Nothing committed — awaiting sign-off.
+
+**Phase 1 (batch 18) — selection, staging, install and build, 2026-11-05.** Target N = 25 (catalogue 275); **24 shipped** after `segmentdisplay` was blacklisted at review. Candidates are manifest slugs not yet shipped, alphabetically, beginning after `tomtom`:
+trees, triangle, triangles, trolls_alphabet, ugaritic, umbaran, unitology, utopian, videogame,
+vidiian, voodoo, vorlon, voth, vulcan_old, wakanda, window, wraith, xelbet, yankoryani, ygyde,
+yinyang, zentlardy, zeti, zodiac.
+
+No CacheSleuth descriptor (excluded): `bacon`, `fiveneedletelegraph`, `goldbug`, `kenny`,
+`letterstonumbers`, `lotrperiodic`, `natophonetic`, `periodictable`, `resistor`,
+`starwarsperiodic`, `states`, `tap`, `vanity`. `visitor` failed its count check (41/52 downloaded,
+11 HTTP 404s including upper Y and Z). `segmentdisplay` passed 16/16 as its replacement but was
+blacklisted at user review (2026-11-05), so it was removed from data, art, catalogue and sheets.
+`barcode39`, `giovannifontana`, `hyach`, `nyctographic` and `shadow` still fail their retries.
+BATCH.md §1 now records `segmentdisplay` as a permanent exclusion.
+
+**Phase 2 (batch 18) — largest first.** `zeti` (62 manifest files) staged 62/62, COUNT CHECK PASS;
+`dcode-find` found no page sharing its glyph inventory — `NO PAGE`, single-source.
+
+**Phase 3 (batch 18) — staging.** 24/24 COUNT CHECK PASS, no drops: 789 symbols, 88 dCode art files,
+841 new art files (753 CacheSleuth + 88 dCode; no source table after the blacklist; Vulcan - Old's
+main set is dCode's 26). dCode pages:
+`vulcan_old` `/vulcan-language` (art 0.91 over 52 keys, name 0.50), `wakanda`
+`/wakanda-alphabet`. Vulcan - Old is fixed to dCode's art; Wakanda merges dCode's 0–9 into CacheSleuth's 52 letters.
+Neither exposes a toggle; the other 22 stay single-source. No multi-character keys and no cipher notes in this batch.
+
+**Install and build.** Subset install of the 25 slugs, then `segmentdisplay` removed. Hash snapshot
+before/after the install, and before the blacklist removal: all **275** pre-existing data files and
+all **9,562** pre-existing art files unchanged. Final catalogue 299 rows == 299 data files == 299
+art dirs, 9,591 symbols, 0 tiles without art. `index.html` rebuilt at **57,737,450** bytes (was
+54,199,666; **+3,537,784**). `new: true` is on this batch's 24 rows and cleared from batch 17's.
+
+**Sheets and checklist.** 24 sheets written (299 total); `segmentdisplay.html` removed.
+`inventory.mjs` exits 0: CacheSleuth **299/306 (98%)**, 7 left; dCode 156 pages — 22 bound, 38 twin,
+96 uncatalogued.
+
+**Browser pass.** 276/276 checks over the shipped page: panel and header at 299, New pill isolating
+24 and every row carrying the pill, 24 nodes placed and matched by title; per node tile count,
+captions in source order, PNG art that decodes, no placeholder, foot count, toggle decision and
+fixed label, no variant bar, no note, single-character keys, first-tile transcription.
+Vulcan - Old renders its 26 dCode glyphs and Wakanda its 62-glyph CacheSleuth/dCode merge, both
+without a toggle; the other 22 stay single-source.
+
+**Source check.** `verify-source.mjs`: **9,261 CacheSleuth glyphs byte-identical, 0 mismatched,
+0 unreachable, 330 keyed to dCode art — VERIFY: PASS** (117s).
+
+Nothing committed — awaiting sign-off.
+
+**Phase 1 (batch 19) — selection, staging, install and build, 2026-11-05.** Target N = 1 (catalogue 299); **1 shipped**. The first remaining CacheSleuth candidate was `barcode39` (37 declared keys, 26 letters + 10 digits + space). Its manifest entry still lists 36 and omits `space`, but the image server now serves a valid 390×384 `space.png`; the extractor's direct probe downloaded all 37. The count check was corrected to treat a validated download as present instead of requiring manifest membership — it still requires 37/37 downloaded, 0 failed, and no missing art. COUNT CHECK PASS. `dcode-find` returned `NO PAGE`, so it is single-source. The other remaining CacheSleuth entries still fail: `giovannifontana` 28/46, `hyach` 26/36, `shadow` 35/37, `visitor` 41/52; `nyctographic` has all 47 files but its pre-fix stage still carries the stale-manifest FAIL, and `segmentdisplay` stays blacklisted.
+
+**Install and build.** Subset install of `barcode39`; hash check confirms all **299** pre-existing data files and all **10,403** pre-existing art files unchanged. Final catalogue 300 rows == 300 data files == 300 art dirs, **9,628 symbols**, 10,440 art files, 0 tiles without art. `index.html` rebuilt at **57,842,960** bytes (was 57,737,450; **+105,510**). `new: true` is only on `barcode39`.
+
+**Sheets and checklist.** `reports/sheets/barcode39.html` — 37 ours / 0 dCode. `inventory.mjs` exits 0: CacheSleuth **300/306 (98%)**, 6 left; dCode **22 bound / 38 twin / 96 uncatalogued**.
+
+**Browser pass.** 23/23 checks over the shipped page: 300 rail/panel/header, New filter isolating one row, one node placed and matched by title, 37 tiles, captions in source order including `␣` for space, PNG art, no placeholder, foot count, no toggle, fixed CacheSleuth label, no variant bar, no note, single-character keys including space, and first-tile transcription `a`.
+
+**Source check.** `verify-source.mjs`: **9,298 CacheSleuth glyphs byte-identical, 0 mismatched, 0 unreachable, 330 keyed to dCode art — VERIFY: PASS** (78s).
+
+Nothing committed — awaiting sign-off.

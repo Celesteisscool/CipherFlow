@@ -2386,6 +2386,55 @@ body.has-sym-rail .toolbar { left: 43px; }
 }
 .sym-search { padding: 0 12px 10px; }
 .sym-search .search-input { padding: 0 11px; }
+/* Tag pills above the search box: each one narrows the list to the ciphers carrying it.
+   Small and quiet, because there are a dozen of them and they are a filter, not content. */
+.sym-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; padding: 0 12px 9px; }
+.sym-tags:empty { display: none; }
+/* Alternatives sit tight together; the extra column gap is what separates one group from
+   the next, so Thin|Bold read as one choice and Dots as a choice of its own. */
+.sym-tag-group { display: flex; align-items: center; gap: 4px; }
+.sym-tag {
+    font: inherit;
+    font-size: 9.5px;
+    font-weight: 640;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+}
+.sym-tag:hover { border-color: var(--line-strong); color: var(--ink); }
+.sym-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sym-tag.on {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+}
+/* The header's count is the list's own count, so while a tag is applied it turns accent-
+   coloured: a narrowed list must not read as the whole catalogue. */
+.count-badge.on {
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent);
+}
+/* Clear-everything, beside the count it explains and only while a tag is selected. */
+.sym-reset {
+    font: inherit;
+    font-size: 9.5px;
+    font-weight: 640;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px dashed var(--line-strong);
+    background: transparent;
+    color: var(--faint);
+    cursor: pointer;
+}
+.sym-reset:hover { color: var(--ink); border-color: var(--line-strong); }
+.sym-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sym-reset[hidden] { display: none; }
 .sym-list {
     flex: 1;
     min-height: 0;
@@ -2441,17 +2490,6 @@ body.has-sym-rail .toolbar { left: 43px; }
     border-radius: 4px;
 }
 .sym-row-meta { font-size: 9.5px; color: var(--faint); }
-/* The newest batch is marked, so a 125-row list still shows what changed since last time. */
-.sym-new {
-    font-size: 8.5px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 1px 5px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--accent) 16%, transparent);
-    color: var(--accent);
-}
 
 /* The node: source bar, glyph grid, preview strip, transcribed text. */
 .node.type-symbol { width: 360px; }
@@ -2588,6 +2626,17 @@ body.has-sym-rail .toolbar { left: 43px; }
     border-radius: 5px;
     color: var(--muted);
     font-size: 13px;
+}
+
+/* How much of the active tag set this cipher looks like, beside its name. */
+.sym-detect-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
 }
 
 /* ---------------------------------------------------------------- chess node */

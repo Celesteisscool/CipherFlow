@@ -121,9 +121,6 @@ export function glyphDataBundle() {
             // keeps the node single-source and hides the source toggle.
             ...(c.dcodeMerge?.length ? {dcodeMerge: c.dcodeMerge} : {}),
             sameAsCachesleuth: Boolean(c.sameAsCachesleuth),
-            // The batch a cipher arrived in marks its panel row, so a full list still shows
-            // what is new. Set on the catalogue row by the batch runbook (BATCH.md §5).
-            ...(c.new ? {new: true} : {}),
             direction: "ltr",
             caseSensitive: caseSensitiveSet(c.glyphs),
             // Editorial note for the node (matoran: the source documents a hexagonal outline

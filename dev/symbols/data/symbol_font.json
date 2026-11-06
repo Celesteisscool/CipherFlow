@@ -1,0 +1,942 @@
+{
+  "slug": "symbol_font",
+  "name": "Symbol Font",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": null,
+    "dcode": {
+      "page": "https://www.dcode.fr/symbol-font"
+    }
+  },
+  "descriptor": {
+    "letters": "",
+    "numbers": "",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 151,
+    "uniqueFiles": 151,
+    "manifestFiles": 0,
+    "downloaded": 151,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/symbol_font/_dcode/char(65).png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/symbol_font/_dcode/char(66).png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/symbol_font/_dcode/char(67).png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/symbol_font/_dcode/char(68).png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/symbol_font/_dcode/char(69).png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/symbol_font/_dcode/char(70).png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/symbol_font/_dcode/char(71).png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/symbol_font/_dcode/char(72).png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/symbol_font/_dcode/char(73).png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/symbol_font/_dcode/char(74).png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/symbol_font/_dcode/char(75).png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/symbol_font/_dcode/char(76).png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/symbol_font/_dcode/char(77).png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/symbol_font/_dcode/char(78).png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/symbol_font/_dcode/char(79).png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/symbol_font/_dcode/char(80).png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/symbol_font/_dcode/char(81).png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/symbol_font/_dcode/char(82).png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/symbol_font/_dcode/char(83).png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/symbol_font/_dcode/char(84).png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/symbol_font/_dcode/char(85).png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/symbol_font/_dcode/char(86).png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/symbol_font/_dcode/char(87).png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/symbol_font/_dcode/char(88).png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/symbol_font/_dcode/char(89).png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/symbol_font/_dcode/char(90).png"
+    },
+    {
+      "index": 27,
+      "key": "!",
+      "label": "!",
+      "file": "art/symbol_font/_dcode/char(33).png"
+    },
+    {
+      "index": 28,
+      "key": "\"",
+      "label": "\"",
+      "file": "art/symbol_font/_dcode/char(34).png"
+    },
+    {
+      "index": 29,
+      "key": "#",
+      "label": "#",
+      "file": "art/symbol_font/_dcode/char(35).png"
+    },
+    {
+      "index": 30,
+      "key": "$",
+      "label": "$",
+      "file": "art/symbol_font/_dcode/char(36).png"
+    },
+    {
+      "index": 31,
+      "key": "%",
+      "label": "%",
+      "file": "art/symbol_font/_dcode/char(37).png"
+    },
+    {
+      "index": 32,
+      "key": "&",
+      "label": "&",
+      "file": "art/symbol_font/_dcode/char(38).png"
+    },
+    {
+      "index": 33,
+      "key": "'",
+      "label": "'",
+      "file": "art/symbol_font/_dcode/char(39).png"
+    },
+    {
+      "index": 34,
+      "key": "(",
+      "label": "(",
+      "file": "art/symbol_font/_dcode/char(40).png"
+    },
+    {
+      "index": 35,
+      "key": ")",
+      "label": ")",
+      "file": "art/symbol_font/_dcode/char(41).png"
+    },
+    {
+      "index": 36,
+      "key": "*",
+      "label": "*",
+      "file": "art/symbol_font/_dcode/char(42).png"
+    },
+    {
+      "index": 37,
+      "key": "+",
+      "label": "+",
+      "file": "art/symbol_font/_dcode/char(43).png"
+    },
+    {
+      "index": 38,
+      "key": ",",
+      "label": ",",
+      "file": "art/symbol_font/_dcode/char(44).png"
+    },
+    {
+      "index": 39,
+      "key": "-",
+      "label": "-",
+      "file": "art/symbol_font/_dcode/char(45).png"
+    },
+    {
+      "index": 40,
+      "key": ".",
+      "label": ".",
+      "file": "art/symbol_font/_dcode/char(46).png"
+    },
+    {
+      "index": 41,
+      "key": "/",
+      "label": "/",
+      "file": "art/symbol_font/_dcode/char(47).png"
+    },
+    {
+      "index": 42,
+      "key": ":",
+      "label": ":",
+      "file": "art/symbol_font/_dcode/char(58).png"
+    },
+    {
+      "index": 43,
+      "key": ";",
+      "label": ";",
+      "file": "art/symbol_font/_dcode/char(59).png"
+    },
+    {
+      "index": 44,
+      "key": "<",
+      "label": "<",
+      "file": "art/symbol_font/_dcode/char(60).png"
+    },
+    {
+      "index": 45,
+      "key": "=",
+      "label": "=",
+      "file": "art/symbol_font/_dcode/char(61).png"
+    },
+    {
+      "index": 46,
+      "key": ">",
+      "label": ">",
+      "file": "art/symbol_font/_dcode/char(62).png"
+    },
+    {
+      "index": 47,
+      "key": "?",
+      "label": "?",
+      "file": "art/symbol_font/_dcode/char(63).png"
+    },
+    {
+      "index": 48,
+      "key": "@",
+      "label": "@",
+      "file": "art/symbol_font/_dcode/char(64).png"
+    },
+    {
+      "index": 49,
+      "key": "[",
+      "label": "[",
+      "file": "art/symbol_font/_dcode/char(91).png"
+    },
+    {
+      "index": 50,
+      "key": "\\",
+      "label": "\\",
+      "file": "art/symbol_font/_dcode/char(92).png"
+    },
+    {
+      "index": 51,
+      "key": "]",
+      "label": "]",
+      "file": "art/symbol_font/_dcode/char(93).png"
+    },
+    {
+      "index": 52,
+      "key": "^",
+      "label": "^",
+      "file": "art/symbol_font/_dcode/char(94).png"
+    },
+    {
+      "index": 53,
+      "key": "_",
+      "label": "_",
+      "file": "art/symbol_font/_dcode/char(95).png"
+    },
+    {
+      "index": 54,
+      "key": "`",
+      "label": "`",
+      "file": "art/symbol_font/_dcode/char(96).png"
+    },
+    {
+      "index": 55,
+      "key": "{",
+      "label": "{",
+      "file": "art/symbol_font/_dcode/char(123).png"
+    },
+    {
+      "index": 56,
+      "key": "|",
+      "label": "|",
+      "file": "art/symbol_font/_dcode/char(124).png"
+    },
+    {
+      "index": 57,
+      "key": "}",
+      "label": "}",
+      "file": "art/symbol_font/_dcode/char(125).png"
+    },
+    {
+      "index": 58,
+      "key": "~",
+      "label": "~",
+      "file": "art/symbol_font/_dcode/char(126).png"
+    },
+    {
+      "index": 59,
+      "key": "¡",
+      "label": "¡",
+      "file": "art/symbol_font/_dcode/char(161).png"
+    },
+    {
+      "index": 60,
+      "key": "¢",
+      "label": "¢",
+      "file": "art/symbol_font/_dcode/char(162).png"
+    },
+    {
+      "index": 61,
+      "key": "£",
+      "label": "£",
+      "file": "art/symbol_font/_dcode/char(163).png"
+    },
+    {
+      "index": 62,
+      "key": "¤",
+      "label": "¤",
+      "file": "art/symbol_font/_dcode/char(164).png"
+    },
+    {
+      "index": 63,
+      "key": "¥",
+      "label": "¥",
+      "file": "art/symbol_font/_dcode/char(165).png"
+    },
+    {
+      "index": 64,
+      "key": "¦",
+      "label": "¦",
+      "file": "art/symbol_font/_dcode/char(166).png"
+    },
+    {
+      "index": 65,
+      "key": "§",
+      "label": "§",
+      "file": "art/symbol_font/_dcode/char(167).png"
+    },
+    {
+      "index": 66,
+      "key": "¨",
+      "label": "¨",
+      "file": "art/symbol_font/_dcode/char(168).png"
+    },
+    {
+      "index": 67,
+      "key": "©",
+      "label": "©",
+      "file": "art/symbol_font/_dcode/char(169).png"
+    },
+    {
+      "index": 68,
+      "key": "ª",
+      "label": "ª",
+      "file": "art/symbol_font/_dcode/char(170).png"
+    },
+    {
+      "index": 69,
+      "key": "«",
+      "label": "«",
+      "file": "art/symbol_font/_dcode/char(171).png"
+    },
+    {
+      "index": 70,
+      "key": "¬",
+      "label": "¬",
+      "file": "art/symbol_font/_dcode/char(172).png"
+    },
+    {
+      "index": 71,
+      "key": "­",
+      "label": "­",
+      "file": "art/symbol_font/_dcode/char(173).png"
+    },
+    {
+      "index": 72,
+      "key": "®",
+      "label": "®",
+      "file": "art/symbol_font/_dcode/char(174).png"
+    },
+    {
+      "index": 73,
+      "key": "¯",
+      "label": "¯",
+      "file": "art/symbol_font/_dcode/char(175).png"
+    },
+    {
+      "index": 74,
+      "key": "°",
+      "label": "°",
+      "file": "art/symbol_font/_dcode/char(176).png"
+    },
+    {
+      "index": 75,
+      "key": "±",
+      "label": "±",
+      "file": "art/symbol_font/_dcode/char(177).png"
+    },
+    {
+      "index": 76,
+      "key": "²",
+      "label": "²",
+      "file": "art/symbol_font/_dcode/char(178).png"
+    },
+    {
+      "index": 77,
+      "key": "³",
+      "label": "³",
+      "file": "art/symbol_font/_dcode/char(179).png"
+    },
+    {
+      "index": 78,
+      "key": "´",
+      "label": "´",
+      "file": "art/symbol_font/_dcode/char(180).png"
+    },
+    {
+      "index": 79,
+      "key": "µ",
+      "label": "µ",
+      "file": "art/symbol_font/_dcode/char(181).png"
+    },
+    {
+      "index": 80,
+      "key": "¶",
+      "label": "¶",
+      "file": "art/symbol_font/_dcode/char(182).png"
+    },
+    {
+      "index": 81,
+      "key": "·",
+      "label": "·",
+      "file": "art/symbol_font/_dcode/char(183).png"
+    },
+    {
+      "index": 82,
+      "key": "¸",
+      "label": "¸",
+      "file": "art/symbol_font/_dcode/char(184).png"
+    },
+    {
+      "index": 83,
+      "key": "¹",
+      "label": "¹",
+      "file": "art/symbol_font/_dcode/char(185).png"
+    },
+    {
+      "index": 84,
+      "key": "º",
+      "label": "º",
+      "file": "art/symbol_font/_dcode/char(186).png"
+    },
+    {
+      "index": 85,
+      "key": "»",
+      "label": "»",
+      "file": "art/symbol_font/_dcode/char(187).png"
+    },
+    {
+      "index": 86,
+      "key": "¼",
+      "label": "¼",
+      "file": "art/symbol_font/_dcode/char(188).png"
+    },
+    {
+      "index": 87,
+      "key": "½",
+      "label": "½",
+      "file": "art/symbol_font/_dcode/char(189).png"
+    },
+    {
+      "index": 88,
+      "key": "¾",
+      "label": "¾",
+      "file": "art/symbol_font/_dcode/char(190).png"
+    },
+    {
+      "index": 89,
+      "key": "¿",
+      "label": "¿",
+      "file": "art/symbol_font/_dcode/char(191).png"
+    },
+    {
+      "index": 90,
+      "key": "À",
+      "label": "À",
+      "file": "art/symbol_font/_dcode/char(192).png"
+    },
+    {
+      "index": 91,
+      "key": "Á",
+      "label": "Á",
+      "file": "art/symbol_font/_dcode/char(193).png"
+    },
+    {
+      "index": 92,
+      "key": "Â",
+      "label": "Â",
+      "file": "art/symbol_font/_dcode/char(194).png"
+    },
+    {
+      "index": 93,
+      "key": "Ã",
+      "label": "Ã",
+      "file": "art/symbol_font/_dcode/char(195).png"
+    },
+    {
+      "index": 94,
+      "key": "Ä",
+      "label": "Ä",
+      "file": "art/symbol_font/_dcode/char(196).png"
+    },
+    {
+      "index": 95,
+      "key": "Å",
+      "label": "Å",
+      "file": "art/symbol_font/_dcode/char(197).png"
+    },
+    {
+      "index": 96,
+      "key": "Æ",
+      "label": "Æ",
+      "file": "art/symbol_font/_dcode/char(198).png"
+    },
+    {
+      "index": 97,
+      "key": "Ç",
+      "label": "Ç",
+      "file": "art/symbol_font/_dcode/char(199).png"
+    },
+    {
+      "index": 98,
+      "key": "È",
+      "label": "È",
+      "file": "art/symbol_font/_dcode/char(200).png"
+    },
+    {
+      "index": 99,
+      "key": "É",
+      "label": "É",
+      "file": "art/symbol_font/_dcode/char(201).png"
+    },
+    {
+      "index": 100,
+      "key": "Ê",
+      "label": "Ê",
+      "file": "art/symbol_font/_dcode/char(202).png"
+    },
+    {
+      "index": 101,
+      "key": "Ë",
+      "label": "Ë",
+      "file": "art/symbol_font/_dcode/char(203).png"
+    },
+    {
+      "index": 102,
+      "key": "Ì",
+      "label": "Ì",
+      "file": "art/symbol_font/_dcode/char(204).png"
+    },
+    {
+      "index": 103,
+      "key": "Í",
+      "label": "Í",
+      "file": "art/symbol_font/_dcode/char(205).png"
+    },
+    {
+      "index": 104,
+      "key": "Î",
+      "label": "Î",
+      "file": "art/symbol_font/_dcode/char(206).png"
+    },
+    {
+      "index": 105,
+      "key": "Ï",
+      "label": "Ï",
+      "file": "art/symbol_font/_dcode/char(207).png"
+    },
+    {
+      "index": 106,
+      "key": "Ð",
+      "label": "Ð",
+      "file": "art/symbol_font/_dcode/char(208).png"
+    },
+    {
+      "index": 107,
+      "key": "Ñ",
+      "label": "Ñ",
+      "file": "art/symbol_font/_dcode/char(209).png"
+    },
+    {
+      "index": 108,
+      "key": "Ò",
+      "label": "Ò",
+      "file": "art/symbol_font/_dcode/char(210).png"
+    },
+    {
+      "index": 109,
+      "key": "Ó",
+      "label": "Ó",
+      "file": "art/symbol_font/_dcode/char(211).png"
+    },
+    {
+      "index": 110,
+      "key": "Ô",
+      "label": "Ô",
+      "file": "art/symbol_font/_dcode/char(212).png"
+    },
+    {
+      "index": 111,
+      "key": "Õ",
+      "label": "Õ",
+      "file": "art/symbol_font/_dcode/char(213).png"
+    },
+    {
+      "index": 112,
+      "key": "Ö",
+      "label": "Ö",
+      "file": "art/symbol_font/_dcode/char(214).png"
+    },
+    {
+      "index": 113,
+      "key": "×",
+      "label": "×",
+      "file": "art/symbol_font/_dcode/char(215).png"
+    },
+    {
+      "index": 114,
+      "key": "Ø",
+      "label": "Ø",
+      "file": "art/symbol_font/_dcode/char(216).png"
+    },
+    {
+      "index": 115,
+      "key": "Ù",
+      "label": "Ù",
+      "file": "art/symbol_font/_dcode/char(217).png"
+    },
+    {
+      "index": 116,
+      "key": "Ú",
+      "label": "Ú",
+      "file": "art/symbol_font/_dcode/char(218).png"
+    },
+    {
+      "index": 117,
+      "key": "Û",
+      "label": "Û",
+      "file": "art/symbol_font/_dcode/char(219).png"
+    },
+    {
+      "index": 118,
+      "key": "Ü",
+      "label": "Ü",
+      "file": "art/symbol_font/_dcode/char(220).png"
+    },
+    {
+      "index": 119,
+      "key": "Ý",
+      "label": "Ý",
+      "file": "art/symbol_font/_dcode/char(221).png"
+    },
+    {
+      "index": 120,
+      "key": "Þ",
+      "label": "Þ",
+      "file": "art/symbol_font/_dcode/char(222).png"
+    },
+    {
+      "index": 121,
+      "key": "ß",
+      "label": "ß",
+      "file": "art/symbol_font/_dcode/char(223).png"
+    },
+    {
+      "index": 122,
+      "key": "à",
+      "label": "à",
+      "file": "art/symbol_font/_dcode/char(224).png"
+    },
+    {
+      "index": 123,
+      "key": "á",
+      "label": "á",
+      "file": "art/symbol_font/_dcode/char(225).png"
+    },
+    {
+      "index": 124,
+      "key": "â",
+      "label": "â",
+      "file": "art/symbol_font/_dcode/char(226).png"
+    },
+    {
+      "index": 125,
+      "key": "ã",
+      "label": "ã",
+      "file": "art/symbol_font/_dcode/char(227).png"
+    },
+    {
+      "index": 126,
+      "key": "ä",
+      "label": "ä",
+      "file": "art/symbol_font/_dcode/char(228).png"
+    },
+    {
+      "index": 127,
+      "key": "å",
+      "label": "å",
+      "file": "art/symbol_font/_dcode/char(229).png"
+    },
+    {
+      "index": 128,
+      "key": "æ",
+      "label": "æ",
+      "file": "art/symbol_font/_dcode/char(230).png"
+    },
+    {
+      "index": 129,
+      "key": "ç",
+      "label": "ç",
+      "file": "art/symbol_font/_dcode/char(231).png"
+    },
+    {
+      "index": 130,
+      "key": "è",
+      "label": "è",
+      "file": "art/symbol_font/_dcode/char(232).png"
+    },
+    {
+      "index": 131,
+      "key": "é",
+      "label": "é",
+      "file": "art/symbol_font/_dcode/char(233).png"
+    },
+    {
+      "index": 132,
+      "key": "ê",
+      "label": "ê",
+      "file": "art/symbol_font/_dcode/char(234).png"
+    },
+    {
+      "index": 133,
+      "key": "ë",
+      "label": "ë",
+      "file": "art/symbol_font/_dcode/char(235).png"
+    },
+    {
+      "index": 134,
+      "key": "ì",
+      "label": "ì",
+      "file": "art/symbol_font/_dcode/char(236).png"
+    },
+    {
+      "index": 135,
+      "key": "í",
+      "label": "í",
+      "file": "art/symbol_font/_dcode/char(237).png"
+    },
+    {
+      "index": 136,
+      "key": "î",
+      "label": "î",
+      "file": "art/symbol_font/_dcode/char(238).png"
+    },
+    {
+      "index": 137,
+      "key": "ï",
+      "label": "ï",
+      "file": "art/symbol_font/_dcode/char(239).png"
+    },
+    {
+      "index": 138,
+      "key": "ñ",
+      "label": "ñ",
+      "file": "art/symbol_font/_dcode/char(241).png"
+    },
+    {
+      "index": 139,
+      "key": "ò",
+      "label": "ò",
+      "file": "art/symbol_font/_dcode/char(242).png"
+    },
+    {
+      "index": 140,
+      "key": "ó",
+      "label": "ó",
+      "file": "art/symbol_font/_dcode/char(243).png"
+    },
+    {
+      "index": 141,
+      "key": "ô",
+      "label": "ô",
+      "file": "art/symbol_font/_dcode/char(244).png"
+    },
+    {
+      "index": 142,
+      "key": "õ",
+      "label": "õ",
+      "file": "art/symbol_font/_dcode/char(245).png"
+    },
+    {
+      "index": 143,
+      "key": "ö",
+      "label": "ö",
+      "file": "art/symbol_font/_dcode/char(246).png"
+    },
+    {
+      "index": 144,
+      "key": "÷",
+      "label": "÷",
+      "file": "art/symbol_font/_dcode/char(247).png"
+    },
+    {
+      "index": 145,
+      "key": "ø",
+      "label": "ø",
+      "file": "art/symbol_font/_dcode/char(248).png"
+    },
+    {
+      "index": 146,
+      "key": "ù",
+      "label": "ù",
+      "file": "art/symbol_font/_dcode/char(249).png"
+    },
+    {
+      "index": 147,
+      "key": "ú",
+      "label": "ú",
+      "file": "art/symbol_font/_dcode/char(250).png"
+    },
+    {
+      "index": 148,
+      "key": "û",
+      "label": "û",
+      "file": "art/symbol_font/_dcode/char(251).png"
+    },
+    {
+      "index": 149,
+      "key": "ü",
+      "label": "ü",
+      "file": "art/symbol_font/_dcode/char(252).png"
+    },
+    {
+      "index": 150,
+      "key": "ý",
+      "label": "ý",
+      "file": "art/symbol_font/_dcode/char(253).png"
+    },
+    {
+      "index": 151,
+      "key": "þ",
+      "label": "þ",
+      "file": "art/symbol_font/_dcode/char(254).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

@@ -1,0 +1,444 @@
+{
+  "slug": "wingdings_3",
+  "name": "Wingdings 3 Font",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": null,
+    "dcode": {
+      "page": "https://www.dcode.fr/wingdings-3-font"
+    }
+  },
+  "descriptor": {
+    "letters": "",
+    "numbers": "",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 68,
+    "uniqueFiles": 68,
+    "manifestFiles": 0,
+    "downloaded": 68,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/wingdings_3/_dcode/char(65).png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/wingdings_3/_dcode/char(66).png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/wingdings_3/_dcode/char(67).png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/wingdings_3/_dcode/char(68).png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/wingdings_3/_dcode/char(69).png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/wingdings_3/_dcode/char(70).png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/wingdings_3/_dcode/char(71).png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/wingdings_3/_dcode/char(72).png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/wingdings_3/_dcode/char(73).png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/wingdings_3/_dcode/char(74).png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/wingdings_3/_dcode/char(75).png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/wingdings_3/_dcode/char(76).png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/wingdings_3/_dcode/char(77).png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/wingdings_3/_dcode/char(78).png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/wingdings_3/_dcode/char(79).png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/wingdings_3/_dcode/char(80).png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/wingdings_3/_dcode/char(81).png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/wingdings_3/_dcode/char(82).png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/wingdings_3/_dcode/char(83).png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/wingdings_3/_dcode/char(84).png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/wingdings_3/_dcode/char(85).png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/wingdings_3/_dcode/char(86).png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/wingdings_3/_dcode/char(87).png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/wingdings_3/_dcode/char(88).png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/wingdings_3/_dcode/char(89).png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/wingdings_3/_dcode/char(90).png"
+    },
+    {
+      "index": 27,
+      "key": "!",
+      "label": "!",
+      "file": "art/wingdings_3/_dcode/char(33).png"
+    },
+    {
+      "index": 28,
+      "key": "\"",
+      "label": "\"",
+      "file": "art/wingdings_3/_dcode/char(34).png"
+    },
+    {
+      "index": 29,
+      "key": "#",
+      "label": "#",
+      "file": "art/wingdings_3/_dcode/char(35).png"
+    },
+    {
+      "index": 30,
+      "key": "$",
+      "label": "$",
+      "file": "art/wingdings_3/_dcode/char(36).png"
+    },
+    {
+      "index": 31,
+      "key": "%",
+      "label": "%",
+      "file": "art/wingdings_3/_dcode/char(37).png"
+    },
+    {
+      "index": 32,
+      "key": "&",
+      "label": "&",
+      "file": "art/wingdings_3/_dcode/char(38).png"
+    },
+    {
+      "index": 33,
+      "key": "'",
+      "label": "'",
+      "file": "art/wingdings_3/_dcode/char(39).png"
+    },
+    {
+      "index": 34,
+      "key": "(",
+      "label": "(",
+      "file": "art/wingdings_3/_dcode/char(40).png"
+    },
+    {
+      "index": 35,
+      "key": ")",
+      "label": ")",
+      "file": "art/wingdings_3/_dcode/char(41).png"
+    },
+    {
+      "index": 36,
+      "key": "*",
+      "label": "*",
+      "file": "art/wingdings_3/_dcode/char(42).png"
+    },
+    {
+      "index": 37,
+      "key": "+",
+      "label": "+",
+      "file": "art/wingdings_3/_dcode/char(43).png"
+    },
+    {
+      "index": 38,
+      "key": ",",
+      "label": ",",
+      "file": "art/wingdings_3/_dcode/char(44).png"
+    },
+    {
+      "index": 39,
+      "key": "-",
+      "label": "-",
+      "file": "art/wingdings_3/_dcode/char(45).png"
+    },
+    {
+      "index": 40,
+      "key": ".",
+      "label": ".",
+      "file": "art/wingdings_3/_dcode/char(46).png"
+    },
+    {
+      "index": 41,
+      "key": "/",
+      "label": "/",
+      "file": "art/wingdings_3/_dcode/char(47).png"
+    },
+    {
+      "index": 42,
+      "key": "0",
+      "label": "0",
+      "file": "art/wingdings_3/_dcode/char(48).png"
+    },
+    {
+      "index": 43,
+      "key": "1",
+      "label": "1",
+      "file": "art/wingdings_3/_dcode/char(49).png"
+    },
+    {
+      "index": 44,
+      "key": "2",
+      "label": "2",
+      "file": "art/wingdings_3/_dcode/char(50).png"
+    },
+    {
+      "index": 45,
+      "key": "3",
+      "label": "3",
+      "file": "art/wingdings_3/_dcode/char(51).png"
+    },
+    {
+      "index": 46,
+      "key": "4",
+      "label": "4",
+      "file": "art/wingdings_3/_dcode/char(52).png"
+    },
+    {
+      "index": 47,
+      "key": "5",
+      "label": "5",
+      "file": "art/wingdings_3/_dcode/char(53).png"
+    },
+    {
+      "index": 48,
+      "key": "6",
+      "label": "6",
+      "file": "art/wingdings_3/_dcode/char(54).png"
+    },
+    {
+      "index": 49,
+      "key": "7",
+      "label": "7",
+      "file": "art/wingdings_3/_dcode/char(55).png"
+    },
+    {
+      "index": 50,
+      "key": "8",
+      "label": "8",
+      "file": "art/wingdings_3/_dcode/char(56).png"
+    },
+    {
+      "index": 51,
+      "key": "9",
+      "label": "9",
+      "file": "art/wingdings_3/_dcode/char(57).png"
+    },
+    {
+      "index": 52,
+      "key": ":",
+      "label": ":",
+      "file": "art/wingdings_3/_dcode/char(58).png"
+    },
+    {
+      "index": 53,
+      "key": ";",
+      "label": ";",
+      "file": "art/wingdings_3/_dcode/char(59).png"
+    },
+    {
+      "index": 54,
+      "key": "<",
+      "label": "<",
+      "file": "art/wingdings_3/_dcode/char(60).png"
+    },
+    {
+      "index": 55,
+      "key": "=",
+      "label": "=",
+      "file": "art/wingdings_3/_dcode/char(61).png"
+    },
+    {
+      "index": 56,
+      "key": ">",
+      "label": ">",
+      "file": "art/wingdings_3/_dcode/char(62).png"
+    },
+    {
+      "index": 57,
+      "key": "?",
+      "label": "?",
+      "file": "art/wingdings_3/_dcode/char(63).png"
+    },
+    {
+      "index": 58,
+      "key": "@",
+      "label": "@",
+      "file": "art/wingdings_3/_dcode/char(64).png"
+    },
+    {
+      "index": 59,
+      "key": "[",
+      "label": "[",
+      "file": "art/wingdings_3/_dcode/char(91).png"
+    },
+    {
+      "index": 60,
+      "key": "\\",
+      "label": "\\",
+      "file": "art/wingdings_3/_dcode/char(92).png"
+    },
+    {
+      "index": 61,
+      "key": "]",
+      "label": "]",
+      "file": "art/wingdings_3/_dcode/char(93).png"
+    },
+    {
+      "index": 62,
+      "key": "^",
+      "label": "^",
+      "file": "art/wingdings_3/_dcode/char(94).png"
+    },
+    {
+      "index": 63,
+      "key": "_",
+      "label": "_",
+      "file": "art/wingdings_3/_dcode/char(95).png"
+    },
+    {
+      "index": 64,
+      "key": "`",
+      "label": "`",
+      "file": "art/wingdings_3/_dcode/char(96).png"
+    },
+    {
+      "index": 65,
+      "key": "{",
+      "label": "{",
+      "file": "art/wingdings_3/_dcode/char(123).png"
+    },
+    {
+      "index": 66,
+      "key": "|",
+      "label": "|",
+      "file": "art/wingdings_3/_dcode/char(124).png"
+    },
+    {
+      "index": 67,
+      "key": "}",
+      "label": "}",
+      "file": "art/wingdings_3/_dcode/char(125).png"
+    },
+    {
+      "index": 68,
+      "key": "~",
+      "label": "~",
+      "file": "art/wingdings_3/_dcode/char(126).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

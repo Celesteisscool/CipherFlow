@@ -104,6 +104,9 @@ const dcodeGrid = data.dcode ? data.dcode.glyphs.map(g => {
     </figure>`;
 }).join("\n") : "";
 
+const cs = data.source.cachesleuth || null;
+const dc = data.source.dcode || null;
+
 const dcodeNote = data.dcode && data.dcode.variantNames && data.dcode.variantNames.length
     ? `Second implementation: ${data.dcode.count} symbols with a per-variant plaintext mapping (${data.dcode.variantNames.map(esc).join(", ")}) — dCode maps each symbol to its solved meaning in each cryptogram (homophonic, several symbols per letter), a different model from CacheSleuth's one-glyph-per-letter grid. The captions under this grid read \"variant: plaintext\".`
     : data.dcode && !data.dcode.count
@@ -113,10 +116,10 @@ const dcodeNote = data.dcode && data.dcode.variantNames && data.dcode.variantNam
     : data.same
     ? `dCode publishes the same alphabet for this cipher (${data.dcode ? data.dcode.count : 0} glyphs, checked against CacheSleuth's ${data.counts.declared}). The two were compared and found identical, so CacheSleuth's art stays the shipped set and the node has no source toggle. This section is provenance only.`
     : data.artFrom === "dcode"
-    ? `This is the shipped art: dCode's ${data.dcode ? data.dcode.count : 0} glyphs were chosen as the cipher's own set, keyed and captioned by CacheSleuth's characters, so the node has no source toggle.${data.dropped && data.dropped.length ? ` The declared ${data.dropped.map(esc).map(k => `“${k}”`).join(", ")} tile${data.dropped.length > 1 ? "s" : ""} had no dCode art and was dropped at authoring time (\`--drop\`): dCode publishes no glyph for ${data.dropped.length > 1 ? "them" : "it"}, so ${data.dropped.length > 1 ? "they" : "it"} would draw empty anyway.` : ""} Section 2 draws these same files; this section is provenance only.`
+    ? `This is the shipped art: dCode's ${data.dcode ? data.dcode.count : data.counts.declared} glyphs were chosen as the cipher's own set, keyed and captioned by ${cs ? "CacheSleuth's characters" : "the dCode page's own characters"}, so the node has no source toggle.${data.dropped && data.dropped.length ? ` The declared ${data.dropped.map(esc).map(k => `“${k}”`).join(", ")} tile${data.dropped.length > 1 ? "s" : ""} had no dCode art and was dropped at authoring time (\`--drop\`): dCode publishes no glyph for ${data.dropped.length > 1 ? "them" : "it"}, so ${data.dropped.length > 1 ? "they" : "it"} would draw empty anyway.` : ""} Section 2 draws these same files; this section is provenance only.`
     : `Second implementation: ${data.dcode ? data.dcode.count : 0} glyphs vs CacheSleuth's ${data.counts.declared}. Where the two sets differ (count, keys or art), the node header shows the CacheSleuth/dCode toggle (D2).`;
 
-const tableImg = data.source.cachesleuth.tableImage ? dataUrl(data.source.cachesleuth.tableImage) : null;
+const tableImg = cs && cs.tableImage ? dataUrl(cs.tableImage) : null;
 const pass = data.check === "PASS";
 
 const html = `<!doctype html>
@@ -169,10 +172,11 @@ const html = `<!doctype html>
 
 <div class="split">
   <section class="col">
-    <h2>1 · The source's own table (CacheSleuth)</h2>
-    ${tableImg ? `<img class="table" src="${tableImg}" alt="source table">`
-              : `<div class="note">This cipher publishes no legend/table image in the manifest; compare against <a href="${esc(data.source.cachesleuth.page)}">the live table</a> instead.</div>`}
-    <div class="meta" style="margin-top:8px">${esc(data.source.cachesleuth.images)}${data.unmapped.length ? " · unmapped: " + data.unmapped.map(esc).join(", ") : ""}</div>
+    <h2>1 · The source's own table (${cs ? "CacheSleuth" : "dCode"})</h2>
+    ${cs ? (tableImg ? `<img class="table" src="${tableImg}" alt="source table">`
+              : `<div class="note">This cipher publishes no legend/table image in the manifest; compare against <a href="${esc(cs.page)}">the live table</a> instead.</div>`)
+          : `<div class="note">This cipher has no CacheSleuth descriptor; its alphabet is the dCode page <a href="${esc(dc?.page || "")}">${esc(dc?.page || "unknown")}</a>.</div>`}
+    <div class="meta" style="margin-top:8px">${cs ? esc(cs.images) : ""}${data.unmapped.length ? " · unmapped: " + data.unmapped.map(esc).join(", ") : ""}</div>
   </section>
 
   <section class="col">
@@ -190,7 +194,7 @@ ${data.dcode ? `<section>
 ${dcodeGrid}
   </div>
   <div class="note">${dcodeNote}</div>
-</section>` : `<section><h2>3 · dCode</h2><div class="note">Not extracted for this cipher — single source.</div></section>`}
+</section>` : data.artFrom === "dcode" && dc ? `<section><h2>3 · dCode</h2><div class="note">This cipher ships dCode's art from <code>${esc(dc.page)}</code>; section 2 is that set.</div></section>` : `<section><h2>3 · dCode</h2><div class="note">Not extracted for this cipher — single source.</div></section>`}
 
 ${data.failed.length ? `<section><h2>Failures</h2><div class="note">${data.failed.map(f => `${esc(f.key)} (${esc(f.file)}): ${esc(f.why)}`).join("<br>")}</div></section>` : ""}
 </body>

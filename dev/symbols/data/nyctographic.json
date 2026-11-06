@@ -1,0 +1,320 @@
+{
+  "slug": "nyctographic",
+  "name": "Nyctographic",
+  "artFrom": "cachesleuth",
+  "dropped": [],
+  "source": {
+    "cachesleuth": {
+      "page": "https://www.cachesleuth.com/codes/omni?code=nyctographic",
+      "images": "https://i.cachesleuth.com/images/nyctographic/",
+      "tableImage": null
+    },
+    "dcode": null
+  },
+  "descriptor": {
+    "letters": "atoz",
+    "numbers": "nums",
+    "otherchars": "new Array(\"&\",\"'\",\":\",\",\",'\"',\"!\",\"(\",\".\",\"?\",\")\",\";\")",
+    "othernames": "new Array(\"ampersand\",\"apostrophe\",\"colon\",\"comma\",\"doublequote\",\"exclamation\",\"lparen\",\"period\",\"question\",\"rparen\",\"semicolon\")",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": "nyctographic"
+  },
+  "counts": {
+    "declared": 47,
+    "uniqueFiles": 47,
+    "manifestFiles": 36,
+    "downloaded": 47,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "A",
+      "file": "art/nyctographic/a.png"
+    },
+    {
+      "index": 2,
+      "key": "b",
+      "label": "B",
+      "file": "art/nyctographic/b.png"
+    },
+    {
+      "index": 3,
+      "key": "c",
+      "label": "C",
+      "file": "art/nyctographic/c.png"
+    },
+    {
+      "index": 4,
+      "key": "d",
+      "label": "D",
+      "file": "art/nyctographic/d.png"
+    },
+    {
+      "index": 5,
+      "key": "e",
+      "label": "E",
+      "file": "art/nyctographic/e.png"
+    },
+    {
+      "index": 6,
+      "key": "f",
+      "label": "F",
+      "file": "art/nyctographic/f.png"
+    },
+    {
+      "index": 7,
+      "key": "g",
+      "label": "G",
+      "file": "art/nyctographic/g.png"
+    },
+    {
+      "index": 8,
+      "key": "h",
+      "label": "H",
+      "file": "art/nyctographic/h.png"
+    },
+    {
+      "index": 9,
+      "key": "i",
+      "label": "I",
+      "file": "art/nyctographic/i.png"
+    },
+    {
+      "index": 10,
+      "key": "j",
+      "label": "J",
+      "file": "art/nyctographic/j.png"
+    },
+    {
+      "index": 11,
+      "key": "k",
+      "label": "K",
+      "file": "art/nyctographic/k.png"
+    },
+    {
+      "index": 12,
+      "key": "l",
+      "label": "L",
+      "file": "art/nyctographic/l.png"
+    },
+    {
+      "index": 13,
+      "key": "m",
+      "label": "M",
+      "file": "art/nyctographic/m.png"
+    },
+    {
+      "index": 14,
+      "key": "n",
+      "label": "N",
+      "file": "art/nyctographic/n.png"
+    },
+    {
+      "index": 15,
+      "key": "o",
+      "label": "O",
+      "file": "art/nyctographic/o.png"
+    },
+    {
+      "index": 16,
+      "key": "p",
+      "label": "P",
+      "file": "art/nyctographic/p.png"
+    },
+    {
+      "index": 17,
+      "key": "q",
+      "label": "Q",
+      "file": "art/nyctographic/q.png"
+    },
+    {
+      "index": 18,
+      "key": "r",
+      "label": "R",
+      "file": "art/nyctographic/r.png"
+    },
+    {
+      "index": 19,
+      "key": "s",
+      "label": "S",
+      "file": "art/nyctographic/s.png"
+    },
+    {
+      "index": 20,
+      "key": "t",
+      "label": "T",
+      "file": "art/nyctographic/t.png"
+    },
+    {
+      "index": 21,
+      "key": "u",
+      "label": "U",
+      "file": "art/nyctographic/u.png"
+    },
+    {
+      "index": 22,
+      "key": "v",
+      "label": "V",
+      "file": "art/nyctographic/v.png"
+    },
+    {
+      "index": 23,
+      "key": "w",
+      "label": "W",
+      "file": "art/nyctographic/w.png"
+    },
+    {
+      "index": 24,
+      "key": "x",
+      "label": "X",
+      "file": "art/nyctographic/x.png"
+    },
+    {
+      "index": 25,
+      "key": "y",
+      "label": "Y",
+      "file": "art/nyctographic/y.png"
+    },
+    {
+      "index": 26,
+      "key": "z",
+      "label": "Z",
+      "file": "art/nyctographic/z.png"
+    },
+    {
+      "index": 27,
+      "key": "0",
+      "label": "0",
+      "file": "art/nyctographic/0.png"
+    },
+    {
+      "index": 28,
+      "key": "1",
+      "label": "1",
+      "file": "art/nyctographic/1.png"
+    },
+    {
+      "index": 29,
+      "key": "2",
+      "label": "2",
+      "file": "art/nyctographic/2.png"
+    },
+    {
+      "index": 30,
+      "key": "3",
+      "label": "3",
+      "file": "art/nyctographic/3.png"
+    },
+    {
+      "index": 31,
+      "key": "4",
+      "label": "4",
+      "file": "art/nyctographic/4.png"
+    },
+    {
+      "index": 32,
+      "key": "5",
+      "label": "5",
+      "file": "art/nyctographic/5.png"
+    },
+    {
+      "index": 33,
+      "key": "6",
+      "label": "6",
+      "file": "art/nyctographic/6.png"
+    },
+    {
+      "index": 34,
+      "key": "7",
+      "label": "7",
+      "file": "art/nyctographic/7.png"
+    },
+    {
+      "index": 35,
+      "key": "8",
+      "label": "8",
+      "file": "art/nyctographic/8.png"
+    },
+    {
+      "index": 36,
+      "key": "9",
+      "label": "9",
+      "file": "art/nyctographic/9.png"
+    },
+    {
+      "index": 37,
+      "key": "&",
+      "label": "&",
+      "file": "art/nyctographic/ampersand.png"
+    },
+    {
+      "index": 38,
+      "key": "'",
+      "label": "'",
+      "file": "art/nyctographic/apostrophe.png"
+    },
+    {
+      "index": 39,
+      "key": ":",
+      "label": ":",
+      "file": "art/nyctographic/colon.png"
+    },
+    {
+      "index": 40,
+      "key": ",",
+      "label": ",",
+      "file": "art/nyctographic/comma.png"
+    },
+    {
+      "index": 41,
+      "key": "\"",
+      "label": "\"",
+      "file": "art/nyctographic/doublequote.png"
+    },
+    {
+      "index": 42,
+      "key": "!",
+      "label": "!",
+      "file": "art/nyctographic/exclamation.png"
+    },
+    {
+      "index": 43,
+      "key": "(",
+      "label": "(",
+      "file": "art/nyctographic/lparen.png"
+    },
+    {
+      "index": 44,
+      "key": ".",
+      "label": ".",
+      "file": "art/nyctographic/period.png"
+    },
+    {
+      "index": 45,
+      "key": "?",
+      "label": "?",
+      "file": "art/nyctographic/question.png"
+    },
+    {
+      "index": 46,
+      "key": ")",
+      "label": ")",
+      "file": "art/nyctographic/rparen.png"
+    },
+    {
+      "index": 47,
+      "key": ";",
+      "label": ";",
+      "file": "art/nyctographic/semicolon.png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

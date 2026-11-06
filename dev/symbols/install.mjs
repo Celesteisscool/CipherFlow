@@ -304,10 +304,11 @@ for (const slug of slugs.sort()) {
         dcode = {page: staged.dcode.page, count: dcount, variantNames: staged.dcode.variantNames || [], glyphs: dglyphs};
     }
 
-    const tableRel = staged.source.cachesleuth.tableImage
-        ? `art/${slug}/${staged.source.cachesleuth.tableImage.replace(/^source-/, "table-")}` : null;
-    if (staged.source.cachesleuth.tableImage) {
-        copy(staged.source.cachesleuth.tableImage, path.join(artDir, path.basename(tableRel)));
+    const cs = staged.source.cachesleuth || null;
+    const tableRel = cs && cs.tableImage
+        ? `art/${slug}/${cs.tableImage.replace(/^source-/, "table-")}` : null;
+    if (cs && cs.tableImage) {
+        copy(cs.tableImage, path.join(artDir, path.basename(tableRel)));
     }
 
     const installed = {
@@ -316,11 +317,11 @@ for (const slug of slugs.sort()) {
         artFrom,
         dropped: staged.dropped || [],
         source: {
-            cachesleuth: {
-                page: staged.source.cachesleuth.page,
-                images: staged.source.cachesleuth.images,
+            cachesleuth: cs ? {
+                page: cs.page,
+                images: cs.images,
                 tableImage: tableRel
-            },
+            } : null,
             dcode: staged.source.dcode || null
         },
         descriptor: staged.descriptor,

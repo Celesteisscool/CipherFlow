@@ -2613,3 +2613,131 @@ Nothing committed — awaiting sign-off.
 **Source check.** `verify-source.mjs`: **9,298 CacheSleuth glyphs byte-identical, 0 mismatched, 0 unreachable, 330 keyed to dCode art — VERIFY: PASS** (78s).
 
 Nothing committed — awaiting sign-off.
+
+**Phase 1 (batch 20) — selection, staging, install and build, 2026-11-05.** Target N = 25
+(catalogue 300). The last viable CacheSleuth candidate was `nyctographic` (47/47 after the
+direct-probe count fix); the other five are blocked: `giovannifontana` 28/46, `hyach` 26/36,
+`shadow` 35/37, `visitor` 41/52, `segmentdisplay` blacklisted. To reach 25, `extract.mjs` gained
+`--dcode-only /page-path --slug <slug>`: it takes the page's own glyph inventory, normalizes
+letters uppercase, prefers uppercase art where both cases exist, and stages `artFrom:"dcode"` with
+no second source. `install.mjs`, `sheet.mjs`, `index.mjs` and `inventory.mjs` now accept that
+missing CacheSleuth source, and inventory binds a page from `source.dcode.page` as well as
+`dcode.page`.
+
+Selected dCode-only: abyss, albhed, alternian, arthur, betamaze, clock, daedric, deshret,
+frenchsign, friderici, gravity_falls_alchemy, gravity_falls_bros, gravity_falls_colors,
+gravity_falls_runic, gravity_falls_theraprism, illageralt, inazuman, iokharic, kirby,
+lingua_ignota, monklish, crouwel, ninjargon, noita; plus nyctographic.
+
+Skipped: 7-segment (raw 128-character ASCII table); duplicate editions of shipped ciphers
+(Amphibia, Atlantean, Dinotopia, Dovahzul, Gerudo, Hymnos, Ophidian, Sheikah, Simlish, Standard
+Galactic, Vulcan, Younger Futhark, Halo Covenant, Gravity Falls Author, Nyctography); pages with
+no glyphs or only control/non-ASCII keys (Cistercian, Kaktovik, hieroglyphs, etc.).
+
+**Phase 2 (batch 20) — staging.** 25/25 COUNT CHECK PASS, **797 symbols**: nyctographic 47,
+dCode-only 750. The 24 dCode pages returned 26–60 unique PNGs each, all downloaded. No
+multi-character keys and no notes. Ink medians 17.3–30.0 px (nyctographic 23.3), so `tightArt`
+is off for all 25.
+
+**Install and build.** Subset install of the 25; hash check confirms all **300** pre-existing
+data files and all **10,440** pre-existing art files unchanged. Final catalogue 325 rows ==
+325 data files == 325 art dirs, **10,425 symbols**, 11,237 art files, 0 tiles without art.
+`index.html` rebuilt at **58,709,652** bytes (was 57,842,960; **+866,692**). `new: true` is on
+exactly the batch's 25 rows.
+
+**Sheets and checklist.** 25 sheets written (325 total); dCode-only sheets show the dCode page
+as the source table. `inventory.mjs` exits 0: CacheSleuth **301/306 (98%)**, 5 left; dCode
+**156 pages — 68 bound / 26 twin / 62 uncatalogued** (the 24 new pages are bound; the page
+bind is read from `source.dcode.page`).
+
+**Browser pass.** 287/287 checks over the shipped page: 325 rail/panel/header, New filter
+isolating 25 and every row carrying the pill, 25 nodes placed and matched by title; per node
+tile count, captions in source order, PNG art, no placeholder, foot count, no toggle, fixed
+source label (`CacheSleuth` for nyctographic, `dCode` for the dCode-only sets), no variant bar,
+no note, single-character keys, and first-tile transcription.
+
+**Source check.** `verify-source.mjs` with all 25: nyctographic **47/47 CacheSleuth glyphs
+byte-identical, 0 mismatched**; the other 750 are dCode art. dCode’s informational pass matched
+**634/797**; the remaining 116 were absent from today’s pages because dCode’s per-page glyph
+inventory rotates between requests (e.g. `/arthur-invisibles-cipher` currently serves 11 of its
+26 images). This does not fail the run by the project’s dCode rule; the shipped files are the
+page’s own PNGs captured at staging.
+
+Nothing committed — awaiting sign-off.
+
+**Phase 1 (batch 21) — selection, staging, install and build, 2026-11-05.** Target N = 25
+(catalogue 325). No CacheSleuth candidate remained viable: the five large tables are short or
+blacklisted, and the rest are single-glyph or non-alphabet fragments. The batch is 25 dCode-only
+pages: itc_zapf_dingbats, acere, alpha_angle, alphabet_angels_genii, alphabetum_kaldeorum,
+ancients_stargate, astronomical, bibi_binary, goron, infernal, knot_notation, kromagg, mourier,
+maritime_signals, pictured_perfect, rata_alada, semaphore_angle, sumeru, teyvat, voynich,
+wingdings_2, wingdings_3, dothraki, goblin, symbol_font.
+
+Skipped: 7-Segment Display (blacklisted raw ASCII table); duplicate editions of shipped ciphers
+(Amphibia, Hymnos, Nyctography, Ophidian, Semaphore Clock, Mary Stuart, D'Ni Numerals, Younger
+Futhark); pages with no glyphs (Code of Claw, Dominos in Digits, Gold Bug, Ideograms, Malayalam,
+Option-Key, Sanskrit, Substitution, Telugu, Thai, Tom Tom); pages with only control/non-ASCII
+keys (Amharic, Alphabet of the Magi, Celestial, Cistercian, Egyptian, Enderwalk, Hexagram,
+Hieroglyphs, Inuktitut, Kaktovik, Music Staff, Night Writing, Passing the River). Wingdings and
+Webdings were staged but dropped after the key audit because each published 32 C1 control keys.
+
+`--dcode-only` now ignores C0/C1 controls and private-use code points, so a font page's internals
+cannot become blank, untypable tiles. Alphabetum Kaldeorum, Dothraki and Goblin were restaged
+under that rule (31→24, 35→26, 69→28); no existing data or art changed.
+
+**Phase 2 (batch 21) — staging.** 25/25 COUNT CHECK PASS, **953 symbols**. Counts: itc_zapf_dingbats
+68, acere 33, alpha_angle 10, alphabet_angels_genii 24, alphabetum_kaldeorum 24, ancients_stargate
+36, astronomical 17, bibi_binary 16, goron 51, infernal 36, knot_notation 41, kromagg 20, mourier
+42, maritime_signals 36, pictured_perfect 27, rata_alada 26, semaphore_angle 28, sumeru 26,
+teyvat 26, voynich 25, wingdings_2 68, wingdings_3 68, dothraki 26, goblin 28, symbol_font 151.
+The first pipeline check was ITC Zapf Dingbats (68); the largest captured set was Symbol Font
+(151), also PASS. No multi-character keys and no notes.
+
+**Install and build.** Subset install of the 25. Hash check confirms all **325** pre-existing data
+files and all **11,237** pre-existing art files unchanged; 25 new data files and 953 new art files.
+Final catalogue 350 rows == 350 data files == 350 art dirs, **11,378 symbols**, 12,190 art files,
+0 tiles without art. `index.html` rebuilt at **59,524,483** bytes (was 58,709,652; **+652,831**).
+`new: true` is on exactly this batch's 25 rows; the previous batch flags are cleared.
+
+**Sheets and checklist.** 25 sheets written (350 total). `inventory.mjs` exits 0: CacheSleuth
+**301/306 (98%)**, 5 left; dCode **156 pages — 93 bound / 26 twin / 37 uncatalogued**.
+
+**Browser pass.** 287/287 checks over the shipped page: 350 rail/panel/header, New filter
+isolating 25 with every pill present, 25 nodes placed and matched by title; per node tile count,
+captions in source order, PNG art, no placeholder, foot count, no toggle, fixed dCode label, no
+variant bar, no note, single-character keys, and first-tile transcription.
+
+**Source check.** `verify-source.mjs` with all 25: CacheSleuth **0 glyphs checked, 0 mismatched,
+0 unreachable**, **953 keyed to dCode art — VERIFY: PASS**. dCode informational pass: **625
+matched, 9 changed, 319 absent** from today's pages because its per-page inventory rotates; this
+does not fail the run. The shipped files are the page's own PNGs captured at staging.
+
+Nothing committed — awaiting sign-off.
+
+**Phase 1 (batch 22) — selection, staging, install and build, 2026-11-05.** Target N = 3 (the
+user named Copiale, Webdings and Wingdings after the remaining 25-page audit). Catalogue 350.
+All three are dCode-only: copiale (`/copiale-cipher`), webdings (`/webdings-font`), wingdings
+(`/wingdings-font`). Copiale keeps its three non-ASCII keys (`¢`, `¬`, `±`) beside the letters.
+The font pages use `--cases --keep-controls`, so A/a remain distinct images and every published
+control-code position is kept with a `U+00XX` caption; that is 223 Webdings and 222 Wingdings
+glyphs, not the 190/190 a folded, control-filtered run would produce.
+
+**Staging and install.** All three `COUNT CHECK: PASS`: copiale 92, webdings 223, wingdings
+222, **537 symbols**. Hash check confirms all **350** pre-existing data files and **12,190**
+pre-existing art files unchanged; 3 new data files and 537 new art files. Final catalogue 353
+rows == 353 data files == 353 art dirs, **11,915 symbols**, 12,727 art files, 0 tiles without
+art. `index.html` rebuilt at **60,101,035** bytes (was 59,524,483; **+576,552**). `new: true` is
+on exactly these three rows; the previous batch flags are cleared.
+
+**Sheets and checklist.** 3 sheets written (353 total). `inventory.mjs` exits 0: CacheSleuth
+**301/306 (98%)**, 5 left; dCode **156 pages — 96 bound / 26 twin / 34 uncatalogued**.
+
+**Browser pass.** 45/45 checks over the shipped page: 353 rail/panel/header, New filter isolating
+3 with every pill present, 3 nodes placed and matched by title; per node tile count, captions in
+source order (including `U+007F`/`U+00XX`), PNG art, no placeholder, foot count, no toggle, fixed
+dCode label, no variant bar, no note, single-character keys, and first-tile transcription.
+
+**Source check.** `verify-source.mjs copiale webdings wingdings`: CacheSleuth **0 glyphs checked,
+0 mismatched, 0 unreachable**, **537 keyed to dCode art — VERIFY: PASS**.
+
+Nothing committed — awaiting sign-off.

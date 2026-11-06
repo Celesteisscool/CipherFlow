@@ -1,0 +1,192 @@
+{
+  "slug": "dothraki",
+  "name": "Dothraki Alphabet",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": null,
+    "dcode": {
+      "page": "https://www.dcode.fr/dothraki-alphabet"
+    }
+  },
+  "descriptor": {
+    "letters": "",
+    "numbers": "",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 26,
+    "uniqueFiles": 26,
+    "manifestFiles": 0,
+    "downloaded": 26,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/dothraki/_dcode/char(65).png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/dothraki/_dcode/char(66).png"
+    },
+    {
+      "index": 3,
+      "key": "D",
+      "label": "D",
+      "file": "art/dothraki/_dcode/char(68).png"
+    },
+    {
+      "index": 4,
+      "key": "E",
+      "label": "E",
+      "file": "art/dothraki/_dcode/char(69).png"
+    },
+    {
+      "index": 5,
+      "key": "F",
+      "label": "F",
+      "file": "art/dothraki/_dcode/char(70).png"
+    },
+    {
+      "index": 6,
+      "key": "G",
+      "label": "G",
+      "file": "art/dothraki/_dcode/char(71).png"
+    },
+    {
+      "index": 7,
+      "key": "H",
+      "label": "H",
+      "file": "art/dothraki/_dcode/char(72).png"
+    },
+    {
+      "index": 8,
+      "key": "I",
+      "label": "I",
+      "file": "art/dothraki/_dcode/char(73).png"
+    },
+    {
+      "index": 9,
+      "key": "J",
+      "label": "J",
+      "file": "art/dothraki/_dcode/char(74).png"
+    },
+    {
+      "index": 10,
+      "key": "K",
+      "label": "K",
+      "file": "art/dothraki/_dcode/char(75).png"
+    },
+    {
+      "index": 11,
+      "key": "L",
+      "label": "L",
+      "file": "art/dothraki/_dcode/char(76).png"
+    },
+    {
+      "index": 12,
+      "key": "M",
+      "label": "M",
+      "file": "art/dothraki/_dcode/char(77).png"
+    },
+    {
+      "index": 13,
+      "key": "N",
+      "label": "N",
+      "file": "art/dothraki/_dcode/char(78).png"
+    },
+    {
+      "index": 14,
+      "key": "O",
+      "label": "O",
+      "file": "art/dothraki/_dcode/char(79).png"
+    },
+    {
+      "index": 15,
+      "key": "P",
+      "label": "P",
+      "file": "art/dothraki/_dcode/char(80).png"
+    },
+    {
+      "index": 16,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/dothraki/_dcode/char(81).png"
+    },
+    {
+      "index": 17,
+      "key": "R",
+      "label": "R",
+      "file": "art/dothraki/_dcode/char(82).png"
+    },
+    {
+      "index": 18,
+      "key": "S",
+      "label": "S",
+      "file": "art/dothraki/_dcode/char(83).png"
+    },
+    {
+      "index": 19,
+      "key": "T",
+      "label": "T",
+      "file": "art/dothraki/_dcode/char(84).png"
+    },
+    {
+      "index": 20,
+      "key": "V",
+      "label": "V",
+      "file": "art/dothraki/_dcode/char(86).png"
+    },
+    {
+      "index": 21,
+      "key": "W",
+      "label": "W",
+      "file": "art/dothraki/_dcode/char(87).png"
+    },
+    {
+      "index": 22,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/dothraki/_dcode/char(89).png"
+    },
+    {
+      "index": 23,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/dothraki/_dcode/char(90).png"
+    },
+    {
+      "index": 24,
+      "key": " ",
+      "label": "␣",
+      "file": "art/dothraki/_dcode/char(32).png"
+    },
+    {
+      "index": 25,
+      "key": ".",
+      "label": ".",
+      "file": "art/dothraki/_dcode/char(46).png"
+    },
+    {
+      "index": 26,
+      "key": "?",
+      "label": "?",
+      "file": "art/dothraki/_dcode/char(63).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

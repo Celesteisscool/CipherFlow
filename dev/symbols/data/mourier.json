@@ -1,0 +1,288 @@
+{
+  "slug": "mourier",
+  "name": "Mourier Alphabet",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": null,
+    "dcode": {
+      "page": "https://www.dcode.fr/mourier-alphabet"
+    }
+  },
+  "descriptor": {
+    "letters": "",
+    "numbers": "",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 42,
+    "uniqueFiles": 42,
+    "manifestFiles": 0,
+    "downloaded": 42,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/mourier/_dcode/char(65).png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/mourier/_dcode/char(66).png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/mourier/_dcode/char(67).png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/mourier/_dcode/char(68).png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/mourier/_dcode/char(69).png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/mourier/_dcode/char(70).png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/mourier/_dcode/char(71).png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/mourier/_dcode/char(72).png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/mourier/_dcode/char(73).png"
+    },
+    {
+      "index": 10,
+      "key": "J",
+      "label": "J",
+      "file": "art/mourier/_dcode/char(74).png"
+    },
+    {
+      "index": 11,
+      "key": "K",
+      "label": "K",
+      "file": "art/mourier/_dcode/char(75).png"
+    },
+    {
+      "index": 12,
+      "key": "L",
+      "label": "L",
+      "file": "art/mourier/_dcode/char(76).png"
+    },
+    {
+      "index": 13,
+      "key": "M",
+      "label": "M",
+      "file": "art/mourier/_dcode/char(77).png"
+    },
+    {
+      "index": 14,
+      "key": "N",
+      "label": "N",
+      "file": "art/mourier/_dcode/char(78).png"
+    },
+    {
+      "index": 15,
+      "key": "O",
+      "label": "O",
+      "file": "art/mourier/_dcode/char(79).png"
+    },
+    {
+      "index": 16,
+      "key": "P",
+      "label": "P",
+      "file": "art/mourier/_dcode/char(80).png"
+    },
+    {
+      "index": 17,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/mourier/_dcode/char(81).png"
+    },
+    {
+      "index": 18,
+      "key": "R",
+      "label": "R",
+      "file": "art/mourier/_dcode/char(82).png"
+    },
+    {
+      "index": 19,
+      "key": "S",
+      "label": "S",
+      "file": "art/mourier/_dcode/char(83).png"
+    },
+    {
+      "index": 20,
+      "key": "T",
+      "label": "T",
+      "file": "art/mourier/_dcode/char(84).png"
+    },
+    {
+      "index": 21,
+      "key": "U",
+      "label": "U",
+      "file": "art/mourier/_dcode/char(85).png"
+    },
+    {
+      "index": 22,
+      "key": "V",
+      "label": "V",
+      "file": "art/mourier/_dcode/char(86).png"
+    },
+    {
+      "index": 23,
+      "key": "W",
+      "label": "W",
+      "file": "art/mourier/_dcode/char(87).png"
+    },
+    {
+      "index": 24,
+      "key": "X",
+      "label": "X",
+      "file": "art/mourier/_dcode/char(88).png"
+    },
+    {
+      "index": 25,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/mourier/_dcode/char(89).png"
+    },
+    {
+      "index": 26,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/mourier/_dcode/char(90).png"
+    },
+    {
+      "index": 27,
+      "key": "#",
+      "label": "#",
+      "file": "art/mourier/_dcode/char(35).png"
+    },
+    {
+      "index": 28,
+      "key": "$",
+      "label": "$",
+      "file": "art/mourier/_dcode/char(36).png"
+    },
+    {
+      "index": 29,
+      "key": "&",
+      "label": "&",
+      "file": "art/mourier/_dcode/char(38).png"
+    },
+    {
+      "index": 30,
+      "key": "*",
+      "label": "*",
+      "file": "art/mourier/_dcode/char(42).png"
+    },
+    {
+      "index": 31,
+      "key": "/",
+      "label": "/",
+      "file": "art/mourier/_dcode/char(47).png"
+    },
+    {
+      "index": 32,
+      "key": "0",
+      "label": "0",
+      "file": "art/mourier/_dcode/char(48).png"
+    },
+    {
+      "index": 33,
+      "key": "1",
+      "label": "1",
+      "file": "art/mourier/_dcode/char(49).png"
+    },
+    {
+      "index": 34,
+      "key": "2",
+      "label": "2",
+      "file": "art/mourier/_dcode/char(50).png"
+    },
+    {
+      "index": 35,
+      "key": "3",
+      "label": "3",
+      "file": "art/mourier/_dcode/char(51).png"
+    },
+    {
+      "index": 36,
+      "key": "4",
+      "label": "4",
+      "file": "art/mourier/_dcode/char(52).png"
+    },
+    {
+      "index": 37,
+      "key": "5",
+      "label": "5",
+      "file": "art/mourier/_dcode/char(53).png"
+    },
+    {
+      "index": 38,
+      "key": "6",
+      "label": "6",
+      "file": "art/mourier/_dcode/char(54).png"
+    },
+    {
+      "index": 39,
+      "key": "7",
+      "label": "7",
+      "file": "art/mourier/_dcode/char(55).png"
+    },
+    {
+      "index": 40,
+      "key": "8",
+      "label": "8",
+      "file": "art/mourier/_dcode/char(56).png"
+    },
+    {
+      "index": 41,
+      "key": "9",
+      "label": "9",
+      "file": "art/mourier/_dcode/char(57).png"
+    },
+    {
+      "index": 42,
+      "key": "@",
+      "label": "@",
+      "file": "art/mourier/_dcode/char(64).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

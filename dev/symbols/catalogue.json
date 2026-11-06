@@ -10,12 +10,42 @@
     "check": "PASS"
   },
   {
+    "slug": "abyss",
+    "name": "Abyss Language (Genshin Impact)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 28,
+    "uniqueFiles": 28,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "acere",
+    "name": "Acéré Cipher",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 33,
+    "uniqueFiles": 33,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "adlam",
     "name": "Adlam",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 36,
     "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "albhed",
+    "name": "Al Bhed Language",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS"
   },
@@ -30,6 +60,16 @@
     "check": "PASS"
   },
   {
+    "slug": "alpha_angle",
+    "name": "Alpha Angle System Branding",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 10,
+    "uniqueFiles": 10,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "alphabetcode",
     "name": "Alphabet Code",
     "source": "cachesleuth",
@@ -40,12 +80,42 @@
     "check": "PASS"
   },
   {
+    "slug": "alphabet_angels_genii",
+    "name": "Alphabet of Angels and Genii",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 24,
+    "uniqueFiles": 24,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "alphabetum_kaldeorum",
+    "name": "Alphabetum Kaldeorum",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 24,
+    "uniqueFiles": 24,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "alphabots",
     "name": "Alphabots",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 67,
     "uniqueFiles": 67,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "alternian",
+    "name": "Alternian Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS"
   },
@@ -96,6 +166,16 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "ancients_stargate",
+    "name": "Ancients Alphabet from Stargate",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
     "dcode": 0,
     "check": "PASS"
   },
@@ -156,6 +236,26 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "arthur",
+    "name": "Arthur and the Invisibles Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "astronomical",
+    "name": "Astronomical Symbol",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 17,
+    "uniqueFiles": 17,
     "dcode": 0,
     "check": "PASS"
   },
@@ -277,8 +377,7 @@
     "glyphs": 37,
     "uniqueFiles": 37,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "beams",
@@ -297,6 +396,26 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "betamaze",
+    "name": "Betamaze Cipher",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 37,
+    "uniqueFiles": 37,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "bibi_binary",
+    "name": "Bibi-binary Code",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 16,
+    "uniqueFiles": 16,
     "dcode": 0,
     "check": "PASS"
   },
@@ -541,6 +660,16 @@
     "check": "PASS"
   },
   {
+    "slug": "clock",
+    "name": "Clock Cipher",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 48,
+    "uniqueFiles": 48,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "clutter",
     "name": "Clutter",
     "source": "cachesleuth",
@@ -641,6 +770,17 @@
     "check": "PASS"
   },
   {
+    "slug": "copiale",
+    "name": "Copiale Cipher",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 92,
+    "uniqueFiles": 92,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "covenant",
     "name": "Covenant",
     "source": "cachesleuth",
@@ -687,6 +827,16 @@
     "status": "ready",
     "glyphs": 27,
     "uniqueFiles": 27,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "daedric",
+    "name": "Daedric Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS"
   },
@@ -761,6 +911,16 @@
     "check": "PASS"
   },
   {
+    "slug": "deshret",
+    "name": "Deshret Language (Genshin Impact)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "devanagari",
     "name": "Devanagari Numerals",
     "source": "cachesleuth",
@@ -828,6 +988,16 @@
     "glyphs": 26,
     "uniqueFiles": 26,
     "dcode": 24,
+    "check": "PASS"
+  },
+  {
+    "slug": "dothraki",
+    "name": "Dothraki Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -1111,6 +1281,26 @@
     "check": "PASS"
   },
   {
+    "slug": "frenchsign",
+    "name": "French Sign Language",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "friderici",
+    "name": "Friderici Cipher (Windows)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 24,
+    "uniqueFiles": 24,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "fringe",
     "name": "Fringe",
     "source": "cachesleuth",
@@ -1241,6 +1431,26 @@
     "check": "PASS"
   },
   {
+    "slug": "goblin",
+    "name": "Goblin Tolkien Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 28,
+    "uniqueFiles": 28,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "goron",
+    "name": "Goron Language",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 51,
+    "uniqueFiles": 51,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "gravity_falls_author",
     "name": "Gravity Falls - Author",
     "source": "dcode",
@@ -1267,6 +1477,56 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "gravity_falls_alchemy",
+    "name": "Gravity Falls Alchemy Cipher",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "gravity_falls_bros",
+    "name": "Gravity Falls Bros' Code",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "gravity_falls_colors",
+    "name": "Gravity Falls Color Code",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "gravity_falls_runic",
+    "name": "Gravity Falls Rune Cipher",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "gravity_falls_theraprism",
+    "name": "Gravity Falls Theraprism Cipher",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 25,
+    "uniqueFiles": 25,
     "dcode": 0,
     "check": "PASS"
   },
@@ -1371,6 +1631,16 @@
     "check": "PASS"
   },
   {
+    "slug": "illageralt",
+    "name": "Illageralt Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 41,
+    "uniqueFiles": 41,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "illuminati_1",
     "name": "Illuminati Version 1",
     "source": "cachesleuth",
@@ -1391,12 +1661,52 @@
     "check": "PASS"
   },
   {
+    "slug": "inazuman",
+    "name": "Inazuman Language (Genshin Impact)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "indianajones",
     "name": "Indiana Jones",
     "source": "cachesleuth",
     "status": "ready",
     "glyphs": 36,
     "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "infernal",
+    "name": "Infernal Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "iokharic",
+    "name": "Iokharic Language",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "itc_zapf_dingbats",
+    "name": "ITC Zapf Dingbats",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 68,
+    "uniqueFiles": 68,
     "dcode": 0,
     "check": "PASS"
   },
@@ -1471,6 +1781,16 @@
     "check": "PASS"
   },
   {
+    "slug": "kirby",
+    "name": "Kirby (Forgotten Land) Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 38,
+    "uniqueFiles": 38,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "kix",
     "name": "Kix",
     "source": "cachesleuth",
@@ -1497,6 +1817,16 @@
     "status": "ready",
     "glyphs": 37,
     "uniqueFiles": 37,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "knot_notation",
+    "name": "Knots Notation",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 41,
+    "uniqueFiles": 41,
     "dcode": 0,
     "check": "PASS"
   },
@@ -1531,6 +1861,16 @@
     "check": "PASS"
   },
   {
+    "slug": "kromagg",
+    "name": "Kromagg Alphabet (Sliders)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 20,
+    "uniqueFiles": 20,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "kryptonian",
     "name": "Kryptonian",
     "source": "cachesleuth",
@@ -1557,6 +1897,16 @@
     "status": "ready",
     "glyphs": 36,
     "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "lingua_ignota",
+    "name": "Lingua Ignota",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 24,
+    "uniqueFiles": 24,
     "dcode": 0,
     "check": "PASS"
   },
@@ -1801,6 +2151,16 @@
     "check": "PASS"
   },
   {
+    "slug": "monklish",
+    "name": "Monklish Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 28,
+    "uniqueFiles": 28,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "moon",
     "name": "Moon",
     "source": "cachesleuth",
@@ -1827,6 +2187,16 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "mourier",
+    "name": "Mourier Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 42,
+    "uniqueFiles": 42,
     "dcode": 0,
     "check": "PASS"
   },
@@ -1911,6 +2281,16 @@
     "check": "PASS"
   },
   {
+    "slug": "maritime_signals",
+    "name": "Navy Signals Code",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "nazcaan",
     "name": "Nazcaan",
     "source": "both",
@@ -1918,6 +2298,36 @@
     "glyphs": 36,
     "uniqueFiles": 36,
     "dcode": 9,
+    "check": "PASS"
+  },
+  {
+    "slug": "crouwel",
+    "name": "New Alphabet by Crouwel",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 39,
+    "uniqueFiles": 39,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "ninjargon",
+    "name": "Ninjargon Alphabet (Lego Ninjago)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 36,
+    "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "noita",
+    "name": "Noita Alphabet",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 60,
+    "uniqueFiles": 60,
+    "dcode": 0,
     "check": "PASS"
   },
   {
@@ -1947,6 +2357,16 @@
     "status": "ready",
     "glyphs": 36,
     "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "nyctographic",
+    "name": "Nyctographic",
+    "source": "cachesleuth",
+    "status": "ready",
+    "glyphs": 47,
+    "uniqueFiles": 47,
     "dcode": 0,
     "check": "PASS"
   },
@@ -2027,6 +2447,16 @@
     "status": "ready",
     "glyphs": 26,
     "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "pictured_perfect",
+    "name": "Pictured as Perfect Code",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 27,
+    "uniqueFiles": 27,
     "dcode": 0,
     "check": "PASS"
   },
@@ -2201,6 +2631,16 @@
     "check": "PASS"
   },
   {
+    "slug": "rata_alada",
+    "name": "RataAlada Cipher (Batman)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "reality",
     "name": "Reality",
     "source": "cachesleuth",
@@ -2317,6 +2757,16 @@
     "status": "ready",
     "glyphs": 36,
     "uniqueFiles": 36,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "semaphore_angle",
+    "name": "Semaphore Angle",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 28,
+    "uniqueFiles": 28,
     "dcode": 0,
     "check": "PASS"
   },
@@ -2551,6 +3001,26 @@
     "check": "PASS"
   },
   {
+    "slug": "sumeru",
+    "name": "Sumeru Language (Genshin Impact)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "symbol_font",
+    "name": "Symbol Font",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 151,
+    "uniqueFiles": 151,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "symbolica",
     "name": "Symbolica",
     "source": "cachesleuth",
@@ -2627,6 +3097,16 @@
     "status": "ready",
     "glyphs": 20,
     "uniqueFiles": 20,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "teyvat",
+    "name": "Teyvat Language (Genshin Impact)",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 26,
+    "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS"
   },
@@ -2871,6 +3351,16 @@
     "check": "PASS"
   },
   {
+    "slug": "voynich",
+    "name": "Voynich Cipher",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 25,
+    "uniqueFiles": 25,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
     "slug": "vulcan_modern",
     "name": "Vulcan - Modern",
     "source": "cachesleuth",
@@ -2901,6 +3391,17 @@
     "check": "PASS"
   },
   {
+    "slug": "webdings",
+    "name": "Webdings Font",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 223,
+    "uniqueFiles": 223,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
+  },
+  {
     "slug": "window",
     "name": "Window",
     "source": "cachesleuth",
@@ -2909,6 +3410,37 @@
     "uniqueFiles": 26,
     "dcode": 0,
     "check": "PASS"
+  },
+  {
+    "slug": "wingdings_2",
+    "name": "Wingdings 2 Font",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 68,
+    "uniqueFiles": 68,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "wingdings_3",
+    "name": "Wingdings 3 Font",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 68,
+    "uniqueFiles": 68,
+    "dcode": 0,
+    "check": "PASS"
+  },
+  {
+    "slug": "wingdings",
+    "name": "Wingdings Font",
+    "source": "dcode",
+    "status": "ready",
+    "glyphs": 222,
+    "uniqueFiles": 222,
+    "dcode": 0,
+    "check": "PASS",
+    "new": true
   },
   {
     "slug": "wraith",

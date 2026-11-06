@@ -1,0 +1,1368 @@
+{
+  "slug": "wingdings",
+  "name": "Wingdings Font",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": null,
+    "dcode": {
+      "page": "https://www.dcode.fr/wingdings-font"
+    }
+  },
+  "descriptor": {
+    "letters": "",
+    "numbers": "",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 222,
+    "uniqueFiles": 222,
+    "manifestFiles": 0,
+    "downloaded": 222,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "a",
+      "label": "a",
+      "file": "art/wingdings/_dcode/char(97).png"
+    },
+    {
+      "index": 2,
+      "key": "A",
+      "label": "A",
+      "file": "art/wingdings/_dcode/char(65).png"
+    },
+    {
+      "index": 3,
+      "key": "b",
+      "label": "b",
+      "file": "art/wingdings/_dcode/char(98).png"
+    },
+    {
+      "index": 4,
+      "key": "B",
+      "label": "B",
+      "file": "art/wingdings/_dcode/char(66).png"
+    },
+    {
+      "index": 5,
+      "key": "c",
+      "label": "c",
+      "file": "art/wingdings/_dcode/char(99).png"
+    },
+    {
+      "index": 6,
+      "key": "C",
+      "label": "C",
+      "file": "art/wingdings/_dcode/char(67).png"
+    },
+    {
+      "index": 7,
+      "key": "d",
+      "label": "d",
+      "file": "art/wingdings/_dcode/char(100).png"
+    },
+    {
+      "index": 8,
+      "key": "D",
+      "label": "D",
+      "file": "art/wingdings/_dcode/char(68).png"
+    },
+    {
+      "index": 9,
+      "key": "e",
+      "label": "e",
+      "file": "art/wingdings/_dcode/char(101).png"
+    },
+    {
+      "index": 10,
+      "key": "E",
+      "label": "E",
+      "file": "art/wingdings/_dcode/char(69).png"
+    },
+    {
+      "index": 11,
+      "key": "f",
+      "label": "f",
+      "file": "art/wingdings/_dcode/char(102).png"
+    },
+    {
+      "index": 12,
+      "key": "F",
+      "label": "F",
+      "file": "art/wingdings/_dcode/char(70).png"
+    },
+    {
+      "index": 13,
+      "key": "g",
+      "label": "g",
+      "file": "art/wingdings/_dcode/char(103).png"
+    },
+    {
+      "index": 14,
+      "key": "G",
+      "label": "G",
+      "file": "art/wingdings/_dcode/char(71).png"
+    },
+    {
+      "index": 15,
+      "key": "h",
+      "label": "h",
+      "file": "art/wingdings/_dcode/char(104).png"
+    },
+    {
+      "index": 16,
+      "key": "H",
+      "label": "H",
+      "file": "art/wingdings/_dcode/char(72).png"
+    },
+    {
+      "index": 17,
+      "key": "i",
+      "label": "i",
+      "file": "art/wingdings/_dcode/char(105).png"
+    },
+    {
+      "index": 18,
+      "key": "I",
+      "label": "I",
+      "file": "art/wingdings/_dcode/char(73).png"
+    },
+    {
+      "index": 19,
+      "key": "j",
+      "label": "j",
+      "file": "art/wingdings/_dcode/char(106).png"
+    },
+    {
+      "index": 20,
+      "key": "J",
+      "label": "J",
+      "file": "art/wingdings/_dcode/char(74).png"
+    },
+    {
+      "index": 21,
+      "key": "k",
+      "label": "k",
+      "file": "art/wingdings/_dcode/char(107).png"
+    },
+    {
+      "index": 22,
+      "key": "K",
+      "label": "K",
+      "file": "art/wingdings/_dcode/char(75).png"
+    },
+    {
+      "index": 23,
+      "key": "l",
+      "label": "l",
+      "file": "art/wingdings/_dcode/char(108).png"
+    },
+    {
+      "index": 24,
+      "key": "L",
+      "label": "L",
+      "file": "art/wingdings/_dcode/char(76).png"
+    },
+    {
+      "index": 25,
+      "key": "m",
+      "label": "m",
+      "file": "art/wingdings/_dcode/char(109).png"
+    },
+    {
+      "index": 26,
+      "key": "M",
+      "label": "M",
+      "file": "art/wingdings/_dcode/char(77).png"
+    },
+    {
+      "index": 27,
+      "key": "n",
+      "label": "n",
+      "file": "art/wingdings/_dcode/char(110).png"
+    },
+    {
+      "index": 28,
+      "key": "N",
+      "label": "N",
+      "file": "art/wingdings/_dcode/char(78).png"
+    },
+    {
+      "index": 29,
+      "key": "o",
+      "label": "o",
+      "file": "art/wingdings/_dcode/char(111).png"
+    },
+    {
+      "index": 30,
+      "key": "O",
+      "label": "O",
+      "file": "art/wingdings/_dcode/char(79).png"
+    },
+    {
+      "index": 31,
+      "key": "p",
+      "label": "p",
+      "file": "art/wingdings/_dcode/char(112).png"
+    },
+    {
+      "index": 32,
+      "key": "P",
+      "label": "P",
+      "file": "art/wingdings/_dcode/char(80).png"
+    },
+    {
+      "index": 33,
+      "key": "q",
+      "label": "q",
+      "file": "art/wingdings/_dcode/char(113).png"
+    },
+    {
+      "index": 34,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/wingdings/_dcode/char(81).png"
+    },
+    {
+      "index": 35,
+      "key": "r",
+      "label": "r",
+      "file": "art/wingdings/_dcode/char(114).png"
+    },
+    {
+      "index": 36,
+      "key": "R",
+      "label": "R",
+      "file": "art/wingdings/_dcode/char(82).png"
+    },
+    {
+      "index": 37,
+      "key": "s",
+      "label": "s",
+      "file": "art/wingdings/_dcode/char(115).png"
+    },
+    {
+      "index": 38,
+      "key": "S",
+      "label": "S",
+      "file": "art/wingdings/_dcode/char(83).png"
+    },
+    {
+      "index": 39,
+      "key": "t",
+      "label": "t",
+      "file": "art/wingdings/_dcode/char(116).png"
+    },
+    {
+      "index": 40,
+      "key": "T",
+      "label": "T",
+      "file": "art/wingdings/_dcode/char(84).png"
+    },
+    {
+      "index": 41,
+      "key": "u",
+      "label": "u",
+      "file": "art/wingdings/_dcode/char(117).png"
+    },
+    {
+      "index": 42,
+      "key": "U",
+      "label": "U",
+      "file": "art/wingdings/_dcode/char(85).png"
+    },
+    {
+      "index": 43,
+      "key": "v",
+      "label": "v",
+      "file": "art/wingdings/_dcode/char(118).png"
+    },
+    {
+      "index": 44,
+      "key": "V",
+      "label": "V",
+      "file": "art/wingdings/_dcode/char(86).png"
+    },
+    {
+      "index": 45,
+      "key": "w",
+      "label": "w",
+      "file": "art/wingdings/_dcode/char(119).png"
+    },
+    {
+      "index": 46,
+      "key": "W",
+      "label": "W",
+      "file": "art/wingdings/_dcode/char(87).png"
+    },
+    {
+      "index": 47,
+      "key": "x",
+      "label": "x",
+      "file": "art/wingdings/_dcode/char(120).png"
+    },
+    {
+      "index": 48,
+      "key": "X",
+      "label": "X",
+      "file": "art/wingdings/_dcode/char(88).png"
+    },
+    {
+      "index": 49,
+      "key": "y",
+      "label": "y",
+      "file": "art/wingdings/_dcode/char(121).png"
+    },
+    {
+      "index": 50,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/wingdings/_dcode/char(89).png"
+    },
+    {
+      "index": 51,
+      "key": "z",
+      "label": "z",
+      "file": "art/wingdings/_dcode/char(122).png"
+    },
+    {
+      "index": 52,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/wingdings/_dcode/char(90).png"
+    },
+    {
+      "index": 53,
+      "key": "0",
+      "label": "0",
+      "file": "art/wingdings/_dcode/char(48).png"
+    },
+    {
+      "index": 54,
+      "key": "1",
+      "label": "1",
+      "file": "art/wingdings/_dcode/char(49).png"
+    },
+    {
+      "index": 55,
+      "key": "2",
+      "label": "2",
+      "file": "art/wingdings/_dcode/char(50).png"
+    },
+    {
+      "index": 56,
+      "key": "3",
+      "label": "3",
+      "file": "art/wingdings/_dcode/char(51).png"
+    },
+    {
+      "index": 57,
+      "key": "4",
+      "label": "4",
+      "file": "art/wingdings/_dcode/char(52).png"
+    },
+    {
+      "index": 58,
+      "key": "5",
+      "label": "5",
+      "file": "art/wingdings/_dcode/char(53).png"
+    },
+    {
+      "index": 59,
+      "key": "6",
+      "label": "6",
+      "file": "art/wingdings/_dcode/char(54).png"
+    },
+    {
+      "index": 60,
+      "key": "7",
+      "label": "7",
+      "file": "art/wingdings/_dcode/char(55).png"
+    },
+    {
+      "index": 61,
+      "key": "8",
+      "label": "8",
+      "file": "art/wingdings/_dcode/char(56).png"
+    },
+    {
+      "index": 62,
+      "key": "9",
+      "label": "9",
+      "file": "art/wingdings/_dcode/char(57).png"
+    },
+    {
+      "index": 63,
+      "key": "!",
+      "label": "!",
+      "file": "art/wingdings/_dcode/char(33).png"
+    },
+    {
+      "index": 64,
+      "key": "\"",
+      "label": "\"",
+      "file": "art/wingdings/_dcode/char(34).png"
+    },
+    {
+      "index": 65,
+      "key": "#",
+      "label": "#",
+      "file": "art/wingdings/_dcode/char(35).png"
+    },
+    {
+      "index": 66,
+      "key": "$",
+      "label": "$",
+      "file": "art/wingdings/_dcode/char(36).png"
+    },
+    {
+      "index": 67,
+      "key": "%",
+      "label": "%",
+      "file": "art/wingdings/_dcode/char(37).png"
+    },
+    {
+      "index": 68,
+      "key": "&",
+      "label": "&",
+      "file": "art/wingdings/_dcode/char(38).png"
+    },
+    {
+      "index": 69,
+      "key": "'",
+      "label": "'",
+      "file": "art/wingdings/_dcode/char(39).png"
+    },
+    {
+      "index": 70,
+      "key": "(",
+      "label": "(",
+      "file": "art/wingdings/_dcode/char(40).png"
+    },
+    {
+      "index": 71,
+      "key": ")",
+      "label": ")",
+      "file": "art/wingdings/_dcode/char(41).png"
+    },
+    {
+      "index": 72,
+      "key": "*",
+      "label": "*",
+      "file": "art/wingdings/_dcode/char(42).png"
+    },
+    {
+      "index": 73,
+      "key": "+",
+      "label": "+",
+      "file": "art/wingdings/_dcode/char(43).png"
+    },
+    {
+      "index": 74,
+      "key": ",",
+      "label": ",",
+      "file": "art/wingdings/_dcode/char(44).png"
+    },
+    {
+      "index": 75,
+      "key": "-",
+      "label": "-",
+      "file": "art/wingdings/_dcode/char(45).png"
+    },
+    {
+      "index": 76,
+      "key": ".",
+      "label": ".",
+      "file": "art/wingdings/_dcode/char(46).png"
+    },
+    {
+      "index": 77,
+      "key": "/",
+      "label": "/",
+      "file": "art/wingdings/_dcode/char(47).png"
+    },
+    {
+      "index": 78,
+      "key": ":",
+      "label": ":",
+      "file": "art/wingdings/_dcode/char(58).png"
+    },
+    {
+      "index": 79,
+      "key": ";",
+      "label": ";",
+      "file": "art/wingdings/_dcode/char(59).png"
+    },
+    {
+      "index": 80,
+      "key": "<",
+      "label": "<",
+      "file": "art/wingdings/_dcode/char(60).png"
+    },
+    {
+      "index": 81,
+      "key": "=",
+      "label": "=",
+      "file": "art/wingdings/_dcode/char(61).png"
+    },
+    {
+      "index": 82,
+      "key": ">",
+      "label": ">",
+      "file": "art/wingdings/_dcode/char(62).png"
+    },
+    {
+      "index": 83,
+      "key": "?",
+      "label": "?",
+      "file": "art/wingdings/_dcode/char(63).png"
+    },
+    {
+      "index": 84,
+      "key": "@",
+      "label": "@",
+      "file": "art/wingdings/_dcode/char(64).png"
+    },
+    {
+      "index": 85,
+      "key": "[",
+      "label": "[",
+      "file": "art/wingdings/_dcode/char(91).png"
+    },
+    {
+      "index": 86,
+      "key": "\\",
+      "label": "\\",
+      "file": "art/wingdings/_dcode/char(92).png"
+    },
+    {
+      "index": 87,
+      "key": "]",
+      "label": "]",
+      "file": "art/wingdings/_dcode/char(93).png"
+    },
+    {
+      "index": 88,
+      "key": "^",
+      "label": "^",
+      "file": "art/wingdings/_dcode/char(94).png"
+    },
+    {
+      "index": 89,
+      "key": "_",
+      "label": "_",
+      "file": "art/wingdings/_dcode/char(95).png"
+    },
+    {
+      "index": 90,
+      "key": "`",
+      "label": "`",
+      "file": "art/wingdings/_dcode/char(96).png"
+    },
+    {
+      "index": 91,
+      "key": "{",
+      "label": "{",
+      "file": "art/wingdings/_dcode/char(123).png"
+    },
+    {
+      "index": 92,
+      "key": "|",
+      "label": "|",
+      "file": "art/wingdings/_dcode/char(124).png"
+    },
+    {
+      "index": 93,
+      "key": "}",
+      "label": "}",
+      "file": "art/wingdings/_dcode/char(125).png"
+    },
+    {
+      "index": 94,
+      "key": "~",
+      "label": "~",
+      "file": "art/wingdings/_dcode/char(126).png"
+    },
+    {
+      "index": 95,
+      "key": "",
+      "label": "U+0080",
+      "file": "art/wingdings/_dcode/char(128).png"
+    },
+    {
+      "index": 96,
+      "key": "",
+      "label": "U+0081",
+      "file": "art/wingdings/_dcode/char(129).png"
+    },
+    {
+      "index": 97,
+      "key": "",
+      "label": "U+0082",
+      "file": "art/wingdings/_dcode/char(130).png"
+    },
+    {
+      "index": 98,
+      "key": "",
+      "label": "U+0083",
+      "file": "art/wingdings/_dcode/char(131).png"
+    },
+    {
+      "index": 99,
+      "key": "",
+      "label": "U+0084",
+      "file": "art/wingdings/_dcode/char(132).png"
+    },
+    {
+      "index": 100,
+      "key": "",
+      "label": "U+0085",
+      "file": "art/wingdings/_dcode/char(133).png"
+    },
+    {
+      "index": 101,
+      "key": "",
+      "label": "U+0086",
+      "file": "art/wingdings/_dcode/char(134).png"
+    },
+    {
+      "index": 102,
+      "key": "",
+      "label": "U+0087",
+      "file": "art/wingdings/_dcode/char(135).png"
+    },
+    {
+      "index": 103,
+      "key": "",
+      "label": "U+0088",
+      "file": "art/wingdings/_dcode/char(136).png"
+    },
+    {
+      "index": 104,
+      "key": "",
+      "label": "U+0089",
+      "file": "art/wingdings/_dcode/char(137).png"
+    },
+    {
+      "index": 105,
+      "key": "",
+      "label": "U+008A",
+      "file": "art/wingdings/_dcode/char(138).png"
+    },
+    {
+      "index": 106,
+      "key": "",
+      "label": "U+008B",
+      "file": "art/wingdings/_dcode/char(139).png"
+    },
+    {
+      "index": 107,
+      "key": "",
+      "label": "U+008C",
+      "file": "art/wingdings/_dcode/char(140).png"
+    },
+    {
+      "index": 108,
+      "key": "",
+      "label": "U+008D",
+      "file": "art/wingdings/_dcode/char(141).png"
+    },
+    {
+      "index": 109,
+      "key": "",
+      "label": "U+008E",
+      "file": "art/wingdings/_dcode/char(142).png"
+    },
+    {
+      "index": 110,
+      "key": "",
+      "label": "U+008F",
+      "file": "art/wingdings/_dcode/char(143).png"
+    },
+    {
+      "index": 111,
+      "key": "",
+      "label": "U+0090",
+      "file": "art/wingdings/_dcode/char(144).png"
+    },
+    {
+      "index": 112,
+      "key": "",
+      "label": "U+0091",
+      "file": "art/wingdings/_dcode/char(145).png"
+    },
+    {
+      "index": 113,
+      "key": "",
+      "label": "U+0092",
+      "file": "art/wingdings/_dcode/char(146).png"
+    },
+    {
+      "index": 114,
+      "key": "",
+      "label": "U+0093",
+      "file": "art/wingdings/_dcode/char(147).png"
+    },
+    {
+      "index": 115,
+      "key": "",
+      "label": "U+0094",
+      "file": "art/wingdings/_dcode/char(148).png"
+    },
+    {
+      "index": 116,
+      "key": "",
+      "label": "U+0095",
+      "file": "art/wingdings/_dcode/char(149).png"
+    },
+    {
+      "index": 117,
+      "key": "",
+      "label": "U+0096",
+      "file": "art/wingdings/_dcode/char(150).png"
+    },
+    {
+      "index": 118,
+      "key": "",
+      "label": "U+0097",
+      "file": "art/wingdings/_dcode/char(151).png"
+    },
+    {
+      "index": 119,
+      "key": "",
+      "label": "U+0098",
+      "file": "art/wingdings/_dcode/char(152).png"
+    },
+    {
+      "index": 120,
+      "key": "",
+      "label": "U+0099",
+      "file": "art/wingdings/_dcode/char(153).png"
+    },
+    {
+      "index": 121,
+      "key": "",
+      "label": "U+009A",
+      "file": "art/wingdings/_dcode/char(154).png"
+    },
+    {
+      "index": 122,
+      "key": "",
+      "label": "U+009B",
+      "file": "art/wingdings/_dcode/char(155).png"
+    },
+    {
+      "index": 123,
+      "key": "",
+      "label": "U+009C",
+      "file": "art/wingdings/_dcode/char(156).png"
+    },
+    {
+      "index": 124,
+      "key": "",
+      "label": "U+009D",
+      "file": "art/wingdings/_dcode/char(157).png"
+    },
+    {
+      "index": 125,
+      "key": "",
+      "label": "U+009E",
+      "file": "art/wingdings/_dcode/char(158).png"
+    },
+    {
+      "index": 126,
+      "key": "",
+      "label": "U+009F",
+      "file": "art/wingdings/_dcode/char(159).png"
+    },
+    {
+      "index": 127,
+      "key": " ",
+      "label": "U+00A0",
+      "file": "art/wingdings/_dcode/char(160).png"
+    },
+    {
+      "index": 128,
+      "key": "¡",
+      "label": "¡",
+      "file": "art/wingdings/_dcode/char(161).png"
+    },
+    {
+      "index": 129,
+      "key": "¢",
+      "label": "¢",
+      "file": "art/wingdings/_dcode/char(162).png"
+    },
+    {
+      "index": 130,
+      "key": "£",
+      "label": "£",
+      "file": "art/wingdings/_dcode/char(163).png"
+    },
+    {
+      "index": 131,
+      "key": "¤",
+      "label": "¤",
+      "file": "art/wingdings/_dcode/char(164).png"
+    },
+    {
+      "index": 132,
+      "key": "¥",
+      "label": "¥",
+      "file": "art/wingdings/_dcode/char(165).png"
+    },
+    {
+      "index": 133,
+      "key": "¦",
+      "label": "¦",
+      "file": "art/wingdings/_dcode/char(166).png"
+    },
+    {
+      "index": 134,
+      "key": "§",
+      "label": "§",
+      "file": "art/wingdings/_dcode/char(167).png"
+    },
+    {
+      "index": 135,
+      "key": "¨",
+      "label": "¨",
+      "file": "art/wingdings/_dcode/char(168).png"
+    },
+    {
+      "index": 136,
+      "key": "©",
+      "label": "©",
+      "file": "art/wingdings/_dcode/char(169).png"
+    },
+    {
+      "index": 137,
+      "key": "ª",
+      "label": "ª",
+      "file": "art/wingdings/_dcode/char(170).png"
+    },
+    {
+      "index": 138,
+      "key": "«",
+      "label": "«",
+      "file": "art/wingdings/_dcode/char(171).png"
+    },
+    {
+      "index": 139,
+      "key": "¬",
+      "label": "¬",
+      "file": "art/wingdings/_dcode/char(172).png"
+    },
+    {
+      "index": 140,
+      "key": "­",
+      "label": "U+00AD",
+      "file": "art/wingdings/_dcode/char(173).png"
+    },
+    {
+      "index": 141,
+      "key": "®",
+      "label": "®",
+      "file": "art/wingdings/_dcode/char(174).png"
+    },
+    {
+      "index": 142,
+      "key": "¯",
+      "label": "¯",
+      "file": "art/wingdings/_dcode/char(175).png"
+    },
+    {
+      "index": 143,
+      "key": "°",
+      "label": "°",
+      "file": "art/wingdings/_dcode/char(176).png"
+    },
+    {
+      "index": 144,
+      "key": "±",
+      "label": "±",
+      "file": "art/wingdings/_dcode/char(177).png"
+    },
+    {
+      "index": 145,
+      "key": "²",
+      "label": "²",
+      "file": "art/wingdings/_dcode/char(178).png"
+    },
+    {
+      "index": 146,
+      "key": "³",
+      "label": "³",
+      "file": "art/wingdings/_dcode/char(179).png"
+    },
+    {
+      "index": 147,
+      "key": "´",
+      "label": "´",
+      "file": "art/wingdings/_dcode/char(180).png"
+    },
+    {
+      "index": 148,
+      "key": "µ",
+      "label": "µ",
+      "file": "art/wingdings/_dcode/char(181).png"
+    },
+    {
+      "index": 149,
+      "key": "¶",
+      "label": "¶",
+      "file": "art/wingdings/_dcode/char(182).png"
+    },
+    {
+      "index": 150,
+      "key": "·",
+      "label": "·",
+      "file": "art/wingdings/_dcode/char(183).png"
+    },
+    {
+      "index": 151,
+      "key": "¸",
+      "label": "¸",
+      "file": "art/wingdings/_dcode/char(184).png"
+    },
+    {
+      "index": 152,
+      "key": "¹",
+      "label": "¹",
+      "file": "art/wingdings/_dcode/char(185).png"
+    },
+    {
+      "index": 153,
+      "key": "º",
+      "label": "º",
+      "file": "art/wingdings/_dcode/char(186).png"
+    },
+    {
+      "index": 154,
+      "key": "»",
+      "label": "»",
+      "file": "art/wingdings/_dcode/char(187).png"
+    },
+    {
+      "index": 155,
+      "key": "¼",
+      "label": "¼",
+      "file": "art/wingdings/_dcode/char(188).png"
+    },
+    {
+      "index": 156,
+      "key": "½",
+      "label": "½",
+      "file": "art/wingdings/_dcode/char(189).png"
+    },
+    {
+      "index": 157,
+      "key": "¾",
+      "label": "¾",
+      "file": "art/wingdings/_dcode/char(190).png"
+    },
+    {
+      "index": 158,
+      "key": "¿",
+      "label": "¿",
+      "file": "art/wingdings/_dcode/char(191).png"
+    },
+    {
+      "index": 159,
+      "key": "À",
+      "label": "À",
+      "file": "art/wingdings/_dcode/char(192).png"
+    },
+    {
+      "index": 160,
+      "key": "Á",
+      "label": "Á",
+      "file": "art/wingdings/_dcode/char(193).png"
+    },
+    {
+      "index": 161,
+      "key": "Â",
+      "label": "Â",
+      "file": "art/wingdings/_dcode/char(194).png"
+    },
+    {
+      "index": 162,
+      "key": "Ã",
+      "label": "Ã",
+      "file": "art/wingdings/_dcode/char(195).png"
+    },
+    {
+      "index": 163,
+      "key": "Ä",
+      "label": "Ä",
+      "file": "art/wingdings/_dcode/char(196).png"
+    },
+    {
+      "index": 164,
+      "key": "Å",
+      "label": "Å",
+      "file": "art/wingdings/_dcode/char(197).png"
+    },
+    {
+      "index": 165,
+      "key": "Æ",
+      "label": "Æ",
+      "file": "art/wingdings/_dcode/char(198).png"
+    },
+    {
+      "index": 166,
+      "key": "Ç",
+      "label": "Ç",
+      "file": "art/wingdings/_dcode/char(199).png"
+    },
+    {
+      "index": 167,
+      "key": "È",
+      "label": "È",
+      "file": "art/wingdings/_dcode/char(200).png"
+    },
+    {
+      "index": 168,
+      "key": "É",
+      "label": "É",
+      "file": "art/wingdings/_dcode/char(201).png"
+    },
+    {
+      "index": 169,
+      "key": "Ê",
+      "label": "Ê",
+      "file": "art/wingdings/_dcode/char(202).png"
+    },
+    {
+      "index": 170,
+      "key": "Ë",
+      "label": "Ë",
+      "file": "art/wingdings/_dcode/char(203).png"
+    },
+    {
+      "index": 171,
+      "key": "Ì",
+      "label": "Ì",
+      "file": "art/wingdings/_dcode/char(204).png"
+    },
+    {
+      "index": 172,
+      "key": "Í",
+      "label": "Í",
+      "file": "art/wingdings/_dcode/char(205).png"
+    },
+    {
+      "index": 173,
+      "key": "Î",
+      "label": "Î",
+      "file": "art/wingdings/_dcode/char(206).png"
+    },
+    {
+      "index": 174,
+      "key": "Ï",
+      "label": "Ï",
+      "file": "art/wingdings/_dcode/char(207).png"
+    },
+    {
+      "index": 175,
+      "key": "Ð",
+      "label": "Ð",
+      "file": "art/wingdings/_dcode/char(208).png"
+    },
+    {
+      "index": 176,
+      "key": "Ñ",
+      "label": "Ñ",
+      "file": "art/wingdings/_dcode/char(209).png"
+    },
+    {
+      "index": 177,
+      "key": "Ò",
+      "label": "Ò",
+      "file": "art/wingdings/_dcode/char(210).png"
+    },
+    {
+      "index": 178,
+      "key": "Ó",
+      "label": "Ó",
+      "file": "art/wingdings/_dcode/char(211).png"
+    },
+    {
+      "index": 179,
+      "key": "Ô",
+      "label": "Ô",
+      "file": "art/wingdings/_dcode/char(212).png"
+    },
+    {
+      "index": 180,
+      "key": "Õ",
+      "label": "Õ",
+      "file": "art/wingdings/_dcode/char(213).png"
+    },
+    {
+      "index": 181,
+      "key": "Ö",
+      "label": "Ö",
+      "file": "art/wingdings/_dcode/char(214).png"
+    },
+    {
+      "index": 182,
+      "key": "×",
+      "label": "×",
+      "file": "art/wingdings/_dcode/char(215).png"
+    },
+    {
+      "index": 183,
+      "key": "Ø",
+      "label": "Ø",
+      "file": "art/wingdings/_dcode/char(216).png"
+    },
+    {
+      "index": 184,
+      "key": "Ù",
+      "label": "Ù",
+      "file": "art/wingdings/_dcode/char(217).png"
+    },
+    {
+      "index": 185,
+      "key": "Ú",
+      "label": "Ú",
+      "file": "art/wingdings/_dcode/char(218).png"
+    },
+    {
+      "index": 186,
+      "key": "Û",
+      "label": "Û",
+      "file": "art/wingdings/_dcode/char(219).png"
+    },
+    {
+      "index": 187,
+      "key": "Ü",
+      "label": "Ü",
+      "file": "art/wingdings/_dcode/char(220).png"
+    },
+    {
+      "index": 188,
+      "key": "Ý",
+      "label": "Ý",
+      "file": "art/wingdings/_dcode/char(221).png"
+    },
+    {
+      "index": 189,
+      "key": "Þ",
+      "label": "Þ",
+      "file": "art/wingdings/_dcode/char(222).png"
+    },
+    {
+      "index": 190,
+      "key": "ß",
+      "label": "ß",
+      "file": "art/wingdings/_dcode/char(223).png"
+    },
+    {
+      "index": 191,
+      "key": "à",
+      "label": "à",
+      "file": "art/wingdings/_dcode/char(224).png"
+    },
+    {
+      "index": 192,
+      "key": "á",
+      "label": "á",
+      "file": "art/wingdings/_dcode/char(225).png"
+    },
+    {
+      "index": 193,
+      "key": "â",
+      "label": "â",
+      "file": "art/wingdings/_dcode/char(226).png"
+    },
+    {
+      "index": 194,
+      "key": "ã",
+      "label": "ã",
+      "file": "art/wingdings/_dcode/char(227).png"
+    },
+    {
+      "index": 195,
+      "key": "ä",
+      "label": "ä",
+      "file": "art/wingdings/_dcode/char(228).png"
+    },
+    {
+      "index": 196,
+      "key": "å",
+      "label": "å",
+      "file": "art/wingdings/_dcode/char(229).png"
+    },
+    {
+      "index": 197,
+      "key": "æ",
+      "label": "æ",
+      "file": "art/wingdings/_dcode/char(230).png"
+    },
+    {
+      "index": 198,
+      "key": "ç",
+      "label": "ç",
+      "file": "art/wingdings/_dcode/char(231).png"
+    },
+    {
+      "index": 199,
+      "key": "è",
+      "label": "è",
+      "file": "art/wingdings/_dcode/char(232).png"
+    },
+    {
+      "index": 200,
+      "key": "é",
+      "label": "é",
+      "file": "art/wingdings/_dcode/char(233).png"
+    },
+    {
+      "index": 201,
+      "key": "ê",
+      "label": "ê",
+      "file": "art/wingdings/_dcode/char(234).png"
+    },
+    {
+      "index": 202,
+      "key": "ë",
+      "label": "ë",
+      "file": "art/wingdings/_dcode/char(235).png"
+    },
+    {
+      "index": 203,
+      "key": "ì",
+      "label": "ì",
+      "file": "art/wingdings/_dcode/char(236).png"
+    },
+    {
+      "index": 204,
+      "key": "í",
+      "label": "í",
+      "file": "art/wingdings/_dcode/char(237).png"
+    },
+    {
+      "index": 205,
+      "key": "î",
+      "label": "î",
+      "file": "art/wingdings/_dcode/char(238).png"
+    },
+    {
+      "index": 206,
+      "key": "ï",
+      "label": "ï",
+      "file": "art/wingdings/_dcode/char(239).png"
+    },
+    {
+      "index": 207,
+      "key": "ð",
+      "label": "ð",
+      "file": "art/wingdings/_dcode/char(240).png"
+    },
+    {
+      "index": 208,
+      "key": "ñ",
+      "label": "ñ",
+      "file": "art/wingdings/_dcode/char(241).png"
+    },
+    {
+      "index": 209,
+      "key": "ò",
+      "label": "ò",
+      "file": "art/wingdings/_dcode/char(242).png"
+    },
+    {
+      "index": 210,
+      "key": "ó",
+      "label": "ó",
+      "file": "art/wingdings/_dcode/char(243).png"
+    },
+    {
+      "index": 211,
+      "key": "ô",
+      "label": "ô",
+      "file": "art/wingdings/_dcode/char(244).png"
+    },
+    {
+      "index": 212,
+      "key": "õ",
+      "label": "õ",
+      "file": "art/wingdings/_dcode/char(245).png"
+    },
+    {
+      "index": 213,
+      "key": "ö",
+      "label": "ö",
+      "file": "art/wingdings/_dcode/char(246).png"
+    },
+    {
+      "index": 214,
+      "key": "÷",
+      "label": "÷",
+      "file": "art/wingdings/_dcode/char(247).png"
+    },
+    {
+      "index": 215,
+      "key": "ø",
+      "label": "ø",
+      "file": "art/wingdings/_dcode/char(248).png"
+    },
+    {
+      "index": 216,
+      "key": "ù",
+      "label": "ù",
+      "file": "art/wingdings/_dcode/char(249).png"
+    },
+    {
+      "index": 217,
+      "key": "ú",
+      "label": "ú",
+      "file": "art/wingdings/_dcode/char(250).png"
+    },
+    {
+      "index": 218,
+      "key": "û",
+      "label": "û",
+      "file": "art/wingdings/_dcode/char(251).png"
+    },
+    {
+      "index": 219,
+      "key": "ü",
+      "label": "ü",
+      "file": "art/wingdings/_dcode/char(252).png"
+    },
+    {
+      "index": 220,
+      "key": "ý",
+      "label": "ý",
+      "file": "art/wingdings/_dcode/char(253).png"
+    },
+    {
+      "index": 221,
+      "key": "þ",
+      "label": "þ",
+      "file": "art/wingdings/_dcode/char(254).png"
+    },
+    {
+      "index": 222,
+      "key": "ÿ",
+      "label": "ÿ",
+      "file": "art/wingdings/_dcode/char(255).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

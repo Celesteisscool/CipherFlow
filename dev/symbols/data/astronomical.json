@@ -1,0 +1,138 @@
+{
+  "slug": "astronomical",
+  "name": "Astronomical Symbol",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": null,
+    "dcode": {
+      "page": "https://www.dcode.fr/astronomical-symbols"
+    }
+  },
+  "descriptor": {
+    "letters": "",
+    "numbers": "",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 17,
+    "uniqueFiles": 17,
+    "manifestFiles": 0,
+    "downloaded": 17,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": ",",
+      "label": ",",
+      "file": "art/astronomical/_dcode/char(44).png"
+    },
+    {
+      "index": 2,
+      "key": "+",
+      "label": "+",
+      "file": "art/astronomical/_dcode/char(43).png"
+    },
+    {
+      "index": 3,
+      "key": "#",
+      "label": "#",
+      "file": "art/astronomical/_dcode/char(35).png"
+    },
+    {
+      "index": 4,
+      "key": "%",
+      "label": "%",
+      "file": "art/astronomical/_dcode/char(37).png"
+    },
+    {
+      "index": 5,
+      "key": ".",
+      "label": ".",
+      "file": "art/astronomical/_dcode/char(46).png"
+    },
+    {
+      "index": 6,
+      "key": ")",
+      "label": ")",
+      "file": "art/astronomical/_dcode/char(41).png"
+    },
+    {
+      "index": 7,
+      "key": "$",
+      "label": "$",
+      "file": "art/astronomical/_dcode/char(36).png"
+    },
+    {
+      "index": 8,
+      "key": "-",
+      "label": "-",
+      "file": "art/astronomical/_dcode/char(45).png"
+    },
+    {
+      "index": 9,
+      "key": "(",
+      "label": "(",
+      "file": "art/astronomical/_dcode/char(40).png"
+    },
+    {
+      "index": 10,
+      "key": " ",
+      "label": "␣",
+      "file": "art/astronomical/_dcode/char(32).png"
+    },
+    {
+      "index": 11,
+      "key": "!",
+      "label": "!",
+      "file": "art/astronomical/_dcode/char(33).png"
+    },
+    {
+      "index": 12,
+      "key": "/",
+      "label": "/",
+      "file": "art/astronomical/_dcode/char(47).png"
+    },
+    {
+      "index": 13,
+      "key": "0",
+      "label": "0",
+      "file": "art/astronomical/_dcode/char(48).png"
+    },
+    {
+      "index": 14,
+      "key": "*",
+      "label": "*",
+      "file": "art/astronomical/_dcode/char(42).png"
+    },
+    {
+      "index": 15,
+      "key": "&",
+      "label": "&",
+      "file": "art/astronomical/_dcode/char(38).png"
+    },
+    {
+      "index": 16,
+      "key": "'",
+      "label": "'",
+      "file": "art/astronomical/_dcode/char(39).png"
+    },
+    {
+      "index": 17,
+      "key": "\"",
+      "label": "\"",
+      "file": "art/astronomical/_dcode/char(34).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

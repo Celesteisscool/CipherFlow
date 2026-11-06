@@ -45,6 +45,16 @@ for (const r of rows.slice(0, 40)) console.log(r.slug.padEnd(26), String(r.files
 `/tmp/image_manifest.json` is cached by `extract.mjs`; if it is missing, run any extraction once
 and it reappears.
 
+When the CacheSleuth candidates are exhausted, fill the batch from the dCode-only section
+of `reports/symbol-ciphers-inventory.md`: stage each with
+`node dev/symbols/extract.mjs --dcode-only /page-path --slug <slug>`. Skip duplicate editions
+of already-shipped ciphers, raw 128-character ASCII tables, and pages with no glyphs or only
+control/non-ASCII keys. `--dcode-only` ignores C0/C1 controls and private-use code points, so
+font internals cannot become blank, untypable tiles; for an image-backed font table whose
+PNG exists at every code position, `--cases --keep-controls` keeps A/a distinct and captions
+controls `U+00XX` instead of blanking them. These ship `artFrom: "dcode"`, so they have no
+source toggle.
+
 Then, for the first `N` candidates:
 
 - **Skip** a slug with no descriptor:

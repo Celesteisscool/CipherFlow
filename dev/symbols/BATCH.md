@@ -168,8 +168,8 @@ Then verify by hash that no non-target data file or art file changed, and that t
 is exactly `N` added rows.
 
 For a later fix to a shipped cipher, name the slugs instead — `node dev/symbols/install.mjs
-coldcode` installs just that one and patches only its catalogue row (the `new` marks and every
-other row are left as they stand), so no restore step is needed.
+coldcode` installs just that one and patches only its catalogue row (every other row is left as
+it stands), so no restore step is needed.
 
 ---
 
@@ -188,12 +188,6 @@ sheet that fails to build is a blocking error, not a warning.
 ```bash
 node dev/symbols/inventory.mjs        # add --refresh to re-fetch both source lists
 ```
-
-**Mark the batch in the catalogue.** Add `"new": true` to each new row of
-`dev/symbols/catalogue.json` (drop it from the previous batch's rows) — the panel prints a **New**
-pill on those rows, which is how the newest ciphers are found in a list this long. A full
-`install.mjs` run rewrites the catalogue without the flag, so this is a follow-up edit, not a
-staging one; a subset install (named slugs) keeps it.
 
 Run it after `install.mjs`, so the tick marks describe what this batch actually shipped. It reads
 CacheSleuth's `codes.js` and dCode's `/symbols-ciphers` index, diff them against

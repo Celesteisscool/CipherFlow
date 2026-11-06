@@ -2822,3 +2822,28 @@ body.has-sym-rail .toolbar { left: 43px; }
     touch-action: none;
 }
 .spec-canvas.panning { cursor: grabbing; }
+
+/* -------------------------------------------------------------------- touch */
+/* A finger is not a mouse: nothing hovers, and the page's own double-tap zoom has no business
+ * zooming a canvas that keeps its own. `manipulation` leaves panning available, so a node's
+ * preview still scrolls under a finger, while the graph's gestures live in app.js. */
+.stage { touch-action: manipulation; }
+
+/* Coarse pointers grow the things you press. Both sizes are the same shapes with more room
+ * around them, so the desktop layout is untouched. Fields get the 16px iOS needs: below that
+ * it zooms the page in on focus and never zooms back out, leaving the editor at 2x with the
+ * keyboard covering half of it. */
+@media (pointer: coarse) {
+    .node-head { height: 44px; touch-action: none; }
+    .node-mini { width: 26px; height: 26px; }
+    .node-mini svg { width: 13px; height: 13px; }
+    .node-resize { width: 26px; height: 26px; }
+    /* The dot stays 11px on the edge of the card; the circle that takes the press reaches
+       out past it, so a wire can be picked up without hitting the node body. */
+    .port { touch-action: none; }
+    .port::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
+    .tb-btn { height: 38px; padding: 0 12px; font-size: 12.5px; }
+    .tb-btn svg { width: 16px; height: 16px; }
+    .tb-switch { height: 38px; }
+    #app input, #app textarea, #app select { font-size: 16px; }
+}

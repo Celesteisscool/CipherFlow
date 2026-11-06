@@ -4196,8 +4196,15 @@ function updateSelectionBar() {
     `;
 }
 
+// Cancels the pan in progress: the touch layer calls it when a second finger lands, so a
+// drag that becomes a pinch does not move the picture twice.
+let cancelPan = null;
+
 function startPan(ev) {
     if (ev.button !== 0) return;
+    // A finger on the canvas belongs to bindTouchGestures: one finger pans, two pinch, and
+    // both suppress the page's own gesture so the two paths never fight over the same touch.
+    if (ev.pointerType === "touch") return;
     const el = ev.target;
     if (el.closest(".node") || el.closest(".port") || el.closest(".toolbar") || el.closest(".marquee") ||
         el.closest(".selection-bar") || el.closest(".stage-controls") || el.closest(".run-status") || el.closest(".edge-group")) return;
@@ -4215,15 +4222,24 @@ function startPan(ev) {
         state.view.y = oy + dy;
         applyView();
     };
-    const up = () => {
+    let done = false;
+    const finish = tap => {
+        if (done) return;
+        done = true;
+        cancelPan = null;
         document.removeEventListener("pointermove", move);
-        document.removeEventListener("pointerup", up, {once: true});
+        document.removeEventListener("pointerup", up);
+        document.removeEventListener("pointercancel", up);
         stage.classList.remove("panning");
         if (moved) saveLocalSoon();
-        else if (selection.size || selectedEdge) clearSelection();
+        else if (tap && (selection.size || selectedEdge)) clearSelection();
     };
+    const up = () => finish(true);
+    // A finger landing mid-drag ends it without counting as a tap on empty canvas.
+    cancelPan = () => finish(false);
     document.addEventListener("pointermove", move);
-    document.addEventListener("pointerup", up, {once: true});
+    document.addEventListener("pointerup", up);
+    document.addEventListener("pointercancel", up);
 }
 
 /* ================================================================ input parsing */
@@ -9637,7 +9653,95 @@ function toggleSidebar() {
 /* ================================================================ events */
 // Everything that makes a canvas a canvas: panning, zooming and node actions. The graph
 // and a function's editor are both wired with this.
+/* Touch: one finger pans, two fingers pinch — on a phone there is no wheel, so a pinch is
+ * the only zoom the graph has. Native touch events rather than pointer events, because only
+ * `preventDefault` on touchmove keeps the page's own pinch from zooming the whole editor while
+ * a finger is on the canvas. A touch that starts on a node's body or a control is left alone,
+ * so previews, text boxes and the lists inside nodes still scroll under a finger. */
+function bindTouchGestures(stageEl) {
+    if (stageEl.dataset.touchGestures === "1") return;
+    stageEl.dataset.touchGestures = "1";
+    let base = null;        // where the world sits under the fingers when this frame began
+    let moved = false;
+    const onCanvas = target => !target.closest(
+        ".node, .port, .toolbar, .marquee, .selection-bar, .stage-controls, .run-status, .edge-group"
+    );
+    const centre = touches => {
+        let x = 0, y = 0;
+        for (const t of touches) { x += t.clientX; y += t.clientY; }
+        x /= touches.length;
+        y /= touches.length;
+        const d = touches.length > 1
+            ? Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY)
+            : 1;
+        return {x, y, d};
+    };
+    // Anchor the view to the world point under the fingers: a pinch then scales around that
+    // point, and dragging one finger carries the picture along with it.
+    const anchor = touches => {
+        const c = centre(touches);
+        const rect = stageEl.getBoundingClientRect();
+        const mid = {x: c.x - rect.left, y: c.y - rect.top};
+        base = {
+            rect,
+            mid,
+            zoom: state.view.zoom,
+            world: {
+                x: (mid.x - state.view.x) / state.view.zoom,
+                y: (mid.y - state.view.y) / state.view.zoom
+            },
+            gap: Math.max(24, c.d)
+        };
+        moved = false;
+    };
+    const draw = touches => {
+        if (!base) return;
+        const c = centre(touches);
+        const zoom = touches.length > 1 ? clamp(base.zoom * (c.d / base.gap), 0.22, 2.2) : base.zoom;
+        state.view.zoom = zoom;
+        state.view.x = c.x - base.rect.left - base.world.x * zoom;
+        state.view.y = c.y - base.rect.top - base.world.y * zoom;
+        applyView();
+    };
+    stageEl.addEventListener("touchstart", ev => {
+        if (!onCanvas(ev.target) || ev.touches.length > 2) {
+            // A finger on a node or a control is that control's; a gesture already running
+            // stops here rather than half-owned.
+            base = null;
+            return;
+        }
+        // Every new frame starts from the view as it stands, so turning a pan into a pinch
+        // never makes the picture jump.
+        anchor(ev.touches);
+        cancelPan?.();
+    }, {passive: true});
+    stageEl.addEventListener("touchmove", ev => {
+        if (!base) return;
+        // This is what stops the page zooming or rubber-banding under a gesture the canvas is
+        // using itself.
+        ev.preventDefault();
+        const c = centre(ev.touches);
+        if (!moved) moved = Math.abs(c.x - base.rect.left - base.mid.x) + Math.abs(c.y - base.rect.top - base.mid.y) > 4;
+        draw(ev.touches);
+    }, {passive: false});
+    const end = ev => {
+        if (!base) return;
+        if (ev.touches.length) { anchor(ev.touches); return; }
+        base = null;
+        if (moved) saveLocalSoon();
+        else if (selection.size || selectedEdge) clearSelection();
+    };
+    stageEl.addEventListener("touchend", end);
+    stageEl.addEventListener("touchcancel", ev => {
+        if (!base) return;
+        if (ev.touches.length) { anchor(ev.touches); return; }
+        base = null;
+        if (moved) saveLocalSoon();
+    });
+}
+
 function bindCanvasEvents(stageEl, layerEl) {
+    bindTouchGestures(stageEl);
     stageEl.addEventListener("pointerdown", startPan);
     stageEl.addEventListener("wheel", ev => {
         if (ev.ctrlKey || ev.metaKey || Math.abs(ev.deltaY) > 0) {

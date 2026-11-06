@@ -7433,6 +7433,22 @@ function spawnPoint() {
 }
 
 /* ================================================================ toolbar / actions */
+/* On a phone the node list and the symbol ciphers are both drawers, and the desktop shows
+ * each list in its own column. So each gets an icon button in the toolbar itself: the symbol
+ * ciphers at the leading edge, the node list at the trailing edge, with File / Auto-run / Run
+ * centred between them. Both buttons are hidden on the desktop. */
+function addMobileDockButton(name, html, where) {
+    const bar = document.querySelector(".toolbar");
+    if (!bar || bar.querySelector(`[data-dock="${name}"]`)) return;
+    if (where === "start") bar.insertAdjacentHTML("afterbegin", html);
+    else bar.insertAdjacentHTML("beforeend", html);
+}
+// A drawer that is open is a drawer whose button says so, so the dock shows which list is up.
+function setDockPressed(name, on) {
+    const btn = document.querySelector(`.mobile-dock-btn[data-dock="${name}"]`);
+    if (btn) btn.setAttribute("aria-expanded", String(Boolean(on)));
+}
+
 function initToolbar() {
     $("#toolbar").innerHTML = `
         <div class="tb-menu">
@@ -7441,19 +7457,25 @@ function initToolbar() {
         <span class="tb-sep"></span>
         <button class="tb-switch" data-action="auto" title="Toggle automatic runs"><span class="switch" id="autoSwitch"></span><span class="switch-label">Auto-run</span></button>
         <button class="btn-run" id="runBtn" data-action="run">${iconFill("play")} Run</button>
-        <button class="tb-btn tb-mobile" data-action="sidebar" title="Show node list">${iconFill("nodes")}<span class="tb-label">Nodes</span></button>
     `;
+    // The node list is a drawer on a phone, so its button closes the bar on the right.
+    addMobileDockButton("nodes", `<button type="button" class="tb-btn mobile-dock-btn" data-dock="nodes" aria-controls="sidebar" aria-expanded="false" title="Show node list" aria-label="Show node list">${iconFill("nodes")}</button>`);
     autoSwitch = $("#autoSwitch");
     runButton = $("#runBtn");
     autoSwitch?.classList.toggle("on", Boolean(state?.autoRun));
     $("#toolbar").addEventListener("click", ev => {
+        const dockBtn = ev.target.closest("[data-dock]");
+        if (dockBtn) {
+            if (dockBtn.dataset.dock === "nodes") toggleSidebar();
+            else if (dockBtn.dataset.dock === "symbols") toggleSymbolDrawer();
+            return;
+        }
         const btn = ev.target.closest("[data-action]");
         if (!btn) return;
         const action = btn.dataset.action;
         if (action === "file-menu") { toggleFileMenu(); return; }
         if (action === "auto") toggleAutoRun();
         if (action === "run") { clearTimeout(runTimer); runGraph(true); }
-        if (action === "sidebar") toggleSidebar();
     });
     initFileMenu();
 }
@@ -7732,7 +7754,11 @@ function placeFileMenu() {
     const rect = toggle.getBoundingClientRect();
     const w = panel.offsetWidth || 220;
     const h = panel.offsetHeight || 240;
-    const left = Math.max(10, Math.min(rect.left, window.innerWidth - w - 10));
+    // A phone has no room for the panel beside the File button, so there it opens centred
+    // over the canvas instead of hanging off the left edge.
+    const left = window.innerWidth <= 900
+        ? Math.max(8, (window.innerWidth - w) / 2)
+        : Math.max(10, Math.min(rect.left, window.innerWidth - w - 10));
     let top = rect.bottom + 8;
     if (top + h > window.innerHeight - 10) top = Math.max(10, rect.top - h - 8);
     panel.style.left = `${Math.round(left)}px`;
@@ -9640,11 +9666,13 @@ function openSidebar() {
     sidebarOpen = true;
     sidebar.classList.add("open");
     sidebarBackdrop.classList.add("show");
+    setDockPressed("nodes", true);
 }
 function closeSidebar() {
     sidebarOpen = false;
     sidebar.classList.remove("open");
     sidebarBackdrop.classList.remove("show");
+    setDockPressed("nodes", false);
 }
 function toggleSidebar() {
     if (sidebarOpen) closeSidebar(); else openSidebar();
@@ -11902,10 +11930,16 @@ function addSymbolNode(slug, x, y) {
     if (window.innerWidth <= 900) setSymbolDrawer(false);
 }
 
+function toggleSymbolDrawer() {
+    if (!symbolDrawerEl) return;
+    setSymbolDrawer(!symbolDrawerEl.classList.contains("open"));
+}
+
 function setSymbolDrawer(open) {
     if (!symbolDrawerEl || !symbolRailBtn) return;
     symbolDrawerEl.classList.toggle("open", Boolean(open));
     symbolRailBtn.setAttribute("aria-expanded", String(Boolean(open)));
+    setDockPressed("symbols", Boolean(open));
     // Tells the bar to travel with the panel: without it the panel slides under a
     // stationary bar instead of pushing it aside.
     document.body.classList.toggle("sym-drawer-open", Boolean(open));
@@ -11946,6 +11980,9 @@ function initSymbolPanel() {
         </aside>`);
     symbolDrawerEl = document.getElementById("symDrawer");
     symbolRailBtn = document.getElementById("symRailBtn");
+    // On a phone the rail is hidden and this button in the dock takes its place; on the
+    // desktop the dock is hidden instead, so only one of the two is ever on screen.
+    addMobileDockButton("symbols", `<button type="button" class="tb-btn mobile-dock-btn" data-dock="symbols" aria-controls="symDrawer" aria-expanded="${open}" title="Symbol ciphers (${total})" aria-label="Symbol ciphers">${SYMBOL_RAIL_ICON}</button>`, "start");
     // The stage's Fit/Snap controls sit bottom-left; they step right to clear the rail.
     document.body.classList.add("has-sym-rail");
     // Restore last visit's drawer state, bar included, so it opens where it was left.
@@ -12099,8 +12136,7 @@ function initSymbolPanel() {
     };
     symbolBuildList = buildList;
 
-    document.getElementById("symRailBtn").addEventListener("click", () =>
-        setSymbolDrawer(!symbolDrawerEl.classList.contains("open")));
+    document.getElementById("symRailBtn").addEventListener("click", toggleSymbolDrawer);
     document.getElementById("symClose").addEventListener("click", () => setSymbolDrawer(false));
     search.addEventListener("input", renderList);
     list.addEventListener("click", ev => {

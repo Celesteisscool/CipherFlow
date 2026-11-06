@@ -503,7 +503,6 @@ button svg { flex: 0 0 auto; }
 .btn-run:active { transform: translateY(1px); }
 .btn-run:disabled { opacity: .65; cursor: progress; }
 .btn-run svg { width: 12px; height: 12px; fill: currentColor; }
-.tb-mobile { display: none; }
 
 /* ------------------------------------------------------------------ nodes */
 .node {
@@ -2284,7 +2283,6 @@ kbd {
     .sidebar.open { transform: none; }
     .sidebar-close { display: inline-flex; }
     .sidebar-backdrop.show { display: block; }
-    .tb-mobile { display: inline-flex; }
     .tb-btn .tb-label { display: none; }
     .tb-btn { padding: 0 8px; }
     .toolbar { gap: 0; }
@@ -2860,6 +2858,9 @@ body.has-sym-rail .toolbar { left: 43px; }
     .node-head { height: 44px; touch-action: none; }
     .node-mini { width: 26px; height: 26px; }
     .node-mini svg { width: 13px; height: 13px; }
+    /* The delete X is revealed on hover, and a finger never hovers: on a phone it sat at
+       opacity 0 in every node's corner, invisible but still tappable. */
+    .node-close { opacity: 1; }
     .node-resize { width: 26px; height: 26px; }
     /* The dot stays 11px on the edge of the card; the circle that takes the press reaches
        out past it, so a wire can be picked up without hitting the node body. */
@@ -2869,6 +2870,41 @@ body.has-sym-rail .toolbar { left: 43px; }
     .tb-btn svg { width: 16px; height: 16px; }
     .tb-switch { height: 38px; }
     #app input, #app textarea, #app select { font-size: 16px; }
+}
+
+/* ------------------------------------------------------------------ mobile dock */
+/* On a phone both lists are drawers, so each gets a button in the toolbar itself: the
+ * symbol ciphers at the leading edge, the node list at the trailing edge, with the
+ * File / Auto-run / Run group centred between them. The desktop hides the two buttons,
+ * because there the sidebar is always on screen and the symbol rail has its own column. */
+.mobile-dock-btn { display: none; }
+@media (max-width: 900px) {
+    .mobile-dock-btn {
+        display: inline-flex;
+        justify-content: center;
+        min-width: 40px;
+        padding: 0 9px;
+    }
+    .mobile-dock-btn svg { width: 17px; height: 17px; }
+    /* Two auto margins share the bar's spare width, so the File / Auto-run / Run group
+       lands in the middle instead of hugging the leading edge. */
+    .mobile-dock-btn[data-dock="symbols"] { margin-right: auto; }
+    .mobile-dock-btn[data-dock="nodes"] { margin-left: auto; }
+    .mobile-dock-btn[aria-expanded="true"] {
+        color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 11%, transparent);
+    }
+    /* The rail gave the toolbar 30px of its width; with the rail gone that room goes back. */
+    .sym-rail { display: none; }
+    body.has-sym-rail .toolbar,
+    body.has-sym-rail .stage-controls { left: 13px; }
+}
+@media (max-width: 580px) {
+    /* Two icon buttons in a bar that also has to hold File, Auto-run and Run on a 320 px
+       screen: they lose their spare width so the row still fits without scrolling. */
+    .mobile-dock-btn { min-width: 34px; padding: 0 7px; }
+    body.has-sym-rail .toolbar,
+    body.has-sym-rail .stage-controls { left: 8px; }
 }
 
 </style>
@@ -77200,6 +77236,22 @@ function spawnPoint() {
 }
 
 /* ================================================================ toolbar / actions */
+/* On a phone the node list and the symbol ciphers are both drawers, and the desktop shows
+ * each list in its own column. So each gets an icon button in the toolbar itself: the symbol
+ * ciphers at the leading edge, the node list at the trailing edge, with File / Auto-run / Run
+ * centred between them. Both buttons are hidden on the desktop. */
+function addMobileDockButton(name, html, where) {
+    const bar = document.querySelector(".toolbar");
+    if (!bar || bar.querySelector(`[data-dock="${name}"]`)) return;
+    if (where === "start") bar.insertAdjacentHTML("afterbegin", html);
+    else bar.insertAdjacentHTML("beforeend", html);
+}
+// A drawer that is open is a drawer whose button says so, so the dock shows which list is up.
+function setDockPressed(name, on) {
+    const btn = document.querySelector(`.mobile-dock-btn[data-dock="${name}"]`);
+    if (btn) btn.setAttribute("aria-expanded", String(Boolean(on)));
+}
+
 function initToolbar() {
     $("#toolbar").innerHTML = `
         <div class="tb-menu">
@@ -77208,19 +77260,25 @@ function initToolbar() {
         <span class="tb-sep"></span>
         <button class="tb-switch" data-action="auto" title="Toggle automatic runs"><span class="switch" id="autoSwitch"></span><span class="switch-label">Auto-run</span></button>
         <button class="btn-run" id="runBtn" data-action="run">${iconFill("play")} Run</button>
-        <button class="tb-btn tb-mobile" data-action="sidebar" title="Show node list">${iconFill("nodes")}<span class="tb-label">Nodes</span></button>
     `;
+    // The node list is a drawer on a phone, so its button closes the bar on the right.
+    addMobileDockButton("nodes", `<button type="button" class="tb-btn mobile-dock-btn" data-dock="nodes" aria-controls="sidebar" aria-expanded="false" title="Show node list" aria-label="Show node list">${iconFill("nodes")}</button>`);
     autoSwitch = $("#autoSwitch");
     runButton = $("#runBtn");
     autoSwitch?.classList.toggle("on", Boolean(state?.autoRun));
     $("#toolbar").addEventListener("click", ev => {
+        const dockBtn = ev.target.closest("[data-dock]");
+        if (dockBtn) {
+            if (dockBtn.dataset.dock === "nodes") toggleSidebar();
+            else if (dockBtn.dataset.dock === "symbols") toggleSymbolDrawer();
+            return;
+        }
         const btn = ev.target.closest("[data-action]");
         if (!btn) return;
         const action = btn.dataset.action;
         if (action === "file-menu") { toggleFileMenu(); return; }
         if (action === "auto") toggleAutoRun();
         if (action === "run") { clearTimeout(runTimer); runGraph(true); }
-        if (action === "sidebar") toggleSidebar();
     });
     initFileMenu();
 }
@@ -77499,7 +77557,11 @@ function placeFileMenu() {
     const rect = toggle.getBoundingClientRect();
     const w = panel.offsetWidth || 220;
     const h = panel.offsetHeight || 240;
-    const left = Math.max(10, Math.min(rect.left, window.innerWidth - w - 10));
+    // A phone has no room for the panel beside the File button, so there it opens centred
+    // over the canvas instead of hanging off the left edge.
+    const left = window.innerWidth <= 900
+        ? Math.max(8, (window.innerWidth - w) / 2)
+        : Math.max(10, Math.min(rect.left, window.innerWidth - w - 10));
     let top = rect.bottom + 8;
     if (top + h > window.innerHeight - 10) top = Math.max(10, rect.top - h - 8);
     panel.style.left = `${Math.round(left)}px`;
@@ -79407,11 +79469,13 @@ function openSidebar() {
     sidebarOpen = true;
     sidebar.classList.add("open");
     sidebarBackdrop.classList.add("show");
+    setDockPressed("nodes", true);
 }
 function closeSidebar() {
     sidebarOpen = false;
     sidebar.classList.remove("open");
     sidebarBackdrop.classList.remove("show");
+    setDockPressed("nodes", false);
 }
 function toggleSidebar() {
     if (sidebarOpen) closeSidebar(); else openSidebar();
@@ -81669,10 +81733,16 @@ function addSymbolNode(slug, x, y) {
     if (window.innerWidth <= 900) setSymbolDrawer(false);
 }
 
+function toggleSymbolDrawer() {
+    if (!symbolDrawerEl) return;
+    setSymbolDrawer(!symbolDrawerEl.classList.contains("open"));
+}
+
 function setSymbolDrawer(open) {
     if (!symbolDrawerEl || !symbolRailBtn) return;
     symbolDrawerEl.classList.toggle("open", Boolean(open));
     symbolRailBtn.setAttribute("aria-expanded", String(Boolean(open)));
+    setDockPressed("symbols", Boolean(open));
     // Tells the bar to travel with the panel: without it the panel slides under a
     // stationary bar instead of pushing it aside.
     document.body.classList.toggle("sym-drawer-open", Boolean(open));
@@ -81713,6 +81783,9 @@ function initSymbolPanel() {
         </aside>`);
     symbolDrawerEl = document.getElementById("symDrawer");
     symbolRailBtn = document.getElementById("symRailBtn");
+    // On a phone the rail is hidden and this button in the dock takes its place; on the
+    // desktop the dock is hidden instead, so only one of the two is ever on screen.
+    addMobileDockButton("symbols", `<button type="button" class="tb-btn mobile-dock-btn" data-dock="symbols" aria-controls="symDrawer" aria-expanded="${open}" title="Symbol ciphers (${total})" aria-label="Symbol ciphers">${SYMBOL_RAIL_ICON}</button>`, "start");
     // The stage's Fit/Snap controls sit bottom-left; they step right to clear the rail.
     document.body.classList.add("has-sym-rail");
     // Restore last visit's drawer state, bar included, so it opens where it was left.
@@ -81866,8 +81939,7 @@ function initSymbolPanel() {
     };
     symbolBuildList = buildList;
 
-    document.getElementById("symRailBtn").addEventListener("click", () =>
-        setSymbolDrawer(!symbolDrawerEl.classList.contains("open")));
+    document.getElementById("symRailBtn").addEventListener("click", toggleSymbolDrawer);
     document.getElementById("symClose").addEventListener("click", () => setSymbolDrawer(false));
     search.addEventListener("input", renderList);
     list.addEventListener("click", ev => {

@@ -777,8 +777,7 @@
     "glyphs": 92,
     "uniqueFiles": 92,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "covenant",
@@ -3398,8 +3397,7 @@
     "glyphs": 223,
     "uniqueFiles": 223,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "window",
@@ -3439,8 +3437,7 @@
     "glyphs": 222,
     "uniqueFiles": 222,
     "dcode": 0,
-    "check": "PASS",
-    "new": true
+    "check": "PASS"
   },
   {
     "slug": "wraith",

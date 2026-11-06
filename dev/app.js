@@ -87,6 +87,8 @@ const ICONS = {
     // A pawn, for the Chess node: the piece every game starts by moving.
     chess: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2a1.9 1.9 0 0 1 .85 3.6c1.05.45 1.35 1.5.55 2.2H6.6c-.8-.7-.5-1.75.55-2.2A1.9 1.9 0 0 1 8 2.2Z"/><path d="M6.4 8h3.2l1.7 5.2H4.7z"/></svg>',
     file: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.8h5l3 3v9.4H4z"/><path d="M9 1.8v3h3M6.5 8.5h3M8 7v3"/></svg>',
+    // A waveform between axis ticks, for the Spectrogram node: its picture, reduced to a shape.
+    wave: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1.8 8h1.1M4.5 4.4v7.2M7.2 2.2v11.6M9.9 5.3v5.4M12.6 6.9v2.2M14.6 7.7v.6"/></svg>',
     check: '<path d="m3.5 8.2 3 3 6-6.5"/>',
     alert: '<path d="M8 2.2 14 13H2zM8 6v3.5M8 11.3v.2"/>',
     clock: '<circle cx="8" cy="8" r="5.2"/><path d="M8 5v3.4l2.1 1.2"/>',
@@ -1162,6 +1164,11 @@ function makeNode(type, opts = {}) {
         // leave on a wire of their own.
         node.text = opts.text ?? "";
         node.fen = Boolean(opts.fen);
+    } else if (type === "spectrogram") {
+        // Where the card is looking and whether the channels are folded together. The view is
+        // saved with the node; the grid it looks at is rebuilt from the wire.
+        node.mergeTracks = Boolean(opts.mergeTracks);
+        node.spec = opts.spec ? specView(opts.spec) : null;
     }
     node._output = null;
     node._error = "";
@@ -1303,6 +1310,8 @@ function cleanNodeForSave(n) {
         symbolSource: n.symbolSource,
         symbolVariant: n.symbolVariant || undefined,
         fen: n.type === "chess" ? Boolean(n.fen) : undefined,
+        mergeTracks: n.type === "spectrogram" ? Boolean(n.mergeTracks) : undefined,
+        spec: n.type === "spectrogram" && n.spec ? {...n.spec} : undefined,
         gateHeld: n.type === "gate" ? String(n.gateHeld || "") : undefined,
         fullPreview: n.fullPreview ? true : undefined,
         collapsed: Boolean(n.collapsed),
@@ -1377,7 +1386,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1419,6 +1428,8 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             symbolSource: raw.symbolSource === "dcode" ? "dcode" : "cachesleuth",
             symbolVariant: typeof raw.symbolVariant === "string" ? raw.symbolVariant : "",
             fen: Boolean(raw.fen),
+            mergeTracks: Boolean(raw.mergeTracks),
+            spec: raw.spec && typeof raw.spec === "object" ? raw.spec : null,
             gateHeld: typeof raw.gateHeld === "string" ? raw.gateHeld : "",
             portPick: Number(raw.portPick) || 0,
             typedInputs: readTypedInputs(raw.typedInputs),
@@ -1702,6 +1713,7 @@ function sourceTitle(node) {
     if (node.type === "pngchunks") return node.title || "PNG Chunks";
     if (node.type === "pdfscan") return node.title || "PDF Scan";
     if (node.type === "imginfo") return node.title || "Image Info";
+    if (node.type === "spectrogram") return node.title || "Spectrogram";
     if (node.type === "symbol") return node.title || symbolCipherName(node.symbolCipher);
     if (node.type === "chess") return node.title || "Chess";
     if (node.type === "gate") return node.title || "Gate";
@@ -1721,14 +1733,16 @@ function sourceTitle(node) {
 function nodeAccent(node) {
     if (node.type === "op") return opAccent(node.op);
     if (node.type === "fn" || node.type === "fnin" || node.type === "fnout") return FUNCTION_COLOR;
-    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") return CAT_COLORS.Multimedia;
+    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
+        node.type === "spectrogram") return CAT_COLORS.Multimedia;
     if (node.type === "symbol") return SYMBOL_COLOR;
     return GRAPH_COLOR;
 }
 function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
-    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") return "Multimedia";
+    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
+        node.type === "spectrogram") return "Multimedia";
     if (node.type === "symbol") return "Symbols";
     if (node.type === "chess") return "Chess";
     if (node.type === "gate") return "Gate";
@@ -1837,6 +1851,8 @@ function buildNode(node) {
         body.appendChild(buildError(node));
     } else if (node.type === "symbol") {
         body.appendChild(buildSymbolNode(node));
+    } else if (node.type === "spectrogram") {
+        body.appendChild(buildSpectrogramNode(node));
     } else if (node.type === "chess") {
         body.appendChild(buildChessNode(node));
     } else if (node.type === "join") {
@@ -3382,6 +3398,9 @@ function refreshNodePreview(node) {
     // A Chess board follows a wired FEN or move list, which only the latest run knows.
     const chessBody = node.type === "chess" ? $(".chess-node", el) : null;
     if (chessBody && typeof chessBody._chessRender === "function") chessBody._chessRender();
+    // A Spectrogram follows a new WAV on either of its ports the same way.
+    const specBody = node.type === "spectrogram" ? $(".spec-node", el) : null;
+    if (specBody && typeof specBody._specRender === "function") specBody._specRender();
     // The input box of an operation shows what its wire is carrying, refreshed on every run.
     const opInput = $("[data-op-input]", el);
     if (opInput) {
@@ -4506,6 +4525,12 @@ function inputSignature(node, incoming, results, opts) {
         }
         return JSON.stringify(["math", node.text, parts]);
     }
+    if (node.type === "spectrogram") {
+        // The file and the merge switch decide the picture, so both are part of what a run
+        // depends on. The view is not: it only changes what the card shows.
+        const a = sourceBytesForPort(incoming, node.id, "main", results);
+        return JSON.stringify(["spectrogram", Boolean(node.mergeTracks), a.sig]);
+    }
     if (node.type === "chess") {
         // The move list is the node's own text, unless a wire is feeding it one, and the game
         // wire carries either that list or the FEN of the position.
@@ -5296,7 +5321,8 @@ async function executeGraph(nodes, edges, opts = {}) {
             const takesMain = node.type === "op" || node.type === "input" || node.type === "file" || node.type === "switch" ||
                 node.type === "chess" ||
                 node.type === "expand" || node.type === "pick" || node.type === "fork" ||
-                node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
+                node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
+                node.type === "spectrogram";
             const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
@@ -5459,6 +5485,23 @@ async function executeGraph(nodes, edges, opts = {}) {
                         // second, so the two can never describe different boards.
                         node._portOutputs = chessPortOutputs(text, Boolean(node.fen), enc);
                         out = node._portOutputs.get("out");
+                    }
+                }
+            } else if (node.type === "spectrogram") {
+                // What leaves it is the whole file as one PNG, not whatever the card is
+                // looking at: zooming and dragging are ways of reading the picture, so they
+                // must not change what the graph sees.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    if (main.bytes == null || !main.bytes.length) error = "Pipe an audio file into this node.";
+                    else {
+                        // Unpacking MP3, OGG, FLAC and the rest is the browser's work and is
+                        // asynchronous, so the run waits on the analysis rather than passing a
+                        // promise down the wire.
+                        const analysis = await specAnalyse(main.bytes, Boolean(node.mergeTracks));
+                        if (!analysis.lanes.length) error = analysis.error || "That is not audio this browser can decode.";
+                        else out = await specPng(analysis);
                     }
                 }
             } else if (node.type === "gate") {
@@ -7055,7 +7098,8 @@ const GRAPH_ITEMS = [
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
     {type: "pngchunks", label: "PNG Chunks", icon: "file", section: "Multimedia", keys: "pngcheck png chunks crc ihdr text chunk steg metadata inspect image", about: "Validate a PNG's chunks, CRCs, dimensions and text"},
     {type: "pdfscan", label: "PDF Scan", icon: "doc", section: "Multimedia", keys: "pdfid pdfinfo pdf objects streams javascript embedded scan document steg hidden", about: "Count a PDF's objects, pages and risky features"},
-    {type: "imginfo", label: "Image Info", icon: "search", section: "Multimedia", keys: "identify image dimensions format exif jpeg gif webp bmp png metadata steg", about: "Report an image's format, size, depth and metadata"}
+    {type: "imginfo", label: "Image Info", icon: "search", section: "Multimedia", keys: "identify image dimensions format exif jpeg gif webp bmp png metadata steg", about: "Report an image's format, size, depth and metadata"},
+    {type: "spectrogram", label: "Spectrogram", icon: "wave", section: "Multimedia", keys: "audio spectrogram sound spectrum frequencies fft sonogram waterfall zoom pan drag merge mix channels stereo left right wav mp3 ogg flac m4a aac webm multimedia", about: "See audio's frequencies, zoom in, and merge left and right"}
 ];
 // Split once: each section draws its own tools, and the audits are appended to the
 // Multimedia category's item list by buildPalette.
@@ -7238,7 +7282,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", SYMBOL_COLOR);
         ghost.textContent = symbolCipher(payload.slug)?.name || payload.slug;
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", math: "Math", switch: "Switch", chess: "Chess", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", math: "Math", switch: "Switch", chess: "Chess", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", spectrogram: "Spectrogram", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -7348,7 +7392,7 @@ function addGraphNode(type, x, y) {
     } else if (type === "compact" || type === "expand" || type === "pick" || type === "fork") {
         added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
         state.nodes.push(added);
-    } else if (type === "pngchunks" || type === "pdfscan" || type === "imginfo") {
+    } else if (type === "pngchunks" || type === "pdfscan" || type === "imginfo" || type === "spectrogram") {
         added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
         state.nodes.push(added);
     } else if (type === "fnin" || type === "fnout") {
@@ -10674,6 +10718,657 @@ function rerenderSymbolNode(node) {
     body.innerHTML = "";
     body.appendChild(buildSymbolNode(node));
     scheduleEdges();
+}
+
+
+/* ================================================================ spectrogram node
+ * An audio viewer: a file arriving on a wire becomes a spectrogram you can zoom into and drag
+ * around, with its left and right channels drawn as two lanes or folded into one. Any audio
+ * the browser can decode goes in. The analysis runs here in the page rather than in the engine
+ * worker, because what it makes is a canvas — and because a closer look is a window onto one
+ * computed grid rather than another pass over the samples.
+ */
+const SPEC_FFT = 1024;          // samples per analysis frame
+const SPEC_BINS = SPEC_FFT / 2; // one magnitude per bin up to Nyquist
+const SPEC_ROWS = 256;          // frequency rows the grid keeps
+const SPEC_COLS = 1024;         // frames the grid keeps, however long the file is
+const SPEC_FLOOR_DB = -100;     // the quiet end of the colour ramp
+const SPEC_MIN_SPAN = 1 / 2048; // how far into the file or the band a view can go
+
+// A WAV file's samples as one Float32Array per channel, or null when the bytes are not a WAV
+// this reader understands. RIFF/WAVE only, and the sample formats in it that carry plain
+// numbers: 8-, 16-, 24- and 32-bit integer, and 32- or 64-bit float. The chunk list is walked
+// instead of assuming a 44-byte header, because an extension chunk moves the data along.
+function wavPcm(bytes) {
+    if (!bytes || bytes.length < 12) return null;
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const tag = at => String.fromCharCode(bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]);
+    if (tag(0) !== "RIFF" || tag(8) !== "WAVE") return null;
+    let fmt = null;
+    let data = null;
+    let at = 12;
+    while (at + 8 <= bytes.length) {
+        const id = tag(at);
+        const size = view.getUint32(at + 4, true);
+        const body = at + 8;
+        if (id === "fmt " && body + 16 <= bytes.length) {
+            fmt = {
+                format: view.getUint16(body, true),
+                channels: view.getUint16(body + 2, true),
+                sampleRate: view.getUint32(body + 4, true),
+                bits: view.getUint16(body + 14, true)
+            };
+        } else if (id === "data") {
+            // A recorded size can run past the file; the bytes that are there are what is used.
+            data = {start: body, size: Math.max(0, Math.min(size, bytes.length - body))};
+        }
+        // Chunks are word aligned, so an odd-sized one carries a pad byte.
+        at = body + size + (size % 2);
+    }
+    if (!fmt || !data || !fmt.channels || !fmt.sampleRate) return null;
+    const width = Math.round(fmt.bits / 8);
+    const float = fmt.format === 3;
+    // 1 is integer PCM and 3 is IEEE float; anything else — A-law, ADPCM, an MP3 in a WAV
+    // wrapper — is left alone rather than guessed at.
+    if (!float && fmt.format !== 1) return null;
+    if (![1, 2, 3, 4].includes(width)) return null;
+    if (float && fmt.bits !== 32 && fmt.bits !== 64) return null;
+    const channels = fmt.channels;
+    const frames = Math.floor(data.size / (width * channels));
+    if (!frames) return null;
+    const out = [];
+    for (let c = 0; c < channels; c++) out.push(new Float32Array(frames));
+    for (let f = 0; f < frames; f++) {
+        for (let c = 0; c < channels; c++) {
+            const pos = data.start + (f * channels + c) * width;
+            let value;
+            if (float) value = fmt.bits === 32 ? view.getFloat32(pos, true) : view.getFloat64(pos, true);
+            else if (fmt.bits === 8) value = (bytes[pos] - 128) / 128;
+            else if (fmt.bits === 16) value = view.getInt16(pos, true) / 32768;
+            else if (fmt.bits === 24) {
+                let v = bytes[pos] | (bytes[pos + 1] << 8) | (bytes[pos + 2] << 16);
+                if (v & 0x800000) v -= 0x1000000;
+                value = v / 8388608;
+            } else value = view.getInt32(pos, true) / 2147483648;
+            out[c][f] = value;
+        }
+    }
+    return {sampleRate: fmt.sampleRate, channels, frames, data: out};
+}
+
+/* ------------------------------------------------------------ reading the file */
+// Decoding is the browser's job for everything but WAV: it is the only part of the page that
+// knows MP3, OGG, FLAC, M4A and WebM. An offline context is used because decoding into one
+// needs no user gesture and no output device, and one context serves every file.
+let SPEC_AUDIO_CONTEXT = null;
+function specContext() {
+    if (SPEC_AUDIO_CONTEXT) return SPEC_AUDIO_CONTEXT;
+    try {
+        const Ctor = typeof OfflineAudioContext === "function" ? OfflineAudioContext
+            : typeof webkitOfflineAudioContext === "function" ? webkitOfflineAudioContext : null;
+        if (Ctor) SPEC_AUDIO_CONTEXT = new Ctor(1, 1, 44100);
+    } catch (_) { SPEC_AUDIO_CONTEXT = null; }
+    return SPEC_AUDIO_CONTEXT;
+}
+
+// Decoded files and built grids, kept by a fingerprint of the bytes so a repaint or a run
+// never decodes or transforms the same audio twice. Both are bounded, because audio is large.
+const SPEC_DECODED = new Map();
+const SPEC_BUILT = new Map();
+const SPEC_DECODE_LIMIT = 4;
+const SPEC_BUILT_LIMIT = 6;
+
+// A file as channels of numbers. WAV is read here, so its own sample rate — and with it the
+// top of its band — is kept exactly; every other format is handed to the browser, which
+// resamples it to the context's rate.
+async function specDecode(bytes) {
+    if (!bytes || !bytes.length) return {track: null, error: ""};
+    const wav = wavPcm(bytes);
+    if (wav) return {track: wav, error: ""};
+    const key = bytes.length + ":" + fnvBytes(bytes);
+    const ready = SPEC_DECODED.get(key);
+    if (ready) {
+        SPEC_DECODED.delete(key);
+        SPEC_DECODED.set(key, ready);
+        return ready;
+    }
+    const result = await specDecodeWithBrowser(bytes);
+    if (result.track) {
+        SPEC_DECODED.set(key, result);
+        while (SPEC_DECODED.size > SPEC_DECODE_LIMIT) SPEC_DECODED.delete(SPEC_DECODED.keys().next().value);
+    }
+    return result;
+}
+
+async function specDecodeWithBrowser(bytes) {
+    const context = specContext();
+    if (!context) return {track: null, error: "This browser has no audio decoder to read that file with."};
+    let buffer;
+    try {
+        // The decoder takes ownership of the buffer it is given, so it gets a copy of it.
+        const copy = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+        buffer = await context.decodeAudioData(copy);
+    } catch (_) {
+        return {track: null, error: "That file is not audio this browser can decode."};
+    }
+    if (!buffer || !buffer.length || !buffer.numberOfChannels) return {track: null, error: "That audio file holds no samples."};
+    const data = [];
+    for (let c = 0; c < buffer.numberOfChannels; c++) data.push(buffer.getChannelData(c).slice(0));
+    return {
+        track: {sampleRate: buffer.sampleRate || 44100, channels: data.length, frames: buffer.length, data},
+        error: ""
+    };
+}
+
+// The two channels a picture is made from: left and right for a stereo file, and the one
+// signal for a mono one. A file with more channels than that is read as its front pair,
+// because those are the two a listener means by left and right.
+function specChannels(track) {
+    if (track.channels > 1) return [{label: "Left", data: track.data[0]}, {label: "Right", data: track.data[1]}];
+    return [{label: "Mono", data: track.data[0] || new Float32Array(0)}];
+}
+
+// Merging the channels is a downmix: they are averaged. Summing a stereo pair would make
+// anything in the middle of the field 6 dB louder, and clip it.
+function specFold(channels) {
+    if (channels.length < 2) return channels[0] ? channels[0].data : new Float32Array(0);
+    let frames = 0;
+    for (const ch of channels) frames = Math.max(frames, ch.data.length);
+    const out = new Float32Array(frames);
+    for (let i = 0; i < frames; i++) {
+        let sum = 0;
+        for (const ch of channels) sum += ch.data[i] || 0;
+        out[i] = clamp(sum / channels.length, -1, 1);
+    }
+    return out;
+}
+
+// What the node is looking at: a lane per channel, or one lane for the downmix.
+function specAnalysis(track, merge) {
+    const channels = track ? specChannels(track) : [];
+    if (merge && channels.length > 1) {
+        return {
+            lanes: [{label: "Mix", mono: specFold(channels)}],
+            sampleRate: track.sampleRate, merged: true, error: ""
+        };
+    }
+    return {
+        lanes: channels.map(ch => ({label: ch.label, mono: ch.data})),
+        sampleRate: track ? track.sampleRate : 0, merged: false, error: ""
+    };
+}
+
+// A radix-2 FFT, in place, on the real and imaginary halves of the spectrum. The tables are
+// built once per size, and the transform itself is the only real cost of the analysis.
+const SPEC_TABLES = new Map();
+function specTables(n) {
+    const ready = SPEC_TABLES.get(n);
+    if (ready) return ready;
+    const cos = new Float64Array(n / 2);
+    const sin = new Float64Array(n / 2);
+    for (let i = 0; i < n / 2; i++) {
+        cos[i] = Math.cos(2 * Math.PI * i / n);
+        sin[i] = Math.sin(2 * Math.PI * i / n);
+    }
+    // The order the bit-reversal permutation reads the input in, worked out once.
+    const rev = new Uint32Array(n);
+    for (let i = 0; i < n; i++) {
+        let r = 0;
+        for (let bit = 1; bit < n; bit <<= 1) r = (r << 1) | (i & bit ? 1 : 0);
+        rev[i] = r;
+    }
+    const table = {cos, sin, rev};
+    SPEC_TABLES.set(n, table);
+    return table;
+}
+function specFft(re, im) {
+    const n = re.length;
+    const {cos, sin, rev} = specTables(n);
+    for (let i = 0; i < n; i++) {
+        const j = rev[i];
+        if (j <= i) continue;
+        let v = re[i]; re[i] = re[j]; re[j] = v;
+        v = im[i]; im[i] = im[j]; im[j] = v;
+    }
+    for (let size = 2; size <= n; size <<= 1) {
+        const half = size >> 1;
+        const step = n / size;
+        for (let start = 0; start < n; start += size) {
+            for (let k = 0; k < half; k++) {
+                const turn = k * step;
+                const wr = cos[turn];
+                const wi = -sin[turn];
+                const a = start + k;
+                const b = a + half;
+                const xr = re[b] * wr - im[b] * wi;
+                const xi = re[b] * wi + im[b] * wr;
+                re[b] = re[a] - xr;
+                im[b] = im[a] - xi;
+                re[a] += xr;
+                im[a] += xi;
+            }
+        }
+    }
+}
+
+// The whole file as one grid: SPEC_COLS frames across at most, SPEC_ROWS frequency rows, each
+// cell a brightness from 0 to 255 in decibels. Computing it once is what makes zooming free —
+// a closer look is a window onto this grid, never another pass over the samples.
+function specMatrix(mono, sampleRate) {
+    const frames = mono.length;
+    if (!frames || !sampleRate) return null;
+    // A short clip still gets columns of its own, and a long one keeps the full width by
+    // spacing its frames further apart.
+    const cols = clamp(Math.round(frames / (SPEC_FFT / 4)), 24, SPEC_COLS);
+    const spacing = frames / cols;
+    const cells = new Uint8Array(cols * SPEC_ROWS);
+    const window = new Float64Array(SPEC_FFT);
+    for (let i = 0; i < SPEC_FFT; i++) window[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / SPEC_FFT);
+    const re = new Float64Array(SPEC_FFT);
+    const im = new Float64Array(SPEC_FFT);
+    const peaks = new Float64Array(SPEC_ROWS);
+    // A full-scale sine reads as 0 dB: a Hann window's coherent gain is 0.5, and a real
+    // signal puts half its amplitude in each of two mirror bins.
+    const scale = 2 / (SPEC_FFT * 0.5);
+    const fold = SPEC_BINS / SPEC_ROWS;
+    for (let c = 0; c < cols; c++) {
+        const start = Math.round(c * spacing) - SPEC_FFT / 2;
+        for (let i = 0; i < SPEC_FFT; i++) {
+            const at = start + i;
+            re[i] = (at >= 0 && at < frames ? mono[at] : 0) * window[i];
+            im[i] = 0;
+        }
+        specFft(re, im);
+        peaks.fill(SPEC_FLOOR_DB);
+        for (let bin = 1; bin < SPEC_BINS; bin++) {
+            const mag = Math.hypot(re[bin], im[bin]) * scale;
+            const db = mag > 0 ? 20 * Math.log10(mag) : SPEC_FLOOR_DB;
+            // Row 0 is the top of the band, so the picture is drawn in reading order.
+            const row = SPEC_ROWS - 1 - Math.floor(bin / fold);
+            if (db > peaks[row]) peaks[row] = db;
+        }
+        const base = c * SPEC_ROWS;
+        for (let row = 0; row < SPEC_ROWS; row++) {
+            const v = (peaks[row] - SPEC_FLOOR_DB) / (0 - SPEC_FLOOR_DB);
+            cells[base + row] = Math.round(clamp(v, 0, 1) * 255);
+        }
+    }
+    return {cols, rows: SPEC_ROWS, cells, duration: frames / sampleRate};
+}
+
+// Both lanes of work from a decoded file: the analysis, with a grid per lane. A card and a run
+// call this same function, so what the wire carries and what the card draws agree.
+function specBuild(track, merge) {
+    const analysis = specAnalysis(track, merge);
+    analysis.lanes = analysis.lanes.map(lane => ({
+        label: lane.label,
+        duration: lane.mono.length / analysis.sampleRate,
+        matrix: specMatrix(lane.mono, analysis.sampleRate)
+    }));
+    return analysis;
+}
+
+// The analysis for some bytes, decoding on first sight. The card paints what is ready and is
+// repainted when this lands; a run waits for it, because a wire cannot carry a promise.
+function specCached(bytes, merge) {
+    const key = bytes && bytes.length ? `${bytes.length}:${fnvBytes(bytes)}|${merge ? "mix" : "split"}` : "";
+    const ready = key ? SPEC_BUILT.get(key) : null;
+    if (!ready) return {key, analysis: null};
+    SPEC_BUILT.delete(key);
+    SPEC_BUILT.set(key, ready);
+    return {key, analysis: ready};
+}
+async function specAnalyse(bytes, merge) {
+    const {key, analysis} = specCached(bytes, merge);
+    if (analysis) return analysis;
+    const {track, error} = await specDecode(bytes);
+    const built = track ? specBuild(track, merge) : {lanes: [], sampleRate: 0, merged: false, error: error || ""};
+    if (key && track) {
+        SPEC_BUILT.set(key, built);
+        while (SPEC_BUILT.size > SPEC_BUILT_LIMIT) SPEC_BUILT.delete(SPEC_BUILT.keys().next().value);
+    }
+    return built;
+}
+
+// The bytes on the input port, read from the port the wire left on, so a wire from a node
+// with several outputs is read as what it is.
+function specWireBytes(node, port) {
+    const edge = edgeInto(node.id, port);
+    if (!edge) return null;
+    const source = nodeById(edge.from);
+    if (!source) return null;
+    if (source._portOutputs) return source._portOutputs.get(edge.fromPort || "out") || null;
+    return nodeOutputBytes(source);
+}
+
+// A window onto the grid, as fractions of the file (x) and of the band (y). Whatever a save
+// or a hand-edited file carries is read back into a sane window here.
+function specView(raw) {
+    const num = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+    let x0 = clamp(num(raw?.x0, 0), 0, 1);
+    let x1 = clamp(num(raw?.x1, 1), 0, 1);
+    let y0 = clamp(num(raw?.y0, 0), 0, 1);
+    let y1 = clamp(num(raw?.y1, 1), 0, 1);
+    if (x1 - x0 < SPEC_MIN_SPAN) x1 = Math.min(1, x0 + SPEC_MIN_SPAN);
+    if (x1 - x0 < SPEC_MIN_SPAN) x0 = Math.max(0, x1 - SPEC_MIN_SPAN);
+    if (y1 - y0 < SPEC_MIN_SPAN) y1 = Math.min(1, y0 + SPEC_MIN_SPAN);
+    if (y1 - y0 < SPEC_MIN_SPAN) y0 = Math.max(0, y1 - SPEC_MIN_SPAN);
+    return {x0, x1, y0, y1};
+}
+
+// Zooming one axis about a point in it keeps whatever is under the pointer under the pointer.
+// The window stops at the file's edges and at the closest the grid can usefully be looked at.
+function specZoomAxis(view, axis, at, factor) {
+    const v = specView(view);
+    const lo = axis === "y" ? v.y0 : v.x0;
+    const hi = axis === "y" ? v.y1 : v.x1;
+    const span = Math.max(SPEC_MIN_SPAN, hi - lo);
+    const want = clamp(span / factor, SPEC_MIN_SPAN, 1);
+    let a = at - (at - lo) * (want / span);
+    let b = a + want;
+    if (a < 0) { b -= a; a = 0; }
+    if (b > 1) { a -= b - 1; b = 1; }
+    return specView(axis === "y" ? {x0: v.x0, x1: v.x1, y0: a, y1: b} : {x0: a, x1: b, y0: v.y0, y1: v.y1});
+}
+
+// Moving the picture: the window travels by a fraction of its own size, and cannot be dragged
+// off the edges of what it is looking at.
+function specPanBy(view, dx, dy) {
+    const v = specView(view);
+    const width = v.x1 - v.x0;
+    const height = v.y1 - v.y0;
+    const x0 = clamp(v.x0 + dx * width, 0, 1 - width);
+    const y0 = clamp(v.y0 + dy * height, 0, 1 - height);
+    return {x0, x1: x0 + width, y0, y1: y0 + height};
+}
+
+// The classic spectrogram ramp: black through blue and magenta to orange and white. A grey
+// ramp would smear the quiet detail into the background.
+const SPEC_RAMP = [
+    [0, 0, 0], [12, 10, 40], [40, 30, 110], [96, 40, 140],
+    [180, 60, 110], [235, 120, 40], [255, 210, 120], [255, 255, 255]
+];
+function specColor(value) {
+    const t = clamp(value, 0, 255) / 255 * (SPEC_RAMP.length - 1);
+    const i = Math.min(SPEC_RAMP.length - 2, Math.floor(t));
+    const f = t - i;
+    const a = SPEC_RAMP[i];
+    const b = SPEC_RAMP[i + 1];
+    return [
+        Math.round(a[0] + (b[0] - a[0]) * f),
+        Math.round(a[1] + (b[1] - a[1]) * f),
+        Math.round(a[2] + (b[2] - a[2]) * f)
+    ];
+}
+
+// A grid as a canvas, kept per grid so zooming and repainting never recolour it again. The
+// grid is held a column at a time and a canvas a row at a time, so this is where the two
+// orders are married: a column of the grid is time, and it is drawn down a pixel column.
+const SPEC_IMAGES = new WeakMap();
+function specImage(matrix) {
+    const ready = SPEC_IMAGES.get(matrix);
+    if (ready) return ready;
+    const {cols, rows} = matrix;
+    const canvas = document.createElement("canvas");
+    canvas.width = cols;
+    canvas.height = rows;
+    const ctx = canvas.getContext("2d");
+    const image = ctx.createImageData(cols, rows);
+    for (let x = 0; x < cols; x++) {
+        const base = x * rows;
+        for (let y = 0; y < rows; y++) {
+            const p = (y * cols + x) * 4;
+            const [r, g, b] = specColor(matrix.cells[base + y]);
+            image.data[p] = r;
+            image.data[p + 1] = g;
+            image.data[p + 2] = b;
+            image.data[p + 3] = 255;
+        }
+    }
+    ctx.putImageData(image, 0, 0);
+    SPEC_IMAGES.set(matrix, canvas);
+    return canvas;
+}
+
+// A grid drawn into a window of a canvas: the view's slice of the grid, stretched to fit.
+function specDrawGrid(ctx, matrix, view, x, y, w, h) {
+    if (!matrix || !matrix.cols) return;
+    const v = specView(view);
+    const sx = v.x0 * matrix.cols;
+    const sy = (1 - v.y1) * matrix.rows;
+    const sw = Math.max(0.001, (v.x1 - v.x0) * matrix.cols);
+    const sh = Math.max(0.001, (v.y1 - v.y0) * matrix.rows);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(specImage(matrix), sx, sy, sw, sh, x, y, w, h);
+}
+
+// A time as minutes:seconds.tenths — what a recording's axis reads in.
+function specTime(seconds) {
+    const total = Math.max(0, Number(seconds) || 0);
+    const minutes = Math.floor(total / 60);
+    const rest = total - minutes * 60;
+    return `${minutes}:${rest < 10 ? "0" : ""}${rest.toFixed(1)}`;
+}
+
+// What a Spectrogram node hands on: the whole file as one PNG with its lanes stacked, at a
+// fixed size — so the picture on the wire does not change whenever the card is zoomed.
+async function specPng(analysis) {
+    const lanes = analysis.lanes.filter(lane => lane.matrix);
+    if (!lanes.length) return new Uint8Array(0);
+    const width = 1024;
+    const laneHeight = 320;
+    const gap = 6;
+    const height = lanes.length * laneHeight + (lanes.length - 1) * gap;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, width, height);
+    lanes.forEach((lane, i) => specDrawGrid(ctx, lane.matrix, null, 0, i * (laneHeight + gap), width, laneHeight));
+    const blob = await new Promise(resolve => {
+        try { canvas.toBlob(resolve, "image/png"); } catch (_) { resolve(null); }
+    });
+    return blob ? new Uint8Array(await blob.arrayBuffer()) : new Uint8Array(0);
+}
+
+// The node's card: one audio port, the picture of its channels, the switch that folds them
+// into one, and the wire the whole file leaves on.
+function buildSpectrogramNode(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "spec-node";
+    wrap.appendChild(fnNote("Audio in — WAV, MP3, OGG, FLAC, M4A, anything the browser plays. Wheel zooms the time axis, shift+wheel the band, drag moves the picture, double-click fits the file again."));
+    for (const [port, label, hint] of [["main", "Audio", "An audio file to analyse"]]) {
+        const edge = edgeInto(node.id, port);
+        const row = document.createElement("div");
+        row.className = "io-row";
+        row.innerHTML = `<span class="port in${edge ? " connected" : ""}" data-port="${port}" title="${hint}"></span>
+            <span class="io-label">${label}</span>
+            <span class="port-label">${edge ? chipHtml(nodeById(edge.from), edge) : ""}</span>`;
+        bindInputPort($(".port.in", row), node.id, port);
+        wrap.appendChild(row);
+    }
+    const canvas = document.createElement("canvas");
+    canvas.className = "spec-canvas";
+    wrap.appendChild(canvas);
+    const mergeBtn = document.createElement("button");
+    mergeBtn.type = "button";
+    mergeBtn.className = "check-row";
+    mergeBtn.dataset.specMerge = "";
+    wrap.appendChild(mergeBtn);
+    const foot = document.createElement("div");
+    foot.className = "node-foot";
+    foot.innerHTML = `<span class="bytes" data-spec-readout></span><span class="bytes" data-spec-note></span>`;
+    wrap.appendChild(foot);
+    const outRow = document.createElement("div");
+    outRow.className = "io-row io-out-row";
+    outRow.title = "The whole file as a PNG spectrogram, one lane per channel";
+    outRow.innerHTML = `<span class="io-label" style="margin-left:auto">Spectrogram</span><span class="out-slot" data-port-slot="out"></span>`;
+    wrap.appendChild(outRow);
+    wrap.appendChild(buildError(node));
+    const readout = $("[data-spec-readout]", wrap);
+    const note = $("[data-spec-note]", wrap);
+    const paintMerge = () => {
+        mergeBtn.innerHTML = `<span class="check${node.mergeTracks ? " on" : ""}"></span><span>Merge channels: ${node.mergeTracks ? "on" : "off"}</span>`;
+        mergeBtn.title = node.mergeTracks
+            ? "Left and right are averaged into one spectrogram"
+            : "Left and right get a spectrogram each";
+    };
+    // A file is decoded once and its grid kept, so dragging and zooming repaint from that grid.
+    // Everything but a WAV goes through the browser's decoder, which takes a moment, so the
+    // first paint after a new file says it is reading and repaints when the picture lands.
+    let pendingKey = "";
+    let lastW = 0;
+    let lastH = 0;
+    const paint = () => {
+        const bytes = specWireBytes(node, "main");
+        const merge = Boolean(node.mergeTracks);
+        const memo = specCached(bytes, merge);
+        const analysis = memo.analysis;
+        const ratio = Math.min(2, window.devicePixelRatio || 1);
+        const cssW = Math.max(140, Math.round(canvas.clientWidth || 264));
+        // The picture is as tall as the card can spare: the stylesheet hands it the room the
+        // node has over its controls, and an unresized card gives it 150px.
+        const cssH = Math.max(60, Math.round(canvas.clientHeight || 150));
+        lastW = canvas.clientWidth;
+        lastH = canvas.clientHeight;
+        if (canvas.width !== Math.round(cssW * ratio) || canvas.height !== Math.round(cssH * ratio)) {
+            canvas.width = Math.round(cssW * ratio);
+            canvas.height = Math.round(cssH * ratio);
+        }
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        ctx.fillStyle = "#05070c";
+        ctx.fillRect(0, 0, cssW, cssH);
+        const lanes = analysis ? analysis.lanes.filter(lane => lane.matrix) : [];
+        if (!lanes.length) {
+            const reading = Boolean(bytes && bytes.length) && !analysis;
+            ctx.fillStyle = "rgba(255,255,255,0.55)";
+            ctx.font = "10px system-ui, sans-serif";
+            ctx.fillText(analysis && analysis.error ? analysis.error : reading ? "Reading the file…" : "Pipe an audio file in", 8, 22);
+            readout.textContent = analysis && analysis.error ? "" : reading ? "reading" : "no audio yet";
+            note.textContent = "";
+            if (reading && pendingKey !== memo.key) {
+                pendingKey = memo.key;
+                specAnalyse(bytes, merge).then(() => { pendingKey = ""; paint(); }, () => { pendingKey = ""; });
+            }
+            return;
+        }
+        const v = specView(node.spec);
+        const laneH = cssH / lanes.length;
+        lanes.forEach((lane, i) => {
+            specDrawGrid(ctx, lane.matrix, v, 0, i * laneH, cssW, laneH);
+            if (lanes.length > 1) {
+                ctx.fillStyle = "rgba(255,255,255,0.8)";
+                ctx.font = "9px system-ui, sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText(lane.label, 4, i * laneH + 11);
+            }
+        });
+        // Three ticks that follow the window, so a zoomed-in view says which part of the file
+        // (and of the band) it is looking at.
+        const duration = lanes[0].duration;
+        const from = v.x0 * duration;
+        const to = v.x1 * duration;
+        ctx.fillStyle = "rgba(255,255,255,0.75)";
+        ctx.font = "9px system-ui, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(specTime(from), 3, cssH - 4);
+        ctx.textAlign = "center";
+        ctx.fillText(specTime((from + to) / 2), cssW / 2, cssH - 4);
+        ctx.textAlign = "right";
+        ctx.fillText(specTime(to), cssW - 3, cssH - 4);
+        ctx.textAlign = "left";
+        const zoom = 1 / Math.max(SPEC_MIN_SPAN, v.x1 - v.x0);
+        // The band tops out at half the analysed rate, so the readout says what is on screen.
+        const band = Math.round(analysis.sampleRate / 2 / 100) / 10;
+        readout.textContent = `${specTime(duration)} · ${band} kHz band · ${zoom < 1.05 ? "fit" : `${zoom.toFixed(1)}×`}`;
+        note.textContent = analysis.merged ? "mono mix" : lanes.length > 1 ? "L / R" : "mono";
+    };
+    // The wheel zooms around the pointer, so the moment being looked at stays under the hand.
+    canvas.addEventListener("wheel", ev => {
+        // The canvas world zooms on any wheel over it; this one stops at the picture, so it
+        // changes the view of the file instead of the view of the graph.
+        ev.preventDefault();
+        ev.stopPropagation();
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const v = specView(node.spec);
+        const factor = Math.pow(2, (ev.deltaY < 0 ? 1 : -1) * (ev.ctrlKey ? 1.6 : 0.9));
+        if (ev.shiftKey) {
+            const band = clamp((rect.bottom - ev.clientY) / rect.height, 0, 1);
+            node.spec = specZoomAxis(v, "y", v.y0 + band * (v.y1 - v.y0), factor);
+        } else {
+            const at = clamp((ev.clientX - rect.left) / rect.width, 0, 1);
+            node.spec = specZoomAxis(v, "x", v.x0 + at * (v.x1 - v.x0), factor);
+        }
+        paint();
+        saveLocalSoon();
+    }, {passive: false});
+    // Dragging moves the picture with the pointer, in both axes at once.
+    let panning = null;
+    canvas.addEventListener("pointerdown", ev => {
+        if (ev.button !== 0) return;
+        // The stage under the card pans the graph on a press and the card pans the picture;
+        // this press belongs to the picture, so it goes no further.
+        ev.stopPropagation();
+        if (ev.shiftKey) selectNode(node.id, true);
+        else if (!selection.has(node.id)) selectNode(node.id);
+        panning = {x: ev.clientX, y: ev.clientY, view: specView(node.spec)};
+        canvas.classList.add("panning");
+        try { canvas.setPointerCapture(ev.pointerId); } catch (_) { /* pointer already gone */ }
+        ev.preventDefault();
+    });
+    canvas.addEventListener("pointermove", ev => {
+        if (!panning) return;
+        ev.stopPropagation();
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const v = panning.view;
+        // The picture follows the pointer one pixel for one pixel at any zoom: the drag is
+        // measured in widths of the window, and specPanBy scales it by the width it has.
+        // Scaling here as well would make a deeper view lag by the square of the zoom.
+        const dx = -(ev.clientX - panning.x) / rect.width;
+        const dy = (ev.clientY - panning.y) / rect.height;
+        node.spec = specPanBy(v, dx, dy);
+        paint();
+    });
+    const endPan = () => {
+        if (!panning) return;
+        panning = null;
+        canvas.classList.remove("panning");
+        saveLocalSoon();
+    };
+    canvas.addEventListener("pointerup", endPan);
+    canvas.addEventListener("pointercancel", endPan);
+    canvas.addEventListener("dblclick", ev => {
+        ev.stopPropagation();
+        node.spec = null;
+        paint();
+        saveLocalSoon();
+    });
+    mergeBtn.addEventListener("click", () => {
+        // The switch changes what the wire carries, so it is an edit like any other: save,
+        // and let the graph run the node again.
+        node.mergeTracks = !node.mergeTracks;
+        node._sig = "";
+        paintMerge();
+        paint();
+        onGraphEdited();
+    });
+    paintMerge();
+    paint();
+    // The card follows the node's box, so a resized node repaints at its new width and height.
+    if (typeof ResizeObserver === "function") {
+        const observer = new ResizeObserver(() => {
+            if (Math.round(canvas.clientWidth) !== lastW || Math.round(canvas.clientHeight) !== lastH) paint();
+        });
+        observer.observe(canvas);
+    }
+    // A new file on the wire reaches this node only after a run, so the runner repaints it.
+    wrap._specRender = paint;
+    return wrap;
 }
 
 /* ================================================================ chess node

@@ -480,7 +480,6 @@ button svg { flex: 0 0 auto; }
 .btn-run:active { transform: translateY(1px); }
 .btn-run:disabled { opacity: .65; cursor: progress; }
 .btn-run svg { width: 12px; height: 12px; fill: currentColor; }
-.tb-mobile { display: none; }
 
 /* ------------------------------------------------------------------ nodes */
 .node {
@@ -2261,7 +2260,6 @@ kbd {
     .sidebar.open { transform: none; }
     .sidebar-close { display: inline-flex; }
     .sidebar-backdrop.show { display: block; }
-    .tb-mobile { display: inline-flex; }
     .tb-btn .tb-label { display: none; }
     .tb-btn { padding: 0 8px; }
     .toolbar { gap: 0; }
@@ -2837,6 +2835,9 @@ body.has-sym-rail .toolbar { left: 43px; }
     .node-head { height: 44px; touch-action: none; }
     .node-mini { width: 26px; height: 26px; }
     .node-mini svg { width: 13px; height: 13px; }
+    /* The delete X is revealed on hover, and a finger never hovers: on a phone it sat at
+       opacity 0 in every node's corner, invisible but still tappable. */
+    .node-close { opacity: 1; }
     .node-resize { width: 26px; height: 26px; }
     /* The dot stays 11px on the edge of the card; the circle that takes the press reaches
        out past it, so a wire can be picked up without hitting the node body. */
@@ -2846,4 +2847,39 @@ body.has-sym-rail .toolbar { left: 43px; }
     .tb-btn svg { width: 16px; height: 16px; }
     .tb-switch { height: 38px; }
     #app input, #app textarea, #app select { font-size: 16px; }
+}
+
+/* ------------------------------------------------------------------ mobile dock */
+/* On a phone both lists are drawers, so each gets a button in the toolbar itself: the
+ * symbol ciphers at the leading edge, the node list at the trailing edge, with the
+ * File / Auto-run / Run group centred between them. The desktop hides the two buttons,
+ * because there the sidebar is always on screen and the symbol rail has its own column. */
+.mobile-dock-btn { display: none; }
+@media (max-width: 900px) {
+    .mobile-dock-btn {
+        display: inline-flex;
+        justify-content: center;
+        min-width: 40px;
+        padding: 0 9px;
+    }
+    .mobile-dock-btn svg { width: 17px; height: 17px; }
+    /* Two auto margins share the bar's spare width, so the File / Auto-run / Run group
+       lands in the middle instead of hugging the leading edge. */
+    .mobile-dock-btn[data-dock="symbols"] { margin-right: auto; }
+    .mobile-dock-btn[data-dock="nodes"] { margin-left: auto; }
+    .mobile-dock-btn[aria-expanded="true"] {
+        color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 11%, transparent);
+    }
+    /* The rail gave the toolbar 30px of its width; with the rail gone that room goes back. */
+    .sym-rail { display: none; }
+    body.has-sym-rail .toolbar,
+    body.has-sym-rail .stage-controls { left: 13px; }
+}
+@media (max-width: 580px) {
+    /* Two icon buttons in a bar that also has to hold File, Auto-run and Run on a 320 px
+       screen: they lose their spare width so the row still fits without scrolling. */
+    .mobile-dock-btn { min-width: 34px; padding: 0 7px; }
+    body.has-sym-rail .toolbar,
+    body.has-sym-rail .stage-controls { left: 8px; }
 }

@@ -121,7 +121,11 @@ async function main() {
         if (!fs.existsSync(file)) continue;
         let data;
         try { data = JSON.parse(fs.readFileSync(file, "utf8")); } catch { continue; }
-        if (data.dcode && data.dcode.page) bound.set(data.dcode.page, row.slug);
+        // A dCode-only cipher keeps the page on `source.dcode`; ciphers with a second
+        // set keep it on `dcode`. Both mean the page is bound to this shipped row.
+        const page = data.dcode?.page
+            || data.source?.dcode?.page?.replace(/^https:\/\/www\.dcode\.fr/, "");
+        if (page) bound.set(page, row.slug);
     }
 
     const csAll = [...cs].map(([url, name]) => ({url, name, row: shipped.get(url) || null}))

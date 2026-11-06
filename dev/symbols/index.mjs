@@ -129,7 +129,7 @@ export function glyphDataBundle() {
             // Editorial note for the node (matoran: the source documents a hexagonal outline
             // but publishes no second glyph set), omitted entirely when a cipher has none.
             ...(c.note ? {note: c.note} : {}),
-            table: c.source.cachesleuth.tableImage ? encoder(path.join(HERE, c.source.cachesleuth.tableImage)) : null,
+            table: c.source?.cachesleuth?.tableImage ? encoder(path.join(HERE, c.source.cachesleuth.tableImage)) : null,
             glyphs: c.glyphs.map(g => ({
                 index: g.index,
                 key: g.key,

@@ -1,0 +1,180 @@
+{
+  "slug": "lingua_ignota",
+  "name": "Lingua Ignota",
+  "artFrom": "dcode",
+  "dropped": [],
+  "source": {
+    "cachesleuth": null,
+    "dcode": {
+      "page": "https://www.dcode.fr/lingua-ignota-code"
+    }
+  },
+  "descriptor": {
+    "letters": "",
+    "numbers": "",
+    "otherchars": "",
+    "othernames": "",
+    "digraphs": [],
+    "lcdir": "",
+    "ucdir": "",
+    "font": ""
+  },
+  "counts": {
+    "declared": 24,
+    "uniqueFiles": 24,
+    "manifestFiles": 0,
+    "downloaded": 24,
+    "failed": 0,
+    "unmapped": 0
+  },
+  "glyphs": [
+    {
+      "index": 1,
+      "key": "A",
+      "label": "A",
+      "file": "art/lingua_ignota/_dcode/char(65).png"
+    },
+    {
+      "index": 2,
+      "key": "B",
+      "label": "B",
+      "file": "art/lingua_ignota/_dcode/char(66).png"
+    },
+    {
+      "index": 3,
+      "key": "C",
+      "label": "C",
+      "file": "art/lingua_ignota/_dcode/char(67).png"
+    },
+    {
+      "index": 4,
+      "key": "D",
+      "label": "D",
+      "file": "art/lingua_ignota/_dcode/char(68).png"
+    },
+    {
+      "index": 5,
+      "key": "E",
+      "label": "E",
+      "file": "art/lingua_ignota/_dcode/char(69).png"
+    },
+    {
+      "index": 6,
+      "key": "F",
+      "label": "F",
+      "file": "art/lingua_ignota/_dcode/char(70).png"
+    },
+    {
+      "index": 7,
+      "key": "G",
+      "label": "G",
+      "file": "art/lingua_ignota/_dcode/char(71).png"
+    },
+    {
+      "index": 8,
+      "key": "H",
+      "label": "H",
+      "file": "art/lingua_ignota/_dcode/char(72).png"
+    },
+    {
+      "index": 9,
+      "key": "I",
+      "label": "I",
+      "file": "art/lingua_ignota/_dcode/char(73).png"
+    },
+    {
+      "index": 10,
+      "key": "K",
+      "label": "K",
+      "file": "art/lingua_ignota/_dcode/char(75).png"
+    },
+    {
+      "index": 11,
+      "key": "L",
+      "label": "L",
+      "file": "art/lingua_ignota/_dcode/char(76).png"
+    },
+    {
+      "index": 12,
+      "key": "M",
+      "label": "M",
+      "file": "art/lingua_ignota/_dcode/char(77).png"
+    },
+    {
+      "index": 13,
+      "key": "N",
+      "label": "N",
+      "file": "art/lingua_ignota/_dcode/char(78).png"
+    },
+    {
+      "index": 14,
+      "key": "O",
+      "label": "O",
+      "file": "art/lingua_ignota/_dcode/char(79).png"
+    },
+    {
+      "index": 15,
+      "key": "P",
+      "label": "P",
+      "file": "art/lingua_ignota/_dcode/char(80).png"
+    },
+    {
+      "index": 16,
+      "key": "Q",
+      "label": "Q",
+      "file": "art/lingua_ignota/_dcode/char(81).png"
+    },
+    {
+      "index": 17,
+      "key": "R",
+      "label": "R",
+      "file": "art/lingua_ignota/_dcode/char(82).png"
+    },
+    {
+      "index": 18,
+      "key": "S",
+      "label": "S",
+      "file": "art/lingua_ignota/_dcode/char(83).png"
+    },
+    {
+      "index": 19,
+      "key": "T",
+      "label": "T",
+      "file": "art/lingua_ignota/_dcode/char(84).png"
+    },
+    {
+      "index": 20,
+      "key": "U",
+      "label": "U",
+      "file": "art/lingua_ignota/_dcode/char(85).png"
+    },
+    {
+      "index": 21,
+      "key": "W",
+      "label": "W",
+      "file": "art/lingua_ignota/_dcode/char(87).png"
+    },
+    {
+      "index": 22,
+      "key": "X",
+      "label": "X",
+      "file": "art/lingua_ignota/_dcode/char(88).png"
+    },
+    {
+      "index": 23,
+      "key": "Y",
+      "label": "Y",
+      "file": "art/lingua_ignota/_dcode/char(89).png"
+    },
+    {
+      "index": 24,
+      "key": "Z",
+      "label": "Z",
+      "file": "art/lingua_ignota/_dcode/char(90).png"
+    }
+  ],
+  "unmapped": [],
+  "failed": [],
+  "dcode": null,
+  "check": "PASS"
+}

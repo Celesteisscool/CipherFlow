@@ -2,6 +2,7 @@
 /* Symbol glyph extractor — authoring-time only, never part of dev/build.mjs.
  *
  *   node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>] [--dcode-extras] [--cases]] [--same] [--dcode-icons]]
+ *   node dev/symbols/extract.mjs --dcode-only /page-path --slug <slug> [--name "Display Name"] [--cases] [--keep-controls]
  *
  * --same records that dCode publishes the same alphabet (reviewed side by side):
  * the second set is downloaded as evidence but not shipped, so the node keeps
@@ -54,7 +55,7 @@ const NUMS = "0123456789".split("");
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
 
 function usage(code) {
-    console.error("usage: node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>] [--dcode-extras]] [--same] [--dcode-icons]]");
+    console.error("usage: node dev/symbols/extract.mjs <cachesleuth-url> [--dcode /page-path [--art dcode [--drop <chars>] [--dcode-extras]] [--same] [--dcode-icons]]\n       node dev/symbols/extract.mjs --dcode-only /page-path --slug <slug> [--name \"Display Name\"] [--cases] [--keep-controls]");
     process.exit(code);
 }
 
@@ -440,6 +441,155 @@ async function extractDcode(pagePath, dir, {icons = false} = {}) {
         glyphs, count: glyphs.filter(g => g.file).length, ok: glyphs.every(g => g.ok)};
 }
 
+/* A dCode-only cipher has no CacheSleuth descriptor: the page's own glyph inventory is
+ * the alphabet. Letters are keyed and captioned uppercase (the app case-folds input), and
+ * an uppercase image wins over its lowercase twin when a page publishes both. This is not
+ * a second source; the page is staged as `artFrom: "dcode"`, so install.mjs ships its
+ * images as the cipher's own set and the node never offers a toggle. */
+/* A tile must have a key a person can type or at least read. C0/C1 controls and
+ * private-use code points are source-side duplicates or font internals; shipping them
+ * produces blank captions and keys no keyboard can enter. */
+function usableKey(key, {keepControls = false} = {}) {
+    for (const ch of String(key)) {
+        const cp = ch.codePointAt(0);
+        if (!keepControls && (cp < 0x20 || (cp >= 0x7f && cp <= 0x9f))) return false;
+        if (cp >= 0xe000 && cp <= 0xf8ff) return false;
+    }
+    return true;
+}
+
+/* A control key still needs a legible caption. The font pages publish a PNG at each
+ * code position, so --keep-controls keeps the art and prints U+00XX under it; the key
+ * itself is unchanged, which is what a click appends. */
+function tileLabel(key) {
+    const text = String(key);
+    if (text === " ") return "␣";
+    const cp = text.codePointAt(0);
+    if (text.length === 1 && (cp < 0x20 || (cp >= 0x7f && cp <= 0xa0) || cp === 0xad)) {
+        return `U+${cp.toString(16).toUpperCase().padStart(4, "0")}`;
+    }
+    return text;
+}
+
+function sortAlphabetically(glyphs) {
+    return glyphs.slice().sort((a, b) => {
+        const ak = String(a.key ?? "");
+        const bk = String(b.key ?? "");
+        const al = /^[A-Za-z]$/.test(ak);
+        const bl = /^[A-Za-z]$/.test(bk);
+        if (al !== bl) return al ? -1 : 1;
+        if (!al) return 0; // digits and punctuation keep the page's own order
+        return ak.toLowerCase().localeCompare(bk.toLowerCase()) || ak.localeCompare(bk);
+    });
+}
+
+async function extractDcodeOnly(pagePath, slug, nameOverride, {cases = false, keepControls = false} = {}) {
+    if (!pagePath || !pagePath.startsWith("/") || !slug) {
+        throw new Error("--dcode-only needs a /page-path and --slug");
+    }
+    const html = await fetchText(DCODE_BASE + pagePath);
+    const h1 = ((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || [])[1] || "")
+        .replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    const name = nameOverride || h1 || slug;
+
+    const byKey = new Map();
+    const add = (src, rawKey) => {
+        if (!src || !rawKey || !usableKey(rawKey, {keepControls})) return;
+        const letter = /^[A-Za-z]$/.test(rawKey);
+        // --cases keeps the page's own case, for font tables where A and a are different
+        // images. Without it letters still key and caption uppercase, as before.
+        const key = letter && !cases ? rawKey.toUpperCase() : rawKey;
+        const prev = byKey.get(key);
+        // Prefer the uppercase image when a page publishes A and a as separate files.
+        if (!prev || (letter && !cases && rawKey === key && prev.rawKey !== key)) {
+            byKey.set(key, {src, rawKey, key, label: tileLabel(key)});
+        }
+    };
+    for (const m of html.matchAll(/<img[^>]*>/g)) {
+        const tag = m[0];
+        if (!/class="glyph"/.test(tag)) continue;
+        const src = (tag.match(/\bsrc="([^"]+)"/) || [])[1];
+        const alt = (tag.match(/\balt="([^"]*)"/) || [])[1] || "";
+        if (!src) continue;
+        const abs = new URL(src, DCODE_BASE).href;
+        const code = (alt.match(/char\((\d+)\)/) || [])[1]
+            || (path.basename(new URL(abs).pathname).match(/char\((\d+)\)/) || [])[1];
+        add(abs, code ? String.fromCodePoint(Number(code)) : alt);
+    }
+    const meta = html.match(/(https?:\/\/[^'"\s]+\/images)'\s*;\s*\$\.cryptoarea\.icons\s*=\s*\[([^\]]*)\]/);
+    if (meta) {
+        for (const hit of meta[2].matchAll(/char\((\d+)\)/g)) {
+            const src = `${meta[1]}/char(${hit[1]}).png`;
+            add(src, String.fromCodePoint(Number(hit[1])));
+        }
+    }
+    const entries = sortAlphabetically([...byKey.values()]);
+    if (!entries.length) throw new Error(`no glyph inventory on ${pagePath}`);
+
+    const stage = path.join(STAGE_ROOT, slug);
+    fs.rmSync(stage, {recursive: true, force: true});
+    fs.mkdirSync(path.join(stage, "dcode"), {recursive: true});
+
+    const results = await pool(entries, 6, async e => {
+        const file = `dcode/${encodeURIComponent(path.basename(new URL(e.src, DCODE_BASE).pathname))}`;
+        try {
+            const buf = await fetchBuf(e.src);
+            if (!isPng(buf)) return {...e, file, bytes: 0, ok: false, why: "not a PNG"};
+            const bytes = writePng(stage, file, buf);
+            return {...e, file, bytes, ok: true};
+        } catch (err) {
+            return {...e, file, bytes: 0, ok: false, why: err.message};
+        }
+    });
+    const failed = results.filter(r => !r.ok);
+    const downloaded = results.filter(r => r.ok);
+    const check = failed.length === 0 && downloaded.length === results.length ? "PASS" : "FAIL";
+
+    const data = {
+        slug,
+        name,
+        artFrom: "dcode",
+        dropped: [],
+        same: false,
+        descriptor: {letters: "", numbers: "", otherchars: "", othernames: "", digraphs: [], lcdir: "", ucdir: "", font: ""},
+        source: {
+            cachesleuth: null,
+            dcode: {page: DCODE_BASE + pagePath}
+        },
+        counts: {
+            declared: results.length,
+            uniqueFiles: new Set(results.map(r => r.file)).size,
+            manifestFiles: 0,
+            downloaded: downloaded.length,
+            failed: failed.length,
+            unmapped: 0
+        },
+        glyphs: results.map((r, i) => ({
+            index: i + 1, key: r.key, label: r.label,
+            file: r.ok ? r.file : null, bytes: r.bytes
+        })),
+        failed: failed.map(r => ({key: r.key, file: r.file, why: r.why})),
+        unmapped: [],
+        dcode: {
+            page: DCODE_BASE + pagePath,
+            count: downloaded.length,
+            variantNames: [],
+            glyphs: results.map(r => ({key: r.key, file: r.ok ? r.file : null, bytes: r.bytes, ok: r.ok}))
+        },
+        check
+    };
+    fs.writeFileSync(path.join(stage, "cipher.json"), JSON.stringify(data, null, 2));
+
+    console.log(`cipher: ${name} (${slug})`);
+    console.log(`  dCode page               : ${pagePath}`);
+    console.log(`  glyphs on page           : ${results.length} (${new Set(results.map(r => r.key)).size} unique keys)`);
+    console.log(`  downloaded               : ${downloaded.length}/${results.length}`);
+    if (failed.length) failed.forEach(f => console.log(`    FAIL ${f.key} (${f.file}): ${f.why}`));
+    console.log(`  staging                  : ${stage}`);
+    console.log(`  COUNT CHECK: ${check}`);
+    if (check !== "PASS") process.exit(1);
+}
+
 function isPng(buf) {
     return buf.length > 4 && PNG_MAGIC.every((b, i) => buf[i] === b);
 }
@@ -449,6 +599,16 @@ function isPng(buf) {
 async function main() {
     const args = process.argv.slice(2);
     if (!args.length || args[0] === "-h" || args[0] === "--help") usage(args.length ? 0 : 2);
+    const onlyIdx = args.indexOf("--dcode-only");
+    if (onlyIdx >= 0) {
+        const pagePath = args[onlyIdx + 1];
+        const slugIdx = args.indexOf("--slug");
+        const nameIdx = args.indexOf("--name");
+        await extractDcodeOnly(pagePath, slugIdx >= 0 ? args[slugIdx + 1] : null,
+            nameIdx >= 0 ? args[nameIdx + 1] : null,
+            {cases: args.includes("--cases"), keepControls: args.includes("--keep-controls")});
+        return;
+    }
     const slug = args[0];
     const dIdx = args.indexOf("--dcode");
     const dcodePath = dIdx >= 0 ? args[dIdx + 1] : null;

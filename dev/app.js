@@ -84,6 +84,8 @@ const ICONS = {
     math: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2.4" y="1.8" width="11.2" height="12.4" rx="1.4"/><path d="M4.8 4.4h6.4M5 7.3h.1M8 7.3h.1M11 7.3h.1M5 9.8h.1M8 9.8h.1M11 9.8h.1M5 12.3h.1M8 12.3h.1M11 12.3h.1"/></svg>',
     // Two branches for the Switch node: one input, one of several outputs.
     switch: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 8h3.4"/><path d="M5.2 8c2.4 0 2.2-4 4.6-4h2.4M5.2 8c2.4 0 2.2 4 4.6 4h2.4"/><path d="m10.6 2.3 1.7 1.7-1.7 1.7M10.6 9.7l1.7 1.7-1.7 1.7"/></svg>',
+    // A pawn, for the Chess node: the piece every game starts by moving.
+    chess: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2a1.9 1.9 0 0 1 .85 3.6c1.05.45 1.35 1.5.55 2.2H6.6c-.8-.7-.5-1.75.55-2.2A1.9 1.9 0 0 1 8 2.2Z"/><path d="M6.4 8h3.2l1.7 5.2H4.7z"/></svg>',
     file: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.8h5l3 3v9.4H4z"/><path d="M9 1.8v3h3M6.5 8.5h3M8 7v3"/></svg>',
     check: '<path d="m3.5 8.2 3 3 6-6.5"/>',
     alert: '<path d="M8 2.2 14 13H2zM8 6v3.5M8 11.3v.2"/>',
@@ -481,6 +483,9 @@ function nodeOutPorts(node, lookup) {
             return [];
         case "expand":
             return Array.from({length: expandOutputs(node)}, (_, i) => "out:" + i);
+        case "chess":
+            // The game on one wire and every legal move in it on the other.
+            return ["out", "legal"];
         default:
             return ["out"];
     }
@@ -1100,6 +1105,10 @@ function makeNode(type, opts = {}) {
         // The arithmetic expression, with the same numbered slots as an Fstring.
         node.text = opts.text ?? "";
         node.portCount = mathPorts(opts);
+    } else if (type === "gate") {
+        // A loop breaker: the value it hands on, held as base64 until it is pressed again.
+        // What arrives on its input during a run waits in `_gateIn`, which no save carries.
+        node.gateHeld = typeof opts.gateHeld === "string" ? opts.gateHeld : "";
     } else if (type === "switch") {
         // Key/value pairs matched against the input, plus what to hand back when none match.
         node.text = opts.text ?? "";
@@ -1145,6 +1154,14 @@ function makeNode(type, opts = {}) {
         node.symbolSource = opts.symbolSource === "dcode" ? "dcode" : "cachesleuth";
         node.symbolVariant = typeof opts.symbolVariant === "string" ? opts.symbolVariant : "";
         node.text = opts.text ?? "";
+    } else if (type === "chess") {
+        // The move list, written the way a game is written (SAN, or coordinates like e2e4).
+        // The board draws the position those moves reach, and a piece moved on the board is
+        // appended to this text as one more move. `fen` decides what the game wire carries:
+        // the list of moves, or the FEN record of the position they reach. The legal moves
+        // leave on a wire of their own.
+        node.text = opts.text ?? "";
+        node.fen = Boolean(opts.fen);
     }
     node._output = null;
     node._error = "";
@@ -1285,6 +1302,8 @@ function cleanNodeForSave(n) {
         symbolCipher: n.symbolCipher,
         symbolSource: n.symbolSource,
         symbolVariant: n.symbolVariant || undefined,
+        fen: n.type === "chess" ? Boolean(n.fen) : undefined,
+        gateHeld: n.type === "gate" ? String(n.gateHeld || "") : undefined,
         fullPreview: n.fullPreview ? true : undefined,
         collapsed: Boolean(n.collapsed),
         w: Math.round(n.w || 0),
@@ -1358,7 +1377,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "math", "switch", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1399,6 +1418,8 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             symbolCipher: typeof raw.symbolCipher === "string" ? raw.symbolCipher : "",
             symbolSource: raw.symbolSource === "dcode" ? "dcode" : "cachesleuth",
             symbolVariant: typeof raw.symbolVariant === "string" ? raw.symbolVariant : "",
+            fen: Boolean(raw.fen),
+            gateHeld: typeof raw.gateHeld === "string" ? raw.gateHeld : "",
             portPick: Number(raw.portPick) || 0,
             typedInputs: readTypedInputs(raw.typedInputs),
             fileIndex: clamp(Number(raw.fileIndex) || 0, 0, 32),
@@ -1682,6 +1703,8 @@ function sourceTitle(node) {
     if (node.type === "pdfscan") return node.title || "PDF Scan";
     if (node.type === "imginfo") return node.title || "Image Info";
     if (node.type === "symbol") return node.title || symbolCipherName(node.symbolCipher);
+    if (node.type === "chess") return node.title || "Chess";
+    if (node.type === "gate") return node.title || "Gate";
     if (node.type === "join") return node.title || "Join";
     if (node.type === "template") return node.title || "Fstring";
     if (node.type === "math") return node.title || "Math";
@@ -1707,6 +1730,8 @@ function nodeCategoryLabel(node) {
     if (node.type === "file") return "File";
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") return "Multimedia";
     if (node.type === "symbol") return "Symbols";
+    if (node.type === "chess") return "Chess";
+    if (node.type === "gate") return "Gate";
     if (node.type === "join") return "Join";
     if (node.type === "template") return "Fstring";
     if (node.type === "math") return "Math";
@@ -1812,6 +1837,8 @@ function buildNode(node) {
         body.appendChild(buildError(node));
     } else if (node.type === "symbol") {
         body.appendChild(buildSymbolNode(node));
+    } else if (node.type === "chess") {
+        body.appendChild(buildChessNode(node));
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
     } else if (node.type === "template") {
@@ -1820,6 +1847,8 @@ function buildNode(node) {
         body.appendChild(buildMathNode(node));
     } else if (node.type === "switch") {
         body.appendChild(buildSwitchNode(node));
+    } else if (node.type === "gate") {
+        body.appendChild(buildGateNode(node));
     } else if (node.type === "compact") {
         body.appendChild(buildCompactNode(node));
     } else if (node.type === "expand") {
@@ -1952,7 +1981,9 @@ function collapsedPorts(node) {
                 ? (node.ports || []).map((p, i) => ({key: "out:" + i, name: p.name || `Input ${i + 1}`}))
                 : node.type === "expand"
                     ? outs.map((key, i) => ({key, name: portNameAt(node, "out", i, `Output ${i + 1}`)}))
-                    : outs.map(key => ({key, name: key}));
+                    : node.type === "chess"
+                        ? outs.map(key => ({key, name: key === "legal" ? "Legal moves" : "Game"}))
+                        : outs.map(key => ({key, name: key}));
         wrap.innerHTML += named.map(o => `<div class="io-row io-out-row" title="${esc(o.name)}">
             <span class="io-label" style="margin-left:auto">${esc(o.name)}</span>
             <span class="out-slot" data-port-slot="${esc(o.key)}"></span>
@@ -3346,6 +3377,11 @@ function buildError(node) {
 function refreshNodePreview(node) {
     const el = nodeEl(node.id);
     if (!el) return;
+    // A gate reports what is waiting on it, which only the latest run knows.
+    if (node.type === "gate") paintGateState(node, el);
+    // A Chess board follows a wired FEN or move list, which only the latest run knows.
+    const chessBody = node.type === "chess" ? $(".chess-node", el) : null;
+    if (chessBody && typeof chessBody._chessRender === "function") chessBody._chessRender();
     // The input box of an operation shows what its wire is carrying, refreshed on every run.
     const opInput = $("[data-op-input]", el);
     if (opInput) {
@@ -4209,10 +4245,14 @@ function buildIncoming(edges) {
 
 function topoSort(nodes, edges) {
     const ids = new Set(nodes.map(n => n.id));
+    // A gate is a loop breaker. What it hands on is the value it was pressed to hold, not what
+    // is arriving on its wire, so its input edge is not a dependency — and a loop that closes
+    // through a gate is legal, running one step per press.
+    const gates = new Set(nodes.filter(n => n.type === "gate").map(n => n.id));
     const indeg = new Map(nodes.map(n => [n.id, 0]));
     const out = new Map(nodes.map(n => [n.id, []]));
     for (const e of edges) {
-        if (!ids.has(e.from) || !ids.has(e.to)) continue;
+        if (!ids.has(e.from) || !ids.has(e.to) || gates.has(e.to)) continue;
         indeg.set(e.to, (indeg.get(e.to) || 0) + 1);
         out.get(e.from).push(e.to);
     }
@@ -4465,6 +4505,16 @@ function inputSignature(node, incoming, results, opts) {
             parts.push(sourceBytesForPort(incoming, node.id, "in:" + i, results).sig);
         }
         return JSON.stringify(["math", node.text, parts]);
+    }
+    if (node.type === "chess") {
+        // The move list is the node's own text, unless a wire is feeding it one, and the game
+        // wire carries either that list or the FEN of the position.
+        const s = sourceBytesForPort(incoming, node.id, "main", results);
+        return JSON.stringify(["chess", node.text, Boolean(node.fen), s.sig]);
+    }
+    if (node.type === "gate") {
+        // The gate's output is the value it holds; the wire into it is not part of that value.
+        return JSON.stringify(["gate", node.gateHeld || ""]);
     }
     if (node.type === "switch") {
         const parts = ["main", "default"];
@@ -5228,7 +5278,7 @@ async function executeGraph(nodes, edges, opts = {}) {
 
     for (const node of nodes) {
         if (cycleIds.has(node.id)) {
-            node._error = "Cycle detected. Break the loop before running.";
+            node._error = "Cycle detected. Break the loop, or send it through a Gate.";
             node._output = null;
             results.set(node.id, createResult(node, null, node._error, "cycle"));
         }
@@ -5244,6 +5294,7 @@ async function executeGraph(nodes, edges, opts = {}) {
         let sig = "";
         try {
             const takesMain = node.type === "op" || node.type === "input" || node.type === "file" || node.type === "switch" ||
+                node.type === "chess" ||
                 node.type === "expand" || node.type === "pick" || node.type === "fork" ||
                 node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
             const main = takesMain
@@ -5389,6 +5440,34 @@ async function executeGraph(nodes, edges, opts = {}) {
                 sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
                 else if (!error) out = enc.encode(node.text || "");
+            } else if (node.type === "chess") {
+                // The wire, when there is one, carries the move list; otherwise the node's own
+                // text does. What flows out is that list written out properly — "1. e4 e5" —
+                // so a graph can hand a game on even when it arrived as e2e4 coordinates.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    // A bundle on the wire is a list of move lists, not one: choosing which
+                    // entry to play is Pick's job, the same rule Math follows.
+                    if (isListValue(main.bytes)) {
+                        error = "A bundle is wired in — use Pick to choose one move list.";
+                        node._portOutputs = null;
+                    } else {
+                        const text = chessTextFor(node, main.bytes != null ? utf8(main.bytes) : null);
+                        // Both wires come out of one replay: the game — its move list, or its
+                        // FEN — on the first, every legal move in that same position on the
+                        // second, so the two can never describe different boards.
+                        node._portOutputs = chessPortOutputs(text, Boolean(node.fen), enc);
+                        out = node._portOutputs.get("out");
+                    }
+                }
+            } else if (node.type === "gate") {
+                // What leaves a gate is what it was last pressed to hold. The wire into it is
+                // read after the run (see below), because a gate runs before the nodes in the
+                // loop it breaks and has nothing sensible to read from them yet.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
+                else out = gateHeldBytes(node);
             } else if (node.type === "fork") {
                 // One text in, every part out on one bundled wire — the value Compact would
                 // have assembled from those parts, so the rest of the graph sees a list.
@@ -5663,6 +5742,14 @@ async function executeGraph(nodes, edges, opts = {}) {
         if (error && !soft) errors.push({node, error});
         results.set(node.id, createResult(node, node._output, soft ? "" : error, sig, {duration, reused: !countIt, portOutputs: node._portOutputs || null}));
         if (opts.onNodeDone) opts.onNodeDone(node, results.get(node.id));
+    }
+    // What each gate will hold next time it is pressed: whatever arrived on its input during
+    // this run. Read here rather than in the loop above, because the gate runs first.
+    for (const node of nodes) {
+        if (node.type !== "gate") continue;
+        const edge = incoming.get(node.id)?.get("main");
+        const src = edge ? results.get(edge.from) : null;
+        node._gateIn = src && !src.error ? (src.bytes || new Uint8Array(0)) : null;
     }
     return {
         results, order, cycle, errors, softErrors,
@@ -6431,7 +6518,7 @@ async function runGraph(force = false) {
         if (errCount) parts.push(`${errCount} error${errCount === 1 ? "" : "s"}`);
         setRunStatus(errCount ? "error" : "ok", parts.join(" · "));
         if (result.cycle.length) {
-            setRunStatus("error", "Cycle detected — break the loop to run.");
+            setRunStatus("error", "Cycle detected — break the loop, or send it through a Gate.");
         }
         if (errCount && !result.cycle.length) {
             const first = result.errors[0];
@@ -6879,7 +6966,7 @@ async function runFunctionTest() {
         const soft = result.softErrors.length;
         const parts = [`Ran ${result.ran} node${result.ran === 1 ? "" : "s"} in ${Math.max(1, Math.round(result.duration))} ms`];
         if (soft) parts.push(`${soft} error${soft === 1 ? "" : "s"} carried through`);
-        if (result.cycle.length) setRunStatus("error", "Cycle detected — break the loop to run.");
+        if (result.cycle.length) setRunStatus("error", "Cycle detected — break the loop, or send it through a Gate.");
         else if (count) setRunStatus("error", `Error in ${sourceTitle(result.errors[0].node)}: ${result.errors[0].error.slice(0, 90)}`);
         else setRunStatus("ok", parts.join(" · "));
     } catch (err) {
@@ -6949,8 +7036,9 @@ function createFunctionFromSelection() {
 // The canvas-level nodes, found by the search box. `keys` is what the search matches
 // besides the label and description, so "f-string" reaches Fstring and "lookup" reaches
 // Switch. An item's `section` says where the palette offers it: the bundle tools sit in
-// Bundles, the wiring tools in Graph, while the three image/document audits belong with the
-// Multimedia operations they read bytes for, so they appear in that category instead.
+// Bundles, the wiring tools in Graph, Chess sits last under Silly Stuff, while the
+// three image/document audits belong with the Multimedia operations they read bytes for,
+// so they appear in that category instead.
 const GRAPH_ITEMS = [
     {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
     {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
@@ -6961,17 +7049,20 @@ const GRAPH_ITEMS = [
     {type: "fork", label: "Fork", icon: "split", section: "Bundles", keys: "split text separator delimiter character comma newline parts bundle list divide", about: "Split text on a character into one bundled wire"},
     {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
     {type: "math", label: "Math", icon: "math", keys: "arithmetic math calculate calculator formula expression add subtract multiply divide power modulo numbers input", about: "Evaluate an arithmetic expression over several inputs"},
+    {type: "chess", label: "Chess", icon: "chess", section: "Silly Stuff", keys: "chess board moves game pgn san notation play pieces position", about: "Read a move list, or play moves on the board"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
+    {type: "gate", label: "Gate", icon: "play", keys: "gate break loop cycle feedback hold step release press pause iteration repeat feedback", about: "Hold a wire and let a loop run a step at a time"},
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
     {type: "pngchunks", label: "PNG Chunks", icon: "file", section: "Multimedia", keys: "pngcheck png chunks crc ihdr text chunk steg metadata inspect image", about: "Validate a PNG's chunks, CRCs, dimensions and text"},
     {type: "pdfscan", label: "PDF Scan", icon: "doc", section: "Multimedia", keys: "pdfid pdfinfo pdf objects streams javascript embedded scan document steg hidden", about: "Count a PDF's objects, pages and risky features"},
     {type: "imginfo", label: "Image Info", icon: "search", section: "Multimedia", keys: "identify image dimensions format exif jpeg gif webp bmp png metadata steg", about: "Report an image's format, size, depth and metadata"}
 ];
-// Split once: Bundles and Graph draw their own tools, and the audits are appended to the
+// Split once: each section draws its own tools, and the audits are appended to the
 // Multimedia category's item list by buildPalette.
 const BUNDLE_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Bundles");
 const WIRING_ITEMS = GRAPH_ITEMS.filter(item => !item.section);
 const MEDIA_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Multimedia");
+const SILLY_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Silly Stuff");
 function buildPalette() {
     const graphItems = WIRING_ITEMS;
     const functions = state?.functions || [];
@@ -7015,6 +7106,13 @@ function buildPalette() {
         </div>`;
     }
     html += `</div>`;
+    // Silly Stuff closes the list, under the operation categories.
+    if (SILLY_ITEMS.length) {
+        html += `<div class="palette-section">
+            <div class="palette-section-title">Silly Stuff</div>
+            ${SILLY_ITEMS.map(item => `<button class="graph-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="graph-icon">${iconFill(item.icon)}</span>${esc(item.label)}<small>+</small></button>`).join("")}
+        </div>`;
+    }
     paletteBody.innerHTML = html;
     for (const name of paletteOpen) {
         const cat = paletteBody.querySelector(`.cat[data-cat="${CSS.escape(name)}"]`);
@@ -7140,7 +7238,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", SYMBOL_COLOR);
         ghost.textContent = symbolCipher(payload.slug)?.name || payload.slug;
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", math: "Math", switch: "Switch", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", math: "Math", switch: "Switch", chess: "Chess", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -7240,6 +7338,12 @@ function addGraphNode(type, x, y) {
         state.nodes.push(added);
     } else if (type === "switch") {
         added = makeNode("switch", {x: p.x, y: p.y, title: "Switch"});
+        state.nodes.push(added);
+    } else if (type === "chess") {
+        added = makeNode("chess", {x: p.x, y: p.y, title: "Chess"});
+        state.nodes.push(added);
+    } else if (type === "gate") {
+        added = makeNode("gate", {x: p.x, y: p.y, title: "Gate"});
         state.nodes.push(added);
     } else if (type === "compact" || type === "expand" || type === "pick" || type === "fork") {
         added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
@@ -10570,6 +10674,419 @@ function rerenderSymbolNode(node) {
     body.innerHTML = "";
     body.appendChild(buildSymbolNode(node));
     scheduleEdges();
+}
+
+/* ================================================================ chess node
+ * A board you can read and play on. The move list is text — wired in, typed in, or appended
+ * one move at a time by clicking a piece and then its square. The rules are in dev/chess.js,
+ * inlined as CFCHESS before this script, so the node holds no second copy of them.
+ */
+const CHESS_PIECE = {K: "♚", Q: "♛", R: "♜", B: "♝", N: "♞", P: "♟"};
+const CHESS_FILES = "abcdefgh";
+
+// What a Chess node actually plays: whatever the wire supplies, then the node's own moves.
+// A wire carrying a FEN gives the position to play from and a wire carrying moves gives the
+// opening; either way the box holds the user's own moves on top, so the board stays live and
+// an empty box simply means the wire is the whole game. The box keeps the piped text at the
+// bottom, so the wire is taken off whichever end of the box it sits on and played first.
+function chessTextFor(node, wireText) {
+    if (wireText == null) return String(node.text || "");
+    const wire = String(wireText).trim();
+    const own = String(node.text || "").trim();
+    if (!own) return wire;
+    if (!wire) return own;
+    if (own === wire) return wire;
+    // The box opens with the wire when it was typed or saved that way: the moves after it are
+    // the node's own, and adding the wire again would replay the opening twice.
+    if (own.startsWith(wire + " ") || own.startsWith(wire + "\n")) return own;
+    // Otherwise the box is the node's own moves with the wire kept at the bottom.
+    const at = own.length - wire.length;
+    if (at > 0 && own.slice(at) === wire && /\s/.test(own[at - 1])) return `${wire} ${own.slice(0, at).trim()}`;
+    return `${wire} ${own}`;
+}
+
+// The box a move played on the board leaves behind: the whole game, with the piped text moved
+// from the front to the bottom, where it reads as what came in.
+function chessBoxText(game, wireText) {
+    const text = String(game || "").trim();
+    const wire = String(wireText || "").trim();
+    if (!wire || text === wire) return text;
+    if (text.startsWith(wire) && /\s/.test(text.charAt(wire.length))) return `${text.slice(wire.length).trim()} ${wire}`;
+    return text;
+}
+
+// What the box shows: the node's own moves with the piped text kept at the bottom.
+function chessBoxShown(node, wireText) {
+    return chessBoxText(chessTextFor(node, wireText), wireText);
+}
+
+// What a Chess node hands on: the game goes out on one wire — its move list, or the position
+// as a FEN record — and every legal move in that same position on the other, space separated
+// so a whole position reads as one line. Both come from a single replay, so the two wires can
+// never describe different boards. A FEN reports whatever the board shows: the moves that did
+// play, before any token that did not.
+function chessPortOutputs(text, fenOut, enc) {
+    const played = CFCHESS.replay(text);
+    const legal = CFCHESS.moves(played.state);
+    return new Map([
+        ["out", enc.encode(fenOut ? CFCHESS.toFen(played.state) : CFCHESS.toText(played.sans))],
+        ["legal", enc.encode(legal.map(m => CFCHESS.san(played.state, m)).join(" "))]
+    ]);
+}
+
+// The bytes the wire into a Chess node is carrying, read from the port they left on, so a
+// wire from another chess node's legal-move output is read as what it is.
+function chessWireBytes(node) {
+    const edge = edgeInto(node.id, "main");
+    if (!edge) return null;
+    const src = nodeById(edge.from);
+    if (!src) return null;
+    if (src._portOutputs) return src._portOutputs.get(edge.fromPort || "out") || null;
+    return nodeOutputBytes(src);
+}
+
+// What the wire into a Chess node is handing it, or null when its own box is all there is.
+function chessWireText(node) {
+    const bytes = chessWireBytes(node);
+    return bytes ? utf8(bytes) : null;
+}
+
+function chessSource(node) {
+    const edge = edgeInto(node.id, "main");
+    if (!edge) return {text: String(node.text || ""), wire: false};
+    const bytes = chessWireBytes(node);
+    // A bundle is several move lists; drawing one of them would be picking for the user.
+    if (isListValue(bytes)) return {text: "", bundle: true};
+    const wire = bytes ? utf8(bytes) : "";
+    // A FEN on the wire is a starting position rather than a move list. Both are played from,
+    // and the node's own moves go on top either way, so a wire never shuts the board down.
+    const fen = CFCHESS.readFen(wire);
+    return {text: chessTextFor(node, wire), wire: true, fedFen: Boolean(fen) && !fen.rest};
+}
+
+function buildChessNode(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "chess-node";
+    const edge = edgeInto(node.id, "main");
+    const ownPlaceholder = "1. e4 e5 2. Nf3 — or a FEN position, or play on the board";
+    wrap.innerHTML = `
+        <div class="io-row">
+            <span class="port in${edge ? " connected" : ""}" data-port="main" title="A move list or a FEN position from another node"></span>
+            <span class="io-label">Moves / FEN</span>
+            <span class="port-label">${edge ? chipHtml(nodeById(edge.from), edge) : ""}</span>
+        </div>
+        <div class="chess-frame">
+            <div class="chess-ranks">${[8, 7, 6, 5, 4, 3, 2, 1].map(n => `<span>${n}</span>`).join("")}</div>
+            <div class="chess-board" data-chess-board title="Drag a piece to a square, or click the piece and then the square. A pawn reaching the last rank becomes a queen."></div>
+            <div class="chess-files">${Array.from(CHESS_FILES).map(f => `<span>${f}</span>`).join("")}</div>
+        </div>
+        <div class="chess-status" data-chess-status></div>
+        <textarea class="control typed-input" data-chess-text rows="2" spellcheck="false" placeholder="${ownPlaceholder}"></textarea>
+        <button type="button" class="check-row" data-chess-fen title="What the game wire carries: the move list, or the position as a FEN record"></button>
+        <div class="io-row io-out-row" title="The game: its move list, or its FEN position">
+            <span class="io-label" style="margin-left:auto">Game</span>
+            <span class="out-slot" data-port-slot="out"></span>
+        </div>
+        <div class="io-row io-out-row" title="Every legal move in the position, space separated">
+            <span class="io-label" style="margin-left:auto">Legal moves</span>
+            <span class="out-slot" data-port-slot="legal"></span>
+        </div>
+        <div class="node-foot"><span class="bytes" data-chess-ply></span><span class="bytes" data-chess-note></span></div>
+    `;
+    bindInputPort($(".port.in", wrap), node.id, "main");
+    const board = $("[data-chess-board]", wrap);
+    // The piece a drag has lifted: fixed to the pointer, so the node's own box cannot clip it.
+    const ghost = document.createElement("span");
+    ghost.className = "chess-ghost";
+    ghost.hidden = true;
+    wrap.appendChild(ghost);
+    const statusEl = $("[data-chess-status]", wrap);
+    const ta = $("[data-chess-text]", wrap);
+    const plyEl = $("[data-chess-ply]", wrap);
+    const noteEl = $("[data-chess-note]", wrap);
+    // The output toggle: the game as a move list, the position as a FEN record, or every legal
+    // move in it. All three describe the same board, so switching changes only what leaves.
+    const fenBtn = $("[data-chess-fen]", wrap);
+    const paintFen = () => {
+        fenBtn.innerHTML = `<span class="check${node.fen ? " on" : ""}"></span><span>Game out: ${node.fen ? "FEN" : "move list"}</span>`;
+        fenBtn.title = node.fen ? "The game wire carries the position as a FEN record"
+            : "The game wire carries the move list";
+    };
+    paintFen();
+    fenBtn.addEventListener("click", () => {
+        // The game wire is either the move list or the FEN; the legal moves have a wire of
+        // their own, so they leave the node whatever this says.
+        node.fen = !node.fen;
+        node._sig = "";
+        paintFen();
+        render();
+        onGraphEdited();
+    });
+    ta.value = String(node.text || "");
+    // The square a click picked up. Kept on the card rather than the node: the board is
+    // rebuilt whenever the list changes, and a selection should not outlive the position it
+    // was made in.
+    let selected = -1;
+    const render = () => {
+        const source = chessSource(node);
+        // The board stays live with a wire in: the wire supplies the position or the opening
+        // moves and the box supplies the moves played on top of it. Only a bundle locks the
+        // node, because drawing one of several move lists would be picking for the user.
+        const locked = Boolean(source.bundle);
+        ta.disabled = locked;
+        ta.placeholder = locked ? "Pick one move list from the bundle" : ownPlaceholder;
+        board.classList.toggle("readonly", locked);
+        // The box carries the node's own moves and the piped text, so a new wire shows up in it
+        // as soon as the node is repainted. Not while it has the caret: rewriting it there
+        // would move the cursor out from under the user.
+        if (document.activeElement !== ta) {
+            const shown = locked ? String(node.text || "") : chessBoxShown(node, chessWireText(node));
+            if (ta.value !== shown) ta.value = shown;
+        }
+        const played = CFCHESS.replay(source.text);
+        const state = played.state;
+        const legal = locked ? [] : CFCHESS.moves(state);
+        const targets = selected >= 0 ? legal.filter(m => m.from === selected) : [];
+        const reach = new Map();
+        for (const move of targets) reach.set(move.to, Boolean(state.board[move.to]) || move.flag === "ep");
+        const checkAt = CFCHESS.inCheck(state) ? CFCHESS.kingSquare(state, state.turn) : -1;
+        let html = "";
+        for (let i = 0; i < 64; i++) {
+            const piece = state.board[i];
+            const dark = (Math.floor(i / 8) + (i % 8)) % 2 === 1;
+            const cls = ["chess-sq", dark ? "dark" : "light"];
+            if (i === selected) cls.push("sel");
+            // Not "check": that class is the app's pill toggle, and the king wore it.
+            if (i === checkAt) cls.push("chess-check");
+            if (reach.has(i)) cls.push(reach.get(i) ? "target capture" : "target");
+            const label = `${CHESS_FILES[i % 8]}${8 - Math.floor(i / 8)}`;
+            html += `<button type="button" class="${cls.join(" ")}" data-sq="${i}" aria-label="${label}${piece ? `, ${piece === piece.toUpperCase() ? "white" : "black"} ${piece.toLowerCase()}` : ""}">${piece
+                ? `<span class="pc ${piece === piece.toUpperCase() ? "w" : "b"}">${CHESS_PIECE[piece.toUpperCase()]}</span>`
+                : ""}</button>`;
+        }
+        board.innerHTML = html;
+        const turn = state.turn === "w" ? "White" : "Black";
+        let message;
+        let warn = false;
+        if (played.error) {
+            warn = true;
+            message = `Move ${played.error.ply + 1} “${played.error.token}” is not legal here — showing the position before it.`;
+        } else if (source.bundle) {
+            message = "A bundle is wired in — use Pick to choose one move list.";
+        } else if (source.fedFen) {
+            message = "The wire supplies the position — drag or click a move from it.";
+        } else if (source.wire) {
+            message = "The wire supplies the opening — drag or click to play on.";
+        } else if (!legal.length) {
+            message = CFCHESS.inCheck(state) ? `Checkmate — ${turn} has no moves.` : "Stalemate — no legal moves.";
+        } else {
+            message = `${turn} to move${CFCHESS.inCheck(state) ? " — check" : ""} · drag a piece or click it, then its square.`;
+        }
+        statusEl.textContent = message;
+        statusEl.classList.toggle("warn", warn);
+        plyEl.textContent = `${played.sans.length} ${played.sans.length === 1 ? "move" : "moves"}`;
+        noteEl.textContent = node.fen ? "FEN out" : source.bundle ? "bundle in"
+            : source.fedFen ? "position from FEN" : source.wire ? "after the wire's moves" : "SAN or e2e4";
+        return {played, state, legal};
+    };
+    // The position the board is on now, wire included, and a move played into the node's own
+    // list — the wire's moves are already in front of it.
+    const liveState = () => CFCHESS.replay(chessSource(node).text).state;
+    const playMove = (move, state) => {
+        // With a wire in, the whole game goes into the box — the moves played on top of the
+        // wire's text, and the wire's text itself kept at the bottom of the box.
+        const wire = chessWireText(node);
+        const game = chessTextFor(node, wire).trim();
+        node.text = chessBoxText((game ? game + " " : "") + CFCHESS.san(state, move), wire);
+        ta.value = node.text;
+        selected = -1;
+        node._sig = "";
+        render();
+        onGraphEdited();
+    };
+    board.addEventListener("click", ev => {
+        // The click the browser sends after a drag was already handled by the drag itself.
+        if (board._swallowClick) { board._swallowClick = false; return; }
+        if (board.classList.contains("readonly")) return;
+        const sq = ev.target.closest("[data-sq]");
+        if (!sq) return;
+        const at = Number(sq.dataset.sq);
+        const state = liveState();
+        const legal = CFCHESS.moves(state);
+        const takes = selected >= 0 ? legal.filter(m => m.from === selected && m.to === at) : [];
+        if (takes.length) {
+            // There is no promotion dialog: a pawn reaching the last rank becomes a queen,
+            // and the other three are a keystroke away in the move list itself.
+            playMove(takes.find(m => m.promo === "q") || takes[0], state);
+            return;
+        }
+        const piece = state.board[at];
+        const own = Boolean(piece) && (piece === piece.toUpperCase() ? "w" : "b") === state.turn;
+        selected = own ? (selected === at ? -1 : at) : -1;
+        render();
+    });
+    // Dragging is the same gesture with the pointer held down: the piece follows it and the
+    // square it is dropped on plays the move. Clicking still works, so both habits are served.
+    let drag = null;
+    const squareUnder = (x, y) => {
+        const el = document.elementFromPoint(x, y);
+        const sq = el && el.closest ? el.closest("[data-sq]") : null;
+        return sq && board.contains(sq) ? Number(sq.dataset.sq) : -1;
+    };
+    const markLifted = () => {
+        const lifted = board.querySelector(`[data-sq="${drag.from}"]:not(.dragging)`);
+        if (lifted) lifted.classList.add("dragging");
+    };
+    // The node sits inside the canvas world, which is translated and scaled, so the pointer is
+    // mapped into the card's own pixels instead of being used as if it were a fixed position.
+    const placeGhost = (clientX, clientY) => {
+        const r = wrap.getBoundingClientRect();
+        const zoom = state.view.zoom || 1;
+        ghost.style.left = `${(clientX - r.left) / zoom}px`;
+        ghost.style.top = `${(clientY - r.top) / zoom}px`;
+    };
+    board.addEventListener("pointerdown", ev => {
+        if (ev.button !== 0 || drag || board.classList.contains("readonly")) return;
+        board._swallowClick = false;
+        const sq = ev.target.closest("[data-sq]");
+        if (!sq) return;
+        const state = liveState();
+        const from = Number(sq.dataset.sq);
+        const piece = state.board[from];
+        if (!piece || (piece === piece.toUpperCase() ? "w" : "b") !== state.turn) return;
+        const legal = CFCHESS.moves(state);
+        if (!legal.some(m => m.from === from)) return;
+        const rect = sq.getBoundingClientRect();
+        drag = {from, state, legal, x: ev.clientX, y: ev.clientY, moved: false, hover: -1};
+        ghost.className = `chess-ghost ${piece === piece.toUpperCase() ? "w" : "b"}`;
+        ghost.textContent = CHESS_PIECE[piece.toUpperCase()];
+        // The ghost carries the board's own glyph at its own size, so the piece does not change
+        // size the moment it is picked up.
+        const glyph = sq.querySelector(".pc");
+        ghost.style.fontSize = glyph ? getComputedStyle(glyph).fontSize
+            : `${Math.round(rect.height / (state.view.zoom || 1) * 0.82)}px`;
+        // Nothing is lifted until the pointer actually goes somewhere, so a plain click is
+        // still a plain click.
+        try { board.setPointerCapture(ev.pointerId); } catch (_) { /* pointer already gone */ }
+    });
+    board.addEventListener("pointermove", ev => {
+        if (!drag) return;
+        if (!drag.moved) {
+            if (Math.abs(ev.clientX - drag.x) + Math.abs(ev.clientY - drag.y) <= 4) return;
+            drag.moved = true;
+            selected = drag.from;
+            render();
+            ghost.hidden = false;
+        }
+        markLifted();
+        placeGhost(ev.clientX, ev.clientY);
+        const to = squareUnder(ev.clientX, ev.clientY);
+        if (to === drag.hover) return;
+        drag.hover = to;
+        for (const el of board.querySelectorAll(".drag-over")) el.classList.remove("drag-over");
+        if (drag.legal.some(m => m.from === drag.from && m.to === to)) {
+            const el = board.querySelector(`[data-sq="${to}"]`);
+            if (el) el.classList.add("drag-over");
+        }
+    });
+    const endDrag = (ev, cancelled) => {
+        if (!drag) return;
+        const d = drag;
+        drag = null;
+        ghost.hidden = true;
+        if (!d.moved) return;
+        // The release ends in a click on the square the drag started from: not a new selection.
+        board._swallowClick = true;
+        const to = cancelled ? -1 : squareUnder(ev.clientX, ev.clientY);
+        const takes = d.legal.filter(m => m.from === d.from && m.to === to);
+        if (takes.length) playMove(takes.find(m => m.promo === "q") || takes[0], d.state);
+        else {
+            selected = -1;
+            render();
+        }
+    };
+    board.addEventListener("pointerup", ev => endDrag(ev, false));
+    board.addEventListener("pointercancel", ev => endDrag(ev, true));
+    ta.addEventListener("input", () => {
+        node.text = ta.value;
+        node._sig = "";
+        selected = -1;
+        render();
+        onGraphEdited();
+    });
+    render();
+    // A wired FEN or move list reaches this node only after a run, so the runner repaints it.
+    wrap._chessRender = render;
+    return wrap;
+}
+
+/* ================================================================ gate node
+ * The one node that makes a loop legal. What it hands on is the value it was last pressed to
+ * hold — not what is arriving on its input — so a graph can feed a later node back into an
+ * earlier one and move a step per press instead of refusing to run. Until it is pressed the
+ * gate keeps handing on what it already had (nothing, the first time).
+ */
+function gateHeldBytes(node) {
+    const b64 = String(node.gateHeld || "");
+    return b64 ? b64ToBytes(b64) : new Uint8Array(0);
+}
+
+// The gate's own report: what arrived during the last run, and what it is holding now.
+function paintGateState(node, root) {
+    const press = $("[data-gate-press]", root);
+    const line = $("[data-gate-state]", root);
+    if (!press || !line) return;
+    const held = gateHeldBytes(node);
+    const waiting = node._gateIn ? node._gateIn.length : 0;
+    press.classList.toggle("ready", waiting > 0);
+    if (waiting) line.textContent = `${formatBytes(waiting)} waiting — press to let it through`;
+    else if (held.length) line.textContent = `${formatBytes(held.length)} held`;
+    else line.textContent = "Nothing held yet";
+}
+
+function buildGateNode(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "gate-node";
+    wrap.appendChild(fnNote("Holds its input until you press it. A wire looping back through a gate is not a cycle, so a loop runs one step per press."));
+    wrap.appendChild(mainInputRow(node, "In"));
+    const press = document.createElement("button");
+    press.type = "button";
+    press.className = "gate-press";
+    press.dataset.gatePress = "";
+    press.title = "Hand on the value that arrived on the input since the last press";
+    press.innerHTML = `${iconFill("play")}<span>Press to let it through</span>`;
+    press.addEventListener("click", () => {
+        const arrived = node._gateIn || null;
+        if (!arrived) {
+            toast("Nothing has arrived at this gate yet — run the graph first.");
+            return;
+        }
+        // Pressing is an edit: it changes what every node after the gate sees, so it goes
+        // through the same path typing does — save, history, and a run.
+        node.gateHeld = bytesToB64(arrived);
+        node._gateIn = null;
+        node._sig = "";
+        const el = nodeEl(node.id);
+        if (el) paintGateState(node, el);
+        // Pressing is an edit, and it must run even with auto-run off — so it saves and
+        // records history itself instead of going through onGraphEdited's scheduler.
+        saveLocalSoon();
+        scheduleHistory();
+        runGraph(true);
+    });
+    wrap.appendChild(press);
+    const foot = document.createElement("div");
+    foot.className = "node-foot";
+    foot.innerHTML = `<span class="bytes" data-gate-state></span>`;
+    wrap.appendChild(foot);
+    const outRow = document.createElement("div");
+    outRow.className = "io-row bundle-out";
+    outRow.innerHTML = `<span class="io-label">Out</span><span class="out-slot" data-port-slot="out"></span>`;
+    wrap.appendChild(outRow);
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    paintGateState(node, wrap);
+    return wrap;
 }
 
 /** Place a symbol node from the left panel, the same way the palette places its nodes. */

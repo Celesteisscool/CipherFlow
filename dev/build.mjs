@@ -98,6 +98,9 @@ const app = fs.readFileSync(path.join(ROOT, "dev/app.js"), "utf8");
 // The symbol tag vocabulary and its measurements, shared with the build scripts: the app
 // runs this exact file over a picture, dev/symbols/tags.mjs runs it over the shipped art.
 const tagMath = fs.readFileSync(path.join(ROOT, "dev/symbols/tagmath.js"), "utf8");
+// The chess rules are shared the same way: one file, inlined here and loaded directly by
+// dev's checks, so the board in the page and the tests agree on what a legal move is.
+const chessJs = fs.readFileSync(path.join(ROOT, "dev/chess.js"), "utf8");
 
 // Symbol ciphers travel as one JSON island of data URLs: the panel and the node draw
 // straight from it, so a single-file offline build never fetches a glyph at runtime.
@@ -301,7 +304,7 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Build a graph</h3>
-                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Fstring, Math, Switch and Magic), <b>Bundles</b> (Compact, Expand, Pick and Fork, the nodes that carry lists) and <b>Operations</b> by category.</p>
+                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Fstring, Math, Switch, Gate and Magic), <b>Bundles</b> (Compact, Expand, Pick and Fork, the nodes that carry lists) and <b>Operations</b> by category, with <b>Silly Stuff</b> (the Chess board, for fun) at the bottom.</p>
             </div>
             <div class="help-section">
                 <h3>Text and file nodes are input <em>and</em> output</h3>
@@ -314,7 +317,7 @@ ${css}
             <div class="help-section">
                 <h3>Operations and their arguments</h3>
                 <p>Every operation carries a box for its own main input, and <b>every</b> argument it has gets a port of its own — a key, an IV, a password, but also a number, a switch or a dropdown. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins: the box dims and shows the value arriving on the wire, cut short if it runs long. A wired number is read as a number, a switch as on or off, and a wire into a dropdown picks whichever option it matches.</p>
-                <p><b>Join</b> merges several wires into one in order, with an optional separator. <b>Fstring</b> builds one string out of several: type a shape like <code>Hello {input1}, key {input2}</code> and each slot is filled from that numbered port — an f-string whose variables are wires. <b>Math</b> uses the same numbered slots for arithmetic: type <code>({input1} * {input2}) - {input3}</code> and it evaluates <code>+ - * / %</code>, parentheses and <code>^</code> (or <code>**</code>) over the wired numbers. <b>Switch</b> is a lookup table: wire a value into it, add a case per key with the value to hand on, and give an <em>otherwise</em> value for when nothing matches. Both halves of a case and the otherwise value take wires too — the wire wins while it is connected. With no otherwise at all (nothing wired and nothing typed) the input is passed straight through. Keys match exactly, once surrounding spaces are trimmed.</p>
+                <p><b>Join</b> merges several wires into one in order, with an optional separator. <b>Fstring</b> builds one string out of several: type a shape like <code>Hello {input1}, key {input2}</code> and each slot is filled from that numbered port — an f-string whose variables are wires. <b>Math</b> uses the same numbered slots for arithmetic: type <code>({input1} * {input2}) - {input3}</code> and it evaluates <code>+ - * / %</code>, parentheses and <code>^</code> (or <code>**</code>) over the wired numbers. <b>Switch</b> is a lookup table: wire a value into it, add a case per key with the value to hand on, and give an <em>otherwise</em> value for when nothing matches. Both halves of a case and the otherwise value take wires too — the wire wins while it is connected. With no otherwise at all (nothing wired and nothing typed) the input is passed straight through. Keys match exactly, once surrounding spaces are trimmed. A <b>Gate</b> hands nothing on until it is pressed, and a wire that loops back through a gate is not a cycle: each press lets the loop run one step further. A <b>Chess</b> node, in the <b>Silly Stuff</b> section, reads a move list — <code>1. e4 e5 2. Nf3</code>, or coordinates like <code>e2e4</code> — and draws the position it reaches; drag a piece to a square on the board (or click the piece and then the square) and the move is appended to the list in proper notation. It reads a <b>FEN</b> record too, either on its own or in front of the moves to play from it. A wire never shuts the board down: a FEN wired in sets the position and a move list wired in supplies the opening, and either way the node's own moves play on top of it. Two wires leave it: the <b>Game</b> wire carries the move list, or the position as a <b>FEN</b> record when the switch on the node says FEN, and the <b>Legal moves</b> wire carries every legal move in the position, space separated so a whole position reads as one line. Wire that into whatever wants the choices.</p>
             </div>
             <div class="help-section">
                 <h3>Lists on one wire</h3>
@@ -402,6 +405,10 @@ ${moduleTags}
 
 <script>
 ${tagMath}
+</script>
+
+<script>
+${chessJs}
 </script>
 
 <script>

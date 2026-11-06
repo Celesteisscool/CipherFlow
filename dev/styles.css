@@ -2655,6 +2655,144 @@ body.has-sym-rail .toolbar { left: 43px; }
     font-variant-numeric: tabular-nums;
 }
 
+/* ---------------------------------------------------------------- chess node */
+/* The board keeps the wooden colours chess boards are printed in, in either theme: a board
+ * is a board, and the glyph pieces need a light ground under the white ones to read. */
+.node.type-chess { width: 296px; }
+/* Relative, so a dragged piece can be positioned inside the card: the canvas world is scaled,
+ * and anything fixed here would be measured against that transform instead of the viewport. */
+.chess-node { position: relative; display: flex; flex-direction: column; gap: 8px; }
+.chess-frame {
+    display: grid;
+    grid-template-columns: 11px 1fr;
+    grid-template-rows: 1fr 11px;
+    gap: 2px;
+}
+.chess-ranks {
+    grid-row: 1; grid-column: 1;
+    display: grid;
+    align-content: space-around;
+    font-size: 8.5px;
+    color: var(--faint);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.chess-files {
+    grid-row: 2; grid-column: 2;
+    display: grid;
+    grid-auto-flow: column;
+    justify-items: center;
+    font-size: 8.5px;
+    color: var(--faint);
+}
+.chess-board {
+    grid-row: 1; grid-column: 2;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    /* Equal rows, not auto ones: an empty square has no glyph to size its row, so a rank
+       with no piece on it used to collapse to a sliver and squashed the middle of the board. */
+    grid-template-rows: repeat(8, 1fr);
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.chess-sq {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    font: inherit;
+    line-height: 1;
+    background: #f0d9b5;
+    color: #14100c;
+    cursor: pointer;
+}
+.chess-sq.dark { background: #b58863; }
+.chess-sq .pc {
+    position: relative;
+    /* Filled glyphs for both colours, toned by CSS: the outline set reads as hollow next to
+       these, and a white piece needs its own outline to survive a light square. */
+    font-family: "Segoe UI Symbol", "Apple Symbols", "DejaVu Sans", "Noto Sans Symbols 2", serif;
+    font-size: 19px;
+    top: -1px;
+}
+.chess-sq .pc.b { color: #14100c; }
+.chess-sq .pc.w {
+    color: #fff;
+    text-shadow: 0 0 1px #14100c, 1px 0 0 #14100c, -1px 0 0 #14100c, 0 1px 0 #14100c, 0 -1px 0 #14100c;
+}
+.chess-sq:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.chess-sq.sel { box-shadow: inset 0 0 0 2px #2f7d4f; }
+/* `chess-check`, never the bare `.check` the app uses for its pill toggles. */
+.chess-sq.chess-check { box-shadow: inset 0 0 0 2px #c0392b; }
+.chess-sq.sel.chess-check { box-shadow: inset 0 0 0 2px #c0392b, inset 0 0 0 4px #2f7d4f; }
+/* Where the picked-up piece can go: a dot on an empty square, a ring around a piece. */
+.chess-sq.target::after {
+    content: "";
+    position: absolute;
+    width: 26%;
+    height: 26%;
+    border-radius: 999px;
+    background: rgba(22, 74, 44, 0.5);
+}
+.chess-sq.target.capture::after {
+    width: 76%;
+    height: 76%;
+    background: transparent;
+    border: 2.5px solid rgba(22, 74, 44, 0.55);
+}
+.chess-board.readonly .chess-sq { cursor: default; }
+/* A piece dragged off its square: the square keeps its size and the glyph travels with the
+ * pointer instead, so nothing on the board jumps as the piece is picked up. */
+.chess-sq.dragging { cursor: grabbing; }
+.chess-sq.dragging .pc { visibility: hidden; }
+.chess-sq.drag-over { box-shadow: inset 0 0 0 3px #2f7d4f; }
+.chess-ghost {
+    /* Absolute in the card, never fixed: a fixed box inside the scaled world reports against
+       the transformed ancestor, which put the lifted piece nowhere near the pointer. */
+    position: absolute;
+    z-index: 70;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+    font-family: "Segoe UI Symbol", "Apple Symbols", "DejaVu Sans", "Noto Sans Symbols 2", serif;
+    color: #fff;
+    text-shadow: 0 0 2px #14100c, 1px 0 0 #14100c, -1px 0 0 #14100c, 0 1px 0 #14100c, 0 -1px 0 #14100c;
+}
+.chess-ghost.b {
+    color: #14100c;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.9), 1px 0 0 rgba(255, 255, 255, 0.9),
+        -1px 0 0 rgba(255, 255, 255, 0.9), 0 1px 0 rgba(255, 255, 255, 0.9), 0 -1px 0 rgba(255, 255, 255, 0.9);
+}
+.chess-status { font-size: 10px; line-height: 1.35; color: var(--muted); min-height: 13px; }
+.chess-status.warn { color: #d06a4a; }
+/* The list is edited in place and the node is as tall as its contents, so no drag grip. */
+.chess-node textarea.typed-input { resize: none; }
+
+/* A gate: one wire, held until its button is pressed. */
+.gate-node { display: flex; flex-direction: column; gap: 6px; }
+.gate-node .gate-press {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--preview-bg);
+    color: var(--ink);
+    font-size: 10px;
+    font-weight: 520;
+    cursor: pointer;
+}
+.gate-node .gate-press:hover { border-color: var(--line-strong); }
+/* Something is waiting on the input: the press has work to do. */
+.gate-node .gate-press.ready { border-color: var(--node-accent); color: var(--node-accent); }
+.gate-node .gate-press svg { width: 10px; height: 10px; stroke: currentColor; fill: currentColor; }
+
 @media (max-width: 700px) {
     /* Overriding the width variable (not the drawer alone) keeps the rail on the panel's
        edge here too, where the panel is nearly the whole viewport. */

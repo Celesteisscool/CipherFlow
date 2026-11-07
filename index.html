@@ -70414,6 +70414,13 @@ class ChefEngine {
             });
             this.attach();
             worker.postMessage({action: "docURL", data: location.href.split(/[#?]/)[0]});
+            // An operation refusing its arguments is an ordinary outcome here, not a crash:
+            // the node carries the message. CyberChef's Recipe still reports every one of
+            // them through loglevel at error level, and a worker's console is the page's
+            // console, so a lab sweep or a Magic run painted hundreds of red lines for
+            // failures the app had already shown. Nothing reads the worker log, and the
+            // engine's real failures still arrive as bakeError or as a worker error event.
+            worker.postMessage({action: "setLogLevel", data: "silent"});
             this.modulesSent.clear();
             this.modulePromises.clear();
             // A restarted worker is cold again.

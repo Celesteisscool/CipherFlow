@@ -7244,6 +7244,11 @@ function setupPaletteDelegation() {
 let paletteDrag = null;
 let suppressPaletteClickUntil = 0;
 function startPaletteDrag(ev, payload) {
+    // One choke point for every list that drags onto the canvas (the node list and the
+    // symbol drawer): only a mouse arms a drag. On a touch screen that press belongs to
+    // scrolling the list, and a tap already adds the node; arming a drag would turn every
+    // scroll into a drag card and swallow the tap.
+    if (ev.pointerType !== "mouse") return;
     const start = {x: ev.clientX, y: ev.clientY};
     paletteDrag = {payload, moved: false, ghost: null};
     const onMove = moveEv => {
@@ -11309,7 +11314,7 @@ async function specPng(analysis) {
 function buildSpectrogramNode(node) {
     const wrap = document.createElement("div");
     wrap.className = "spec-node";
-    wrap.appendChild(fnNote("Audio in — WAV, MP3, OGG, FLAC, M4A, anything the browser plays. Wheel zooms the time axis, shift+wheel the band, drag moves the picture, double-click fits the file again."));
+    wrap.appendChild(fnNote("Audio in — WAV, MP3, OGG, FLAC, M4A, anything the browser plays. Wheel or two fingers zoom the time axis, shift+wheel the band, drag moves the picture, double-click fits the file again."));
     for (const [port, label, hint] of [["main", "Audio", "An audio file to analyse"]]) {
         const edge = edgeInto(node.id, port);
         const row = document.createElement("div");
@@ -11438,8 +11443,33 @@ function buildSpectrogramNode(node) {
         paint();
         saveLocalSoon();
     }, {passive: false});
-    // Dragging moves the picture with the pointer, in both axes at once.
-    let panning = null;
+    // Dragging moves the picture with the pointer, in both axes at once. A phone has no wheel
+    // and a fitted window has nowhere to move to, so two fingers stretch the picture as well:
+    // the pinch zooms about the point between them, and the pair carries it along. Presses are
+    // tracked by id, so lifting one finger of a pinch hands the gesture to the one still down.
+    const presses = new Map();
+    let panning = null;     // {x, y, view} while one pointer drags the picture
+    let pinch = null;       // {gap, axis, mid, view} while two pointers stretch it
+    const restart = () => {
+        const points = [...presses.values()];
+        panning = null;
+        pinch = null;
+        if (points.length === 1) {
+            panning = {x: points[0].x, y: points[0].y, view: specView(node.spec)};
+        } else if (points.length > 1) {
+            const [a, b] = points;
+            const dx = Math.abs(a.x - b.x);
+            const dy = Math.abs(a.y - b.y);
+            pinch = {
+                gap: Math.max(12, Math.hypot(dx, dy)),
+                // Fingers side by side stretch the time axis, fingers stacked the band — the
+                // two axes the wheel can zoom, for a hand that has no wheel.
+                axis: dy > dx * 1.2 ? "y" : "x",
+                mid: {x: (a.x + b.x) / 2, y: (a.y + b.y) / 2},
+                view: specView(node.spec)
+            };
+        }
+    };
     canvas.addEventListener("pointerdown", ev => {
         if (ev.button !== 0) return;
         // The stage under the card pans the graph on a press and the card pans the picture;
@@ -11447,16 +11477,33 @@ function buildSpectrogramNode(node) {
         ev.stopPropagation();
         if (ev.shiftKey) selectNode(node.id, true);
         else if (!selection.has(node.id)) selectNode(node.id);
-        panning = {x: ev.clientX, y: ev.clientY, view: specView(node.spec)};
+        presses.set(ev.pointerId, {x: ev.clientX, y: ev.clientY});
+        restart();
         canvas.classList.add("panning");
         try { canvas.setPointerCapture(ev.pointerId); } catch (_) { /* pointer already gone */ }
         ev.preventDefault();
     });
     canvas.addEventListener("pointermove", ev => {
-        if (!panning) return;
+        if (!presses.has(ev.pointerId) || (!panning && !pinch)) return;
         ev.stopPropagation();
+        presses.set(ev.pointerId, {x: ev.clientX, y: ev.clientY});
         const rect = canvas.getBoundingClientRect();
         if (!rect.width || !rect.height) return;
+        if (pinch) {
+            const [a, b] = [...presses.values()];
+            if (!b) return;
+            const mid = {x: (a.x + b.x) / 2, y: (a.y + b.y) / 2};
+            const gap = Math.max(12, Math.hypot(a.x - b.x, a.y - b.y));
+            const v = pinch.view;
+            const factor = gap / pinch.gap;
+            // The midpoint is where the picture is held, so that is what the stretch is about.
+            const zoomed = pinch.axis === "y"
+                ? specZoomAxis(v, "y", v.y0 + clamp((rect.bottom - mid.y) / rect.height, 0, 1) * (v.y1 - v.y0), factor)
+                : specZoomAxis(v, "x", v.x0 + clamp((mid.x - rect.left) / rect.width, 0, 1) * (v.x1 - v.x0), factor);
+            node.spec = specPanBy(zoomed, -(mid.x - pinch.mid.x) / rect.width, (mid.y - pinch.mid.y) / rect.height);
+            paint();
+            return;
+        }
         const v = panning.view;
         // The picture follows the pointer one pixel for one pixel at any zoom: the drag is
         // measured in widths of the window, and specPanBy scales it by the width it has.
@@ -11466,9 +11513,12 @@ function buildSpectrogramNode(node) {
         node.spec = specPanBy(v, dx, dy);
         paint();
     });
-    const endPan = () => {
-        if (!panning) return;
+    const endPan = ev => {
+        if (!presses.delete(ev.pointerId)) return;
+        // One finger of a pinch lifting leaves the one still down holding the picture.
+        if (presses.size) { restart(); return; }
         panning = null;
+        pinch = null;
         canvas.classList.remove("panning");
         saveLocalSoon();
     };

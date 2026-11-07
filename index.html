@@ -2409,7 +2409,8 @@ body.has-sym-rail .toolbar { left: 43px; }
     letter-spacing: -0.02em;
 }
 .sym-search { padding: 0 12px 10px; }
-.sym-search .search-input { padding: 0 11px; }
+/* Room on the right for the clear button, which sits where .search-clear always sits. */
+.sym-search .search-input { padding: 0 34px 0 11px; }
 /* Tag pills above the search box: each one narrows the list to the ciphers carrying it.
    Small and quiet, because there are a dozen of them and they are a filter, not content. */
 .sym-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; padding: 0 12px 9px; }
@@ -81815,6 +81816,7 @@ function initSymbolPanel() {
             <div class="sym-tags" id="symTags" role="group" aria-label="Narrow the list by tag"></div>
             <div class="search-wrap sym-search">
                 <input id="symSearch" class="search-input" placeholder="Search symbol ciphers" autocomplete="off" spellcheck="false" aria-label="Search symbol ciphers">
+                <button class="search-clear" id="symSearchClear" type="button" title="Clear search"></button>
             </div>
             <div class="sym-list" id="symList"></div>
         </aside>`);
@@ -81829,6 +81831,8 @@ function initSymbolPanel() {
     document.body.classList.toggle("sym-drawer-open", open);
     const list = document.getElementById("symList");
     const search = document.getElementById("symSearch");
+    const clearBtn = document.getElementById("symSearchClear");
+    if (clearBtn) clearBtn.innerHTML = iconFill("x");
     const tagBar = document.getElementById("symTags");
     const countBadge = document.getElementById("symCount");
     const resetBtn = document.getElementById("symReset");
@@ -81899,6 +81903,8 @@ function initSymbolPanel() {
 
     const renderList = () => {
         const q = String(search.value || "").trim().toLowerCase();
+        // The clear button is only there while there is something to clear.
+        if (clearBtn) clearBtn.classList.toggle("show", Boolean(String(search.value || "").length));
         const tags = [...symbolTagFilter];
         const rows = slugs()
             .map(slug => ({slug, ...SYMBOLS.ciphers[slug]}))
@@ -81957,6 +81963,11 @@ function initSymbolPanel() {
     document.getElementById("symRailBtn").addEventListener("click", toggleSymbolDrawer);
     document.getElementById("symClose").addEventListener("click", () => setSymbolDrawer(false));
     search.addEventListener("input", renderList);
+    if (clearBtn) clearBtn.addEventListener("click", () => {
+        search.value = "";
+        renderList();
+        search.focus();
+    });
     list.addEventListener("click", ev => {
         // A drag that just dropped a node on the canvas must not also spawn one here.
         if (performance.now() < suppressPaletteClickUntil) return;

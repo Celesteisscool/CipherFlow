@@ -2386,7 +2386,8 @@ body.has-sym-rail .toolbar { left: 43px; }
     letter-spacing: -0.02em;
 }
 .sym-search { padding: 0 12px 10px; }
-.sym-search .search-input { padding: 0 11px; }
+/* Room on the right for the clear button, which sits where .search-clear always sits. */
+.sym-search .search-input { padding: 0 34px 0 11px; }
 /* Tag pills above the search box: each one narrows the list to the ciphers carrying it.
    Small and quiet, because there are a dozen of them and they are a filter, not content. */
 .sym-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; padding: 0 12px 9px; }

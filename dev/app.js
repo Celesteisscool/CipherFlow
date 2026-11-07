@@ -12025,6 +12025,7 @@ function initSymbolPanel() {
             <div class="sym-tags" id="symTags" role="group" aria-label="Narrow the list by tag"></div>
             <div class="search-wrap sym-search">
                 <input id="symSearch" class="search-input" placeholder="Search symbol ciphers" autocomplete="off" spellcheck="false" aria-label="Search symbol ciphers">
+                <button class="search-clear" id="symSearchClear" type="button" title="Clear search"></button>
             </div>
             <div class="sym-list" id="symList"></div>
         </aside>`);
@@ -12039,6 +12040,8 @@ function initSymbolPanel() {
     document.body.classList.toggle("sym-drawer-open", open);
     const list = document.getElementById("symList");
     const search = document.getElementById("symSearch");
+    const clearBtn = document.getElementById("symSearchClear");
+    if (clearBtn) clearBtn.innerHTML = iconFill("x");
     const tagBar = document.getElementById("symTags");
     const countBadge = document.getElementById("symCount");
     const resetBtn = document.getElementById("symReset");
@@ -12109,6 +12112,8 @@ function initSymbolPanel() {
 
     const renderList = () => {
         const q = String(search.value || "").trim().toLowerCase();
+        // The clear button is only there while there is something to clear.
+        if (clearBtn) clearBtn.classList.toggle("show", Boolean(String(search.value || "").length));
         const tags = [...symbolTagFilter];
         const rows = slugs()
             .map(slug => ({slug, ...SYMBOLS.ciphers[slug]}))
@@ -12167,6 +12172,11 @@ function initSymbolPanel() {
     document.getElementById("symRailBtn").addEventListener("click", toggleSymbolDrawer);
     document.getElementById("symClose").addEventListener("click", () => setSymbolDrawer(false));
     search.addEventListener("input", renderList);
+    if (clearBtn) clearBtn.addEventListener("click", () => {
+        search.value = "";
+        renderList();
+        search.focus();
+    });
     list.addEventListener("click", ev => {
         // A drag that just dropped a node on the canvas must not also spawn one here.
         if (performance.now() < suppressPaletteClickUntil) return;

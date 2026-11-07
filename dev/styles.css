@@ -1478,12 +1478,13 @@ a.icon-button:hover { color: var(--ink); }
 .cat.open .cat-chevron { transform: rotate(90deg); }
 .cat-items { display: none; padding: 1px 0 5px 28px; }
 .cat.open .cat-items { display: block; }
-/* palette entries are pointer-dragged onto the canvas: no text selection, no
- * native drag ghost competing with ours */
+/* palette entries are pointer-dragged onto the canvas with a mouse: no text selection, no
+ * native drag ghost competing with ours. A finger only scrolls the list and taps to add
+ * (the drag is mouse-only in app.js), so vertical touch scrolling must stay available. */
 .op-item, .graph-item, .search-item {
     user-select: none;
     -webkit-user-select: none;
-    touch-action: none;
+    touch-action: pan-y;
 }
 .palette-dragging, .palette-dragging * { cursor: grabbing !important; }
 .drag-ghost {

@@ -7683,7 +7683,7 @@ function functionEditorEl() {
                 <span class="fn-meta" id="fnMeta"></span>
                 <span class="spacer"></span>
                 <label class="fn-continue" title="When a node in the body fails, pass its error message down the wire as text and keep running, instead of stopping the function">
-                    <input type="checkbox" id="fnContinue"><span>Keep going on errors</span>
+                    <input type="checkbox" id="fnContinue" aria-label="Keep going on errors"><span>Keep going on errors</span>
                 </label>
                 <button class="btn-secondary fn-nodes-btn" id="fnNodesBtn" title="Show or hide the node list">${iconFill("nodes")}<span>Nodes</span></button>
                 <button class="btn-secondary" id="fnRunTest">Run test</button>

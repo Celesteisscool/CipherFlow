@@ -2286,6 +2286,28 @@ kbd {
     .sidebar { top: 8px; right: 8px; }
 }
 
+/* A phone cannot hold the function editor's header on one line: Back, the name, the node
+   count, Keep going, Nodes, Run test and Done need about 700px together, and the page
+   clips what runs past the right edge — so Done, Run test and Nodes were laid out off
+   screen, and Nodes is the only way to reach the node list here. The header wraps into two
+   rows instead: the name and Done on the first, the switches and the actions on the second.
+   The labels that only make sense to a mouse shrink to their icons. */
+@media (max-width: 760px) {
+    .fn-head { flex-wrap: wrap; column-gap: 7px; row-gap: 7px; padding: 7px 10px; }
+    .fn-head .spacer { display: none; }
+    #fnBack { order: 0; }
+    /* min-width: 0 is what lets the field give way instead of setting the row's width. */
+    .fn-name { order: 1; flex: 1 1 90px; min-width: 0; max-width: none; height: 34px; font-size: 16px; }
+    #fnDone { order: 2; }
+    .fn-meta { order: 3; }
+    .fn-continue { order: 4; }
+    #fnNodesBtn { order: 5; padding: 0 8px; }
+    .fn-nodes-btn span { display: none; }
+    #fnRunTest { order: 6; }
+    /* The words cost a third of the row; the checkbox keeps its meaning in its aria-label. */
+    .fn-continue span { display: none; }
+}
+
 /* ------------------------------------------------------- symbol ciphers */
 /* The rail and drawer are fixed to the viewport, so opening the panel never reflows
    the canvas or moves a saved node position. The rail is full height and the stage's

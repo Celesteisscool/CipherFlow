@@ -220,7 +220,7 @@ ${css}
             <div class="brand"><span class="brand-mark"></span><span>CipherFlow · offline node editor</span></div>
             <div class="sidebar-title-row">
                 <h1 class="sidebar-title">Node list</h1>
-                <span class="count-badge"><span id="opCount">0</span> ops</span>
+                <span class="count-badge"><span id="opCount">0</span> nodes</span>
                 <button class="icon-button" id="themeBtn" title="Toggle dark / light mode"></button>
                 <a class="icon-button" id="githubBtn" href="https://github.com/Celesteisscool/CipherFlow" target="_blank" rel="noopener noreferrer" title="CipherFlow on GitHub" aria-label="CipherFlow on GitHub"></a>
                 <button class="icon-button" id="helpBtn" title="How this works"></button>

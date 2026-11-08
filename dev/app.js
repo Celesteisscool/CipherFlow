@@ -1393,7 +1393,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "audioinfo", "audiolevels", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1721,6 +1721,8 @@ function sourceTitle(node) {
     if (node.type === "pdfscan") return node.title || "PDF Scan";
     if (node.type === "imginfo") return node.title || "Image Info";
     if (node.type === "spectrogram") return node.title || "Spectrogram";
+    if (node.type === "audioinfo") return node.title || "Audio Info";
+    if (node.type === "audiolevels") return node.title || "Audio Levels";
     if (node.type === "symbol") return node.title || symbolCipherName(node.symbolCipher);
     if (node.type === "chess") return node.title || "Chess";
     if (node.type === "gate") return node.title || "Gate";
@@ -1741,7 +1743,9 @@ function nodeAccent(node) {
     if (node.type === "op") return opAccent(node.op);
     if (node.type === "fn" || node.type === "fnin" || node.type === "fnout") return FUNCTION_COLOR;
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-        node.type === "spectrogram") return CAT_COLORS.Multimedia;
+        node.type === "spectrogram" || node.type === "audioinfo" || node.type === "audiolevels") {
+        return CAT_COLORS.Multimedia;
+    }
     if (node.type === "symbol") return SYMBOL_COLOR;
     return GRAPH_COLOR;
 }
@@ -1749,7 +1753,9 @@ function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-        node.type === "spectrogram") return "Multimedia";
+        node.type === "spectrogram" || node.type === "audioinfo" || node.type === "audiolevels") {
+        return "Multimedia";
+    }
     if (node.type === "symbol") return "Symbols";
     if (node.type === "chess") return "Chess";
     if (node.type === "gate") return "Gate";
@@ -1851,7 +1857,8 @@ function buildNode(node) {
         body.appendChild(buildInputNode(node));
     } else if (node.type === "file") {
         body.appendChild(buildFileNode(node));
-    } else if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") {
+    } else if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
+        node.type === "audioinfo" || node.type === "audiolevels") {
         // Read-only audits: nothing to set, so the node is its input port and its report.
         body.appendChild(mainInputRow(node, "In"));
         body.appendChild(buildPreview(node));
@@ -3286,7 +3293,8 @@ function updatePreviewEl(wrap, node) {
     // preview the old Output node had (and its save button, below).
     const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "math" || node.type === "switch" || node.type === "fn" ||
         node.type === "compact" || node.type === "expand" || node.type === "pick" ||
-        node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo";
+        node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
+        node.type === "audioinfo" || node.type === "audiolevels";
     // Every preview can lift its truncation. Text and raw count characters, so the byte
     // length is always enough to clear the cut-off; hex writes three characters per byte.
     const full = Boolean(node.fullPreview);
@@ -4522,7 +4530,8 @@ function inputSignature(node, incoming, results, opts) {
         const s = sourceBytesForPort(incoming, node.id, "main", results);
         return JSON.stringify(["file", node.fileSize, node.fileName, fnvBytes(b64ToBytes(node.fileData || "")), s.sig]);
     }
-    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") {
+    if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
+        node.type === "audioinfo" || node.type === "audiolevels") {
         const s = sourceBytesForPort(incoming, node.id, "main", results);
         return JSON.stringify([node.type, s.sig]);
     }
@@ -5345,7 +5354,7 @@ async function executeGraph(nodes, edges, opts = {}) {
                 node.type === "chess" ||
                 node.type === "expand" || node.type === "pick" || node.type === "fork" ||
                 node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-                node.type === "spectrogram";
+                node.type === "spectrogram" || node.type === "audioinfo" || node.type === "audiolevels";
             const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
@@ -5481,6 +5490,32 @@ async function executeGraph(nodes, edges, opts = {}) {
                         } else {
                             out = enc.encode(report);
                         }
+                    }
+                }
+            } else if (node.type === "audioinfo") {
+                // A container report: format, stream and tags, all read from the bytes. No
+                // decode, so an MP3's tags are readable even when its frames are not.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    if (main.bytes == null || !main.bytes.length) error = "Pipe an audio file into this node.";
+                    else {
+                        const report = audioInfoReport(main.bytes);
+                        if (!report) error = "Not a WAV, MP3, FLAC, OGG, M4A or AIFF file.";
+                        else out = enc.encode(report);
+                    }
+                }
+            } else if (node.type === "audiolevels") {
+                // Levels need samples, so this one decodes — asynchronously, because unpacking
+                // MP3, OGG and the rest is the browser's work. The run waits for the numbers.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else if (!error) {
+                    if (main.bytes == null || !main.bytes.length) error = "Pipe an audio file into this node.";
+                    else {
+                        const levels = await audioLevelReport(main.bytes);
+                        if (levels.error) error = levels.error;
+                        else out = enc.encode(levels.text);
                     }
                 }
             } else if (node.type === "symbol") {
@@ -6498,6 +6533,789 @@ function imageReport(bytes) {
     return null;
 }
 
+/* ================================================================ audio audit nodes
+ * EXIF is an image format: it never describes an audio file, so no image operation will find
+ * a track's title or artist. Audio tags live in the container's own block instead — ID3v2 and
+ * ID3v1 in MP3, Vorbis comments in FLAC and OGG, iTunes data atoms in M4A, LIST/INFO chunks in
+ * WAV and the text chunks of AIFF — so reading them is a walk over the container rather than a
+ * decode of the samples. Audio Info reads the bytes alone; Audio Levels is the one node that
+ * decodes, and it measures what the samples are doing.
+ */
+
+// Frame and comment keys as a reader would name them. Only the four-character ID3v2.3/2.4 form
+// is listed: a 2.2 frame is renamed on the way in, so both tag versions read alike here.
+const AUDIO_TAG_LABELS = {
+    TIT2: "Title", TPE1: "Artist", TALB: "Album", TPE2: "Album artist", TDRC: "Year",
+    TRCK: "Track", TPOS: "Disc", TCON: "Genre", TCOM: "Composer", TPE3: "Conductor",
+    TENC: "Encoded by", TSSE: "Encoder settings", TCOP: "Copyright", TIT1: "Grouping",
+    TIT3: "Subtitle", TPUB: "Publisher", TSRC: "ISRC", TBPM: "BPM", TKEY: "Key",
+    TLAN: "Language", TMOO: "Mood", TXXX: "Text", COMM: "Comment", USLT: "Lyrics",
+    APIC: "Picture", WXXX: "URL", PCNT: "Play count", POPM: "Rating", MCDI: "CD id"
+};
+const ID3V22 = {
+    TT2: "TIT2", TP1: "TPE1", TAL: "TALB", TP2: "TPE2", TYE: "TDRC", TRK: "TRCK",
+    TPA: "TPOS", TCO: "TCON", TCM: "TCOM", TEN: "TENC", TSS: "TSSE", TCR: "TCOP",
+    TT1: "TIT1", TT3: "TIT3", TPB: "TPUB", TRC: "TSRC", TBP: "TBPM", TKE: "TKEY",
+    TLA: "TLAN", TXX: "TXXX", COM: "COMM", ULT: "USLT", PIC: "APIC", WXX: "WXXX"
+};
+const MP4_TAG_LABELS = {
+    "©nam": "Title", "©ART": "Artist", "aART": "Album artist", "©alb": "Album",
+    "©day": "Date", "©gen": "Genre", gnre: "Genre", trkn: "Track", disk: "Disc",
+    "©wrt": "Composer", "©cmt": "Comment", "©too": "Encoder", "©lyr": "Lyrics",
+    covr: "Cover", "©grp": "Grouping", cprt: "Copyright", tmpo: "BPM", "©mvn": "Movement"
+};
+const WAV_CODEC = {
+    1: "integer PCM", 3: "IEEE float", 6: "A-law", 7: "µ-law", 0x11: "IMA ADPCM",
+    0x55: "MPEG Layer III", 0x161: "WMA", 0xFFFE: "extensible PCM"
+};
+
+// A magic string at an offset. Chunk ids are read with audioTag4 instead, because those are
+// printable by definition while a magic — "ID3", "OggS" — is often followed by a raw byte.
+function bytesMatch(bytes, at, text) {
+    if (at < 0 || at + text.length > bytes.length) return false;
+    for (let i = 0; i < text.length; i++) if (bytes[at + i] !== text.charCodeAt(i)) return false;
+    return true;
+}
+function audioTag4(bytes, at) {
+    if (at < 0 || at + 4 > bytes.length) return "";
+    let out = "";
+    for (let i = 0; i < 4; i++) {
+        const c = bytes[at + i];
+        out += c >= 0x20 && c < 0x7f ? String.fromCharCode(c) : ".";
+    }
+    return out;
+}
+function audioBE16(bytes, at) {
+    if (at < 0 || at + 2 > bytes.length) return 0;
+    return (bytes[at] << 8) | bytes[at + 1];
+}
+function audioBE32(bytes, at) {
+    if (at < 0 || at + 4 > bytes.length) return 0;
+    return bytes[at] * 16777216 + (bytes[at + 1] << 16) + (bytes[at + 2] << 8) + bytes[at + 3];
+}
+function audioLE16(bytes, at) {
+    if (at < 0 || at + 2 > bytes.length) return 0;
+    return bytes[at] | (bytes[at + 1] << 8);
+}
+function audioLE32(bytes, at) {
+    if (at < 0 || at + 4 > bytes.length) return 0;
+    return bytes[at] + bytes[at + 1] * 256 + bytes[at + 2] * 65536 + bytes[at + 3] * 16777216;
+}
+// ID3's own 28-bit size: four bytes with the top bit of each left clear.
+function audioSyncsafe(bytes, at) {
+    if (at < 0 || at + 4 > bytes.length) return 0;
+    return ((bytes[at] & 0x7f) << 21) | ((bytes[at + 1] & 0x7f) << 14) |
+        ((bytes[at + 2] & 0x7f) << 7) | (bytes[at + 3] & 0x7f);
+}
+function audioUtf8(bytes, at, len) {
+    const body = bytes.subarray(at, Math.min(bytes.length, at + len));
+    let text;
+    try { text = new TextDecoder("utf-8").decode(body); } catch (_) { text = bytesToLatin1(body); }
+    return text.replace(/\u0000[\s\S]*$/, "").trim();
+}
+function audioUtf16be(bytes) {
+    let out = "";
+    for (let i = 0; i + 1 < bytes.length; i += 2) {
+        const code = (bytes[i] << 8) | bytes[i + 1];
+        if (!code) break;
+        out += String.fromCharCode(code);
+    }
+    return out;
+}
+// An MP3 text frame starts with an encoding byte; 1 is UTF-16 with a byte-order mark, which is
+// how a tag written on Windows and one written on a Mac end up in the same file.
+function decodeId3(body, enc) {
+    if (!body || !body.length) return "";
+    if (enc === 0) return bytesToLatin1(body);
+    if (enc === 3) {
+        try { return new TextDecoder("utf-8").decode(body); } catch (_) { return bytesToLatin1(body); }
+    }
+    if (enc === 1 || enc === 2) {
+        let src = body;
+        let big = enc === 2;
+        if (enc === 1 && body.length >= 2) {
+            if (body[0] === 0xff && body[1] === 0xfe) { big = false; src = body.subarray(2); }
+            else if (body[0] === 0xfe && body[1] === 0xff) { big = true; src = body.subarray(2); }
+        }
+        let out = "";
+        for (let i = 0; i + 1 < src.length; i += 2) {
+            const code = big ? (src[i] << 8) | src[i + 1] : src[i] | (src[i + 1] << 8);
+            if (!code) break;
+            out += String.fromCharCode(code);
+        }
+        return out;
+    }
+    return bytesToLatin1(body);
+}
+function id3FrameText(bytes, frame) {
+    const body = bytes.subarray(frame.at, frame.at + frame.len);
+    if (!body.length) return "";
+    if (frame.id === "APIC") return `attached picture, ${formatBytes(frame.len)}`;
+    // A frame's first byte is its encoding; a comment or lyric also names a language and a
+    // description before the text that matters.
+    const start = /^(COMM|USLT)$/.test(frame.id) ? 4 : 1;
+    const parts = decodeId3(body.subarray(start), body[0]).split("\u0000").map(s => s.trim()).filter(Boolean);
+    if (frame.id === "TXXX" || frame.id === "WXXX") return parts.join(" — ");
+    if (/^(COMM|USLT)$/.test(frame.id)) return parts[parts.length - 1] || "";
+    return parts[0] || "";
+}
+
+/* ------------------------------------------------------------ ID3 */
+function id3v2(bytes) {
+    if (!bytesMatch(bytes, 0, "ID3") || bytes.length < 10) return null;
+    const major = bytes[3];
+    const minor = bytes[4];
+    const flags = bytes[5];
+    if (major < 2 || major > 4) return null;
+    const size = audioSyncsafe(bytes, 6);
+    const end = Math.min(bytes.length, 10 + size + ((flags & 0x10) ? 10 : 0));
+    const v22 = major === 2;
+    const frames = [];
+    let at = 10;
+    // A v2.3 extended header counts itself in its size only from v2.4 on.
+    if (!v22 && (flags & 0x40) && at + 4 <= end) {
+        const ext = major === 4 ? audioSyncsafe(bytes, at) : audioBE32(bytes, at);
+        at += major === 4 ? ext : 4 + ext;
+    }
+    while (at + (v22 ? 6 : 10) <= end) {
+        const raw = audioTag4(bytes, at);
+        const id = v22 ? raw.slice(0, 3) : raw;
+        if (!(v22 ? /^[A-Z0-9]{3}$/ : /^[A-Z0-9]{4}$/).test(id)) break;
+        const len = v22
+            ? (bytes[at + 3] << 16) | (bytes[at + 4] << 8) | bytes[at + 5]
+            : major === 4 ? audioSyncsafe(bytes, at + 4) : audioBE32(bytes, at + 4);
+        const head = v22 ? 6 : 10;
+        if (!len || at + head + len > end) break;
+        frames.push({id: v22 ? ID3V22[id] || id : id, at: at + head, len});
+        at += head + len;
+    }
+    return {major, minor, flags, size, end, frames};
+}
+function id3v1(bytes) {
+    if (bytes.length < 128) return null;
+    const at = bytes.length - 128;
+    if (bytes[at] !== 0x54 || bytes[at + 1] !== 0x41 || bytes[at + 2] !== 0x47) return null;
+    const field = (from, len) => bytesToLatin1(bytes.subarray(at + from, at + from + len))
+        .replace(/\u0000[\s\S]*$/, "").trim();
+    // v1.1 stole the last two comment bytes for a track number: a zero, then the number.
+    const track = bytes[at + 125] === 0 ? bytes[at + 126] : 0;
+    return {
+        title: field(3, 30), artist: field(33, 30), album: field(63, 30), year: field(93, 4),
+        comment: field(97, track ? 28 : 30), track, genre: bytes[at + 127]
+    };
+}
+function id3v2Tags(tag, bytes) {
+    const tags = [];
+    for (const frame of tag.frames) {
+        const value = id3FrameText(bytes, frame);
+        if (!value) continue;
+        tags.push({key: AUDIO_TAG_LABELS[frame.id] || frame.id, value});
+    }
+    return tags;
+}
+
+/* ------------------------------------------------------------ WAV (RIFF) */
+function wavInfoTags(bytes, at, end) {
+    const tags = [];
+    const names = {
+        INAM: "Title", IART: "Artist", IPRD: "Album", ICRD: "Date", ICMT: "Comment",
+        ISFT: "Software", ICOP: "Copyright", IGNR: "Genre", ITCH: "Engineer",
+        ISBJ: "Subject", IKEY: "Keywords"
+    };
+    while (at + 8 <= end) {
+        const id = audioTag4(bytes, at);
+        const size = audioLE32(bytes, at + 4);
+        if (!size || size > end - at - 8) break;
+        const value = audioUtf8(bytes, at + 8, size);
+        if (names[id] && value) tags.push({key: names[id], value});
+        at += 8 + size + (size % 2);
+    }
+    return tags;
+}
+function wavInfo(bytes) {
+    if (!bytesMatch(bytes, 0, "RIFF") || !bytesMatch(bytes, 8, "WAVE")) return null;
+    let fmt = null;
+    let dataBytes = 0;
+    let tags = [];
+    let chunks = 0;
+    let bext = "";
+    let lastEnd = 12;
+    let at = 12;
+    while (at + 8 <= bytes.length) {
+        const id = audioTag4(bytes, at);
+        const size = audioLE32(bytes, at + 4);
+        const body = at + 8;
+        const avail = Math.max(0, Math.min(size, bytes.length - body));
+        chunks++;
+        if (id === "fmt " && avail >= 16) {
+            fmt = {
+                tag: audioLE16(bytes, body),
+                channels: audioLE16(bytes, body + 2),
+                rate: audioLE32(bytes, body + 4),
+                byteRate: audioLE32(bytes, body + 8),
+                bits: audioLE16(bytes, body + 14)
+            };
+            // An extensible header names the real format in its sub-format GUID.
+            if (fmt.tag === 0xFFFE && avail >= 26) fmt.tag = audioLE16(bytes, body + 24);
+            if (avail >= 18) fmt.validBits = audioLE16(bytes, body + 18) || fmt.bits;
+        } else if (id === "data") {
+            dataBytes = avail;
+        } else if (id === "LIST" && bytesMatch(bytes, body, "INFO")) {
+            tags = wavInfoTags(bytes, body + 4, body + avail);
+        } else if (id === "bext" && avail >= 256) {
+            bext = audioUtf8(bytes, body, Math.min(256, avail));
+        }
+        // Chunks are word aligned; a chunk that claims to start before it ends would loop.
+        const next = body + size + (size % 2);
+        if (next <= at) break;
+        lastEnd = next;
+        at = next;
+    }
+    if (!fmt) return null;
+    const lines = [];
+    const valid = fmt.validBits && fmt.validBits !== fmt.bits ? ` (${fmt.validBits} used)` : "";
+    lines.push(`Stream: ${WAV_CODEC[fmt.tag] || `format 0x${fmt.tag.toString(16)}`} · ${fmt.channels} channel${fmt.channels === 1 ? "" : "s"} · ${fmt.rate} Hz · ${fmt.bits}-bit${valid}`);
+    if (fmt.byteRate) {
+        lines.push(`Byte rate: ${fmt.byteRate.toLocaleString()} B/s · ${Math.round(fmt.byteRate * 8 / 1000)} kbps`);
+        if (dataBytes) lines.push(`Duration: ${specTime(dataBytes / fmt.byteRate)} · ${dataBytes.toLocaleString()} bytes of samples`);
+    }
+    lines.push(`Chunks: ${chunks}${bext ? ` · broadcast extension: ${bext}` : ""}`);
+    if (lastEnd < bytes.length) lines.push(`Trailing data: ${formatBytes(bytes.length - lastEnd)} after the last chunk`);
+    return {format: "WAV", mime: "audio/wav", lines, tagGroups: tags.length ? [{label: "RIFF INFO tags", tags}] : []};
+}
+
+/* ------------------------------------------------------------ FLAC */
+function vorbisComments(bytes, at, end) {
+    const out = [];
+    let vendor = "";
+    if (at + 4 > end) return {vendor, comments: out};
+    const vendorLen = audioLE32(bytes, at);
+    at += 4;
+    if (vendorLen > end - at) return {vendor, comments: out};
+    vendor = audioUtf8(bytes, at, vendorLen);
+    at += vendorLen;
+    if (at + 4 > end) return {vendor, comments: out};
+    const count = audioLE32(bytes, at);
+    at += 4;
+    // A corrupt count would walk the whole file; 256 entries is already a very tagged track.
+    for (let i = 0; i < Math.min(count, 256) && at + 4 <= end; i++) {
+        const len = audioLE32(bytes, at);
+        at += 4;
+        if (!len || len > end - at) break;
+        const text = audioUtf8(bytes, at, len);
+        at += len;
+        const eq = text.indexOf("=");
+        if (eq > 0) out.push({key: text.slice(0, eq), value: text.slice(eq + 1)});
+    }
+    return {vendor, comments: out};
+}
+function flacInfo(bytes) {
+    const id3 = bytesMatch(bytes, 0, "ID3") ? id3v2(bytes) : null;
+    const base = id3 ? id3.end : 0;
+    if (!bytesMatch(bytes, base, "fLaC")) return null;
+    let stream = null;
+    let vendor = "";
+    let tags = [];
+    let pictures = 0;
+    let blocks = 0;
+    let at = base + 4;
+    while (at + 4 <= bytes.length) {
+        const header = bytes[at];
+        const type = header & 0x7f;
+        const len = (bytes[at + 1] << 16) | (bytes[at + 2] << 8) | bytes[at + 3];
+        const body = at + 4;
+        const end = Math.min(bytes.length, body + len);
+        blocks++;
+        if (type === 0 && len >= 34 && body + 34 <= bytes.length) {
+            const b = bytes.subarray(body, body + 34);
+            const rate = (b[10] << 12) | (b[11] << 4) | (b[12] >> 4);
+            const channels = ((b[12] >> 1) & 0x7) + 1;
+            const bits = (((b[12] & 1) << 4) | (b[13] >> 4)) + 1;
+            // Total samples is a 36-bit field: four bits of b[13] then four whole bytes.
+            const total = (b[13] & 0x0f) * 4294967296 +
+                b[14] * 16777216 + b[15] * 65536 + b[16] * 256 + b[17];
+            let md5 = "";
+            for (let i = 18; i < 34; i++) md5 += b[i].toString(16).padStart(2, "0");
+            stream = {rate, channels, bits, total, md5};
+        } else if (type === 4) {
+            const parsed = vorbisComments(bytes, body, end);
+            vendor = parsed.vendor;
+            tags = parsed.comments;
+        } else if (type === 6) {
+            pictures++;
+        }
+        if (header & 0x80) break;
+        at = body + len;
+    }
+    if (!stream) return null;
+    const lines = [`Stream: FLAC · ${stream.channels} channel${stream.channels === 1 ? "" : "s"} · ${stream.rate} Hz · ${stream.bits}-bit`];
+    const seconds = stream.rate && stream.total ? stream.total / stream.rate : 0;
+    if (seconds) {
+        lines.push(`Duration: ${specTime(seconds)} · ${stream.total.toLocaleString()} samples`);
+        lines.push(`Bitrate: ${Math.round(bytes.length * 8 / seconds / 1000)} kbps (average)`);
+    }
+    lines.push(`Blocks: ${blocks}${vendor ? ` · encoder ${vendor}` : ""}`);
+    if (pictures) lines.push(`Pictures: ${pictures}`);
+    if (stream.md5 && stream.md5 !== "0".repeat(32)) lines.push(`Audio MD5: ${stream.md5}`);
+    if (id3) lines.push(`Leading ID3v2: ${formatBytes(id3.size)} (ignored by decoders)`);
+    return {format: "FLAC", mime: "audio/flac", lines, tagGroups: tags.length ? [{label: "Vorbis comments", tags}] : []};
+}
+
+/* ------------------------------------------------------------ OGG */
+function oggInfo(bytes) {
+    if (!bytesMatch(bytes, 0, "OggS")) return null;
+    const has = (text, at) => bytesMatch(bytes, at, text);
+    let at = 0;
+    let pages = 0;
+    let granule = 0;
+    let head = null;
+    let vendor = "";
+    let tags = [];
+    const serials = new Set();
+    while (at + 27 <= bytes.length) {
+        if (!bytesMatch(bytes, at, "OggS")) break;
+        const segments = bytes[at + 26];
+        if (at + 27 + segments > bytes.length) break;
+        let payload = 0;
+        for (let i = 0; i < segments; i++) payload += bytes[at + 27 + i];
+        const body = at + 27 + segments;
+        const end = Math.min(bytes.length, body + payload);
+        // The granule of the last page is the stream's length in samples.
+        const length = audioLE32(bytes, at + 10) * 4294967296 + audioLE32(bytes, at + 6);
+        if (length > 0) granule = length;
+        pages++;
+        serials.add(audioLE32(bytes, at + 14));
+        if (!head) {
+            if (has("\x01vorbis", body)) {
+                head = {codec: "Vorbis", channels: bytes[body + 11], rate: audioLE32(bytes, body + 12), nominal: audioLE32(bytes, body + 20)};
+            } else if (has("OpusHead", body)) {
+                head = {codec: "Opus", channels: bytes[body + 9], rate: 48000, inputRate: audioLE32(bytes, body + 12)};
+            } else if (has("\x7fFLAC", body)) {
+                head = {codec: "FLAC", channels: 0, rate: 0};
+            } else if (has("Speex   ", body)) {
+                head = {codec: "Speex", channels: 0, rate: 0};
+            }
+        }
+        if (has("\x03vorbis", body)) {
+            const parsed = vorbisComments(bytes, body + 7, end);
+            vendor = parsed.vendor;
+            tags = parsed.comments;
+        } else if (has("OpusTags", body)) {
+            const parsed = vorbisComments(bytes, body + 8, end);
+            vendor = parsed.vendor;
+            tags = parsed.comments;
+        }
+        if (end <= at) break;
+        at = end;
+    }
+    if (!head) return null;
+    const codec = head.codec;
+    const rate = head.rate || (codec === "Opus" ? 48000 : 0);
+    const lines = [`Stream: ${codec}${head.channels ? ` · ${head.channels} channel${head.channels === 1 ? "" : "s"}` : ""}${rate ? ` · ${rate} Hz` : ""}`];
+    if (codec === "Opus") lines.push("Decoding rate: always 48000 Hz (Opus resamples on playback)");
+    if (head.nominal) lines.push(`Bitrate: ${Math.round(head.nominal / 1000)} kbps (nominal)`);
+    if (rate && granule) lines.push(`Duration: ${specTime(granule / rate)} · ${granule.toLocaleString()} samples`);
+    lines.push(`Pages: ${pages} · ${serials.size} logical stream${serials.size === 1 ? "" : "s"}${vendor ? ` · encoder ${vendor}` : ""}`);
+    return {
+        format: `OGG ${codec}`.trim(), mime: "audio/ogg",
+        lines, tagGroups: tags.length ? [{label: "Vorbis comments", tags}] : []
+    };
+}
+
+/* ------------------------------------------------------------ MP4 / M4A */
+// MP4 names its boxes with Latin-1: the iTunes metadata boxes start with 0xA9, so this reads
+// the four bytes as characters rather than as the printable-only ids used elsewhere.
+function mp4Type(bytes, at) {
+    if (at < 0 || at + 4 > bytes.length) return "";
+    let out = "";
+    for (let i = 0; i < 4; i++) out += String.fromCharCode(bytes[at + i]);
+    return out;
+}
+function mp4Atoms(bytes, start, end) {
+    const out = [];
+    let at = start;
+    while (at + 8 <= end) {
+        let size = audioBE32(bytes, at);
+        const type = mp4Type(bytes, at + 4);
+        let head = 8;
+        if (size === 1) {
+            if (at + 16 > end) break;
+            size = audioBE32(bytes, at + 8) * 4294967296 + audioBE32(bytes, at + 12);
+            head = 16;
+        } else if (size === 0) {
+            size = end - at;
+        }
+        if (size < head) break;
+        const body = at + head;
+        const stop = Math.min(end, at + size);
+        out.push({type, start: body, size: Math.max(0, stop - body)});
+        at += Math.max(head, size);
+    }
+    return out;
+}
+function mp4Tags(bytes, moov) {
+    const udta = mp4Atoms(bytes, moov.start, moov.start + moov.size).find(a => a.type === "udta");
+    if (!udta) return [];
+    // meta is a full box: four bytes of version and flags sit before its children.
+    const meta = mp4Atoms(bytes, udta.start, udta.start + udta.size).find(a => a.type === "meta");
+    if (!meta) return [];
+    const ilst = mp4Atoms(bytes, meta.start + 4, meta.start + meta.size).find(a => a.type === "ilst");
+    if (!ilst) return [];
+    const tags = [];
+    for (const item of mp4Atoms(bytes, ilst.start, ilst.start + ilst.size)) {
+        const data = mp4Atoms(bytes, item.start, item.start + item.size).find(a => a.type === "data");
+        if (!data || data.size < 8) continue;
+        const kind = audioBE32(bytes, data.start) & 0xffffff;
+        const payload = bytes.subarray(data.start + 8, data.start + data.size);
+        let value = "";
+        if (kind === 1) value = audioUtf8(payload, 0, payload.length);
+        else if (kind === 2) value = audioUtf16be(payload).trim();
+        else if (kind === 13 || kind === 14) value = `${kind === 13 ? "JPEG" : "PNG"} picture, ${formatBytes(payload.length)}`;
+        else if ((item.type === "trkn" || item.type === "disk") && payload.length >= 4) {
+            value = `${payload[2] || 0}${payload[3] ? ` of ${payload[3]}` : ""}`;
+        } else value = audioUtf8(payload, 0, payload.length);
+        if (!value) continue;
+        tags.push({key: MP4_TAG_LABELS[item.type] || item.type, value});
+    }
+    return tags;
+}
+function mp4Info(bytes) {
+    const top = mp4Atoms(bytes, 0, bytes.length);
+    const ftyp = top.find(a => a.type === "ftyp");
+    if (!ftyp) return null;
+    const brand = mp4Type(bytes, ftyp.start);
+    const compatible = [];
+    for (let at = ftyp.start + 8; at + 4 <= ftyp.start + ftyp.size; at += 4) {
+        const name = mp4Type(bytes, at).trim();
+        if (/^[\x20-\x7e]{3,4}$/.test(name)) compatible.push(name);
+    }
+    const moov = top.find(a => a.type === "moov");
+    let timescale = 0;
+    let duration = 0;
+    let codec = "";
+    let channels = 0;
+    let bits = 0;
+    let rate = 0;
+    let handler = "";
+    let tags = [];
+    if (moov) {
+        const kids = mp4Atoms(bytes, moov.start, moov.start + moov.size);
+        const mvhd = kids.find(a => a.type === "mvhd");
+        if (mvhd) {
+            if (bytes[mvhd.start] === 1) {
+                timescale = audioBE32(bytes, mvhd.start + 20);
+                duration = audioBE32(bytes, mvhd.start + 24) * 4294967296 + audioBE32(bytes, mvhd.start + 28);
+            } else {
+                timescale = audioBE32(bytes, mvhd.start + 12);
+                duration = audioBE32(bytes, mvhd.start + 16);
+            }
+        }
+        const trak = kids.find(a => a.type === "trak");
+        if (trak) {
+            const tk = mp4Atoms(bytes, trak.start, trak.start + trak.size);
+            const mdia = tk.find(a => a.type === "mdia");
+            if (mdia) {
+                const md = mp4Atoms(bytes, mdia.start, mdia.start + mdia.size);
+                const hdlr = md.find(a => a.type === "hdlr");
+                // The handler type follows a version/flags word and a 4-byte pre-defined field.
+                if (hdlr) handler = mp4Type(bytes, hdlr.start + 8);
+                const mdhd = md.find(a => a.type === "mdhd");
+                if (mdhd) {
+                    const big = bytes[mdhd.start] === 1;
+                    const trackRate = big ? audioBE32(bytes, mdhd.start + 20) : audioBE32(bytes, mdhd.start + 12);
+                    const trackLength = big
+                        ? audioBE32(bytes, mdhd.start + 24) * 4294967296 + audioBE32(bytes, mdhd.start + 28)
+                        : audioBE32(bytes, mdhd.start + 16);
+                    if (trackRate) { timescale = trackRate; duration = trackLength; }
+                }
+                const minf = md.find(a => a.type === "minf");
+                const stbl = minf ? mp4Atoms(bytes, minf.start, minf.start + minf.size).find(a => a.type === "stbl") : null;
+                const stsd = stbl ? mp4Atoms(bytes, stbl.start, stbl.start + stbl.size).find(a => a.type === "stsd") : null;
+                if (stsd) {
+                    const entry = mp4Atoms(bytes, stsd.start + 8, stsd.start + stsd.size)[0];
+                    if (entry) {
+                        codec = entry.type;
+                        // AudioSampleEntry: 8 bytes of sample-entry header, then version, revision
+                        // and vendor, then channels, sample size and the 16.16 sample rate.
+                        channels = audioBE16(bytes, entry.start + 16);
+                        bits = audioBE16(bytes, entry.start + 18);
+                        rate = audioBE32(bytes, entry.start + 24) >>> 16;
+                    }
+                }
+            }
+        }
+        tags = mp4Tags(bytes, moov);
+    }
+    const lines = [];
+    if (codec) {
+        lines.push(`Stream: ${codec === "mp4a" ? "MPEG-4 audio" : codec === "alac" ? "ALAC" : codec}${channels ? ` · ${channels} channel${channels === 1 ? "" : "s"}` : ""}${rate ? ` · ${rate} Hz` : ""}${bits ? ` · ${bits}-bit` : ""}`);
+    }
+    const seconds = timescale && duration ? duration / timescale : 0;
+    if (seconds) lines.push(`Duration: ${specTime(seconds)} · ${Math.round(seconds * 1000).toLocaleString()} ms`);
+    if (seconds) lines.push(`Bitrate: ${Math.round(bytes.length * 8 / seconds / 1000)} kbps (average)`);
+    lines.push(`Brand: ${brand.trim()}${compatible.length > 1 ? ` · compatible ${compatible.join(", ")}` : ""}`);
+    if (handler) lines.push(`Handler: ${handler}${handler === "vide" ? " (this file carries video)" : ""}`);
+    if (!moov) lines.push("No moov atom — the file is either unfinalised or truncated.");
+    return {
+        format: handler === "vide" ? "MP4" : "M4A", mime: handler === "vide" ? "video/mp4" : "audio/mp4",
+        lines, tagGroups: tags.length ? [{label: "iTunes metadata", tags}] : []
+    };
+}
+
+/* ------------------------------------------------------------ AIFF */
+// The 80-bit extended float AIFF uses for its sample rate.
+function extended80(bytes, at) {
+    const exp = ((bytes[at] & 0x7f) << 8) | bytes[at + 1];
+    if (!exp) return 0;
+    const mantissa = audioBE32(bytes, at + 2) * 4294967296 + audioBE32(bytes, at + 6);
+    return mantissa * Math.pow(2, exp - 16383 - 63);
+}
+function aiffInfo(bytes) {
+    if (!bytesMatch(bytes, 0, "FORM")) return null;
+    const form = audioTag4(bytes, 8);
+    if (form !== "AIFF" && form !== "AIFC") return null;
+    let comm = null;
+    let compression = "";
+    let soundBytes = 0;
+    const tags = [];
+    let at = 12;
+    while (at + 8 <= bytes.length) {
+        const id = audioTag4(bytes, at);
+        const size = audioBE32(bytes, at + 4);
+        const body = at + 8;
+        const avail = Math.max(0, Math.min(size, bytes.length - body));
+        if (id === "COMM" && avail >= 18) {
+            comm = {
+                channels: audioBE16(bytes, body),
+                frames: audioBE32(bytes, body + 2),
+                bits: audioBE16(bytes, body + 6),
+                rate: Math.round(extended80(bytes, body + 8))
+            };
+            if (form === "AIFC" && avail >= 22) compression = audioTag4(bytes, body + 18);
+        } else if (id === "SSND") {
+            soundBytes = avail;
+        } else if (["NAME", "AUTH", "(c) ", "ANNO"].includes(id)) {
+            const label = {NAME: "Title", AUTH: "Artist", "(c) ": "Copyright", ANNO: "Comment"}[id];
+            const value = audioUtf8(bytes, body, avail);
+            if (value) tags.push({key: label, value});
+        }
+        if (size <= 0) break;
+        at = body + size + (size % 2);
+    }
+    if (!comm) return null;
+    const lines = [`Stream: ${form === "AIFC" && compression ? `AIFC ${compression}` : "AIFF"} · ${comm.channels} channel${comm.channels === 1 ? "" : "s"} · ${comm.rate} Hz · ${comm.bits}-bit`];
+    if (comm.rate && comm.frames) lines.push(`Duration: ${specTime(comm.frames / comm.rate)} · ${comm.frames.toLocaleString()} samples`);
+    if (soundBytes) lines.push(`Samples: ${formatBytes(soundBytes)}`);
+    return {
+        format: form === "AIFC" ? "AIFC" : "AIFF", mime: "audio/aiff",
+        lines, tagGroups: tags.length ? [{label: "Text chunks", tags}] : []
+    };
+}
+
+/* ------------------------------------------------------------ MP3 */
+const MP3_BITRATES = {
+    "1-1": [0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448],
+    "1-2": [0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384],
+    "1-3": [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320],
+    "2-1": [0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256],
+    "2-2": [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160],
+    "2-3": [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160]
+};
+const MP3_RATES = {3: [44100, 48000, 32000], 2: [22050, 24000, 16000], 0: [11025, 12000, 8000]};
+const MP3_NAMES = {3: "MPEG-1", 2: "MPEG-2", 0: "MPEG-2.5"};
+const MP3_LAYERS = {1: "Layer III", 2: "Layer II", 3: "Layer I"};
+function mp3FrameAt(bytes, at) {
+    if (at + 4 > bytes.length) return null;
+    if (bytes[at] !== 0xff || (bytes[at + 1] & 0xe0) !== 0xe0) return null;
+    const version = (bytes[at + 1] >> 3) & 3;
+    const layer = (bytes[at + 1] >> 1) & 3;
+    const bitrateIdx = (bytes[at + 2] >> 4) & 0xf;
+    const rateIdx = (bytes[at + 2] >> 2) & 3;
+    if (version === 1 || !layer || !bitrateIdx || bitrateIdx === 15 || rateIdx === 3) return null;
+    const table = MP3_BITRATES[`${version === 3 ? 1 : 2}-${layer === 3 ? 1 : layer === 2 ? 2 : 3}`] || [];
+    const bitrate = table[bitrateIdx];
+    const sampleRate = MP3_RATES[version][rateIdx];
+    if (!bitrate || !sampleRate) return null;
+    const padding = (bytes[at + 2] >> 1) & 1;
+    const mode = (bytes[at + 3] >> 6) & 3;
+    // Layer I counts 384 samples a frame; every other layer 1152 at MPEG-1 and 576 below it.
+    const samples = layer === 3 ? 384 : version === 3 ? 1152 : 576;
+    const length = layer === 3
+        ? (Math.floor(12 * bitrate * 1000 / sampleRate) + padding) * 4
+        : Math.floor(samples / 8 * bitrate * 1000 / sampleRate) + padding;
+    return {
+        version, layer, bitrate, sampleRate, samples, length,
+        channels: mode === 3 ? 1 : 2, mono: mode === 3
+    };
+}
+// A VBR file puts its frame count and byte count in a Xing or Info header inside the first
+// frame, which is the only way to know its length without reading every frame.
+function mp3Xing(bytes, frame, frameAt) {
+    const side = frame.version === 3 ? (frame.mono ? 17 : 32) : (frame.mono ? 9 : 17);
+    const start = frameAt + 4 + side;
+    const id = audioTag4(bytes, start);
+    if (id !== "Xing" && id !== "Info") return null;
+    const flags = audioBE32(bytes, start + 4);
+    let at = start + 8;
+    const out = {id};
+    if (flags & 1) { out.frames = audioBE32(bytes, at); at += 4; }
+    if (flags & 2) { out.bytes = audioBE32(bytes, at); at += 4; }
+    if (flags & 4) at += 100;
+    if (flags & 8) { out.quality = audioBE32(bytes, at); at += 4; }
+    // The encoder string sits in the LAME extension that follows the header.
+    const text = bytesToLatin1(bytes.subarray(start, Math.min(bytes.length, start + 260))).replace(/\u0000/g, " ");
+    const named = /(LAME[\w.\- ]{0,12}|Lavf[\w.]{0,10}|Lavc[\w.]{0,10}|FhG[\w.\-]{0,10})/.exec(text);
+    if (named) out.encoder = named[1].trim();
+    return out;
+}
+function mp3Info(bytes) {
+    const tag = id3v2(bytes);
+    const v1 = id3v1(bytes);
+    const from = tag ? tag.end : 0;
+    let frame = null;
+    let frameAt = from;
+    // A stale tag or padding can push the first frame along; look a little way in.
+    for (let at = from; at < Math.min(bytes.length - 4, from + 4096); at++) {
+        const found = mp3FrameAt(bytes, at);
+        if (found) { frame = found; frameAt = at; break; }
+    }
+    if (!frame && !tag && !v1) return null;
+    const xing = frame ? mp3Xing(bytes, frame, frameAt) : null;
+    let seconds = 0;
+    if (frame && xing && xing.frames) seconds = xing.frames * frame.samples / frame.sampleRate;
+    else if (frame) {
+        const audio = Math.max(0, (v1 ? bytes.length - 128 : bytes.length) - from);
+        seconds = audio * 8 / (frame.bitrate * 1000);
+    }
+    const lines = [];
+    if (frame) {
+        const mode = xing ? ` (${xing.id === "Xing" ? "VBR" : "CBR"})` : "";
+        lines.push(`Stream: ${MP3_NAMES[frame.version]} ${MP3_LAYERS[frame.layer]} · ${frame.sampleRate} Hz · ${frame.channels} channel${frame.channels === 1 ? "" : "s"} · ${frame.bitrate} kbps${mode}`);
+        lines.push(`Frame: ${frame.length} bytes · ${frame.samples} samples${xing && xing.frames ? ` · ${xing.frames.toLocaleString()} frames` : ""}`);
+    } else {
+        lines.push("Stream: no audio frame found after the tag");
+    }
+    if (seconds) {
+        lines.push(`Duration: ${specTime(seconds)}`);
+        lines.push(`Bitrate: ${Math.round(bytes.length * 8 / seconds / 1000)} kbps (average)`);
+    }
+    if (xing && xing.encoder) lines.push(`Encoder: ${xing.encoder}`);
+    const groups = [];
+    if (tag) {
+        const unsync = (tag.flags & 0x80) ? " · unsynchronised" : "";
+        lines.push(`ID3v2: 2.${tag.major}.${tag.minor} · ${formatBytes(tag.size)} · ${tag.frames.length} frame${tag.frames.length === 1 ? "" : "s"}${unsync}`);
+        const tags = id3v2Tags(tag, bytes);
+        if (tags.length) groups.push({label: "ID3v2 tags", tags});
+    } else {
+        lines.push("ID3v2: none");
+    }
+    if (v1) {
+        lines.push(`ID3v1: present${v1.year ? ` · ${v1.year}` : ""}${v1.track ? ` · track ${v1.track}` : ""}`);
+        const tags = [];
+        for (const [key, value] of [["Title", v1.title], ["Artist", v1.artist], ["Album", v1.album], ["Comment", v1.comment]]) {
+            if (value) tags.push({key, value});
+        }
+        if (tags.length) groups.push({label: "ID3v1 tags", tags});
+    }
+    return {format: "MP3", mime: "audio/mpeg", lines, tagGroups: groups};
+}
+
+/* ------------------------------------------------------------ the two nodes */
+// One report shape for every container: a header line, the container's own description of its
+// stream, then its tags, whichever block they came from.
+function audioInfoReport(bytes) {
+    if (!bytes || !bytes.length) return null;
+    const info = wavInfo(bytes) || flacInfo(bytes) || oggInfo(bytes) || mp4Info(bytes) ||
+        aiffInfo(bytes) || mp3Info(bytes);
+    if (!info) return null;
+    const lines = [`Audio · ${formatBytes(bytes.length)}`, `Format: ${info.format} (${info.mime})`];
+    for (const line of info.lines || []) if (line) lines.push(line);
+    // Vorbis keys are written TITLE=…; the other containers already name their fields, so a
+    // key that is all capitals and underscores is the one that needs prettifying.
+    const keyName = key => /^[A-Z0-9_]+$/.test(key)
+        ? key.toLowerCase().replace(/(^|_)([a-z0-9])/g, (m, gap, letter) => (gap ? " " : "") + letter.toUpperCase())
+        : key;
+    for (const group of info.tagGroups || []) {
+        lines.push("");
+        lines.push(`${group.label} (${group.tags.length}):`);
+        for (const t of group.tags.slice(0, 40)) {
+            const value = String(t.value).replace(/\s+/g, " ").trim();
+            lines.push(`  ${keyName(t.key)}: ${value.length > 300 ? value.slice(0, 300) + "…" : value}`);
+        }
+        if (group.tags.length > 40) lines.push(`  … ${group.tags.length - 40} more`);
+    }
+    // Nothing in an audio file's bytes is EXIF, so a reader looking for it is told where the
+    // tags actually came from rather than left wondering why the image operation found none.
+    lines.push("");
+    lines.push(info.tagGroups && info.tagGroups.length
+        ? "Tags come from the container (ID3, Vorbis comments, iTunes atoms or RIFF INFO), not from EXIF."
+        : "No tags found. EXIF is an image format and never describes audio.");
+    return lines.join("\n") + "\n";
+}
+
+// What the samples are doing: peak, RMS, DC offset, clipping and the longest silence. The
+// Spectrogram's decoder is used, so a WAV is read here and every other format is decoded by
+// the browser — the analysis itself is one pass per channel over the samples.
+async function audioLevelReport(bytes) {
+    const decoded = await specDecode(bytes);
+    if (!decoded.track) return {text: "", error: decoded.error || "That is not audio this browser can decode."};
+    const track = decoded.track;
+    const rate = track.sampleRate || 44100;
+    const lines = [
+        `Audio levels · ${formatBytes(bytes.length)}`,
+        `Format: decoded · ${rate} Hz · ${track.channels} channel${track.channels === 1 ? "" : "s"}`,
+        `Length: ${specTime(track.frames / rate)} · ${track.frames.toLocaleString()} frames`,
+        "",
+        "Channel      Peak      RMS       DC   Clipped    Crest  Silence"
+    ];
+    const dbfs = value => value > 0 ? `${(20 * Math.log10(value)).toFixed(1)} dB` : "-inf dB";
+    let anyClipped = 0;
+    let anyDc = 0;
+    const limit = Math.min(track.channels, 4);
+    for (let c = 0; c < limit; c++) {
+        const data = track.data[c] || new Float32Array(0);
+        let peak = 0;
+        let sum = 0;
+        let sumSq = 0;
+        let clipped = 0;
+        // Silence is judged over 20 ms windows rather than single samples: a sine crosses zero
+        // twice a cycle, so counting quiet samples would call any tone mostly silent.
+        const window = Math.max(1, Math.round(rate * 0.02));
+        let windowPeak = 0;
+        let run = 0;
+        let longest = 0;
+        for (let i = 0; i < data.length; i++) {
+            const value = data[i];
+            const size = value < 0 ? -value : value;
+            if (size > peak) peak = size;
+            if (size >= 0.999) clipped++;
+            if (size > windowPeak) windowPeak = size;
+            sum += value;
+            sumSq += value * value;
+            if ((i + 1) % window === 0 || i === data.length - 1) {
+                if (windowPeak < 0.003) {
+                    if (++run > longest) longest = run;
+                } else run = 0;
+                windowPeak = 0;
+            }
+        }
+        const count = data.length || 1;
+        const rms = Math.sqrt(sumSq / count);
+        const dc = sum / count;
+        anyClipped += clipped;
+        anyDc = Math.max(anyDc, Math.abs(dc));
+        const label = track.channels === 1 ? "Mono" : c === 0 ? "Left" : c === 1 ? "Right" : `Channel ${c + 1}`;
+        const crest = peak > 0 && rms > 0 ? `${(20 * Math.log10(peak / rms)).toFixed(1)} dB` : "-";
+        lines.push(`${label.padEnd(10)} ${dbfs(peak).padStart(9)} ${dbfs(rms).padStart(9)} ${(dc * 100).toFixed(2).padStart(6)}% ${String(clipped).padStart(9)} ${crest.padStart(8)} ${`${(longest * 0.02).toFixed(2)} s`.padStart(9)}`);
+    }
+    lines.push("");
+    lines.push("Peak and RMS in dBFS over full scale; silence is the longest run of 20 ms windows below -50 dBFS.");
+    if (anyClipped) lines.push(`Warning: ${anyClipped.toLocaleString()} sample${anyClipped === 1 ? " reaches" : "s reach"} full scale — the file is clipped.`);
+    if (anyDc > 0.005) lines.push(`Warning: DC offset of ${(anyDc * 100).toFixed(2)}% — the waveform is not centred on zero.`);
+    if (!anyClipped && anyDc <= 0.005) lines.push("Nothing here is clipped or off centre.");
+    return {text: lines.join("\n") + "\n", error: ""};
+}
+
 /* ================================================================ graph execution UI */
 function setNodeRunning(node, on) {
     const el = nodeEl(node.id);
@@ -7122,7 +7940,9 @@ const GRAPH_ITEMS = [
     {type: "pngchunks", label: "PNG Chunks", icon: "file", section: "Multimedia", keys: "pngcheck png chunks crc ihdr text chunk steg metadata inspect image", about: "Validate a PNG's chunks, CRCs, dimensions and text"},
     {type: "pdfscan", label: "PDF Scan", icon: "doc", section: "Multimedia", keys: "pdfid pdfinfo pdf objects streams javascript embedded scan document steg hidden", about: "Count a PDF's objects, pages and risky features"},
     {type: "imginfo", label: "Image Info", icon: "search", section: "Multimedia", keys: "identify image dimensions format exif jpeg gif webp bmp png metadata steg", about: "Report an image's format, size, depth and metadata"},
-    {type: "spectrogram", label: "Spectrogram", icon: "wave", section: "Multimedia", keys: "audio spectrogram sound spectrum frequencies fft sonogram waterfall zoom pan drag merge mix channels stereo left right wav mp3 ogg flac m4a aac webm multimedia", about: "See audio's frequencies, zoom in, and merge left and right"}
+    {type: "spectrogram", label: "Spectrogram", icon: "wave", section: "Multimedia", keys: "audio spectrogram sound spectrum frequencies fft sonogram waterfall zoom pan drag merge mix channels stereo left right wav mp3 ogg flac m4a aac webm multimedia", about: "See audio's frequencies, zoom in, and merge left and right"},
+    {type: "audioinfo", label: "Audio Info", icon: "doc", section: "Multimedia", keys: "audio metadata tags id3 id3v2 id3v1 vorbis comments flac ogg opus mp3 m4a mp4 wav aiff album artist title genre bitrate duration sample rate exif", about: "Report an audio file's format, stream and tags (ID3, Vorbis comments, iTunes atoms)"},
+    {type: "audiolevels", label: "Audio Levels", icon: "wave", section: "Multimedia", keys: "audio levels peak rms loudness dbfs clipping silence dc offset crest dynamics steg samples wav mp3 ogg flac m4a", about: "Measure an audio file's peak, RMS, DC offset, clipping and silence"}
 ];
 // Split once: each section draws its own tools, and the audits are appended to the
 // Multimedia category's item list by buildPalette.
@@ -7130,6 +7950,14 @@ const BUNDLE_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Bundles");
 const WIRING_ITEMS = GRAPH_ITEMS.filter(item => !item.section);
 const MEDIA_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Multimedia");
 const SILLY_ITEMS = GRAPH_ITEMS.filter(item => item.section === "Silly Stuff");
+// The badge counts what the list offers rather than the engine's catalogue: every operation
+// once (32 of them are filed under two categories and would otherwise count twice), plus the
+// canvas tools and any functions the user has built.
+function updateNodeCountBadge() {
+    const ops = new Set();
+    for (const cat of CATEGORIES) for (const op of cat.ops) ops.add(op);
+    $("#opCount").textContent = ops.size + GRAPH_ITEMS.length + (state?.functions?.length || 0);
+}
 function buildPalette() {
     const graphItems = WIRING_ITEMS;
     const functions = state?.functions || [];
@@ -7186,6 +8014,7 @@ function buildPalette() {
         if (cat) cat.classList.add("open");
     }
     bindPaletteEvents();
+    updateNodeCountBadge();
 }
 function bindPaletteEvents() {
     // delegated on the container; attached once in init instead of every render
@@ -7310,7 +8139,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", SYMBOL_COLOR);
         ghost.textContent = symbolCipher(payload.slug)?.name || payload.slug;
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", math: "Math", switch: "Switch", chess: "Chess", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", spectrogram: "Spectrogram", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", math: "Math", switch: "Switch", chess: "Chess", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", spectrogram: "Spectrogram", audioinfo: "Audio Info", audiolevels: "Audio Levels", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -7420,7 +8249,8 @@ function addGraphNode(type, x, y) {
     } else if (type === "compact" || type === "expand" || type === "pick" || type === "fork") {
         added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
         state.nodes.push(added);
-    } else if (type === "pngchunks" || type === "pdfscan" || type === "imginfo" || type === "spectrogram") {
+    } else if (type === "pngchunks" || type === "pdfscan" || type === "imginfo" || type === "spectrogram" ||
+        type === "audioinfo" || type === "audiolevels") {
         added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
         state.nodes.push(added);
     } else if (type === "fnin" || type === "fnout") {
@@ -10332,7 +11162,7 @@ async function init() {
     $("#sidebarCloseBtn").innerHTML = iconFill("x");
     $("#labClose").innerHTML = iconFill("x");
     $("#labKickerIcon").innerHTML = iconFill("flask");
-    $("#opCount").textContent = OP_NAMES.length;
+    updateNodeCountBadge();
     $("#engineLabel").textContent = ENGINE_LABEL;
 
     engine.onStatus = (status, detail) => {

@@ -294,6 +294,7 @@ ${css}
                 <div class="lab-kicker">CipherFlow</div>
                 <h2 class="lab-title">How this works</h2>
             </div>
+            <button class="btn-secondary" id="tourBtn">Take the tour</button>
             <button class="icon-button lab-close" id="helpClose" title="Close"></button>
         </div>
         <div class="help-body">

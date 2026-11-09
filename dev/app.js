@@ -11021,6 +11021,297 @@ function onNodeActionClick(ev) {
     }
 }
 
+/* ================================================================ tour
+ * A first-run walkthrough of what a first graph is made of: the node list, a node, its
+ * ports, a wire, Run. It never touches the graph — it only points at what is on screen —
+ * so it is safe over somebody's own work, and it re-measures while it is open because the
+ * nodes move, re-render and collapse underneath it.
+ *
+ * The dimming is the highlight's own very large shadow rather than a covering layer, so the
+ * page under the card keeps every click: pointing at a part does not take it away.
+ */
+const TOUR_KEY = "cipherflow.tour.v1";
+// The graph the walkthrough teaches on: "Hello World" into ROT13, whose result lands in a
+// second text node. Loading it means every step rings something that matches its own words.
+const TOUR_DEMO = {inputId: 1, rotId: 2, outputId: 3, edgeId: "e1"};
+const TOUR_STEPS = [
+    {
+        title: "A graph of nodes",
+        body: "The main idea behind CipherFlow is that your operations are defined by <b>nodes</b>. Wires between nodes carry data from one node to another. This tutorial will help show you the basics of CipherFlow.",
+        target: () => [...$$("#nodesLayer .node"), ...$$("#edgesLayer .edge-hit")]
+    },
+    {
+        title: "The node list",
+        body: "Most nodes that you can place live here. The nodes at the top are basic building blocks for operations, and the other nodes in categories perform ciphers and operations on your inputs.",
+        target: () => visibleEl($("#sidebar")) || visibleEl($('[data-dock="nodes"]'))
+    },
+    {
+        title: "A node",
+        body: "Each node is <b>one step</b>, and it runs as soon as it has what it needs. For example, a ROT13 node with “Hello World” wired into it outputs “Uryyb Jbeyq”. Drag a node's bottom-right corner to resize it.",
+        target: () => tourDemoNodes(),
+        enter: loadTourDemo
+    },
+    {
+        title: "Ports and wires",
+        body: "The circles on a node are ports in and out: inputs are on the left, outputs are on the right. Click and drag on a port to create a wire from one node to another. A wire simply routes the output of one node to an input of another. Click a wire to select it, then the × on it to cut it.",
+        target: () => tourDemoWire()
+    },
+    {
+        title: "Running",
+        body: "Running a graph takes all the inputs and routes them from start to finish. Having auto-run turned on means that any change in the graph causes a rerun. Clicking <b>Run</b> forces a fresh pass.",
+        target: () => [visibleEl($("#runBtn")), visibleEl($('[data-action="auto"]'))]
+    },
+    {
+        title: "Finding your way",
+        body: "Drag the dotted canvas to pan and scroll to zoom. The <b>Fit</b> button frames the whole graph, and the <b>Snap</b> toggle snaps every node to a grid. Click the <b>?</b> button in the node list for a comprehensive help guide.",
+        target: () => visibleEl($(".stage-controls"))
+    },
+    {
+        title: "Enjoy CipherFlow!",
+        body: "I hope this tutorial helps you find your way through this project. Report any issues you find on <a href=\"https://github.com/Celesteisscool/CipherFlow/issues/new\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>, or click the <b>?</b> for more ways to contact me.<br><br>With love: Celeste &lt;3",
+        target: () => visibleEl($("#helpBtn")),
+        // A sign-off rather than a pointer: it belongs in the middle of the window, with the
+        // ring carrying the ? it mentions.
+        center: true
+    }
+];
+const tour = {open: false, step: 0, el: null, card: null, hole: null, timer: 0, loaded: false, saved: "", sig: ""};
+function tourSeen() {
+    try { return localStorage.getItem(TOUR_KEY) === "done"; } catch { return true; }
+}
+// Marked the moment it opens, not when it closes: closing it early is a decision too, and a
+// walkthrough that keeps coming back is worse than no walkthrough.
+function tourMarkSeen() {
+    try { localStorage.setItem(TOUR_KEY, "done"); } catch { /* private mode */ }
+}
+function visibleEl(el) {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    // A drawer parked off the edge of the screen is not something to point at.
+    if (r.right < 12 || r.left > innerWidth - 12 || r.bottom < 12 || r.top > innerHeight - 12) return null;
+    return el;
+}
+function firstVisible(sel) {
+    for (const el of $$(sel)) {
+        const shown = visibleEl(el);
+        if (shown) return shown;
+    }
+    return null;
+}
+// Build the demo on the canvas. It replaces whatever is open, so the graph it replaces is
+// snapshotted first and put back when the tour ends — unless the demo was edited on the way,
+// in which case that work is the user's and stays.
+function tourDemoState() {
+    nodeSeq = 1;
+    edgeSeq = 1;
+    return {
+        version: 1,
+        nodes: [
+            makeNode("input", {id: TOUR_DEMO.inputId, x: 40, y: 120, title: "Input", text: "Hello World", encoding: "utf8"}),
+            makeNode("op", {id: TOUR_DEMO.rotId, op: "ROT13", x: 430, y: 120}),
+            makeNode("input", {id: TOUR_DEMO.outputId, x: 830, y: 120, title: "Output", text: ""})
+        ],
+        edges: [
+            {id: TOUR_DEMO.edgeId, from: TOUR_DEMO.inputId, to: TOUR_DEMO.rotId, toPort: "main"},
+            {id: "e2", from: TOUR_DEMO.rotId, to: TOUR_DEMO.outputId, toPort: "main"}
+        ],
+        functions: [],
+        view: {x: 40, y: 50, zoom: 0.72},
+        autoRun: true
+    };
+}
+function loadTourDemo() {
+    if (tour.loaded || !state || !OPS?.ROT13) return;
+    const snap = historySnapshot();
+    tour.saved = snap ? snap.json : "";
+    applyGraph(tourDemoState(), {fit: true});
+    // One undo lands back on the graph the demo replaced.
+    pushHistory();
+    tour.loaded = true;
+    tour.sig = historySnapshot()?.json || "";
+}
+function unloadTourDemo() {
+    if (!tour.loaded) return;
+    tour.loaded = false;
+    const saved = tour.saved, sig = tour.sig;
+    tour.saved = tour.sig = "";
+    if (!saved || (historySnapshot()?.json || "") !== sig) return;
+    restoreSnapshot(saved);
+    // The old graph is on the canvas again, so the stacks that held it are no longer steps
+    // to take.
+    resetHistory();
+}
+function tourDemoNodes() {
+    return [TOUR_DEMO.inputId, TOUR_DEMO.rotId, TOUR_DEMO.outputId].map(id => nodeEl(id)).filter(Boolean);
+}
+function tourDemoWire() {
+    if (!tour.loaded) return null;
+    const rot = nodeEl(TOUR_DEMO.rotId);
+    const sink = nodeEl(TOUR_DEMO.outputId);
+    return [
+        rot ? $(".port.out", rot) : null,
+        edgesLayer.querySelector(`.edge-hit[data-edge="${cssEscape(TOUR_DEMO.edgeId)}"]`),
+        sink ? $(".port.in", sink) : null
+    ];
+}
+function maybeStartTour() {
+    if (tour.open || tourSeen() || editingFunctionId) return;
+    startTour();
+}
+function startTour() {
+    if (tour.open) return;
+    if (editingFunctionId) {
+        toast("Close the function editor to take the tour.");
+        return;
+    }
+    // The walkthrough is about the canvas, so whatever was left open over it goes away: the
+    // node list on a phone, the symbol list, the File menu.
+    closeHelp();
+    if (sidebarOpen) closeSidebar();
+    setSymbolDrawer(false);
+    closeFileMenu();
+    tourEls();
+    tour.open = true;
+    tour.step = 0;
+    tour.el.hidden = false;
+    tourMarkSeen();
+    renderTourStep();
+    tour.timer = setInterval(placeTour, 160);
+    window.addEventListener("resize", placeTour);
+    // Capture, so Escape closes the tour rather than clearing the canvas selection behind it.
+    window.addEventListener("keydown", tourKey, true);
+}
+function endTour() {
+    if (!tour.open) return;
+    tour.open = false;
+    clearInterval(tour.timer);
+    tour.timer = 0;
+    window.removeEventListener("resize", placeTour);
+    window.removeEventListener("keydown", tourKey, true);
+    if (tour.el) tour.el.remove();
+    tour.el = tour.card = tour.hole = null;
+    unloadTourDemo();
+}
+function tourKey(ev) {
+    if (!tour.open) return;
+    if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); endTour(); return; }
+    if (ev.target?.closest?.("input, textarea, select, [contenteditable]")) return;
+    if (ev.key === "ArrowRight") { ev.preventDefault(); ev.stopPropagation(); goTourStep(tour.step + 1); }
+    else if (ev.key === "ArrowLeft") { ev.preventDefault(); ev.stopPropagation(); goTourStep(tour.step - 1); }
+}
+function goTourStep(i) {
+    if (!tour.open) return;
+    if (i >= TOUR_STEPS.length) { endTour(); return; }
+    tour.step = clamp(i, 0, TOUR_STEPS.length - 1);
+    // A step can bring its own material onto the canvas before the card is placed.
+    TOUR_STEPS[tour.step].enter?.();
+    renderTourStep();
+}
+function tourEls() {
+    if (tour.el) return;
+    const wrap = document.createElement("div");
+    wrap.className = "tour";
+    wrap.innerHTML = `
+        <div class="tour-hole" hidden></div>
+        <div class="tour-card" role="dialog" aria-labelledby="tourTitle">
+            <div class="tour-kicker"><span class="tour-step-no" id="tourStepNo"></span><button class="tour-skip" id="tourSkip" title="Skip the tour">${iconFill("x")}</button></div>
+            <h3 class="tour-title" id="tourTitle"></h3>
+            <p class="tour-body" id="tourBody"></p>
+            <div class="tour-foot">
+                <button class="btn-secondary" id="tourBack">Back</button>
+                <button class="btn-primary" id="tourNext">Next</button>
+            </div>
+        </div>`;
+    document.body.appendChild(wrap);
+    tour.el = wrap;
+    tour.card = $(".tour-card", wrap);
+    tour.hole = $(".tour-hole", wrap);
+    $("#tourSkip", wrap).addEventListener("click", endTour);
+    $("#tourBack", wrap).addEventListener("click", () => goTourStep(tour.step - 1));
+    $("#tourNext", wrap).addEventListener("click", () => goTourStep(tour.step + 1));
+}
+function renderTourStep() {
+    const step = TOUR_STEPS[tour.step];
+    $("#tourStepNo").textContent = `Step ${tour.step + 1} of ${TOUR_STEPS.length}`;
+    $("#tourTitle").textContent = step.title;
+    $("#tourBody").innerHTML = step.body;
+    $("#tourBack").disabled = tour.step === 0;
+    $("#tourNext").textContent = tour.step === TOUR_STEPS.length - 1 ? "Done" : "Next";
+    placeTour();
+}
+// One step can point at several parts at once — a chain of nodes, a port and the wire
+// between them — and the ring around them all is what gets drawn.
+function tourTargetRect(step) {
+    let found = null;
+    try { found = step.target ? step.target() : null; } catch { found = null; }
+    let box = null;
+    for (const el of (Array.isArray(found) ? found : [found])) {
+        const shown = visibleEl(el);
+        if (!shown) continue;
+        const r = shown.getBoundingClientRect();
+        box = box
+            ? {left: Math.min(box.left, r.left), top: Math.min(box.top, r.top), right: Math.max(box.right, r.right), bottom: Math.max(box.bottom, r.bottom)}
+            : {left: r.left, top: r.top, right: r.right, bottom: r.bottom};
+    }
+    if (!box) return null;
+    return {left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top};
+}
+function placeTour() {
+    if (!tour.open || !tour.card) return;
+    const card = tour.card;
+    const narrow = innerWidth <= 760;
+    card.classList.toggle("tour-card-dock", narrow);
+    // The docked card is placed by the stylesheet; clear what a wider window left behind.
+    if (narrow) card.style.left = card.style.top = "";
+    const step = TOUR_STEPS[tour.step];
+    const r = tourTargetRect(step);
+    // The ring is drawn a little proud of the part it circles, and the card keeps its
+    // distance from that ring rather than from the part itself.
+    const pad = 7, gap = 18, m = 12;
+    const box = r
+        ? {left: r.left - pad, top: r.top - pad, right: r.left + r.width + pad, bottom: r.top + r.height + pad}
+        : null;
+    if (box) {
+        tour.hole.hidden = false;
+        tour.hole.style.left = Math.round(box.left) + "px";
+        tour.hole.style.top = Math.round(box.top) + "px";
+        tour.hole.style.width = Math.round(box.right - box.left) + "px";
+        tour.hole.style.height = Math.round(box.bottom - box.top) + "px";
+    } else {
+        tour.hole.hidden = true;
+    }
+    if (narrow) return;
+    const w = card.offsetWidth, h = card.offsetHeight;
+    if (!r || step.center) {
+        card.style.left = Math.round((innerWidth - w) / 2) + "px";
+        card.style.top = Math.round((innerHeight - h) / 2) + "px";
+        return;
+    }
+    // Beside the target, in the first direction where the whole card fits and clears the
+    // ring: a card laid over the part it is describing points at itself, which is what put
+    // it on top of the Run buttons.
+    const centreX = r.left + r.width / 2 - w / 2, centreY = r.top + r.height / 2 - h / 2;
+    const clear = (x, y) => x >= m && y >= m && x + w <= innerWidth - m && y + h <= innerHeight - m
+        && (x + w <= box.left || x >= box.right || y + h <= box.top || y >= box.bottom);
+    const sides = [
+        [centreX, box.bottom + gap],
+        [centreX, box.top - gap - h],
+        [box.right + gap, centreY],
+        [box.left - gap - w, centreY]
+    ];
+    let spot = sides.find(([x, y]) => clear(x, y));
+    if (!spot) {
+        // Nothing is fully clear — take the first side with room and keep the card on screen.
+        if (r.bottom + gap + h <= innerHeight - m) spot = [centreX, r.bottom + gap];
+        else if (r.top - gap - h >= m) spot = [centreX, r.top - gap - h];
+        else if (r.right + gap + w <= innerWidth - m) spot = [r.right + gap, centreY];
+        else spot = [r.left - gap - w, centreY];
+    }
+    card.style.left = Math.round(clamp(spot[0], m, Math.max(m, innerWidth - w - m))) + "px";
+    card.style.top = Math.round(clamp(spot[1], m, Math.max(m, innerHeight - h - m))) + "px";
+}
+
 /* ================================================================ help */
 function initHelp() {
     const modal = $("#help");
@@ -11029,6 +11320,10 @@ function initHelp() {
     $("#helpClose").innerHTML = iconFill("x");
     $("#helpBtn").addEventListener("click", () => { modal.hidden = false; });
     $("#helpClose").addEventListener("click", () => { modal.hidden = true; });
+    // The reference stays a reference; the walkthrough is the way back to the tour once it
+    // has been seen.
+    const tourBtn = $("#tourBtn");
+    if (tourBtn) tourBtn.addEventListener("click", () => { modal.hidden = true; startTour(); });
     modal.addEventListener("click", ev => { if (ev.target === modal) modal.hidden = true; });
 }
 function helpOpen() {
@@ -11120,6 +11415,10 @@ function hideBoot() {
         setTimeout(() => el.remove(), 420);
         // Off the boot path: the drawer builds now, so its first open is instant.
         setTimeout(() => symbolBuildList?.(), 0);
+        // And the walkthrough, once the splash is out of the way and the canvas is on screen.
+        // maybeStartTour offers it on a browser that has never seen it, which is the whole of
+        // "first run" here — a graph already on the canvas is snapshotted and put back.
+        setTimeout(maybeStartTour, 320);
     }, wait);
 }
 
@@ -11132,8 +11431,7 @@ async function init() {
     initTheme();
     state = loadLocalGraph();
     currentGraphName = readCurrentGraphName();
-    const restored = Boolean(state);
-    if (!state) state = exampleState();
+    const restored = Boolean(state);    if (!state) state = exampleState();
     if (!state.view) state.view = {x: 40, y: 40, zoom: 0.7};
     renumberState(state);
     resetHistory();

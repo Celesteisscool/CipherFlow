@@ -2169,6 +2169,50 @@ a.icon-button:hover { color: var(--ink); }
 .help-section b { color: var(--ink); font-weight: 640; }
 .help-section i { color: var(--ink); font-style: normal; font-weight: 600; }
 .help-section code { font-family: var(--mono); font-size: 9.8px; padding: 1px 4px; border-radius: 4px; background: var(--panel-2); border: 1px solid var(--line); }
+
+/* The contact block closes the panel: a gate question in place of the reveal button it
+   replaces, then the handle itself. Each state is its own element, so the panel keeps its
+   height while it walks through them instead of pushing the text around. */
+.contact-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.contact-ask[hidden] { display: none; }
+.contact-ask p { flex: 1 1 100%; margin: 0; color: var(--ink); font-size: 11px; font-weight: 600; }
+.contact-ask-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.contact-card {
+    margin-top: 9px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel-2);
+}
+.contact-card[hidden] { display: none; }
+.contact-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 9.5px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+/* Both rules name the card as well: `.help-section code` and `.help-section p` are the more
+   specific pair, and the handle has to be 13px text rather than a 9.8px code chip. */
+.contact-card .contact-handle {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 620;
+    color: var(--ink);
+    user-select: all;
+}
+.contact-card .btn-secondary { margin-left: 9px; vertical-align: middle; }
+.contact-card .contact-note { margin: 8px 0 0; color: var(--muted); font-size: 10.5px; line-height: 1.6; }
+.contact-gate { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+/* The GitHub route sits beside the reveal as a real link, so it has to wear the button the
+   same way the anchors in the help header do rather than inherit link underlining. */
+.help-contact a.btn-secondary { display: inline-flex; align-items: center; text-decoration: none; }
+.contact-card .contact-also { margin: 8px 0 0; color: var(--muted); font-size: 10.5px; line-height: 1.6; }
+.contact-card .contact-also a { color: var(--ink); underline-offset: 2px; }
 .help-keys { list-style: none; padding-left: 0 !important; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 5px 16px; }
 kbd {
     font-family: var(--mono);

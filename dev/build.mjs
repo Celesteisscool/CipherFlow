@@ -305,7 +305,8 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Build a graph</h3>
-                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Fstring, Math, Switch, Gate and Magic), <b>Bundles</b> (Compact, Expand, Pick and Fork, the nodes that carry lists) and <b>Operations</b> by category, with <b>Silly Stuff</b> (the Chess board, for fun) at the bottom.</p>
+                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Fstring, Math, Switch, Gate and Magic), <b>Bundles</b> (Compact, Expand, Pick and Fork, the nodes that carry lists) and <b>Operations</b> by category, with <b>Silly Stuff</b> (the Chess board, for fun) at the bottom. The operations recreated from dCode and CacheSleuth come after the built-in ones in categories of their own, and the <b>Symbols</b> tab down the left edge of the canvas holds the symbol alphabets, which have a section below.</p>
+                <p>New here? <b>Take the tour</b> at the top of this panel walks through the canvas in seven steps — it also offers itself the first time the page is opened in a browser, and the <b>?</b> button in the sidebar brings this panel back whenever you want it.</p>
             </div>
             <div class="help-section">
                 <h3>Text and file nodes are input <em>and</em> output</h3>
@@ -329,12 +330,18 @@ ${css}
                 <p>An <b>operation</b> downstream of a bundle runs once per value and hands back a bundle, so a whole chain can work through a list without being wired once per item. That applies to arguments too: a bundle on a key, number or switch port runs the operation once per entry, two bundles are <b>zipped</b> by index, and a single value is broadcast against the whole list. A blank entry stays blank rather than failing the run.</p>
             </div>
             <div class="help-section">
+                <h3>Symbol alphabets</h3>
+                <p>Down the left edge of the canvas is the <b>Symbols</b> tab, and behind it every symbol cipher this page can draw: <b>353 alphabets</b> and 11,915 glyphs, from pigpen and the dancing men to Ogham, the Voynich hand, Dothraki, Teyvat, Wingdings, and the alphabets dCode and CacheSleuth publish art for. Search by name, or narrow the list with the <b>tag pills</b> — Thin or Bold, Straight or Curved, Dots, Pixels, Filled, Monochrome or Coloured. The pills in a group are alternatives, so choosing one releases the other; the count in the header, and a <b>Reset</b> beside it, say how much of the catalogue is left. With tags chosen every row carries how well it matches as a percentage, best first, and each row previews ten of its glyphs.</p>
+                <p>Click a row to drop that alphabet on the canvas as a node. The node is a <b>transcription surface</b>: click tiles in the grid and their letters are appended to the box under it, in the order you clicked them — type in the box instead if you already have the reading, and <b>Clear</b> empties it. The strip between grid and box repeats what you clicked as smaller labelled glyphs, and the text in the box is what leaves the node. A tile whose key is more than one character is separated from the one before it, so the reading cannot fuse.</p>
+                <p>Where both sources publish art for the same alphabet, a <b>Source</b> switch redraws the node with CacheSleuth's drawings or with dCode's. Where dCode also publishes a solved mapping for a cipher, a <b>Variant</b> switch on a dCode node captions each tile with that cryptogram's own letters instead of dCode's look-alike.</p>
+            </div>
+            <div class="help-section">
                 <h3>Magic</h3>
                 <p><b>Magic</b> lives in the <b>Graph</b> section of the node list (the wand icon). It is not one step in a chain: wire data into it and it runs every operation in the library over that input — including every Caesar shift from 1 to 25 — scores each result for how much it reads like real output, and ranks them. Set <b>Show top</b> to choose how many rows the node lists: it returns exactly that many, with findings first and less likely results filling the tail. Operations that land on the same text share one row, and decoders outrank encoders. Click a row to make that result the node's output and send it downstream.</p>
             </div>
             <div class="help-section">
                 <h3>Steganalysis, all local</h3>
-                <p>The three audits below are in the <b>Multimedia</b> category of the node list, at the top, next to the operations they read bytes for. <b>PNG Chunks</b> reads a PNG's container the way pngcheck does: every chunk with its length and CRC, the IHDR dimensions and colour type, tEXt/zTXt/iTXt text, and anything appended after IEND. <b>PDF Scan</b> is the pdfid/pdfinfo view: header and version, object, stream and page counts, title/author strings, the risky markers (/JS, /OpenAction, /Launch, /EmbeddedFile, /Encrypt…), every %%EOF, and data appended after the last one. <b>Image Info</b> is identify: format, dimensions, bit depth, frames and metadata for PNG, JPEG, GIF, WebP and BMP. Each takes bytes on its left port and hands back one text report.</p>
+                <p>The six audits below head the <b>Multimedia</b> category of the node list, above the operations they read bytes for. <b>PNG Chunks</b> reads a PNG's container the way pngcheck does: every chunk with its length and CRC, the IHDR dimensions and colour type, tEXt/zTXt/iTXt text, and anything appended after IEND. <b>PDF Scan</b> is the pdfid/pdfinfo view: header and version, object, stream and page counts, title/author strings, the risky markers (/JS, /OpenAction, /Launch, /EmbeddedFile, /Encrypt…), every %%EOF, and data appended after the last one. <b>Image Info</b> is identify: format, dimensions, bit depth, frames and metadata for PNG, JPEG, GIF, WebP and BMP. <b>Spectrogram</b> draws audio as a frequency plot over time: scroll or pinch to zoom the time axis, hold <kbd>Shift</kbd> while scrolling to zoom the frequency band, drag the picture to move it and double-click to fit the file again. Its <b>Merge channels</b> switch folds left and right into one plot instead of giving each a lane, and the whole file leaves on the node's output wire as a PNG of the same plot. <b>Audio Info</b> reports an audio file's format, stream and tags: ID3v1 and ID3v2, Vorbis comments and iTunes atoms, with sample rate, bit rate and duration. <b>Audio Levels</b> is the loudness measurement — peak, RMS, DC offset, clipping and silence. Each takes bytes on its left port and hands back one text report.</p>
                 <p>The rest of a sweep is already in the operation list, and these reports pipe into it: <b>Strings</b> for printable runs, <b>Extract LSB</b> and <b>View Bit Plane</b> for hidden bit layers, <b>Extract RGBA</b> and <b>Randomize Colour Palette</b> for channel and palette tricks, <b>Extract EXIF</b> for camera metadata, <b>Scan for Embedded Files</b> for signatures at any offset, and <b>Extract Files</b> for carving. Native tools such as steghide, outguess, zsteg and binwalk are separate programs with no browser equivalent, so they are not bundled — everything above runs in the page, offline, with nothing uploaded.</p>
             </div>
             <div class="help-section">
@@ -345,6 +352,8 @@ ${css}
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename any node, an operation or a function instance included.</li>
                     <li><b>Snap</b>, beside Fit in the bottom-left controls, is a toggle. Turning it on puts every node on the graph back on the nearest grid dot and then keeps them there: dragged nodes track the grid as they move. It lights up while it is holding and the setting is remembered, so a reload comes back snapped. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
                     <li>Click a wire to select it — an <b>×</b> appears in the middle. Click the × to remove it, or double-click the wire.</li>
+                    <li>The sun or moon icon in the sidebar switches between dark and light, and the choice is remembered.</li>
+                    <li>On a phone the node list and the symbol alphabets are <b>drawers</b>: the two icons at either end of the toolbar open them, and placing a node closes the drawer again so the canvas comes back.</li>
                 </ul>
             </div>
             <div class="help-section">
@@ -374,7 +383,7 @@ ${css}
                     <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> downloads the graph</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes; add <kbd>Shift</kbd> to redo</li>
                     <li><kbd>Ctrl</kbd>+<kbd>C</kbd>, <kbd>Ctrl</kbd>+<kbd>X</kbd> and <kbd>Ctrl</kbd>+<kbd>V</kbd> copy, cut and paste</li>
-                    <li><kbd>Delete</kbd> removes the selection or a wire</li>
+                    <li><kbd>Delete</kbd> or <kbd>Backspace</kbd> removes the selection or a wire</li>
                     <li><kbd>Escape</kbd> closes a panel, cancels a wire, clears the selection</li>
                     <li><kbd>Shift</kbd>+click or drag adds to the selection</li>
                 </ul>
@@ -387,7 +396,29 @@ ${css}
             </div>
             <div class="help-section">
                 <h3>Checking the operations</h3>
-                <p>The <b>flask</b> icon in the sidebar opens the verification lab: known-answer vectors, encode/decode round-trips and graph-wiring checks for every operation. <b>Run all checks</b> sweeps the lot; search or filter first and <b>Run visible</b> covers just those rows, while <b>Retry failures</b> re-runs what came back red. Results are kept in this browser, so closing the tab does not lose a long run, and the flask carries a count of unresolved failures.</p>
+                <p>The <b>flask</b> icon in the sidebar opens the verification lab: known-answer vectors, encode/decode round-trips and graph-wiring checks for every operation. <b>Run all checks</b> sweeps the lot; search or filter first and <b>Run visible</b> covers just those rows, while <b>Retry failures</b> re-runs what came back red. Results are kept in this browser, so closing the tab does not lose a long run, and the flask carries a count of unresolved failures. The filter beside the search narrows the rows to the <b>Known-answer</b> vectors, the <b>Live probes</b> or the <b>Recreated ops</b> — the dCode and CacheSleuth alphabets — so the recreated work is never mixed in with the built-in checks.</p>
+            </div>
+            <div class="help-section help-contact">
+                <h3>Contact</h3>
+                <p>CipherFlow is built and looked after by <b>Celesteisscool</b>. A bug, an operation that gives a wrong answer, an idea, or a cryptogram that will not come out — Discord is the way to reach me.</p>
+                <div class="contact-gate" id="contactGate">
+                    <button class="btn-primary" id="contactReveal" type="button">Reveal my Discord</button>
+                    <a class="btn-secondary" href="https://github.com/Celesteisscool/CipherFlow/issues/new" target="_blank" rel="noopener noreferrer">Open an issue on GitHub</a>
+                </div>
+                <div class="contact-ask" id="contactAsk" hidden>
+                    <p>Have you read the whole help panel?</p>
+                    <div class="contact-ask-actions">
+                        <button class="btn-secondary" id="contactRead" type="button">Yes, all of it</button>
+                        <button class="btn-secondary" id="contactNotYet" type="button">Not yet</button>
+                    </div>
+                </div>
+                <div class="contact-card" id="contactCard" hidden>
+                    <span class="contact-label">Discord</span>
+                    <code class="contact-handle" id="contactHandle">Celesteisscool</code>
+                    <button class="btn-secondary" id="contactCopy" type="button">Copy</button>
+                    <p class="contact-note">Discord asks for a short reason when a friend request is sent. Put something about CipherFlow in it — the cipher you were working on, the bug you hit, this page — so the request is clearly from here rather than from nowhere.</p>
+                    <p class="contact-also">No Discord? <a href="https://github.com/Celesteisscool/CipherFlow/issues/new" target="_blank" rel="noopener noreferrer">Open an issue on GitHub</a> instead — bugs, wrong answers and ideas all get read there.</p>
+                </div>
             </div>
         </div>
     </div>

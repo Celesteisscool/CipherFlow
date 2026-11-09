@@ -11325,6 +11325,34 @@ function initHelp() {
     const tourBtn = $("#tourBtn");
     if (tourBtn) tourBtn.addEventListener("click", () => { modal.hidden = true; startTour(); });
     modal.addEventListener("click", ev => { if (ev.target === modal) modal.hidden = true; });
+
+    // The contact block sits at the foot of the reference and stays behind a gate: it asks
+    // whether the panel has actually been read before it puts a Discord name on screen, and
+    // "not yet" sends the reader back to the top rather than closing the door.
+    const gate = $("#contactGate"), ask = $("#contactAsk"), card = $("#contactCard");
+    $("#contactReveal")?.addEventListener("click", () => {
+        if (gate) gate.hidden = true;
+        if (ask) ask.hidden = false;
+    });
+    $("#contactRead")?.addEventListener("click", () => {
+        if (ask) ask.hidden = true;
+        if (card) card.hidden = false;
+    });
+    $("#contactNotYet")?.addEventListener("click", () => {
+        if (ask) ask.hidden = true;
+        if (gate) gate.hidden = false;
+        modal.querySelector(".help-body")?.scrollTo({top: 0});
+        toast("Read to the bottom of this panel and the contact is there");
+    });
+    $("#contactCopy")?.addEventListener("click", async () => {
+        const handle = $("#contactHandle")?.textContent || "Celesteisscool";
+        try {
+            await navigator.clipboard.writeText(handle);
+            toast("Discord handle copied");
+        } catch (_) {
+            toast("Could not copy — select the name and copy it", "error");
+        }
+    });
 }
 function helpOpen() {
     const modal = $("#help");

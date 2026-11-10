@@ -1151,6 +1151,11 @@ select.control { padding-right: 4px; }
 .node.resized.type-input .node-body > div > textarea.typed-input {
     flex: 1 1 auto;
 }
+/* The drop zone is the file node's body, so it grows into the room a resized card leaves
+ * rather than sitting at its content height above a band of empty space. */
+.node.resized.type-file .node-body > div > .file-drop {
+    flex: 1 1 auto;
+}
 .node.resized .preview {
     flex: 1 1 0;
     min-height: var(--node-preview-floor);
@@ -1187,6 +1192,10 @@ select.control { padding-right: 4px; }
     cursor: pointer;
     transition: border-color 120ms ease, background 120ms ease;
 }
+/* The icon is an inline SVG with a 16px viewBox and no width or height, so the browser sized
+ * it to the drop zone's full width and kept it square. That stretched the dashed box into a
+ * square of the card, and a node widened by its grip pushed the square past its own bottom. */
+.file-drop svg { width: 18px; height: 18px; margin: 0 auto 4px; }
 .file-drop:hover, .file-drop.drag { border-color: var(--node-accent); background: color-mix(in srgb, var(--node-accent) 6%, transparent); }
 .file-name { color: var(--ink); font-size: 10px; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
 /* A join input row: the wired source sits on the right, with its detach button beside it. */

@@ -3345,6 +3345,7 @@ body.has-sym-rail .toolbar { left: 43px; }
                 <p>The <b>File</b> menu in the toolbar keeps your graphs. <b>Load</b> lists everything saved in this browser, newest first — click one to open it, or use the trash to delete it. <b>New blank graph</b> and <b>Example graph</b> replace whatever is on the canvas; the saved graphs stay.</p>
                 <p><b>Save</b> keeps the graph under its name: <b>Save “name”</b> overwrites it and <b>Save as…</b> saves it under another name. A graph with no name asks for one, and the name it is saved under shows at the top of the menu. Separately, the canvas is autosaved as you work, so a reload brings back exactly what you had even if you never named it.</p>
                 <p><b>Import</b> opens a <code>.json</code> graph file and <b>Export</b> downloads the current graph, or every saved graph in one file. Everything runs in this page, offline — no data leaves it.</p>
+                <p><b>Copy share link</b> puts the graph in the address bar as a link, compressed and encoded after the <code>#</code> — the part a browser never sends to the server. Opening one asks before it replaces the canvas; attached file bytes are not included, because a link is too small to carry them.</p>
             </details>
             <details class="help-section">
                 <summary><h3>Checking the operations</h3></summary>
@@ -78439,6 +78440,177 @@ async function openGraphFile(file, opts = {}) {
     }
 }
 
+/* ================================================================ share links */
+// A graph can travel in the URL fragment: `#g=<version><codec><base64url>&n=<name>`.
+// A fragment is never sent to the server, so a link works on Pages, on a local server or
+// from a downloaded copy without uploading anything, and the page stays a single file with
+// no backend. The payload is the JSON an exported file carries — validated on the way in by
+// normalizeLoaded — except for attached file bytes, which a link is too small to carry.
+const SHARE_VERSION = "1";
+// Chat clients truncate long URLs well before browsers do: a link is warned about past the
+// soft limit, refused past the hard one, and its size is reported either way.
+const SHARE_SOFT_LIMIT = 8 * 1024;
+const SHARE_HARD_LIMIT = 64 * 1024;
+let pendingShare = null;
+
+const b64Url = b64 => String(b64).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+// The graph a link carries: the normal save, minus the timestamp (rewritten on open) and
+// minus bytes that cannot travel. A file node keeps its name and size and a function's test
+// sample keeps its mode, but neither ships its contents.
+function shareableGraph() {
+    const graph = serializeGraph(graphToSave());
+    delete graph.exportedAt;
+    let stripped = 0;
+    const strip = node => {
+        if (!node || typeof node !== "object") return;
+        if (node.fileData) { node.fileData = ""; stripped++; }
+        if (Array.isArray(node.ports)) {
+            for (const port of node.ports) {
+                if (port && typeof port === "object" && port.sampleFileData) {
+                    port.sampleFileData = "";
+                    stripped++;
+                }
+            }
+        }
+    };
+    for (const node of graph.nodes || []) strip(node);
+    for (const def of graph.functions || []) for (const node of def.nodes || []) strip(node);
+    return {graph, stripped};
+}
+
+// Deflate is already required by the boot path, so a browser that can run the app can unpack
+// a link. Compression is worth it: node JSON repeats its keys and field names heavily.
+async function deflateForShare(bytes) {
+    const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate"));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function inflateForShare(bytes) {
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+// The link for the graph on the canvas (or the definition being edited, which lives in the
+// graph that carries it). `u` marks uncompressed JSON for a browser without CompressionStream.
+async function buildShareLink() {
+    const {graph, stripped} = shareableGraph();
+    const raw = enc.encode(JSON.stringify(graph));
+    let body = "u" + b64Url(bytesToB64(raw));
+    if (typeof CompressionStream === "function") {
+        try {
+            const packed = await deflateForShare(raw);
+            if (packed.length < raw.length) body = "d" + b64Url(bytesToB64(packed));
+        } catch { /* fall back to the uncompressed form */ }
+    }
+    const base = location.href.split("#")[0];
+    const name = currentGraphName ? `&n=${encodeURIComponent(currentGraphName)}` : "";
+    return {link: `${base}#g=${SHARE_VERSION}${body}${name}`, stripped};
+}
+
+async function copyShareLink() {
+    let made;
+    try {
+        made = await buildShareLink();
+    } catch (err) {
+        toast("Could not build a share link: " + (err.message || err), "error");
+        return;
+    }
+    const size = made.link.length;
+    if (size > SHARE_HARD_LIMIT) {
+        toast(`This graph is too large for a share link (${formatBytes(size)}) — download it as a file instead.`, "error");
+        return;
+    }
+    if (!await copyText(made.link)) {
+        toast("Could not copy the link. Export → Download this graph still works.", "error");
+        return;
+    }
+    const files = made.stripped ? " File bytes are not included." : "";
+    if (size > SHARE_SOFT_LIMIT) {
+        toast(`Share link copied (${formatBytes(size)}).${files} Long links can be truncated by chat apps.`);
+    } else {
+        toast(`Share link copied (${formatBytes(size)}).${files}`);
+    }
+}
+
+// Read a link's payload without touching the canvas. Everything here is untrusted input: the
+// length is bounded before decoding, and normalizeLoaded applies the rules an imported file
+// gets, so a crafted link cannot introduce a node or operation the editor does not know.
+async function readShareFromLocation() {
+    let params;
+    try {
+        params = new URLSearchParams(String(location.hash || "").replace(/^#/, ""));
+    } catch {
+        return null;
+    }
+    const payload = params.get("g");
+    if (!payload) return null;
+    if (payload.length > SHARE_HARD_LIMIT) {
+        return {error: "That share link is too large to open. Ask for the graph as a file instead."};
+    }
+    if (payload[0] !== SHARE_VERSION) {
+        return {error: "That share link was made by a newer version of CipherFlow."};
+    }
+    const codec = payload[1];
+    let bytes;
+    try {
+        bytes = b64ToBytes(payload.slice(2));
+    } catch {
+        return {error: "That share link is damaged: its payload is not valid base64url."};
+    }
+    try {
+        if (codec === "d") {
+            if (typeof DecompressionStream !== "function") {
+                return {error: "This browser cannot unpack that share link. Use a current Chrome, Edge, Firefox or Safari."};
+            }
+            bytes = await inflateForShare(bytes);
+        } else if (codec !== "u") {
+            return {error: "That share link uses an unknown format."};
+        }
+    } catch {
+        return {error: "That share link is damaged: its payload did not decompress."};
+    }
+    let graph;
+    try {
+        graph = normalizeLoaded(JSON.parse(dec.decode(bytes)));
+    } catch (err) {
+        return {error: "That share link is not a CipherFlow graph: " + (err.message || err)};
+    }
+    return {graph, name: String(params.get("n") || "").slice(0, 80)};
+}
+
+function clearShareHash() {
+    try {
+        history.replaceState(null, "", location.pathname + location.search);
+    } catch { /* a page that cannot rewrite its URL keeps the hash; nothing else breaks */ }
+}
+
+// Ask once, after the app is up. A shared graph replaces the canvas exactly like an imported
+// file does, which means the autosave is replaced too — so the question says so, and a
+// refusal leaves the canvas alone.
+function offerSharedGraph() {
+    if (!pendingShare) return;
+    const share = pendingShare;
+    pendingShare = null;
+    clearShareHash();
+    if (share.error) {
+        toast(share.error, "error");
+        return;
+    }
+    const label = share.name ? `“${share.name}”` : "the shared graph";
+    if (!confirm(`Open ${label} from this link? It replaces the graph on the canvas, and the autosave is replaced with it.`)) {
+        toast("Kept your graph. Open the link again whenever you want the shared one.");
+        return;
+    }
+    try {
+        applyGraph(share.graph, {fit: true});
+        setCurrentGraphName(share.name);
+        renderFileMenu();
+        toast(share.name ? `Opened “${share.name}” from the link` : "Opened the shared graph");
+    } catch (err) {
+        toast("Could not open that shared graph: " + (err.message || err), "error");
+    }
+}
+
 /* ================================================================ file menu */
 // Named graphs live in localStorage beside the autosave slot: the autosave keeps the
 // canvas you are working on, and these are the ones you deliberately kept.
@@ -78615,6 +78787,7 @@ function initFileMenu() {
             case "save": saveCurrentGraph(); break;
             case "save-as": promptSaveGraph(); break;
             case "import": $("#openFileInput").click(); break;
+            case "share": copyShareLink(); break;
             case "export": saveGraphFile(); break;
             case "export-all": exportAllSavedGraphs(); break;
         }
@@ -78712,6 +78885,8 @@ function renderFileMenu() {
         <div class="fm-group">
             <button class="fm-row" data-group-toggle="export" aria-expanded="false">${iconFill("output")}<span>Export</span><span class="fm-chev">${iconFill("chevron")}</span></button>
             <div class="fm-sub" role="menu">
+                <button class="fm-item" data-act="share" role="menuitem"><span>Copy share link</span></button>
+                <div class="fm-sep"></div>
                 <button class="fm-item" data-act="export" role="menuitem"><span>Download this graph</span></button>
                 <button class="fm-item" data-act="export-all" role="menuitem"><span>${saves.length ? `Download all ${saves.length} saves` : "Download all saves"}</span></button>
             </div>
@@ -81534,6 +81709,9 @@ async function init() {
     // before the payload is unpacked.
     bootProgress(BOOT_BAR.engineBand[0]);
     initTheme();
+    // A graph carried in the address fragment is read now but offered after the app is up:
+    // boot must never be blocked by a link, and the answer decides what replaces the canvas.
+    pendingShare = await readShareFromLocation();
     state = loadLocalGraph();
     currentGraphName = readCurrentGraphName();
     const restored = Boolean(state);    if (!state) state = exampleState();
@@ -81609,6 +81787,7 @@ async function init() {
         // shown empty; otherwise there is nothing to wait for.
         if (state.autoRun) scheduleRun(false, 260);
         else hideBoot();
+        setTimeout(offerSharedGraph, 700);
     }).catch(err => {
         setRunStatus("error", "Embedded engine could not start: " + (err.message || err));
         toast("Embedded engine could not start: " + (err.message || err), "error");

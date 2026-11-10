@@ -33,10 +33,13 @@ function git(args, {cwd, env, allowFail = false} = {}) {
 
 const gitDir = git(["rev-parse", "--absolute-git-dir"]);
 const work = mkdtempSync(join(tmpdir(), "cipherflow-pages-"));
+// The index has to live outside the work tree: git keeps an index.lock next to it while it
+// runs, and `git add .` would otherwise stage that lock into the published commit.
+const indexDir = mkdtempSync(join(tmpdir(), "cipherflow-pages-index-"));
 try {
     copyFileSync("index.html", join(work, "index.html"));
     writeFileSync(join(work, ".nojekyll"), "");
-    const env = {...process.env, GIT_DIR: gitDir, GIT_WORK_TREE: work, GIT_INDEX_FILE: join(work, "index")};
+    const env = {...process.env, GIT_DIR: gitDir, GIT_WORK_TREE: work, GIT_INDEX_FILE: join(indexDir, "index")};
     git(["add", "--all", "--force", "."], {cwd: work, env});
     const tree = git(["write-tree"], {env});
     // Keep the branch linear: the previous published commit is the parent, wherever it lives.
@@ -57,4 +60,5 @@ try {
     }
 } finally {
     rmSync(work, {recursive: true, force: true});
+    rmSync(indexDir, {recursive: true, force: true});
 }

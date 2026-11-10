@@ -643,6 +643,10 @@ button svg { flex: 0 0 auto; }
     line-height: 1.45;
     resize: vertical;
 }
+/* The text box of a Text Input / Output node has no drag handle of its own: the card is sized
+ * by its corner grip, so the browser's grip only ever showed up on a fresh node and then went
+ * away once the node was resized. */
+.node.type-input textarea.typed-input { resize: none; }
 .typed-input::placeholder { color: var(--faint); font-family: var(--sans); font-size: 9.3px; }
 .typed-input:focus { border-style: solid; }
 /* Inputs and files carry their own output panel, so their bodies stack like an op. */
@@ -1117,6 +1121,12 @@ select.control { padding-right: 4px; }
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
+}
+/* The text box is the card's body: on a node given a height it takes the room the In row and
+ * the footer leave, instead of keeping the three rows it was born with and stranding the rest
+ * of the card empty. */
+.node.resized.type-input .node-body > div > textarea.typed-input {
+    flex: 1 1 auto;
 }
 .node.resized .preview {
     flex: 1 1 0;

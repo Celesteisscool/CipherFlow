@@ -64,6 +64,9 @@ const ICONS = {
     chevron: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg>',
     plus: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>',
     minus: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 8h10"/></svg>',
+    // An eye for the bypass toggle, and the same eye struck through while a node is bypassed.
+    eye: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 8S3.7 3.9 8 3.9 14.4 8 14.4 8 12.3 12.1 8 12.1 1.6 8 1.6 8Z"/><circle cx="8" cy="8" r="2"/></svg>',
+    eyeOff: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 9.9C1.9 9 1.6 8 1.6 8S3.7 3.9 8 3.9c.8 0 1.5.15 2.2.4M13.1 6.4c.8.9 1.3 1.6 1.3 1.6S12.3 12.1 8 12.1c-.8 0-1.5-.15-2.2-.4"/><path d="M2.6 2.6l10.8 10.8"/></svg>',
     fit: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3H3v3M10 3h3v3M6 13H3v-3M10 13h3v-3"/></svg>',
     play: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 2.8c0-.6.65-.96 1.15-.64l7.05 4.7a.75.75 0 0 1 0 1.28l-7.05 4.7A.75.75 0 0 1 4.5 12.2V2.8Z"/></svg>',
     sun: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.8"/><path d="M8 1.5v1.3M8 13.2v1.3M1.5 8h1.3M13.2 8h1.3M3.4 3.4l.9.9M11.7 11.7l.9.9M12.6 3.4l-.9.9M4.3 11.7l-.9.9"/></svg>',
@@ -75,6 +78,8 @@ const ICONS = {
     trash: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 4.2h10.4M6 2.4h4M4 4.2l.6 9.4h6.8l.6-9.4M6.5 7v4M9.5 7v4"/></svg>',
     folder: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 4.4h4l1.2 1.4h7.2v7.2H1.8z"/><path d="M1.8 4.4V3.2h3.5l1.4 1.2"/></svg>',
     doc: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.8h5l3 3v9.4H4z"/><path d="M9 1.8v3h3M6 8h4M6 10.5h4"/></svg>',
+    // A page with a turned-up corner, for the sticky note that explains a graph.
+    note: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 2.4h8.2l2.6 2.6v8.6H2.6z"/><path d="M10.8 2.4v2.6h2.6"/><path d="M5 8.4h4M5 10.8h6"/></svg>',
     input: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 8h8M7 5l3 3-3 3M12 3v10"/></svg>',
     output: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M14 8H6M9 5 6 8l3 3M4 3v10"/></svg>',
     join: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h4M2 12h4M6 4v8M6 8h7"/><path d="m10.7 5.7 2.5 2.3-2.5 2.3"/></svg>',
@@ -471,6 +476,9 @@ function nodeInPorts(node, lookup) {
             // One port per declared input, for feeding that input's test sample from a node
             // in the body instead of typing or attaching it.
             return (node.ports || []).map((_, i) => "sample:" + i);
+        case "note":
+            // A sticky note is canvas decoration: no wire reaches it in either direction.
+            return [];
         case "symbol":
             // A transcription source: nothing is piped into it, it only hands text out.
             return [];
@@ -496,6 +504,8 @@ function nodeOutPorts(node, lookup) {
             // The game on one wire and every legal move in it on the other.
             return ["out", "legal"];
         case "badapple":
+            return [];
+        case "note":
             return [];
         default:
             return ["out"];
@@ -1097,7 +1107,9 @@ function makeNode(type, opts = {}) {
         fullPreview: Boolean(opts.fullPreview),
         collapsed: Boolean(opts.collapsed),
         w: Number(opts.w) || 0,
-        h: Number(opts.h) || 0
+        h: Number(opts.h) || 0,
+        // A bypassed node is skipped by the runner: its wired value carries straight on.
+        bypass: Boolean(opts.bypass)
     };
     if (type === "op") {
         node.op = opts.op;
@@ -1110,6 +1122,10 @@ function makeNode(type, opts = {}) {
     } else if (type === "input") {
         node.text = opts.text ?? "Hello, World!";
         node.encoding = opts.encoding || "utf8";
+    } else if (type === "note") {
+        // A sticky note: the words, and which of the tints it wears.
+        node.text = opts.text ?? "";
+        node.noteTone = opts.noteTone || "yellow";
     } else if (type === "file") {
         node.fileName = opts.fileName || "";
         node.fileSize = opts.fileSize || 0;
@@ -1325,6 +1341,7 @@ function cleanNodeForSave(n) {
         typedInputs: n.typedInputs ? cloneValue(n.typedInputs) : undefined,
         fileIndex: n.fileIndex || 0,
         previewMode: n.previewMode || "text",
+        noteTone: n.type === "note" ? String(n.noteTone || "yellow") : undefined,
         symbolCipher: n.symbolCipher,
         symbolSource: n.symbolSource,
         symbolVariant: n.symbolVariant || undefined,
@@ -1334,6 +1351,7 @@ function cleanNodeForSave(n) {
         gateHeld: n.type === "gate" ? String(n.gateHeld || "") : undefined,
         fullPreview: n.fullPreview ? true : undefined,
         collapsed: Boolean(n.collapsed),
+        bypass: n.bypass ? true : undefined,
         w: Math.round(n.w || 0),
         h: Math.round(n.h || 0),
         values: n.values ? cloneValue(n.values) : undefined
@@ -1405,7 +1423,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "audioinfo", "audiolevels", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol", "badapple"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "audioinfo", "audiolevels", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol", "badapple", "note"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1446,6 +1464,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             symbolCipher: typeof raw.symbolCipher === "string" ? raw.symbolCipher : "",
             symbolSource: raw.symbolSource === "dcode" ? "dcode" : "cachesleuth",
             symbolVariant: typeof raw.symbolVariant === "string" ? raw.symbolVariant : "",
+            noteTone: typeof raw.noteTone === "string" ? raw.noteTone : "yellow",
             fen: Boolean(raw.fen),
             mergeTracks: Boolean(raw.mergeTracks),
             spec: raw.spec && typeof raw.spec === "object" ? raw.spec : null,
@@ -1456,6 +1475,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             previewMode: ["hex", "raw", "image", "text"].includes(raw.previewMode) ? raw.previewMode : "text",
             fullPreview: Boolean(raw.fullPreview),
             collapsed: Boolean(raw.collapsed),
+            bypass: Boolean(raw.bypass),
             w: Number(raw.w) || 0,
             h: Number(raw.h) || 0
     });
@@ -1754,6 +1774,7 @@ function sourceTitle(node) {
     if (node.type === "fn") return node.title || functionById(node.fnId)?.name || "Function";
     if (node.type === "fnin") return node.title || "Function input";
     if (node.type === "fnout") return node.title || "Function output";
+    if (node.type === "note") return node.title || "Note";
     return node.title || node.type;
 }
 function nodeAccent(node) {
@@ -1769,6 +1790,7 @@ function nodeAccent(node) {
 function nodeCategoryLabel(node) {
     if (node.type === "input") return "Input";
     if (node.type === "file") return "File";
+    if (node.type === "note") return "Note";
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
         node.type === "spectrogram" || node.type === "audioinfo" || node.type === "audiolevels") {
         return "Multimedia";
@@ -1829,6 +1851,14 @@ function renderAllNodes() {
     paintBadAppleCards();
 }
 
+// Nodes that do work, and so can be skipped. A text or file node is already just a value,
+// and a function's boundary nodes describe a function rather than run in one.
+const BYPASSABLE = new Set([
+    "op", "join", "template", "math", "switch", "chess", "gate",
+    "compact", "expand", "pick", "fork", "fn",
+    "spectrogram", "pngchunks", "pdfscan", "imginfo", "audioinfo", "audiolevels"
+]);
+
 function buildNode(node) {
     const el = document.createElement("div");
     const isFunctionNode = node.type === "fn" || node.type === "fnin" || node.type === "fnout";
@@ -1837,6 +1867,9 @@ function buildNode(node) {
     el.style.left = node.x + "px";
     el.style.top = node.y + "px";
     el.style.setProperty("--node-accent", nodeAccent(node));
+    // The note's tint is a data attribute, so the stylesheet can mix it into the theme's own
+    // card colour instead of pasting a fixed background on top of it.
+    if (node.type === "note") el.dataset.tone = node.noteTone || "yellow";
 
     const title = node.title || sourceTitle(node);
     // An instance's pencil is the way back into the definition, since its title now renames
@@ -1851,12 +1884,15 @@ function buildNode(node) {
     if (node.h && !node.collapsed) el.style.height = node.h + "px";
     if ((node.w || node.h) && !node.collapsed) el.classList.add("resized");
     el.classList.toggle("collapsed", Boolean(node.collapsed));
+    // A skipped step says so on the card: struck title, hollow dot, a pressed eye.
+    el.classList.toggle("bypassed", Boolean(node.bypass));
     el.innerHTML = `
         <div class="node-head">
             <span class="node-dot"></span>
             <span class="node-title" data-node-title>${esc(title)}</span>
             <span class="node-cat">${esc(cat)}</span>
             ${openFn}
+            ${BYPASSABLE.has(node.type) ? `<button class="node-mini node-bypass" data-action="toggle-bypass" data-node="${node.id}" title="${node.bypass ? "Bypassed — the value passes through. Click to run this node again" : "Bypass this node: its input passes through untouched"}" aria-pressed="${node.bypass ? "true" : "false"}">${iconFill(node.bypass ? "eyeOff" : "eye")}</button>` : ""}
             <button class="node-mini node-collapse" data-action="toggle-collapse" data-node="${node.id}" title="${node.collapsed ? "Expand node" : "Collapse node"}">${iconFill("chevron")}</button>
             <button class="node-close" data-action="delete-node" data-node="${node.id}" title="Delete node">${iconFill("x")}</button>
         </div>
@@ -1891,6 +1927,8 @@ function buildNode(node) {
         body.appendChild(buildChessNode(node));
     } else if (node.type === "badapple") {
         body.appendChild(buildBadAppleNode(node));
+    } else if (node.type === "note") {
+        body.appendChild(buildNoteNode(node));
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
     } else if (node.type === "template") {
@@ -2014,7 +2052,11 @@ function collapsedPorts(node) {
     } else if (node.type === "symbol") {
         // Nothing can be wired into a symbol node, so a collapsed one shows no input rows
         // at all — only its output anchor, so outgoing wires keep their place.
-    } else {
+    } else if (nodeInPorts(node).includes("main")) {
+        // Anything else that really takes a main wire — a text or file node, an audit, a
+        // gate — anchors that port so its wire keeps its place while the card is shut.
+        // Asking the node rather than listing types here is what keeps a portless card (a
+        // note, the Bad Apple toy) from growing a phantom In row when it is collapsed.
         ports.push({name: "main", label: "In"});
     }
     wrap.innerHTML = ports.map(p => `<div class="io-row">
@@ -5342,6 +5384,21 @@ async function runMagicNode(node, inputBytes, argValues) {
     return {bytes, files, rows: ranked, error: "", warning};
 }
 
+// The value a bypassed node hands on: the first thing wired into it, the main port first
+// and then its numbered inputs (a Join or an Fstring has no main port). With nothing wired
+// in, an operation or text node still contributes its own typed value.
+function bypassedBytes(node, mainBytes, incoming, results) {
+    if (mainBytes != null) return mainBytes;
+    for (const port of nodeInPorts(node)) {
+        if (port === "main") continue;
+        const src = sourceBytesForPort(incoming, node.id, port, results);
+        if (src.bytes != null) return src.bytes;
+    }
+    if (node.type === "op") return opInputBytes(node);
+    if (node.type === "input") return inputNodeBytes(node);
+    return null;
+}
+
 async function executeGraph(nodes, edges, opts = {}) {
     const force = Boolean(opts.force);
     const results = new Map();
@@ -5381,7 +5438,18 @@ async function executeGraph(nodes, edges, opts = {}) {
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
             if (main.error) error = "Upstream error: " + main.error;
-            if (node.type === "op") {
+            if (node.bypass) {
+                // A bypassed node is a straight pipe: whatever arrives on its first wired
+                // input keeps going, so switching one step off leaves the rest of the graph
+                // working. A node with nothing wired in still hands on the value it would
+                // have produced itself, which is the point for an operation with its own
+                // text typed into it. Nothing is cached, so toggling back runs it afresh.
+                sig = "bypass";
+                if (!error) out = bypassedBytes(node, main.bytes, incoming, results);
+                node._portOutputs = null;
+                node._files = null;
+                node._magic = null;
+            } else if (node.type === "op") {
                 const resolved = resolveNodeArgs(node, incoming, results);
                 if (!error && resolved.upstreamError) error = "Upstream error: " + resolved.upstreamError;
                 sig = sigHash(inputSignature(node, incoming, results, opts) + JSON.stringify(resolved.values));
@@ -7949,6 +8017,7 @@ const GRAPH_ITEMS = [
     {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
     {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
     {type: "join", label: "Join", icon: "join", keys: "merge combine concatenate append several inputs", about: "Concatenate several inputs into one"},
+    {type: "note", label: "Note", icon: "note", keys: "note comment sticky memo annotation explain label remind text documentation", about: "Write a note on the canvas — no ports, no run, just an explanation that saves with the graph"},
     {type: "compact", label: "Compact", icon: "bundle", section: "Bundles", keys: "bundle list multiple values many wires combine pack gather collect", about: "Collect several wires into one bundled wire"},
     {type: "expand", label: "Expand", icon: "split", section: "Bundles", keys: "unbundle split list multiple outputs separate distribute unpack", about: "Split a bundled wire into separate outputs"},
     {type: "pick", label: "Pick", icon: "pick", section: "Bundles", keys: "bundle list select choose one single value index item extract pick", about: "Take one value out of a bundled wire"},
@@ -8242,6 +8311,213 @@ function renderSearch() {
     paletteBody.innerHTML = html;
 }
 
+/* ============================================================ command palette */
+// One box for everything reachable from the keyboard: the canvas commands (run, fit, save,
+// share) and every operation, node type and function, ranked as you type. Ctrl/Cmd+K opens
+// it from anywhere, including while a note has focus — being reachable mid-edit is the point.
+// It dispatches the same functions the toolbar and the node list dispatch, so there is no
+// second implementation of anything.
+const PALETTE_COMMANDS = [
+    {label: "Run graph", keys: "execute rerun run now refresh calculate", hint: "Ctrl+Enter", run: () => runGraph(true)},
+    {label: "Fit to view", keys: "zoom frame centre center show all", hint: "View", run: () => fitView()},
+    {label: "Undo", keys: "back revert history", hint: "Ctrl+Z", run: () => undo()},
+    {label: "Redo", keys: "forward history", hint: "Ctrl+Shift+Z", run: () => redo()},
+    {label: "Save in this browser", keys: "save graph store local", hint: "Ctrl+S", run: () => saveCurrentGraph()},
+    {label: "Download graph file", keys: "export download json file", hint: "Ctrl+Shift+S", run: () => saveGraphFile()},
+    {label: "Copy share link", keys: "share url link clipboard", hint: "Link", run: () => copyShareLink()},
+    {label: "New blank graph", keys: "new clear empty reset", hint: "File", run: () => newGraph()},
+    {label: "Browse examples", keys: "example gallery samples demo", hint: "File", run: () => openExampleGallery()},
+    {label: "Toggle theme", keys: "dark light mode appearance colour color", hint: "Appearance", run: () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark")},
+    {label: "Toggle snap to grid", keys: "grid snap align magnet", hint: "Canvas", run: () => setSnap(!snapEnabled)},
+    {label: "Verification lab", keys: "lab check test verify wiring", hint: "Checks", run: () => openLab()},
+    {label: "Help and shortcuts", keys: "help manual documentation shortcut", hint: "?", run: () => $("#helpBtn")?.click()}
+];
+
+let cmdkEl = null, cmdkCard = null, cmdkInput = null, cmdkList = null, cmdkRows = [], cmdkIndex = 0;
+// Last pointer position in viewport coordinates; the box opens where the user's pointer is.
+let cmdkPointer = null;
+
+// Built fresh on each keystroke rather than cached: a function added a moment ago has to be
+// findable, and a few hundred small objects cost nothing next to a render.
+function commandPaletteItems() {
+    // Node-shaped rows take the point the palette hands them; command rows ignore it.
+    const items = PALETTE_COMMANDS.map(c => ({kind: "command", label: c.label, keys: c.keys, hint: c.hint, run: c.run}));
+    // A node and the operation behind it can share a name (Magic is the one case); the node
+    // is the better thing to add, so the operation is not listed a second time.
+    const nodeLabels = new Set(GRAPH_ITEMS.map(item => item.label.toLowerCase()));
+    for (const item of GRAPH_ITEMS) {
+        items.push({kind: "node", label: item.label, keys: `${item.keys} ${item.about}`,
+            hint: item.section || "Graph", run: p => addGraphNode(item.type, p?.x, p?.y)});
+    }
+    for (const fn of state?.functions || []) {
+        items.push({kind: "function", label: fn.name, keys: "function subgraph instance",
+            hint: "Function", run: p => addFunctionNode(fn.id, p?.x, p?.y)});
+    }
+    for (const op of OP_NAMES) {
+        if (FLOW_OPS.has(op) || nodeLabels.has(op.toLowerCase())) continue;
+        const meta = OPS[op] || {};
+        items.push({kind: "op", label: op, keys: `op ${meta.category || ""} ${meta.description || ""}`,
+            hint: SILLY_OPS.has(op) ? "Silly Stuff" : (meta.category || "Operation"), run: p => addOperationNode(op, p?.x, p?.y)});
+    }
+    return items;
+}
+
+// Ranking, rather than a flat match list: an exact name wins, then a name that starts with
+// the query, then a word of the name that does, then anything that merely contains it.
+// Every word of the query has to land somewhere, so "xor 13" still finds XOR with key 13.
+function rankCommandPalette(query) {
+    const items = commandPaletteItems();
+    const q = query.trim().toLowerCase();
+    if (!q) return items.slice(0, 40);
+    const words = q.split(/\s+/).filter(Boolean);
+    const wordsOf = label => label.split(/[\s/\-–—:()]+/).filter(Boolean);
+    const scored = [];
+    for (const item of items) {
+        const label = item.label.toLowerCase();
+        const hay = `${label} ${item.hint} ${item.keys}`.toLowerCase();
+        if (!words.every(w => hay.includes(w))) continue;
+        let score = label.includes(q) ? 40 : 16;
+        if (label === q) score = 100;
+        else if (label.startsWith(q)) score = 80;
+        else if (wordsOf(label).some(w => w.startsWith(q))) score = 60;
+        if (words.every(w => wordsOf(label).some(lw => lw.startsWith(w)))) score += 8;
+        if (item.kind === "command") score += 5;
+        scored.push({item, score, len: label.length});
+    }
+    scored.sort((a, b) => b.score - a.score || a.len - b.len || a.item.label.localeCompare(b.item.label));
+    return scored.slice(0, 80).map(s => s.item);
+}
+
+function highlightCommandPaletteRow(index) {
+    if (!cmdkRows.length) return;
+    cmdkIndex = (index + cmdkRows.length) % cmdkRows.length;
+    for (const row of cmdkList.querySelectorAll("[data-cmdk-row]")) {
+        const on = Number(row.dataset.cmdkRow) === cmdkIndex;
+        row.classList.toggle("sel", on);
+        row.setAttribute("aria-selected", on ? "true" : "false");
+        if (on) row.scrollIntoView({block: "nearest"});
+    }
+}
+
+// Placed at the pointer, like a context menu, and clamped so the whole card stays on screen.
+// Ctrl+K with the pointer never moved falls back to the old top-centre spot.
+function positionCommandPalette() {
+    if (!cmdkCard) return;
+    const pad = 8;
+    const w = cmdkCard.offsetWidth, h = cmdkCard.offsetHeight;
+    let x = cmdkPointer ? cmdkPointer.x : (window.innerWidth - w) / 2;
+    let y = cmdkPointer ? cmdkPointer.y : Math.round(window.innerHeight * 0.12);
+    x = Math.min(Math.max(pad, x), Math.max(pad, window.innerWidth - w - pad));
+    y = Math.min(Math.max(pad, y), Math.max(pad, window.innerHeight - h - pad));
+    cmdkCard.style.left = `${Math.round(x)}px`;
+    cmdkCard.style.top = `${Math.round(y)}px`;
+}
+
+function renderCommandPalette(query) {
+    cmdkRows = rankCommandPalette(query);
+    cmdkIndex = 0;
+    if (!cmdkRows.length) {
+        cmdkList.innerHTML = `<div class="cmdk-empty">Nothing matched “${esc(query.trim())}”.<br>Try “rot13”, “note” or “save”.</div>`;
+        positionCommandPalette();
+        return;
+    }
+    cmdkList.innerHTML = cmdkRows.map((item, i) => `<div class="cmdk-row" role="option" aria-selected="false" data-cmdk-row="${i}" title="${esc(item.keys || item.label)}">
+        <span class="cmdk-name">${esc(item.label)}</span>
+        <span class="cmdk-hint">${esc(item.hint || "")}</span>
+    </div>`).join("");
+    highlightCommandPaletteRow(0);
+    positionCommandPalette();
+}
+
+function openCommandPalette() {
+    if (!cmdkEl) return;
+    cmdkEl.hidden = false;
+    cmdkInput.value = "";
+    renderCommandPalette("");
+    requestAnimationFrame(() => cmdkInput.focus());
+}
+
+function closeCommandPalette() {
+    if (!cmdkEl || cmdkEl.hidden) return;
+    cmdkEl.hidden = true;
+    cmdkInput.blur();
+}
+
+function runCommandPaletteRow(index) {
+    const item = cmdkRows[index];
+    if (!item) return;
+    // A node picked from the box goes where the box was: at the pointer, in graph coordinates.
+    // Clamped to the canvas, since the shortcut also fires with the pointer over the sidebar.
+    let at;
+    if (cmdkPointer) {
+        const r = stage.getBoundingClientRect();
+        const p = screenToWorld(
+            Math.min(Math.max(cmdkPointer.x, r.left + 4), r.right - 4),
+            Math.min(Math.max(cmdkPointer.y, r.top + 4), r.bottom - 4));
+        at = {x: Math.round(p.x), y: Math.round(p.y)};
+    }
+    closeCommandPalette();
+    item.run(at);
+}
+
+function initCommandPalette() {
+    if (cmdkEl) return;
+    cmdkEl = document.createElement("div");
+    cmdkEl.id = "cmdk";
+    cmdkEl.className = "cmdk";
+    cmdkEl.hidden = true;
+    cmdkEl.innerHTML = `<div class="cmdk-card" role="dialog" aria-modal="true" aria-label="Command palette">
+        <div class="cmdk-head">
+            <span class="cmdk-icon"></span>
+            <input id="cmdkInput" class="cmdk-input" placeholder="Run a command, or jump to an operation, node or function…"
+                autocomplete="off" spellcheck="false" aria-label="Command palette" aria-controls="cmdkList" aria-autocomplete="list">
+            <button class="cmdk-esc" type="button" title="Close">Esc</button>
+        </div>
+        <div class="cmdk-list" id="cmdkList" role="listbox" aria-label="Matches"></div>
+        <div class="cmdk-foot"><span><kbd>↑</kbd><kbd>↓</kbd> choose</span><span><kbd>Enter</kbd> run</span><span><kbd>Ctrl</kbd>+<kbd>K</kbd> opens this</span></div>
+    </div>`;
+    document.body.appendChild(cmdkEl);
+    cmdkCard = $(".cmdk-card", cmdkEl);
+    cmdkInput = $(".cmdk-input", cmdkEl);
+    cmdkList = $(".cmdk-list", cmdkEl);
+    $(".cmdk-icon", cmdkEl).innerHTML = svg("search");
+
+    // Capture phase so a handler that swallows the event on the canvas cannot hide the
+    // pointer from us. Taps count too, for the entry that opens the box without a mouse move.
+    const trackPointer = ev => { cmdkPointer = {x: ev.clientX, y: ev.clientY}; };
+    window.addEventListener("pointermove", trackPointer, {capture: true, passive: true});
+    window.addEventListener("pointerdown", trackPointer, {capture: true, passive: true});
+    window.addEventListener("resize", () => { if (!cmdkEl.hidden) positionCommandPalette(); });
+
+    cmdkInput.addEventListener("input", () => renderCommandPalette(cmdkInput.value));
+    cmdkInput.addEventListener("keydown", ev => {
+        if (ev.key === "ArrowDown") { ev.preventDefault(); highlightCommandPaletteRow(cmdkIndex + 1); }
+        else if (ev.key === "ArrowUp") { ev.preventDefault(); highlightCommandPaletteRow(cmdkIndex - 1); }
+        else if (ev.key === "Enter") { ev.preventDefault(); runCommandPaletteRow(cmdkIndex); }
+        else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); closeCommandPalette(); }
+    });
+    // A click on the dimmed area closes it; a click on the card is the user's, not the mask's.
+    cmdkEl.addEventListener("pointerdown", ev => { if (ev.target === cmdkEl) { ev.preventDefault(); closeCommandPalette(); } });
+    $(".cmdk-esc", cmdkEl).addEventListener("click", closeCommandPalette);
+    cmdkList.addEventListener("pointermove", ev => {
+        const row = ev.target.closest?.("[data-cmdk-row]");
+        if (!row) return;
+        const i = Number(row.dataset.cmdkRow);
+        if (i !== cmdkIndex) highlightCommandPaletteRow(i);
+    });
+    cmdkList.addEventListener("click", ev => {
+        const row = ev.target.closest?.("[data-cmdk-row]");
+        if (row) runCommandPaletteRow(Number(row.dataset.cmdkRow));
+    });
+    // Capture phase: the shortcut has to win over the editor's own keys, and over a note or
+    // a title that currently has focus, or it would only work from an empty canvas.
+    document.addEventListener("keydown", ev => {
+        if (!((ev.ctrlKey || ev.metaKey) && !ev.altKey && ev.key.toLowerCase() === "k")) return;
+        ev.preventDefault();
+        if (cmdkEl.hidden) openCommandPalette(); else closeCommandPalette();
+    }, true);
+}
+
 function addOperationNode(op, x, y) {
     if (!op || !OPS[op]) return;
     const p = (x === undefined) ? spawnPoint() : {x, y};
@@ -8284,6 +8560,9 @@ function addGraphNode(type, x, y) {
         state.nodes.push(added);
     } else if (type === "badapple") {
         added = makeNode("badapple", {x: p.x, y: p.y, title: "Bad Apple"});
+        state.nodes.push(added);
+    } else if (type === "note") {
+        added = makeNode("note", {x: p.x, y: p.y, title: "Note"});
         state.nodes.push(added);
     } else if (type === "gate") {
         added = makeNode("gate", {x: p.x, y: p.y, title: "Gate"});
@@ -9883,7 +10162,7 @@ const INTEGRATION_CHECK_IDS = [
     "base64", "aes", "join", "cycle", "selection", "clipboard", "wirehint",
     "function-run", "function-outputs", "function-recursion", "argwire", "undoredo",
     "fnsample", "fntyped", "fnsamplepipe", "magic", "magic-benchmark",
-    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "snap",
+    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "bypass", "note", "snap",
     "save-reload", "export-import", "suite-coverage"
 ];
 function integrationDefinitions() {
@@ -10534,6 +10813,73 @@ function integrationDefinitions() {
             }))
         },
         {
+            id: "bypass",
+            title: "Bypass passes the input straight through",
+            description: "The eye in the header skips a node: ROT13 stops rotating and its input reaches the sink untouched, the card marks itself bypassed, the setting is written into the save and read back by the loader, and switching the eye back restores the rotation.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const source = makeNode("input", {id: 1, x: 0, y: 0, text: "Hello, World!"});
+                const rot = makeNode("op", {id: 2, x: 340, y: 0, op: "ROT13"});
+                const sink = makeNode("input", {id: 3, x: 680, y: 0, text: ""});
+                s.nodes.push(source, rot, sink);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"}
+                );
+                renderAllNodes();
+                const card = () => nodeEl(2);
+                const eye = () => card()?.querySelector('[data-action="toggle-bypass"]');
+                const text = async () => {
+                    const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                    const bytes = res.results.get(3)?.bytes;
+                    return bytes ? utf8(bytes) : "";
+                };
+                const before = await text();
+                const offered = Boolean(eye());
+                eye()?.click();
+                const pressed = rot.bypass === true && Boolean(card()?.classList.contains("bypassed")) &&
+                    eye()?.getAttribute("aria-pressed") === "true";
+                const during = await text();
+                const cleaned = cleanNodeForSave(rot);
+                saveLocalNow();
+                const reloaded = loadLocalGraph()?.nodes.find(n => n.id === 2)?.bypass === true;
+                eye()?.click();
+                const after = await text();
+                const ok = before === "Uryyb, Jbeyq!" && offered && pressed && during === "Hello, World!" &&
+                    cleaned.bypass === true && reloaded && rot.bypass === false && after === "Uryyb, Jbeyq!";
+                return {
+                    ok,
+                    detail: `eye ${offered ? "offered" : "missing"}, rotated ${JSON.stringify(before)}, bypassed ${JSON.stringify(during)}, save keeps ${Boolean(cleaned.bypass && reloaded)}, back ${JSON.stringify(after)}`
+                };
+            }))
+        },
+        {
+            id: "note",
+            title: "A note keeps its text and tint",
+            description: "A sticky note has no ports in or out, does not upset a run, and its words and colour are written into the save and read back by the loader.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const note = makeNode("note", {id: 1, x: 0, y: 0, title: "Why", text: "ROT13 only, for the demo."});
+                s.nodes.push(note);
+                renderAllNodes();
+                const card = nodeEl(1);
+                const ports = card ? card.querySelectorAll(".port").length : -1;
+                const area = card?.querySelector(".note-text");
+                area.value = "Edited on the card";
+                area.dispatchEvent(new Event("input", {bubbles: true}));
+                card.querySelector('[data-note-tone="blue"]').click();
+                const toned = card.dataset.tone === "blue" && note.noteTone === "blue";
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const error = res.results.get(1)?.error || "";
+                saveLocalNow();
+                const back = loadLocalGraph()?.nodes.find(n => n.id === 1);
+                const ok = ports === 0 && note.text === "Edited on the card" && toned && !error &&
+                    back?.text === "Edited on the card" && back?.noteTone === "blue";
+                return {
+                    ok,
+                    detail: `${ports} port(s), text ${JSON.stringify(note.text)}, tone ${note.noteTone}, run error ${JSON.stringify(error)}, reload ${JSON.stringify([back?.text, back?.noteTone])}`
+                };
+            }))
+        },
+        {
             id: "snap",
             title: "Snap moves nodes onto the dot grid",
             description: "Every off-grid node moves to the nearest 22 px dot, one undo puts them all back, and with a function open only that function's body moves while the canvas stays put.",
@@ -10719,7 +11065,7 @@ function refreshIntegrationSummary() {
 function renderIntegration() {
     const wrap = $("#integrationWrap");
     wrap.innerHTML = `
-        <div class="integration-intro">These checks exercise the node runner and the editor itself: typed input/output nodes, fan-out to argument ports, fan-in merging, cycle protection, multi-select, the clipboard, wired-value previews, function blocks, wires into numbers, switches and dropdowns, undo/redo, file-backed function test samples, test samples piped in from inside a function, values typed straight onto a function instance, Compact/Expand/Pick bundles, Fstring, Switch, collapse, preview mode and Full, resize persistence, Snap, saves and export/import. They run through the same embedded engine as the canvas.</div>
+        <div class="integration-intro">These checks exercise the node runner and the editor itself: typed input/output nodes, fan-out to argument ports, fan-in merging, cycle protection, multi-select, the clipboard, wired-value previews, function blocks, wires into numbers, switches and dropdowns, undo/redo, file-backed function test samples, test samples piped in from inside a function, values typed straight onto a function instance, Compact/Expand/Pick bundles, Fstring, Switch, collapse, preview mode and Full, resize persistence, bypass, notes, Snap, saves and export/import. They run through the same embedded engine as the canvas.</div>
         <div class="integration-toolbar">
             <button class="btn-secondary" data-action="run-integrations">${iconFill("play")} Run all wiring checks</button>
             <button class="btn-secondary" data-action="stop-integrations" disabled>Stop</button>
@@ -11363,6 +11709,16 @@ function onNodeActionClick(ev) {
             saveLocalSoon();
             scheduleHistory();
         }
+    } else if (action === "toggle-bypass") {
+        ev.stopPropagation();
+        if (node) {
+            // Bypassing changes what flows downstream, so the graph re-runs at once. It is
+            // part of the document, so it is saved and can be undone like any other edit.
+            node.bypass = !node.bypass;
+            node._sig = "";
+            renderAllNodes();
+            onGraphEdited(true);
+        }
     } else if (action === "preview-full") {
         ev.stopPropagation();
         if (node) {
@@ -11885,6 +12241,7 @@ async function init() {
     updateAutoSwitch();
     initLab();
     initHelp();
+    initCommandPalette();
     initSymbolPanel();
     bindGlobalEvents();
     applyView();
@@ -13473,6 +13830,45 @@ function buildChessNode(node) {
     // A wired FEN or move list reaches this node only after a run, so the runner repaints it.
     wrap._chessRender = render;
     return wrap;
+}
+
+/* ================================================================ note node
+ * A sticky note on the canvas: no ports, nothing to run, just the place to say what a graph
+ * is for. Its words and its tint are part of the document, so a saved or shared file keeps
+ * both. The card resizes like any other, and the text box fills whatever room that leaves.
+ */
+const NOTE_TONES = ["yellow", "blue", "green", "pink"];
+function buildNoteNode(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "note-node";
+    wrap.innerHTML = `
+        <textarea class="control note-text" spellcheck="true" placeholder="Write a note…" aria-label="Note text">${esc(node.text || "")}</textarea>
+        <div class="note-swatches" role="group" aria-label="Note colour">
+            ${NOTE_TONES.map(tone => `<button type="button" class="note-swatch" data-note-tone="${tone}" title="${tone[0].toUpperCase() + tone.slice(1)}" aria-pressed="${(node.noteTone || "yellow") === tone ? "true" : "false"}"></button>`).join("")}
+        </div>
+    `;
+    const area = $(".note-text", wrap);
+    // Typing is a document edit, not a graph edit: there is nothing downstream to run.
+    area.addEventListener("input", () => {
+        node.text = area.value;
+        saveLocalSoon();
+    });
+    area.addEventListener("change", () => scheduleHistory());
+    for (const btn of wrap.querySelectorAll("[data-note-tone]")) {
+        btn.addEventListener("click", ev => {
+            ev.stopPropagation();
+            node.noteTone = btn.dataset.noteTone;
+            applyNoteTone(node);
+            for (const other of wrap.querySelectorAll("[data-note-tone]")) other.setAttribute("aria-pressed", String(other === btn));
+            saveLocalSoon();
+            scheduleHistory();
+        });
+    }
+    return wrap;
+}
+function applyNoteTone(node) {
+    const el = nodeEl(node.id);
+    if (el) el.dataset.tone = node.noteTone || "yellow";
 }
 
 /* ================================================================ Bad Apple node

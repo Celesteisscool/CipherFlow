@@ -603,6 +603,17 @@ button svg { flex: 0 0 auto; }
 .node.collapsed .node-collapse svg { transform: none; }
 .node.collapsed .node-body { display: none; }
 .node.collapsed .node-head { border-bottom-color: transparent; border-radius: 13px; }
+/* A bypassed node is skipped by the runner, so the card says so before its body is read:
+ * the title is struck through, the accent dot goes hollow and the eye stays pressed in. */
+.node.bypassed .node-title { text-decoration: line-through; opacity: .65; }
+.node.bypassed .node-body { opacity: .62; }
+.node.bypassed .node-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--node-accent); }
+.node-mini.node-bypass[aria-pressed="true"] {
+    opacity: 1;
+    color: var(--node-accent);
+    background: color-mix(in srgb, var(--node-accent) 12%, transparent);
+}
+.node-mini.node-bypass[aria-pressed="true"]:hover { color: var(--node-accent); background: color-mix(in srgb, var(--node-accent) 18%, transparent); }
 .node.collapsed { box-shadow: 0 2px 5px rgba(20, 22, 27, 0.09), 0 8px 18px rgba(20, 22, 27, 0.05); }
 /* Resize grip in the bottom-right corner. */
 .node-resize {
@@ -1289,6 +1300,9 @@ select.control { padding-right: 4px; }
 /* A collapsed node keeps a stub carrying every wired port, so its wires never move. */
 .collapsed-ports { display: none; flex-direction: column; gap: 1px; padding: 4px 13px 8px; }
 .node.collapsed .collapsed-ports { display: flex; }
+/* A card with no ports at all (a note, the Bad Apple toy) draws no rows, so the box it would
+ * have filled must not leave a padded strip under the title. */
+.node.collapsed .collapsed-ports:empty { display: none; }
 .collapsed-ports .io-row { min-height: 17px; font-size: 9.5px; }
 /* A long port name shortens instead of widening the collapsed node out of shape. */
 .collapsed-ports .io-label { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1297,6 +1311,10 @@ select.control { padding-right: 4px; }
 .collapsed-ports .io-out-row:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 /* The collapsed head sits above the port stub, so it keeps a normal border. */
 .node.collapsed .node-head { border-radius: 13px 13px 0 0; }
+/* With no rows to sit under it, the head *is* the whole card, so it has to round on every
+ * corner: keeping square bottom corners there lets the head's tinted panel poke past the
+ * card's rounded edge. */
+.node.collapsed:has(> .collapsed-ports:empty) .node-head { border-radius: 13px; }
 /* ----------------------------------------------------------------- sidebar */
 .sidebar {
     min-height: 0;
@@ -1721,6 +1739,130 @@ a.icon-button:hover { color: var(--ink); }
     -webkit-backdrop-filter: blur(5px);
 }
 .modal[hidden] { display: none; }
+
+/* ------------------------------------------------------------- command palette */
+/* Sits above the modals (100): it is the top layer by design, since it can be summoned from
+ * inside a note, a title or the function editor. This element is the mask and the containing
+ * block; the card is placed by positionCommandPalette() at the pointer, so no flex centring. */
+/* No scrim: unlike the modals, this one leaves the graph at full brightness, like an inline
+ * editor. The element still spans the window so an outside click closes the box. */
+.cmdk {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    background: transparent;
+}
+.cmdk[hidden] { display: none; }
+.cmdk-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    display: flex;
+    flex-direction: column;
+    width: min(420px, calc(100% - 24px));
+    max-height: min(60vh, 420px);
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: modal-in 140ms ease both;
+}
+.cmdk-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto;
+    height: 38px;
+    padding: 0 8px 0 10px;
+    border-bottom: 1px solid var(--line);
+}
+.cmdk-icon { display: inline-flex; color: var(--faint); }
+.cmdk-icon svg { width: 13px; height: 13px; }
+.cmdk-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12.5px;
+}
+.cmdk-input::placeholder { color: var(--faint); }
+.cmdk-esc {
+    flex: 0 0 auto;
+    height: 19px;
+    padding: 0 5px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--panel-2);
+    color: var(--faint);
+    font-size: 9px;
+    letter-spacing: .04em;
+}
+.cmdk-esc:hover { color: var(--ink); border-color: var(--line-strong); }
+/* Three rows, and the rest are a scroll away: a fixed row height keeps that exact rather
+ * than letting a sliver of the fourth peek out. */
+.cmdk-list { flex: 1 1 auto; min-height: 0; max-height: 91px; overflow-y: auto; padding: 5px; }
+.cmdk-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    height: 27px;
+    padding: 0 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.cmdk-row.sel {
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 36%, transparent);
+}
+.cmdk-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--ink);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cmdk-row.sel .cmdk-name { color: color-mix(in srgb, var(--accent) 62%, var(--ink)); }
+.cmdk-hint {
+    flex: 0 0 auto;
+    max-width: 45%;
+    color: var(--faint);
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cmdk-empty { padding: 20px 12px; text-align: center; color: var(--faint); font-size: 11px; line-height: 1.55; }
+.cmdk-foot {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-top: 1px solid var(--line);
+    color: var(--faint);
+    font-size: 9px;
+}
+.cmdk-foot kbd {
+    margin-right: 2px;
+    padding: 0 4px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 8.5px;
+}
+@media (max-width: 600px) {
+    .cmdk-hint { display: none; }
+}
 
 /* ------------------------------------------------------------------ example gallery */
 .ex-card {
@@ -3012,6 +3154,58 @@ body.has-sym-rail .toolbar { left: 43px; }
 /* The list is edited in place and the node is as tall as its contents, so no drag grip. */
 .chess-node textarea.typed-input { resize: none; }
 
+/* ---------------------------------------------------------------- note node */
+/* A sticky note: no ports and nothing to run, just the graph's own explanation. The tint
+ * mixes into the theme's card colour rather than replacing it, so both themes stay readable. */
+.node.type-note { width: 250px; }
+.node.type-note[data-tone="yellow"] { --note-tint: #e8b93a; }
+.node.type-note[data-tone="blue"] { --note-tint: #4f8bd6; }
+.node.type-note[data-tone="green"] { --note-tint: #4f9d6a; }
+.node.type-note[data-tone="pink"] { --note-tint: #d2688f; }
+.node.type-note {
+    background: color-mix(in srgb, var(--note-tint, #e8b93a) 13%, var(--node));
+    border-color: color-mix(in srgb, var(--note-tint, #e8b93a) 38%, var(--line-strong));
+}
+.node.type-note .node-head { background: color-mix(in srgb, var(--note-tint, #e8b93a) 15%, var(--node)); }
+.node.type-note .node-head::before { background: var(--note-tint, #e8b93a); }
+.node.type-note .node-dot { background: var(--note-tint, #e8b93a); box-shadow: 0 0 0 3px color-mix(in srgb, var(--note-tint, #e8b93a) 20%, transparent); }
+.note-node { display: flex; flex-direction: column; gap: 7px; }
+/* The note is written, not computed: a sans face and no dashed "typed input" border. The
+ * element-qualified selector is deliberate: `textarea.control` also sets `resize`, and at
+ * equal specificity this later rule is what actually keeps the browser's grip off the box —
+ * the card's own corner grip is the only way to size a note. */
+textarea.note-text {
+    min-height: 84px;
+    resize: none;
+    border-style: solid;
+    border-color: transparent;
+    background: transparent;
+    padding: 4px 6px;
+    font-family: var(--sans);
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+.note-text:hover { border-color: transparent; background: color-mix(in srgb, var(--ink) 3%, transparent); }
+.note-text:focus { border-color: color-mix(in srgb, var(--note-tint, #e8b93a) 55%, var(--line)); box-shadow: none; }
+.note-swatches { display: flex; gap: 6px; margin-top: auto; opacity: .5; transition: opacity 120ms ease; }
+.node:hover .note-swatches, .node:focus-within .note-swatches { opacity: 1; }
+.note-swatch {
+    width: 13px; height: 13px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+    cursor: pointer;
+}
+.note-swatch[data-note-tone="yellow"] { background: #e8b93a; }
+.note-swatch[data-note-tone="blue"] { background: #4f8bd6; }
+.note-swatch[data-note-tone="green"] { background: #4f9d6a; }
+.note-swatch[data-note-tone="pink"] { background: #d2688f; }
+.note-swatch[aria-pressed="true"] { outline: 2px solid color-mix(in srgb, var(--ink) 45%, transparent); outline-offset: 1px; }
+/* A resized note hands its spare height to the text instead of leaving it blank. */
+.node.resized.type-note .node-body { display: flex; flex-direction: column; }
+.node.resized.type-note .note-node { flex: 1 1 auto; min-height: 0; }
+.node.resized.type-note .note-text { flex: 1 1 auto; min-height: 42px; }
+
 /* ---------------------------------------------------------------- Bad Apple node */
 /* A card with no wires at all: the shadow-art PV, a play button, the progress line, and a
  * small equalizer that moves only while the clip is actually playing. */
@@ -3121,6 +3315,7 @@ body.has-sym-rail .toolbar { left: 43px; }
 @media (pointer: coarse) {
     .node-head { height: 44px; touch-action: none; }
     .node-mini { width: 26px; height: 26px; }
+    .node-mini.node-bypass { opacity: .8; }
     .node-mini svg { width: 13px; height: 13px; }
     /* The delete X is revealed on hover, and a finger never hovers: on a phone it sat at
        opacity 0 in every node's corner, invisible but still tappable. */

@@ -384,6 +384,8 @@ ${css}
                 <ul>
                     <li>Drag a node by its title bar to move it; drag the dotted canvas to pan, or scroll to zoom. <b>Fit</b>, in the bottom-left controls, frames the whole graph.</li>
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
+                    <li>A <b>Note</b>, from the Graph list, is a sticky note on the canvas: no ports and nothing to run, just somewhere to explain the graph. Click one of the four dots along its bottom edge to tint it; the words and the tint are saved with the graph, and a resized note gives the extra room to its text.</li>
+                    <li>The <b>eye</b> beside it bypasses the node: its input passes through untouched, so one step can be switched off without unwiring it. The title is struck through while it is bypassed, and clicking the eye again runs it normally. A bypassed node is saved that way, and undo puts it back.</li>
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename any node, an operation or a function instance included.</li>
                     <li><b>Snap</b>, beside Fit in the bottom-left controls, is a toggle. Turning it on puts every node on the graph back on the nearest grid dot and then keeps them there: dragged nodes track the grid as they move. It lights up while it is holding and the setting is remembered, so a reload comes back snapped. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
                     <li>Click a wire to select it — an <b>×</b> appears in the middle. Click the × to remove it, or double-click the wire.</li>
@@ -413,6 +415,7 @@ ${css}
                 <summary><h3>Running and shortcuts</h3></summary>
                 <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed.</p>
                 <ul class="help-keys">
+                    <li><kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette: run, fit, save, share, or jump to any operation, node or function</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph</li>
                     <li><kbd>Ctrl</kbd>+<kbd>S</kbd> saves in this browser</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> downloads the graph</li>

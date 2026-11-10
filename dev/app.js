@@ -386,6 +386,10 @@ const CATEGORIES = META.categories
     .map(c => ({...c, color: CAT_COLORS[c.name] || CAT_COLORS.Other, ops: c.ops.filter(op => !FLOW_OPS.has(op) && op !== MAGIC_OP)}))
     .filter(c => c.ops.length);
 const GRAPH_COLOR = CAT_COLORS.Graph;
+// Joke operations the engine files under a real category. They are offered under Silly
+// Stuff in the node list instead, with the graph nodes that live there: one place for the
+// things that are there for fun rather than for a cryptogram.
+const SILLY_OPS = new Set(["Numberwang", "XKCD Random Number"]);
 // Function blocks get their own accent so an instance reads differently from an operation.
 const FUNCTION_COLOR = "#0f8f8f";
 
@@ -519,6 +523,9 @@ function categoryOf(op) {
     return OPS[op]?.category || "Other";
 }
 function opAccent(op) {
+    // A joke operation wears the colour of the category it is offered under, not the one the
+    // engine filed it in, so its node matches the row that added it.
+    if (SILLY_OPS.has(op)) return GRAPH_COLOR;
     return CAT_COLORS[categoryOf(op)] || CAT_COLORS.Other;
 }
 
@@ -7987,25 +7994,39 @@ function buildPalette() {
         // The image/document audits are graph nodes but read like the Multimedia operations,
         // so they are listed first in that category rather than in a section of their own.
         const extra = cat.name === "Multimedia" ? MEDIA_ITEMS : [];
+        // The joke operations are listed under Silly Stuff instead of the category the engine
+        // files them in, so the list never offers the same operation twice.
+        const ops = cat.ops.filter(op => !SILLY_OPS.has(op));
         html += `<div class="cat" data-cat="${esc(cat.name)}" style="--cat-accent:${color}">
             <button class="cat-head" data-cat-toggle="${esc(cat.name)}">
                 <span class="cat-dot"></span>
                 <span class="cat-name">${esc(cat.name)}</span>
-                <span class="cat-count">${cat.ops.length + extra.length}</span>
+                <span class="cat-count">${ops.length + extra.length}</span>
                 ${iconFill("chevron").replace("<svg", '<svg class="cat-chevron"')}
             </button>
             <div class="cat-items">
                 ${extra.map(item => `<button class="op-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="op-name">${esc(item.label)}</span></button>`).join("")}
-                ${cat.ops.map(op => `<button class="op-item" data-op="${esc(op)}" title="${esc(OPS[op]?.description || op)}"><span class="op-name">${esc(op)}</span></button>`).join("")}
+                ${ops.map(op => `<button class="op-item" data-op="${esc(op)}" title="${esc(OPS[op]?.description || op)}"><span class="op-name">${esc(op)}</span></button>`).join("")}
             </div>
         </div>`;
     }
     html += `</div>`;
-    // Silly Stuff closes the list, under the operation categories.
-    if (SILLY_ITEMS.length) {
+    // Silly Stuff closes the list, under the operation categories — as a category itself:
+    // the same folding head, count and chevron, so it opens and remembers like the rest.
+    if (SILLY_ITEMS.length || SILLY_OPS.size) {
         html += `<div class="palette-section">
-            <div class="palette-section-title">Silly Stuff</div>
-            ${SILLY_ITEMS.map(item => `<button class="graph-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="graph-icon">${iconFill(item.icon)}</span>${esc(item.label)}<small>+</small></button>`).join("")}
+            <div class="cat" data-cat="Silly Stuff" style="--cat-accent:${GRAPH_COLOR}">
+                <button class="cat-head" data-cat-toggle="Silly Stuff">
+                    <span class="cat-dot"></span>
+                    <span class="cat-name">Silly Stuff</span>
+                    <span class="cat-count">${SILLY_ITEMS.length + SILLY_OPS.size}</span>
+                    ${iconFill("chevron").replace("<svg", '<svg class="cat-chevron"')}
+                </button>
+                <div class="cat-items">
+                    ${SILLY_ITEMS.map(item => `<button class="op-item" data-graph-node="${item.type}" title="${esc(item.about)}"><span class="op-name">${esc(item.label)}</span></button>`).join("")}
+                    ${[...SILLY_OPS].map(op => `<button class="op-item" data-op="${esc(op)}" title="${esc(OPS[op]?.description || op)}"><span class="op-name">${esc(op)}</span></button>`).join("")}
+                </div>
+            </div>
         </div>`;
     }
     paletteBody.innerHTML = html;
@@ -8181,7 +8202,9 @@ function renderSearch() {
     const matches = OP_NAMES.filter(op => {
         if (FLOW_OPS.has(op) || graphLabels.has(op.toLowerCase())) return false;
         const m = OPS[op];
-        return op.toLowerCase().includes(q) || m.category.toLowerCase().includes(q) || (m.description || "").toLowerCase().includes(q);
+        return op.toLowerCase().includes(q) || m.category.toLowerCase().includes(q)
+            || (SILLY_OPS.has(op) && "silly stuff".includes(q))
+            || (m.description || "").toLowerCase().includes(q);
     });
     const total = graphMatches.length + matches.length;
     let html = `<div class="search-results"><div class="search-meta">${total} match${total === 1 ? "" : "es"}</div>`;
@@ -8195,7 +8218,7 @@ function renderSearch() {
             }
         }
         for (const op of matches.slice(0, 180)) {
-            html += `<div class="search-item" data-op="${esc(op)}"><span class="si-name">${esc(op)}</span><span class="si-cat">${esc(OPS[op].category)}</span></div>`;
+            html += `<div class="search-item" data-op="${esc(op)}"><span class="si-name">${esc(op)}</span><span class="si-cat">${esc(SILLY_OPS.has(op) ? "Silly Stuff" : OPS[op].category)}</span></div>`;
         }
         if (matches.length > 180) html += `<div class="search-meta">Showing first 180 matches — refine your search.</div>`;
     }
@@ -11325,6 +11348,23 @@ function initHelp() {
     const tourBtn = $("#tourBtn");
     if (tourBtn) tourBtn.addEventListener("click", () => { modal.hidden = true; startTour(); });
     modal.addEventListener("click", ev => { if (ev.target === modal) modal.hidden = true; });
+
+    // Every topic is a <details>, so the panel opens as a short list of headings. The button
+    // opens the whole reference at once for someone who would rather read it end to end.
+    const secs = [...modal.querySelectorAll("details.help-section")];
+    const expandBtn = $("#helpExpandAll");
+    if (expandBtn && secs.length) {
+        const syncExpand = () => {
+            expandBtn.textContent = secs.every(sec => sec.open) ? "Collapse all" : "Expand all";
+        };
+        expandBtn.addEventListener("click", () => {
+            const open = !secs.every(sec => sec.open);
+            secs.forEach(sec => { sec.open = open; });
+            syncExpand();
+        });
+        secs.forEach(sec => sec.addEventListener("toggle", syncExpand));
+        syncExpand();
+    }
 
     // The contact block sits at the foot of the reference and stays behind a gate: it asks
     // whether the panel has actually been read before it puts a Discord name on screen, and

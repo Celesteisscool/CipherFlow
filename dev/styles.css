@@ -2170,6 +2170,49 @@ a.icon-button:hover { color: var(--ink); }
 .help-section i { color: var(--ink); font-style: normal; font-weight: 600; }
 .help-section code { font-family: var(--mono); font-size: 9.8px; padding: 1px 4px; border-radius: 4px; background: var(--panel-2); border: 1px solid var(--line); }
 
+/* Each topic folds into its heading, so the panel opens as a list of what it covers rather
+   than one long scroll and only the section being looked up has to be read. `<details>`
+   brings its own keyboard and screen-reader behaviour; only the marker and spacing change. */
+.help-section > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+}
+.help-section > summary::-webkit-details-marker { display: none; }
+.help-section > summary h3 { margin: 0; }
+.help-section > summary::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin-left: auto;
+    flex: 0 0 auto;
+    border-right: 1.6px solid var(--faint);
+    border-bottom: 1.6px solid var(--faint);
+    transform: rotate(-45deg);
+    transition: transform 140ms ease;
+}
+.help-section[open] > summary { margin-bottom: 7px; }
+.help-section[open] > summary::after { transform: rotate(45deg); }
+.help-section > summary:hover h3 { color: var(--accent); }
+.help-section > summary:hover::after { border-color: var(--accent); }
+.help-section > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+details.help-section:not([open]) { padding: 10px 0; }
+/* Sits with the links above the topics: one press opens or closes the whole reference. */
+.help-expand {
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-size: 10.5px;
+    font-weight: 620;
+    cursor: pointer;
+}
+.help-expand:hover { text-decoration: underline; }
+
 /* The contact block closes the panel: a gate question in place of the reveal button it
    replaces, then the handle itself. Each state is its own element, so the panel keeps its
    height while it walks through them instead of pushing the text around. */

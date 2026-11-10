@@ -29,19 +29,18 @@ Any static file server works, since the app is a single HTML file.
 
 ## Deploy with GitHub Pages
 
-The site is published from the orphan **`gh-pages` branch**. It holds `index.html` and
-`.nojekyll` and nothing else, so the app is the only thing reachable at the Pages origin — no
-`dev/` sources, report notes or working docs.
+This repo is laid out for Pages: `index.html` is at the repository root, and Pages serves that
+branch root as the site.
 
 1. Push this repo to GitHub (see below).
-2. Publish the app: `node dev/build.mjs && node dev/publish-pages.mjs` (creates or updates the
-   `gh-pages` branch).
-3. In the repository, go to **Settings → Pages** and set **Source** to `Deploy from a branch`,
-   branch **`gh-pages`**, folder **`/ (root)`**.
+2. In the repository, go to **Settings → Pages**.
+3. Under **Build and deployment**, set **Source** to `Deploy from a branch`, branch **`main`**,
+   folder **`/ (root)`**.
 4. Once the deploy finishes the site is live at `https://<your-username>.github.io/<repo-name>/`.
 
-The published tree carries a `.nojekyll` file, so Pages serves the page verbatim instead of
-running it through Jekyll.
+Everything committed to `main` is reachable at that origin, so keep private working notes out
+of the tree. The tracked `.nojekyll` file makes Pages serve the files verbatim instead of
+running them through Jekyll.
 
 **Push it the first time:**
 
@@ -64,7 +63,6 @@ dev/styles.css        UI source: styles
 dev/dcode/            recreated dCode/CacheSleuth operations (payload + runtime + ops)
 dev/symbols/          symbol alphabets: shipped glyph art, tag vocabulary, source verifier
 dev/build.mjs         inlines app.js, styles.css, the engine and metadata into index.html
-dev/publish-pages.mjs publishes index.html to the gh-pages branch that Pages serves
 dev/gen-meta.mjs      builds the operation catalogue + test plan
 dev/serve.mjs         tiny dev static server (dev only, not part of the app)
 dev/collect-*.mjs     scripts that collect the operation fixtures/tests used by gen-meta

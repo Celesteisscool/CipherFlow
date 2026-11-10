@@ -1721,6 +1721,62 @@ a.icon-button:hover { color: var(--ink); }
     -webkit-backdrop-filter: blur(5px);
 }
 .modal[hidden] { display: none; }
+
+/* ------------------------------------------------------------------ example gallery */
+.ex-card {
+    display: flex;
+    flex-direction: column;
+    width: min(880px, 100%);
+    max-height: min(86vh, 760px);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: modal-in 160ms ease both;
+}
+.ex-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 0 0 auto;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--line);
+}
+.ex-head > div { flex: 1 1 auto; min-width: 0; }
+.ex-lede { margin: 5px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+.ex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    padding: 14px 18px 18px;
+    overflow-y: auto;
+}
+.ex-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 11px 12px 10px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: var(--bg);
+    color: var(--ink);
+    text-align: left;
+    transition: border-color 120ms ease, transform 120ms ease;
+}
+.ex-tile:hover,
+.ex-tile:focus-visible { border-color: var(--accent); transform: translateY(-1px); }
+.ex-tile:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent); }
+.ex-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--accent) 80%, var(--ink)); }
+.ex-name { font-size: 13px; font-weight: 600; }
+.ex-blurb { color: var(--muted); font-size: 10.5px; line-height: 1.4; }
+.ex-open { display: inline-flex; align-items: center; gap: 3px; margin-top: 2px; color: var(--faint); font-size: 10px; }
+.ex-open svg { width: 9px; height: 9px; }
+@media (max-width: 600px) {
+    .ex-head { padding: 13px 14px 10px; }
+    .ex-grid { grid-template-columns: 1fr; padding: 10px 12px 14px; }
+}
 /* ------------------------------------------------------------------ function editor */
 .modal.fn-editor { padding: 0; background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
 .fn-card {
@@ -2955,6 +3011,51 @@ body.has-sym-rail .toolbar { left: 43px; }
 .chess-status.warn { color: #d06a4a; }
 /* The list is edited in place and the node is as tall as its contents, so no drag grip. */
 .chess-node textarea.typed-input { resize: none; }
+
+/* ---------------------------------------------------------------- Bad Apple node */
+/* A card with no wires at all: the shadow-art PV, a play button, the progress line, and a
+ * small equalizer that moves only while the clip is actually playing. */
+.node.type-badapple { width: 300px; }
+.ba-node { display: flex; flex-direction: column; gap: 7px; }
+/* The picture is black-and-white silhouette art, so it sits on black in either theme. */
+.ba-screen { border-radius: 7px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; }
+.ba-video { display: block; width: 100%; height: 100%; object-fit: contain; cursor: pointer; }
+/* A resized card is a fixed box, so the picture has to fit it: with a 4:3 ratio it would
+ * otherwise grow taller than the dragged height and spill out under the card's bottom edge
+ * (and the grip). The screen takes whatever room is left and the video letterboxes inside. */
+.node.resized.type-badapple .ba-node { flex: 1 1 auto; min-height: 0; }
+.node.resized.type-badapple .ba-screen { flex: 1 1 0; min-height: 0; aspect-ratio: auto; }
+.ba-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.ba-title { font-size: 11px; font-weight: 600; color: var(--ink); }
+.ba-time { font-size: 9px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.ba-track { height: 4px; border-radius: 2px; background: var(--preview-bg); overflow: hidden; }
+.ba-fill { display: block; height: 100%; width: 0; border-radius: 2px; background: var(--node-accent); }
+.ba-row { display: flex; align-items: center; gap: 8px; }
+.ba-play {
+    height: 24px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--preview-bg);
+    color: var(--ink);
+    font-size: 10px;
+    font-weight: 560;
+    cursor: pointer;
+}
+.ba-play:hover { border-color: var(--line-strong); }
+.ba-node.playing .ba-play { border-color: var(--node-accent); color: var(--node-accent); }
+.ba-note { font-size: 9px; color: var(--faint); }
+.ba-eq { display: flex; align-items: flex-end; gap: 2px; height: 13px; margin-left: auto; }
+.ba-eq i { width: 3px; height: 3px; border-radius: 1px; background: var(--node-accent); opacity: .3; }
+.ba-node.playing .ba-eq i { opacity: 1; animation: ba-eq 620ms ease-in-out infinite alternate; }
+.ba-eq i:nth-child(2) { animation-delay: -180ms; }
+.ba-eq i:nth-child(3) { animation-delay: -300ms; }
+.ba-eq i:nth-child(4) { animation-delay: -90ms; }
+.ba-eq i:nth-child(5) { animation-delay: -240ms; }
+@keyframes ba-eq { from { height: 3px; } to { height: 13px; } }
+@media (prefers-reduced-motion: reduce) {
+    .ba-node.playing .ba-eq i { animation: none; height: 9px; }
+}
 
 /* A gate: one wire, held until its button is pressed. */
 .gate-node { display: flex; flex-direction: column; gap: 6px; }

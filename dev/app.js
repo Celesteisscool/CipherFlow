@@ -474,6 +474,9 @@ function nodeInPorts(node, lookup) {
         case "symbol":
             // A transcription source: nothing is piped into it, it only hands text out.
             return [];
+        case "badapple":
+            // A toy: nothing goes in, nothing comes out. It only plays.
+            return [];
         default:
             return ["main"];
     }
@@ -492,6 +495,8 @@ function nodeOutPorts(node, lookup) {
         case "chess":
             // The game on one wire and every legal move in it on the other.
             return ["out", "legal"];
+        case "badapple":
+            return [];
         default:
             return ["out"];
     }
@@ -1400,7 +1405,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "audioinfo", "audiolevels", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "audioinfo", "audiolevels", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol", "badapple"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1556,6 +1561,10 @@ function applyGraph(data, {fit = true} = {}) {
     if (editingFunctionId) closeFunctionEditor();
     state = data;
     state.functions = state.functions || [];
+    // Not every graph carries a view: the example gallery's short graphs are just nodes and
+    // wires, and a hand-written file can leave it out too. Without one fitView, panning and
+    // zooming all throw on state.view, leaving a canvas that draws but never moves.
+    if (!state.view) state.view = {x: 80, y: 90, zoom: 0.9};
     state.autoRun = data.autoRun !== false;
     renumberState(state);
     for (const n of state.nodes) {
@@ -1732,6 +1741,7 @@ function sourceTitle(node) {
     if (node.type === "audiolevels") return node.title || "Audio Levels";
     if (node.type === "symbol") return node.title || symbolCipherName(node.symbolCipher);
     if (node.type === "chess") return node.title || "Chess";
+    if (node.type === "badapple") return node.title || "Bad Apple";
     if (node.type === "gate") return node.title || "Gate";
     if (node.type === "join") return node.title || "Join";
     if (node.type === "template") return node.title || "Fstring";
@@ -1765,6 +1775,7 @@ function nodeCategoryLabel(node) {
     }
     if (node.type === "symbol") return "Symbols";
     if (node.type === "chess") return "Chess";
+    if (node.type === "badapple") return "Silly Stuff";
     if (node.type === "gate") return "Gate";
     if (node.type === "join") return "Join";
     if (node.type === "template") return "Fstring";
@@ -1814,6 +1825,8 @@ function renderAllNodes() {
         fnEditor.meta.textContent = `${state.nodes.length} node${state.nodes.length === 1 ? "" : "s"}`;
     }
     scheduleEdges();
+    // A removed card takes its clip with it; this also clears what a loaded graph left behind.
+    paintBadAppleCards();
 }
 
 function buildNode(node) {
@@ -1876,6 +1889,8 @@ function buildNode(node) {
         body.appendChild(buildSpectrogramNode(node));
     } else if (node.type === "chess") {
         body.appendChild(buildChessNode(node));
+    } else if (node.type === "badapple") {
+        body.appendChild(buildBadAppleNode(node));
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
     } else if (node.type === "template") {
@@ -7941,6 +7956,7 @@ const GRAPH_ITEMS = [
     {type: "template", label: "Fstring", icon: "template", keys: "format f-string fstring template interpolate placeholder variable sprintf build string input", about: "Build one string out of several inputs"},
     {type: "math", label: "Math", icon: "math", keys: "arithmetic math calculate calculator formula expression add subtract multiply divide power modulo numbers input", about: "Evaluate an arithmetic expression over several inputs"},
     {type: "chess", label: "Chess", icon: "chess", section: "Silly Stuff", keys: "chess board moves game pgn san notation play pieces position", about: "Read a move list, or play moves on the board"},
+    {type: "badapple", label: "Bad Apple", icon: "play", section: "Silly Stuff", keys: "bad apple video pv silhouette animation song play music silly meme", about: "Plays the Bad Apple!! shadow-art PV — no wires, no output, just the video"},
     {type: "switch", label: "Switch", icon: "switch", keys: "case map dictionary lookup match key value replace choose branch input", about: "Pick an output by matching the input"},
     {type: "gate", label: "Gate", icon: "play", keys: "gate break loop cycle feedback hold step release press pause iteration repeat feedback", about: "Hold a wire and let a loop run a step at a time"},
     {type: "magic", label: "Magic", icon: "wand", keys: "detect decrypt guess rank auto", about: "Rank every operation in the library for this input"},
@@ -8266,6 +8282,9 @@ function addGraphNode(type, x, y) {
     } else if (type === "chess") {
         added = makeNode("chess", {x: p.x, y: p.y, title: "Chess"});
         state.nodes.push(added);
+    } else if (type === "badapple") {
+        added = makeNode("badapple", {x: p.x, y: p.y, title: "Bad Apple"});
+        state.nodes.push(added);
     } else if (type === "gate") {
         added = makeNode("gate", {x: p.x, y: p.y, title: "Gate"});
         state.nodes.push(added);
@@ -8343,6 +8362,7 @@ function initToolbar() {
         if (action === "run") { clearTimeout(runTimer); runGraph(true); }
     });
     initFileMenu();
+    initExampleGallery();
 }
 
 function newGraph() {
@@ -8355,15 +8375,192 @@ function newGraph() {
     renderFileMenu();
     toast("New graph");
 }
-function loadExample() {
-    if (state.nodes.length && !confirm("Load the example? This replaces what is on the canvas. Saved graphs in this browser are kept.")) return;
+/* ================================================================ example gallery */
+// Ready-made graphs for File → Load → Browse examples. Each tile is ordinary graph JSON
+// that goes through normalizeLoaded() exactly like an imported file, so a tile can only
+// open something the editor already knows how to draw, and everything on the canvas is
+// editable like any other graph. They stay short on purpose: a tile is a starting point,
+// and a chain of two or three nodes is easier to take apart than a finished script.
+function exampleNode(id, type, x, y, extra = {}) {
+    return {...extra, id, type, x, y};
+}
+function exampleEdge(from, to, toPort = "main") {
+    return {from, to, toPort, fromPort: "out"};
+}
+const EXAMPLES = [
+    {
+        id: "rot13",
+        tag: "ROT13",
+        name: "ROT13 round trip",
+        blurb: "The tour's first graph: two ports, two wires, and “Hello World” coming out rotated.",
+        nodes: [
+            exampleNode(1, "input", 40, 120, {title: "Input", text: "Hello World", encoding: "utf8"}),
+            exampleNode(2, "op", 400, 120, {op: "ROT13"}),
+            exampleNode(3, "input", 760, 120, {title: "Result", text: ""})
+        ],
+        edges: [exampleEdge(1, 2), exampleEdge(2, 3)]
+    },
+    {
+        id: "base64",
+        tag: "Base64",
+        name: "Base64 round trip",
+        blurb: "Encode text to Base64, then decode it again — a two-step chain that ends where it started.",
+        nodes: [
+            exampleNode(1, "input", 40, 120, {title: "Input", text: "CipherFlow — offline and free", encoding: "utf8"}),
+            exampleNode(2, "op", 410, 120, {op: "To Base64"}),
+            exampleNode(3, "op", 780, 120, {op: "From Base64"}),
+            exampleNode(4, "input", 1150, 120, {title: "Result", text: ""})
+        ],
+        edges: [exampleEdge(1, 2), exampleEdge(2, 3), exampleEdge(3, 4)]
+    },
+    {
+        id: "morse",
+        tag: "Morse",
+        name: "Morse code round trip",
+        blurb: "SOS HELP to dots and dashes, then straight back — a look at an operation's typed arguments.",
+        nodes: [
+            exampleNode(1, "input", 40, 120, {title: "Input", text: "SOS HELP", encoding: "utf8"}),
+            exampleNode(2, "op", 410, 120, {op: "To Morse Code"}),
+            exampleNode(3, "op", 780, 120, {op: "From Morse Code"}),
+            exampleNode(4, "input", 1150, 120, {title: "Result", text: ""})
+        ],
+        edges: [exampleEdge(1, 2), exampleEdge(2, 3), exampleEdge(3, 4)]
+    },
+    {
+        id: "jwt",
+        tag: "JWT",
+        name: "Read a JWT",
+        blurb: "Drop a token in and read its header and payload. Nothing is verified or uploaded.",
+        nodes: [
+            exampleNode(1, "input", 40, 120, {
+                title: "Token",
+                text: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                encoding: "utf8"
+            }),
+            exampleNode(2, "op", 400, 120, {op: "JWT Decode"}),
+            exampleNode(3, "input", 760, 120, {title: "Result", text: ""})
+        ],
+        edges: [exampleEdge(1, 2), exampleEdge(2, 3)]
+    },
+    {
+        id: "symbols",
+        tag: "Symbols",
+        name: "A symbol alphabet",
+        blurb: "A transcription surface: click glyphs to spell the reading, or type it. One of 353 alphabets.",
+        nodes: [
+            exampleNode(1, "symbol", 40, 120, {title: "Wingdings", symbolCipher: "wingdings", symbolSource: "cachesleuth", text: "Hello"}),
+            exampleNode(2, "input", 500, 120, {title: "Result", text: ""})
+        ],
+        edges: [exampleEdge(1, 2)]
+    },
+    {
+        id: "fstring",
+        tag: "Fstring",
+        name: "Build a line from two inputs",
+        blurb: "Two text nodes and an Fstring: the node's shape decides where each wire lands.",
+        nodes: [
+            exampleNode(1, "input", 40, 90, {title: "Who", text: "Caesar", encoding: "utf8"}),
+            exampleNode(2, "input", 40, 320, {title: "Shift", text: "3 places", encoding: "utf8"}),
+            exampleNode(3, "template", 410, 170, {title: "Fstring", text: "{input1} — {input2}"}),
+            exampleNode(4, "input", 780, 170, {title: "Result", text: ""})
+        ],
+        edges: [exampleEdge(1, 3, "in:0"), exampleEdge(2, 3, "in:1"), exampleEdge(3, 4)]
+    },
+    {
+        id: "hex",
+        tag: "From Hex",
+        name: "Hex back to text",
+        blurb: "A space-separated hex dump decoded into the sentence it carries.",
+        nodes: [
+            exampleNode(1, "input", 40, 120, {
+                title: "Hex",
+                text: "48 65 6c 6c 6f 2c 20 43 69 70 68 65 72 46 6c 6f 77",
+                encoding: "utf8"
+            }),
+            exampleNode(2, "op", 410, 120, {op: "From Hex"}),
+            exampleNode(3, "input", 780, 120, {title: "Result", text: ""})
+        ],
+        edges: [exampleEdge(1, 2), exampleEdge(2, 3)]
+    },
+    {
+        id: "aes",
+        tag: "AES",
+        name: "AES with three inputs",
+        blurb: "The multi-input example: plain text, key and IV wired into AES and back out again.",
+        state: exampleState
+    }
+];
+
+function exampleGraph(def) {
+    if (def.state) return normalizeLoaded(def.state());
+    return normalizeLoaded({
+        app: "CipherFlow",
+        version: 1,
+        nodes: def.nodes,
+        edges: def.edges.map((e, i) => ({id: "e" + (i + 1), ...e})),
+        functions: []
+    });
+}
+
+function loadGalleryGraph(def) {
+    closeExampleGallery();
+    if (state.nodes.length && !confirm(`Open “${def.name}”? This replaces what is on the canvas. Saved graphs in this browser are kept.`)) return;
     if (editingFunctionId) closeFunctionEditor();
-    setCurrentGraphName("");
-    applyGraph(exampleState(), {fit: true});
-    resetHistory();
-    setRunStatus("", "Ready");
-    renderFileMenu();
-    toast("Loaded the AES multi-input example");
+    try {
+        applyGraph(exampleGraph(def), {fit: true});
+        resetHistory();
+        setRunStatus("", "Ready");
+        setCurrentGraphName("");
+        renderFileMenu();
+        toast(`Loaded “${def.name}”`);
+    } catch (err) {
+        toast("Could not open that example: " + (err.message || err), "error");
+    }
+}
+
+const exampleGallery = {el: null, grid: null, wired: false};
+function initExampleGallery() {
+    const modal = $("#examples");
+    if (!modal || exampleGallery.wired) return;
+    exampleGallery.el = modal;
+    exampleGallery.grid = $("#exGrid");
+    exampleGallery.wired = true;
+    const close = $("#exClose");
+    if (close) {
+        close.innerHTML = iconFill("x");
+        close.addEventListener("click", closeExampleGallery);
+    }
+    // The backdrop closes it, like the help panel; Escape does too, and stops there so the
+    // canvas does not also clear its selection behind the panel.
+    modal.addEventListener("click", ev => { if (ev.target === modal) closeExampleGallery(); });
+    document.addEventListener("keydown", ev => {
+        if (ev.key === "Escape" && !modal.hidden) {
+            ev.stopPropagation();
+            closeExampleGallery();
+        }
+    });
+    if (!exampleGallery.grid) return;
+    exampleGallery.grid.innerHTML = EXAMPLES.map(def => `
+        <button type="button" class="ex-tile" data-example="${esc(def.id)}">
+            <span class="ex-tag">${esc(def.tag)}</span>
+            <span class="ex-name">${esc(def.name)}</span>
+            <span class="ex-blurb">${esc(def.blurb)}</span>
+            <span class="ex-open">Open ${iconFill("chevron")}</span>
+        </button>`).join("");
+    exampleGallery.grid.addEventListener("click", ev => {
+        const tile = ev.target.closest("[data-example]");
+        if (!tile) return;
+        const def = EXAMPLES.find(d => d.id === tile.dataset.example);
+        if (def) loadGalleryGraph(def);
+    });
+}
+function openExampleGallery() {
+    if (!exampleGallery.el) return;
+    exampleGallery.el.hidden = false;
+    exampleGallery.grid?.querySelector(".ex-tile")?.focus();
+}
+function closeExampleGallery() {
+    if (exampleGallery.el) exampleGallery.el.hidden = true;
 }
 function toggleAutoRun() {
     state.autoRun = !state.autoRun;
@@ -8745,7 +8942,7 @@ function initFileMenu() {
         closeFileMenu();
         switch (act.dataset.act) {
             case "new": newGraph(); break;
-            case "example": loadExample(); break;
+            case "examples": openExampleGallery(); break;
             case "save": saveCurrentGraph(); break;
             case "save-as": promptSaveGraph(); break;
             case "import": $("#openFileInput").click(); break;
@@ -8826,7 +9023,7 @@ function renderFileMenu() {
                 ${loadRows}
                 <div class="fm-sep"></div>
                 <button class="fm-item" data-act="new" role="menuitem">${iconFill("plus")}<span>New blank graph</span></button>
-                <button class="fm-item" data-act="example" role="menuitem">${iconFill("wand")}<span>Example graph</span></button>
+                <button class="fm-item" data-act="examples" role="menuitem"><span>Browse examples…</span></button>
             </div>
         </div>
         <div class="fm-group">
@@ -13275,6 +13472,122 @@ function buildChessNode(node) {
     render();
     // A wired FEN or move list reaches this node only after a run, so the runner repaints it.
     wrap._chessRender = render;
+    return wrap;
+}
+
+/* ================================================================ Bad Apple node
+ * The Silly Stuff toy: a card with no ports at all that plays the Bad Apple!! shadow-art PV.
+ * The clip travels inside this same file as a data URL (dev/build.mjs fills in the source of
+ * dev/badapple.webm, 320x240 VP9 + Opus), so the node plays offline and downloads nothing.
+ * The PV is the well-known silhouette animation of ZUN's theme, as arranged by Alstroemeria
+ * Records.
+ */
+const BAD_APPLE_VIDEO = "__BAD_APPLE_VIDEO__";
+const BAD_APPLE_DURATION = 219.15; // 3:39 — until the element reports its own duration
+
+// One <video> per card, kept out of the DOM so a repaint can move the same element into the
+// new card and let the clip carry on instead of starting over. The map also lets a second
+// card pause the first: two soundtracks at once is a mess.
+const badApple = {videos: new Map(), frame: 0};
+
+function badAppleClock(ms) {
+    const total = Math.max(0, Math.round(ms / 1000));
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+function badAppleDuration(video) {
+    return video && Number.isFinite(video.duration) && video.duration > 0 ? video.duration : BAD_APPLE_DURATION;
+}
+// Forget a clip: pause it and drop its source. Its data URL is megabytes of decoded video,
+// and a card that is gone should leave neither that nor its sound behind.
+function dropBadApple(id) {
+    const video = badApple.videos.get(id);
+    if (!video) return;
+    badApple.videos.delete(id);
+    try { video.pause(); } catch (_) { /* never started */ }
+    video.removeAttribute("src");
+    try { video.load(); } catch (_) { /* already detached */ }
+    video.remove();
+}
+function paintBadAppleCards() {
+    // Deleting a node must not leave its clip playing: the card is the only handle on it.
+    for (const id of [...badApple.videos.keys()]) if (!nodeById(id)) dropBadApple(id);
+    for (const card of document.querySelectorAll(".ba-node")) {
+        const video = badApple.videos.get(Number(card.dataset.node));
+        const playing = Boolean(video && !video.paused && !video.ended);
+        card.classList.toggle("playing", playing);
+        const button = card.querySelector("[data-ba-play]");
+        if (button) button.textContent = playing ? "Pause" : "Play";
+        const total = badAppleDuration(video);
+        const shown = video ? Math.min(video.currentTime || 0, total) : 0;
+        const fill = card.querySelector("[data-ba-fill]");
+        if (fill) fill.style.width = `${(shown / total) * 100}%`;
+        const clock = card.querySelector("[data-ba-time]");
+        if (clock) clock.textContent = `${badAppleClock(shown * 1000)} / ${badAppleClock(total * 1000)}`;
+    }
+}
+function badAppleFrame() {
+    badApple.frame = 0;
+    let playing = false;
+    for (const video of badApple.videos.values()) {
+        if (!video.paused && !video.ended) { playing = true; break; }
+    }
+    paintBadAppleCards();
+    // Repaint on animation frames: the progress bar should glide, not step four times a second.
+    if (playing) badApple.frame = requestAnimationFrame(badAppleFrame);
+}
+function toggleBadApple(node) {
+    const video = badAppleVideo(node);
+    if (!video.paused && !video.ended) { video.pause(); return; }
+    for (const [id, other] of badApple.videos) if (id !== node.id) other.pause();
+    video.play().catch(() => toast("The browser blocked playback — press Play again.", "error"));
+}
+function badAppleVideo(node) {
+    let video = badApple.videos.get(node.id);
+    if (video) return video;
+    video = document.createElement("video");
+    video.className = "ba-video";
+    video.dataset.baVideo = "";
+    video.src = BAD_APPLE_VIDEO;
+    video.preload = "auto";
+    video.playsInline = true;
+    // The song is half the point, so the clip stays unmuted; pressing Play is the gesture
+    // that lets a browser start it at all.
+    video.addEventListener("play", () => { paintBadAppleCards(); badAppleFrame(); });
+    video.addEventListener("pause", paintBadAppleCards);
+    // While a frame loop runs it does the painting; this keeps a paused card in step with
+    // seeking and metadata arriving late.
+    video.addEventListener("timeupdate", () => { if (!badApple.frame) paintBadAppleCards(); });
+    video.addEventListener("ended", () => { video.currentTime = 0; paintBadAppleCards(); });
+    // Clicking the picture pauses it, the way any video on the web behaves.
+    video.addEventListener("click", () => toggleBadApple(node));
+    badApple.videos.set(node.id, video);
+    return video;
+}
+function buildBadAppleNode(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "ba-node";
+    wrap.dataset.node = String(node.id);
+    // The element may already be playing from before a repaint; moving the same element keeps
+    // its position (and its sound) instead of starting the clip over.
+    const video = badAppleVideo(node);
+    wrap.innerHTML = `
+        <div class="ba-head">
+            <span class="ba-title">Bad Apple!!</span>
+            <span class="ba-time" data-ba-time>0:00 / ${badAppleClock(BAD_APPLE_DURATION * 1000)}</span>
+        </div>
+        <div class="ba-screen" data-ba-screen></div>
+        <div class="ba-track"><span class="ba-fill" data-ba-fill></span></div>
+        <div class="ba-row">
+            <button type="button" class="ba-play" data-ba-play>Play</button>
+            <span class="ba-note">shadow-art PV · offline</span>
+            <span class="ba-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+    `;
+    wrap.querySelector("[data-ba-screen]").appendChild(video);
+    wrap.querySelector("[data-ba-play]").addEventListener("click", () => toggleBadApple(node));
+    // The card is rebuilt on every graph change, so it paints itself from the element that may
+    // already be playing rather than from state kept on the card.
+    requestAnimationFrame(paintBadAppleCards);
     return wrap;
 }
 

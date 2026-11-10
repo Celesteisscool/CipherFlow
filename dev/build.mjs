@@ -94,7 +94,12 @@ const modules = moduleFiles.map(file => ({
 const meta = fs.readFileSync(path.join(ROOT, "dev/meta.json"), "utf8");
 const tests = fs.readFileSync(path.join(ROOT, "dev/testplan.json"), "utf8");
 const css = fs.readFileSync(path.join(ROOT, "dev/styles.css"), "utf8");
-const app = fs.readFileSync(path.join(ROOT, "dev/app.js"), "utf8");
+// The Bad Apple node plays the PV from inside the page: the clip is a data URL in this build,
+// the same way the glyphs and the engine travel. dev/app.js carries the placeholder token, so
+// the readable source stays readable and the single-file output still needs no network.
+const badAppleVideo = fs.readFileSync(path.join(ROOT, "dev/badapple.webm")).toString("base64");
+const app = fs.readFileSync(path.join(ROOT, "dev/app.js"), "utf8")
+    .replace("__BAD_APPLE_VIDEO__", () => `data:video/webm;base64,${badAppleVideo}`);
 // The symbol tag vocabulary and its measurements, shared with the build scripts: the app
 // runs this exact file over a picture, dev/symbols/tags.mjs runs it over the shipped art.
 const tagMath = fs.readFileSync(path.join(ROOT, "dev/symbols/tagmath.js"), "utf8");
@@ -287,6 +292,20 @@ ${css}
     </div>
 </div>
 
+<div class="modal" id="examples" hidden>
+    <div class="ex-card" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+        <div class="ex-head">
+            <div>
+                <div class="lab-kicker">CipherFlow</div>
+                <h2 class="lab-title" id="exTitle">Example graphs</h2>
+                <p class="ex-lede">Ready-made graphs to open, take apart and edit. Opening one replaces the canvas; the graphs you saved in this browser stay.</p>
+            </div>
+            <button class="icon-button lab-close" id="exClose" title="Close"></button>
+        </div>
+        <div class="ex-grid" id="exGrid"></div>
+    </div>
+</div>
+
 <div class="modal" id="help" hidden>
     <div class="help-card">
         <div class="help-head">
@@ -406,7 +425,8 @@ ${css}
             </details>
             <details class="help-section">
                 <summary><h3>Graphs and files</h3></summary>
-                <p>The <b>File</b> menu in the toolbar keeps your graphs. <b>Load</b> lists everything saved in this browser, newest first — click one to open it, or use the trash to delete it. <b>New blank graph</b> and <b>Example graph</b> replace whatever is on the canvas; the saved graphs stay.</p>
+                <p>The <b>File</b> menu in the toolbar keeps your graphs. <b>Load</b> lists everything saved in this browser, newest first — click one to open it, or use the trash to delete it. <b>New blank graph</b> and <b>Browse examples…</b> replace whatever is on the canvas; the saved graphs stay.</p>
+                <p><b>Browse examples…</b> opens the gallery: ready-made graphs for a ROT13 round trip, Base64 and Morse chains, a JWT, a symbol alphabet, an Fstring, a hex decode and the AES example. Each one opens as an ordinary graph with its wires in place, so it can be taken apart, renamed and saved like anything else.</p>
                 <p><b>Save</b> keeps the graph under its name: <b>Save “name”</b> overwrites it and <b>Save as…</b> saves it under another name. A graph with no name asks for one, and the name it is saved under shows at the top of the menu. Separately, the canvas is autosaved as you work, so a reload brings back exactly what you had even if you never named it.</p>
                 <p><b>Import</b> opens a <code>.json</code> graph file and <b>Export</b> downloads the current graph, or every saved graph in one file. Everything runs in this page, offline — no data leaves it.</p>
                 <p><b>Copy share link</b> puts the graph in the address bar as a link, compressed and encoded after the <code>#</code> — the part a browser never sends to the server. Opening one asks before it replaces the canvas; attached file bytes are not included, because a link is too small to carry them.</p>

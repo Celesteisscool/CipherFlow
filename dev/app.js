@@ -1135,9 +1135,11 @@ function makeNode(type, opts = {}) {
         node.text = opts.text ?? "Hello, World!";
         node.encoding = opts.encoding || "utf8";
     } else if (type === "note") {
-        // A sticky note: the words, and which of the tints it wears.
+        // A sticky note: the words, which of the tints it wears, and the node it is stuck
+        // under (0 when it floats on the canvas as a card of its own).
         node.text = opts.text ?? "";
         node.noteTone = opts.noteTone || "yellow";
+        node.stickTo = Number(opts.stickTo) || 0;
     } else if (type === "file") {
         node.fileName = opts.fileName || "";
         node.fileSize = opts.fileSize || 0;
@@ -1354,6 +1356,7 @@ function cleanNodeForSave(n) {
         fileIndex: n.fileIndex || 0,
         previewMode: n.previewMode || "text",
         noteTone: n.type === "note" ? String(n.noteTone || "yellow") : undefined,
+        stickTo: n.type === "note" && n.stickTo ? Number(n.stickTo) : undefined,
         symbolCipher: n.symbolCipher,
         symbolSource: n.symbolSource,
         symbolVariant: n.symbolVariant || undefined,
@@ -1477,6 +1480,9 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             symbolSource: raw.symbolSource === "dcode" ? "dcode" : "cachesleuth",
             symbolVariant: typeof raw.symbolVariant === "string" ? raw.symbolVariant : "",
             noteTone: typeof raw.noteTone === "string" ? raw.noteTone : "yellow",
+            // A pasted copy gets fresh ids, so the node a note was stuck to no longer
+            // exists under that number: the copy comes back as an ordinary card.
+            stickTo: freshIds ? 0 : Number(raw.stickTo) || 0,
             fen: Boolean(raw.fen),
             mergeTracks: Boolean(raw.mergeTracks),
             spec: raw.spec && typeof raw.spec === "object" ? raw.spec : null,
@@ -1851,6 +1857,9 @@ function outputPort() {
 function renderAllNodes() {
     nodesLayer.innerHTML = "";
     for (const node of state.nodes) {
+        // A note stuck under a node is not a card of its own: the node it is pinned to
+        // draws it, so there is never a second element to keep in step with that node.
+        if (stuckTarget(node)) continue;
         const el = buildNode(node);
         nodesLayer.appendChild(el);
     }
@@ -1992,6 +2001,13 @@ function buildNode(node) {
         grip.title = "Drag to resize";
         grip.addEventListener("pointerdown", ev => startNodeResize(node, ev));
         el.appendChild(grip);
+    }
+    // A note pinned under this node hangs off its bottom edge as a caption, and the note's
+    // tint washes over the card so the node and the note that explains it read as one thing.
+    const caption = stickyCaption(node);
+    if (caption) {
+        el.dataset.pinnedTone = caption.dataset.tone;
+        el.appendChild(caption);
     }
 
     el.addEventListener("pointerdown", ev => {
@@ -4339,6 +4355,9 @@ function startNodeDrag(node, ev) {
     const moving = selection.has(node.id) && selection.size > 1 ? selectedNodes() : [node];
     const origins = moving.map(n => ({node: n, el: nodeEl(n.id), x: n.x, y: n.y}));
     let moved = false;
+    // A note is stuck by dropping it: the node under the pointer is marked while the drag is
+    // over it, and the release that ends the drag takes the note.
+    const dropWatcher = node.type === "note" ? noteDropWatcher() : null;
     for (const o of origins) if (o.el) o.el.style.zIndex = "5";
     const move = e => {
         const dx = (e.clientX - startX) / state.view.zoom;
@@ -4355,13 +4374,25 @@ function startNodeDrag(node, ev) {
                 o.el.style.top = o.node.y + "px";
             }
         }
+        if (dropWatcher) dropWatcher.track(e.clientX, e.clientY, el);
         scheduleEdges();
     };
     const up = () => {
         document.removeEventListener("pointermove", move);
         document.removeEventListener("pointerup", up, {once: true});
+        const target = dropWatcher ? dropWatcher.pending : null;
+        if (dropWatcher) dropWatcher.stop();
         for (const o of origins) if (o.el) o.el.style.zIndex = "";
-        if (moved) { saveLocalSoon(); scheduleEdges(); pushHistory(); }
+        if (!moved) return;
+        // Letting go over a node sticks the note there; letting go anywhere else is just a
+        // move, the same drag it has always been.
+        if (target && !stickyNoteFor(target)) {
+            stickNoteTo(node, target);
+            return;
+        }
+        saveLocalSoon();
+        scheduleEdges();
+        pushHistory();
     };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", up, {once: true});
@@ -10352,7 +10383,7 @@ const INTEGRATION_CHECK_IDS = [
     "base64", "aes", "join", "cycle", "selection", "clipboard", "wirehint",
     "function-run", "function-outputs", "function-recursion", "argwire", "undoredo",
     "fnsample", "fntyped", "fnsamplepipe", "magic", "magic-benchmark",
-    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "bypass", "freeze", "diff", "replace", "recipe", "note", "snap",
+    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "bypass", "freeze", "diff", "replace", "recipe", "note", "sticky", "snap",
     "save-reload", "export-import", "suite-coverage"
 ];
 function integrationDefinitions() {
@@ -11177,6 +11208,43 @@ function integrationDefinitions() {
                 return {
                     ok,
                     detail: `${ports} port(s), text ${JSON.stringify(note.text)}, tone ${note.noteTone}, run error ${JSON.stringify(error)}, reload ${JSON.stringify([back?.text, back?.noteTone])}`
+                };
+            }))
+        },
+        {
+            id: "sticky",
+            title: "A note sticks under a node",
+            description: "A pinned note stops being a card and is drawn as a caption inside the node it is stuck to, so it moves with that node. Typing in the caption edits the note, the pin survives a save and reload, and unpinning puts the note back on the canvas as a card.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const target = makeNode("input", {id: 1, x: 40, y: 60, text: "Hello, World!"});
+                const note = makeNode("note", {id: 2, x: 420, y: 420, title: "Why", text: "ROT13 first, then Base64.", noteTone: "green"});
+                s.nodes.push(target, note);
+                renderAllNodes();
+                const cardBefore = Boolean(nodeEl(2));
+                stickNoteTo(note, target);
+                const caption = nodeEl(1)?.querySelector(".node-caption");
+                const textEl = caption?.querySelector("[data-caption-text]");
+                // The caption is a child of the node's own box and positioned under it, so
+                // every move the node makes carries it without a second element to update.
+                const inside = Boolean(caption) && caption.parentElement === nodeEl(1) &&
+                    getComputedStyle(caption).position === "absolute";
+                // The node the note hangs from wears the note's tint, so the pair reads as
+                // one card rather than a node with something attached.
+                const tinted = nodeEl(1)?.dataset.pinnedTone === "green";
+                const asCaption = !nodeEl(2) && inside && textEl?.textContent === note.text && caption.dataset.tone === "green" && tinted;
+                textEl.textContent = "Edited under the node";
+                textEl.dispatchEvent(new Event("input", {bubbles: true}));
+                const typed = note.text === "Edited under the node";
+                saveLocalNow();
+                const back = loadLocalGraph()?.nodes.find(n => n.id === 2);
+                const kept = back?.stickTo === 1 && back?.text === "Edited under the node";
+                unstickNote(note, target);
+                const released = Boolean(nodeEl(2)) && !nodeEl(1)?.querySelector(".node-caption") &&
+                    !nodeEl(1)?.dataset.pinnedTone;
+                const ok = cardBefore && asCaption && typed && kept && released;
+                return {
+                    ok,
+                    detail: `card before pinning ${cardBefore}, caption inside the node ${asCaption}, node tinted ${tinted}, edits the note ${typed}, pin and words saved ${kept}, unpin restores the card ${released}`
                 };
             }))
         },
@@ -14254,7 +14322,7 @@ function buildChessNode(node) {
  * is for. Its words and its tint are part of the document, so a saved or shared file keeps
  * both. The card resizes like any other, and the text box fills whatever room that leaves.
  */
-const NOTE_TONES = ["yellow", "blue", "green", "pink"];
+const NOTE_TONES = ["yellow", "blue", "green", "pink", "chocolate", "purple"];
 function buildNoteNode(node) {
     const wrap = document.createElement("div");
     wrap.className = "note-node";
@@ -14286,6 +14354,140 @@ function buildNoteNode(node) {
 function applyNoteTone(node) {
     const el = nodeEl(node.id);
     if (el) el.dataset.tone = node.noteTone || "yellow";
+    const caption = nodesLayer.querySelector(`.node-caption[data-caption-note="${node.id}"]`);
+    if (caption) caption.dataset.tone = node.noteTone || "yellow";
+    // The node a note is stuck under wears the note's tint, so recolouring the note has to
+    // reach past the caption and repaint the host card as well.
+    const host = stuckTarget(node);
+    const hostEl = host ? nodeEl(host.id) : null;
+    if (hostEl) hostEl.dataset.pinnedTone = node.noteTone || "yellow";
+}
+
+/* A note can be stuck under a node: it stops being a card and becomes a caption on that
+ * node. Nothing new is added to the document — the note keeps its id, words and tint, and
+ * only gains the id of the node it hangs from — and the caption is a child of that node's
+ * own element, so moving, resizing, snapping and Order carry it along for free.
+ */
+function stuckTarget(note) {
+    if (!note || note.type !== "note" || !note.stickTo) return null;
+    const target = nodeById(Number(note.stickTo));
+    // A note cannot hang off another note, and a pin whose node has since been deleted
+    // simply stops counting, so the note comes back as a card rather than vanishing.
+    return target && target.type !== "note" ? target : null;
+}
+function stickyNoteFor(node) {
+    // One caption per node: the first note pinned to it wins, and a second note is told
+    // so rather than drawn on top of the first.
+    return state.nodes.find(n => n.type === "note" && stuckTarget(n) === node) || null;
+}
+function stickyCaption(node) {
+    const note = stickyNoteFor(node);
+    if (!note) return null;
+    const wrap = document.createElement("div");
+    wrap.className = "node-caption";
+    wrap.dataset.captionNote = String(note.id);
+    wrap.dataset.tone = note.noteTone || "yellow";
+    wrap.innerHTML = `
+        <div class="node-caption-text" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" data-caption-text aria-label="Note stuck under this node">${esc(note.text || "")}</div>
+        <button type="button" class="node-caption-unpin" data-caption-unpin title="Unstick this note and put it back on the canvas">${iconFill("x")}</button>
+    `;
+    const textEl = $("[data-caption-text]", wrap);
+    // The caption is the note: typing here edits the same words the card would show.
+    textEl.addEventListener("input", () => {
+        note.text = textEl.innerText;
+        saveLocalSoon();
+    });
+    textEl.addEventListener("change", () => scheduleHistory());
+    // Pasted markup inside a caption would draw whatever the clipboard held, so keep the
+    // text and drop the formatting.
+    textEl.addEventListener("paste", ev => {
+        ev.preventDefault();
+        const text = (ev.clipboardData?.getData("text/plain") || "").replace(/\r\n?/g, "\n");
+        document.execCommand("insertText", false, text);
+    });
+    $("[data-caption-unpin]", wrap).addEventListener("click", ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        unstickNote(note, node);
+    });
+    return wrap;
+}
+function stickNoteTo(note, target) {
+    if (!target || target.type === "note" || target.id === note.id) {
+        toast("A note sticks to a node that does the work, not to another note.", "error");
+        return;
+    }
+    if (stickyNoteFor(target)) {
+        toast("That node already has a note stuck under it.", "error");
+        return;
+    }
+    note.stickTo = target.id;
+    // A caption is not a card: the selection must not offer to delete something that is
+    // not on the canvas any more.
+    selection.delete(note.id);
+    renderAllNodes();
+    saveLocalSoon();
+    pushHistory();
+    toast(`Note stuck under “${sourceTitle(target)}”`);
+}
+function unstickNote(note, target) {
+    const el = nodeEl(target.id);
+    note.stickTo = 0;
+    // Put the card back under the node it came off, so letting go does not leave it
+    // somewhere else on the canvas.
+    note.x = snapToGrid(target.x);
+    note.y = snapToGrid(target.y + (el ? el.offsetHeight : 200) + 26);
+    renderAllNodes();
+    saveLocalSoon();
+    pushHistory();
+    toast("Note unstuck — it is a card on the canvas again");
+}
+
+// A note is stuck by dropping it on a node. The drag machinery already moves the card, so
+// the only new part is knowing which node is under the pointer when the release comes: this
+// watcher keeps that answer and outlines the card while the drag is over it.
+
+// The node under a point, ignoring the card being dragged so a note that covers its target
+// does not hide it.
+function pinTargetUnder(x, y, ignore) {
+    for (const el of document.elementsFromPoint(x, y)) {
+        if (ignore && (el === ignore || ignore.contains(el))) continue;
+        const card = el.closest ? el.closest(".node") : null;
+        if (!card) continue;
+        const target = nodeById(Number(card.dataset.id));
+        if (!target || target.type === "note") continue;
+        return target;
+    }
+    return null;
+}
+
+// Marks the node a released note would land on. Nothing is timed: the outline appears while
+// the drag is over a card that can take the note and goes when the pointer leaves, so the
+// drop lands the moment the pointer comes up.
+function noteDropWatcher() {
+    let target = null;
+    const clear = () => {
+        if (target) {
+            const el = nodeEl(target.id);
+            if (el) el.classList.remove("note-drop-target");
+        }
+        target = null;
+    };
+    return {
+        track(x, y, ignore) {
+            const next = pinTargetUnder(x, y, ignore);
+            if (next === target) return;
+            clear();
+            // A node that already wears a caption cannot take a second one, so it is not
+            // offered as a target at all.
+            if (!next || stickyNoteFor(next)) return;
+            target = next;
+            const el = nodeEl(next.id);
+            if (el) el.classList.add("note-drop-target");
+        },
+        stop: clear,
+        get pending() { return target; }
+    };
 }
 
 /* ================================================================ Bad Apple node

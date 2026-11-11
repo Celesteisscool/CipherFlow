@@ -3270,6 +3270,8 @@ body.has-sym-rail .toolbar { left: 43px; }
 .node.type-note[data-tone="blue"] { --note-tint: #4f8bd6; }
 .node.type-note[data-tone="green"] { --note-tint: #4f9d6a; }
 .node.type-note[data-tone="pink"] { --note-tint: #d2688f; }
+.node.type-note[data-tone="chocolate"] { --note-tint: #8b5a2b; }
+.node.type-note[data-tone="purple"] { --note-tint: #8b68d6; }
 .node.type-note {
     background: color-mix(in srgb, var(--note-tint, #e8b93a) 13%, var(--node));
     border-color: color-mix(in srgb, var(--note-tint, #e8b93a) 38%, var(--line-strong));
@@ -3308,11 +3310,93 @@ textarea.note-text {
 .note-swatch[data-note-tone="blue"] { background: #4f8bd6; }
 .note-swatch[data-note-tone="green"] { background: #4f9d6a; }
 .note-swatch[data-note-tone="pink"] { background: #d2688f; }
+.note-swatch[data-note-tone="chocolate"] { background: #8b5a2b; }
+.note-swatch[data-note-tone="purple"] { background: #8b68d6; }
 .note-swatch[aria-pressed="true"] { outline: 2px solid color-mix(in srgb, var(--ink) 45%, transparent); outline-offset: 1px; }
 /* A resized note hands its spare height to the text instead of leaving it blank. */
 .node.resized.type-note .node-body { display: flex; flex-direction: column; }
 .node.resized.type-note .note-node { flex: 1 1 auto; min-height: 0; }
 .node.resized.type-note .note-text { flex: 1 1 auto; min-height: 42px; }
+/* A note stuck under a node is a caption, not a card: an absolutely positioned strip inside
+ * the node's own box, so dragging, resizing, snapping and Order carry it along with no
+ * second element to keep in step. The tint mixes into the card colour like the note's own. */
+.node-caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 7px);
+    display: flex;
+    align-items: flex-start;
+    gap: 3px;
+    padding: 4px 4px 4px 7px;
+    border-radius: 8px;
+    border: 1px solid color-mix(in srgb, var(--note-tint, #e8b93a) 34%, var(--line));
+    border-left-width: 2px;
+    background: color-mix(in srgb, var(--note-tint, #e8b93a) 12%, var(--node));
+    box-shadow: 0 8px 18px rgba(20, 22, 27, .06);
+    cursor: text;
+    /* The card turns selection off so dragging never picks up node text; a caption is
+     * written in place, so it has to turn selection back on or the caret cannot land. */
+    user-select: text;
+    -webkit-user-select: text;
+}
+.node-caption[data-tone="yellow"] { --note-tint: #e8b93a; }
+.node-caption[data-tone="blue"] { --note-tint: #4f8bd6; }
+.node-caption[data-tone="green"] { --note-tint: #4f9d6a; }
+.node-caption[data-tone="pink"] { --note-tint: #d2688f; }
+.node-caption[data-tone="chocolate"] { --note-tint: #8b5a2b; }
+.node-caption[data-tone="purple"] { --note-tint: #8b68d6; }
+.node-caption-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--sans);
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    outline: none;
+    max-height: 168px;
+    overflow-y: auto;
+}
+.node-caption-text:empty::before { content: "Note…"; color: var(--faint); }
+.node-caption-unpin {
+    flex: 0 0 auto;
+    width: 16px; height: 16px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+.node-caption-unpin svg { width: 11px; height: 11px; }
+.node:hover .node-caption-unpin, .node:focus-within .node-caption-unpin { opacity: .8; }
+.node-caption-unpin:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); opacity: 1; }
+/* While a note waits for the node it will stick to, the cards it can land on say so. */
+/* While a note card is dragged, the node it would land on is outlined, so the drop has a
+ * target before the pointer comes up. */
+.node.note-drop-target {
+    outline: 1px solid color-mix(in srgb, var(--accent) 85%, transparent);
+    outline-offset: 3px;
+}
+
+/* A node wearing a caption takes the note's tint, so the pair reads as one card. */
+.node[data-pinned-tone="yellow"] { --pinned-tint: #e8b93a; }
+.node[data-pinned-tone="blue"] { --pinned-tint: #4f8bd6; }
+.node[data-pinned-tone="green"] { --pinned-tint: #4f9d6a; }
+.node[data-pinned-tone="pink"] { --pinned-tint: #d2688f; }
+.node[data-pinned-tone="chocolate"] { --pinned-tint: #8b5a2b; }
+.node[data-pinned-tone="purple"] { --pinned-tint: #8b68d6; }
+.node[data-pinned-tone] {
+    background: color-mix(in srgb, var(--pinned-tint) 11%, var(--node));
+    border-color: color-mix(in srgb, var(--pinned-tint) 34%, var(--line-strong));
+}
+.node[data-pinned-tone] .node-head { background: color-mix(in srgb, var(--pinned-tint) 13%, var(--node)); }
 
 /* ---------------------------------------------------------------- Bad Apple node */
 /* A card with no wires at all: the shadow-art PV, a play button, the progress line, and a

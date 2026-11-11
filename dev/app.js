@@ -8164,6 +8164,18 @@ function startPaletteDrag(ev, payload) {
         const overStage = hitStageDrop(upEv.clientX, upEv.clientY);
         if (!overStage) return;
         const p = screenToWorld(upEv.clientX, upEv.clientY);
+        // An operation or a graph tool dropped across a wire joins the chain there. Anything
+        // else — a function, a symbol, a node with no main ports — lands where it was dropped.
+        let spliced = false;
+        if (drag.payload.type === "op" || (drag.payload.type === "graph" && !["fnin", "fnout"].includes(drag.payload.node))) {
+            const wire = wireAtPoint(p);
+            const built = wire ? (drag.payload.type === "op" ? makeNode("op", {op: drag.payload.op}) : createGraphNode(drag.payload.node)) : null;
+            if (built) {
+                spliced = spliceNodeIntoWire(built, p, wire);
+                if (!spliced) toast(`“${sourceTitle(built)}” has no main input and output, so it sits beside the wire.`);
+            }
+        }
+        if (spliced) return;
         if (drag.payload.type === "op") addOperationNode(drag.payload.op, p.x - 150, p.y - 30);
         else if (drag.payload.type === "fn") addFunctionNode(drag.payload.fnId, p.x - 140, p.y - 30);
         else if (drag.payload.type === "symbol") addSymbolNode(drag.payload.slug, p.x - 180, p.y - 40);
@@ -8288,6 +8300,21 @@ let cmdkPointer = null;
 function commandPaletteItems() {
     // Node-shaped rows take the point the palette hands them; command rows ignore it.
     const items = PALETTE_COMMANDS.map(c => ({kind: "command", label: c.label, keys: c.keys, hint: c.hint, run: c.run}));
+    // One node selected, and the box also offers that node's way back. A plain opening puts
+    // the inverse right after it; the Ctrl+Shift+K opening swaps the node for it in place, so
+    // the row says which of the two it will do.
+    const selectedNode = selection.size === 1 ? nodeById([...selection][0]) : null;
+    if (selectedNode) {
+        const inverse = inverseOpFor(selectedNode);
+        items.push({
+            kind: "command",
+            label: cmdkReplace ? "Replace with inverse" : "Insert inverse",
+            keys: `inverse invert undo step back reverse opposite ${inverse || ""}`,
+            hint: inverse ? `“${sourceTitle(selectedNode)}” → “${inverse}”` : `no inverse for “${sourceTitle(selectedNode)}”`,
+            enterHint: cmdkReplace ? "swap it for its inverse" : "insert the inverse after it",
+            run: () => runInverseCommand(selectedNode.id)
+        });
+    }
     // A node and the operation behind it can share a name (Magic is the one case); the node
     // is the better thing to add, so the operation is not listed a second time.
     const nodeLabels = new Set(GRAPH_ITEMS.map(item => item.label.toLowerCase()));
@@ -8409,18 +8436,22 @@ function paletteReplaces(item) {
     return Boolean(nodeById([...selection][0]));
 }
 
-// Ctrl+Shift+K with one node selected swaps that node for the pick instead of adding a second one.
-// Its place on the canvas is kept, and so is every wire the replacement still has a port for:
-// the main pipe in and out survives an operation swap, a wired argument does not (the
-// arguments it was wired to are gone), and a port the replacement does not have takes its
-// wire with it. Returns false when there is nothing to replace, so the row can add as usual.
-function replaceSelectedNode(item) {
-    const target = selection.size === 1 ? nodeById([...selection][0]) : null;
-    if (!target || !item || item.kind === "command") return false;
-    const built = paletteNodeFor(item);
-    // A refusal has already been explained (a function's port declaration outside a function);
-    // the canvas is left exactly as it was, which is why this still counts as handled.
-    if (!built) return true;
+// A selected wire is a target like a selected node: an operation or graph tool picked from the
+// box goes into the middle of that wire, which is the same splice a drop on the wire makes.
+// Functions are left out because a drop does not splice them either, and a command row is not
+// a node. Returns the edge, or null when this pick would not splice.
+function paletteSpliceEdge(item) {
+    if (!selectedEdge || !item || item.kind === "command") return null;
+    if (item.kind !== "op" && !(item.kind === "node" && !["fnin", "fnout"].includes(item.type))) return null;
+    return state.edges.find(e => e.id === selectedEdge) || null;
+}
+
+// Put a node where another one was, keeping its place on the canvas and every wire the
+// replacement still has a port for: the main pipe in and out survives an operation swap, a
+// wired argument does not (the arguments it was wired to are gone), and a port the
+// replacement does not have takes its wire with it.
+function swapNodeInPlace(target, built) {
+    if (!target || !built) return false;
     built.x = target.x;
     built.y = target.y;
     const inPorts = new Set(nodeInPorts(built));
@@ -8446,16 +8477,162 @@ function replaceSelectedNode(item) {
     toast(`Replaced “${sourceTitle(target)}” with “${sourceTitle(built)}”`);
     return true;
 }
+// Ctrl+Shift+K with one node selected swaps that node for the pick instead of adding a second
+// one. Returns false when there is nothing to replace, so the row can add as usual.
+function replaceSelectedNode(item) {
+    const target = selection.size === 1 ? nodeById([...selection][0]) : null;
+    if (!target || !item || item.kind === "command") return false;
+    const built = paletteNodeFor(item);
+    // A refusal has already been explained (a function's port declaration outside a function);
+    // the canvas is left exactly as it was, which is why this still counts as handled.
+    if (!built) return true;
+    return swapNodeInPlace(target, built);
+}
+
+/* An inverse is the operation that undoes another: “From Base64” undoes “To Base64”, “Leet
+ * Decode” undoes “Leet Encode”. The pairs are found in the catalogue itself rather than listed
+ * by hand: an operation's name is flipped by turning To into From, or Encode into Decode,
+ * Encrypt into Decrypt, Compress into Decompress, Escape into Unescape, Serialize into
+ * Deserialize, or by reading “CSV to JSON” back as “JSON to CSV”. If the flipped name is an
+ * operation that exists, the two are each other's way back. What is left over is one-way
+ * (a hash, a parser) or its own way back, and those self-inverse steps are named below.
+ */
+const INVERSE_WORDS = [
+    ["Encode", "Decode"],
+    ["Encrypt", "Decrypt"],
+    ["Compress", "Decompress"],
+    ["Escape", "Unescape"],
+    ["Serialize", "Deserialize"],
+    ["Serialise", "Deserialise"]
+];
+const INVERSE_EXTRAS = [
+    // Two directions of one conversion, neither of which says To or From.
+    ["To Dvorak", "To Qwerty"],
+    // A whole message handed over and read back: the signing is undone by verifying it.
+    ["PGP Encrypt and Sign", "PGP Decrypt and Verify"],
+    // Steps that undo themselves at the setting they are built around.
+    ["Reverse", "Reverse"],
+    ["Swap endianness", "Swap endianness"],
+    ["ROT13", "ROT13"],
+    ["ROT47", "ROT47"]
+];
+const INVERSE_OPS = (() => {
+    const names = new Set(Object.keys(OPS));
+    const map = new Map();
+    const add = (a, b) => {
+        if (!b || a === b || !names.has(a) || !names.has(b)) return;
+        if (!map.has(a)) map.set(a, b);
+        if (!map.has(b)) map.set(b, a);
+    };
+    // Whole words only: “Escape” must not match inside “Unescape”.
+    const swap = (name, from, to) => name
+        .replace(new RegExp(`\\b${from}\\b`, "g"), to)
+        .replace(new RegExp(`\\b${from.toLowerCase()}\\b`, "g"), to.toLowerCase());
+    for (const op of names) {
+        if (op.startsWith("To ")) add(op, "From " + op.slice(3));
+        for (const [a, b] of INVERSE_WORDS) {
+            add(op, swap(op, a, b));
+            add(op, swap(op, b, a));
+        }
+        const flip = op.match(/^(.+?) to (.+)$/);
+        if (flip) add(op, `${flip[2]} to ${flip[1]}`);
+    }
+    for (const [a, b] of INVERSE_EXTRAS) {
+        if (!names.has(a)) continue;
+        if (a === b) map.set(a, a);
+        else add(a, b);
+    }
+    return map;
+})();
+
+// The inverse of a node, or null when the step cannot be undone by another operation. A
+// rotation is its own way back only at the amount it turns by, so a ROT13 node set to 5 gets
+// no inverse rather than a wrong one.
+function inverseOpFor(node) {
+    if (!node || node.type !== "op" || !node.op) return null;
+    const inverse = INVERSE_OPS.get(node.op) || null;
+    if (!inverse) return null;
+    if (inverse !== node.op) return inverse;
+    const values = node.values || [];
+    if (values[opArgIndex(node.op, "Rotate numbers")]) return null;
+    if (node.op === "ROT13" && Number(values[opArgIndex(node.op, "Amount")]) !== 13) return null;
+    if (node.op === "ROT47" && Number(values[opArgIndex(node.op, "Amount")]) !== 47) return null;
+    return inverse;
+}
+
+// Carry the settings both steps understand: a Base64 node set to the URL-safe alphabet hands
+// that alphabet to the step that decodes it, and a cipher's key follows its inverse. A setting
+// whose default is the opposite on the two steps — an encryptor that reads Raw and writes Hex,
+// where the decryptor reads Hex and writes Raw — is left alone, because the inverse's own
+// default is the reading that undoes it.
+function inverseValuesFor(node, inverse) {
+    const values = defaultNodeValues(inverse);
+    if (node.op === inverse) return cloneValue(node.values || values);
+    const source = OPS[node.op]?.args || [];
+    const destination = OPS[inverse]?.args || [];
+    const sourceDefaults = OPS[node.op]?.defaults || [];
+    const destinationDefaults = OPS[inverse]?.defaults || [];
+    destination.forEach((arg, i) => {
+        const from = source.findIndex(a => a.name === arg.name);
+        if (from < 0 || !node.values || node.values[from] === undefined) return;
+        if (JSON.stringify(sourceDefaults[from]) !== JSON.stringify(destinationDefaults[i])) return;
+        values[i] = cloneValue(node.values[from]);
+    });
+    return values;
+}
+
+// Inserting puts the undoing step where the chain would continue: right of the node it undoes,
+// wired to that node's output.
+function insertInverseNode(target, inverse) {
+    const node = makeNode("op", {op: inverse, values: inverseValuesFor(target, inverse)});
+    const el = nodeEl(target.id);
+    node.x = Math.round(target.x + (el ? el.offsetWidth : 330) + 56);
+    node.y = Math.round(target.y);
+    state.nodes.push(node);
+    const fromPort = nodeOutPorts(target)[0] || "out";
+    state.edges.push({id: optsEdgeId(), from: target.id, fromPort, to: node.id, toPort: "main"});
+    setSelection([node.id]);
+    renderAllNodes();
+    onGraphEdited(true);
+    requestAnimationFrame(() => ensureNodeVisible(node));
+    toast(`“${inverse}” inserted — it undoes “${sourceTitle(target)}”`);
+    return true;
+}
+// `replace` is explicit rather than read from the palette, so the keyboard shortcut below is
+// never steered by whichever way the box was last opened.
+function runInverseCommand(id, replace = cmdkReplace) {
+    const target = nodeById(id);
+    if (!target) {
+        toast("That node is no longer on the canvas.", "error");
+        return false;
+    }
+    const inverse = inverseOpFor(target);
+    if (!inverse) {
+        toast(`“${sourceTitle(target)}” has no inverse to add.`, "error");
+        return false;
+    }
+    // Ctrl+Shift+K swaps the node for its inverse in place; a plain Ctrl+K inserts after it.
+    if (replace) return swapNodeInPlace(target, makeNode("op", {op: inverse, values: inverseValuesFor(target, inverse)}));
+    return insertInverseNode(target, inverse);
+}
 
 // What Enter will do to the highlighted row. With one node selected, a node-shaped row says
 // it will replace that node, so the swap is never a surprise.
 function updateCommandPaletteAction() {
     if (!cmdkEnter) return;
     const item = cmdkRows[cmdkIndex];
+    // A row that knows what Enter does to the selection says so itself.
+    if (item?.enterHint) {
+        cmdkEnter.innerHTML = `<kbd>Enter</kbd> ${esc(item.enterHint)}`;
+        return;
+    }
     const target = paletteReplaces(item) ? nodeById([...selection][0]) : null;
+    const wire = target ? null : paletteSpliceEdge(item);
     cmdkEnter.innerHTML = target
         ? `<kbd>Enter</kbd> replace “${esc(sourceTitle(target))}”`
-        : `<kbd>Enter</kbd> run`;
+        : wire
+            ? `<kbd>Enter</kbd> splice into the wire`
+            : `<kbd>Enter</kbd> run`;
 }
 
 function runCommandPaletteRow(index) {
@@ -8472,6 +8649,16 @@ function runCommandPaletteRow(index) {
         at = {x: Math.round(p.x), y: Math.round(p.y)};
     }
     closeCommandPalette();
+    // With a wire selected, a node-shaped pick goes into that wire at the middle of its curve.
+    const spliceEdge = paletteSpliceEdge(item);
+    if (spliceEdge) {
+        const built = paletteNodeFor(item);
+        const middle = built ? wireMidpoint(spliceEdge) : null;
+        if (built && middle) {
+            if (spliceNodeIntoWire(built, middle, spliceEdge)) return;
+            toast(`“${sourceTitle(built)}” has no main input and output, so it cannot go into the wire.`);
+        }
+    }
     // Only a Ctrl+Shift+K opening replaces; every other opening adds or runs as it always did.
     if (paletteReplaces(item) && replaceSelectedNode(item)) return;
     item.run(at);
@@ -8547,6 +8734,113 @@ function addOperationNode(op, x, y) {
     onGraphEdited();
     requestAnimationFrame(() => ensureNodeVisible(node));
     if (window.innerWidth <= 900) closeSidebar();
+}
+
+// How close a drop has to be to a wire to count as dropping on it, in world units. The hit
+// stroke is 16 wide and centred on the line, so this matches what a click on a wire accepts.
+const WIRE_DROP_REACH = 10;
+
+function distanceToSegment(p, a, b) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = dx * dx + dy * dy;
+    const t = len ? clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / len, 0, 1) : 0;
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
+// The cubic a wire is drawn as, so a drop, a click and a pick from the command box all agree
+// about where the curve runs.
+function wireCurve(a, b) {
+    const dx = Math.max(65, Math.abs(b.x - a.x) * 0.42);
+    return {a, c1: {x: a.x + dx, y: a.y}, c2: {x: b.x - dx, y: b.y}, b};
+}
+
+function wirePoint(curve, t) {
+    const u = 1 - t;
+    return {
+        x: u * u * u * curve.a.x + 3 * u * u * t * curve.c1.x + 3 * u * t * t * curve.c2.x + t * t * t * curve.b.x,
+        y: u * u * u * curve.a.y + 3 * u * u * t * curve.c1.y + 3 * u * t * t * curve.c2.y + t * t * t * curve.b.y
+    };
+}
+
+// Distance from a point to the curve a wire is drawn as, sampled along the same cubic pathFor
+// builds so a drop and a click agree about what is under the pointer.
+function distanceToWire(p, a, b) {
+    const curve = wireCurve(a, b);
+    let best = Infinity;
+    let prev = a;
+    for (let i = 1; i <= 24; i++) {
+        const point = wirePoint(curve, i / 24);
+        best = Math.min(best, distanceToSegment(p, prev, point));
+        prev = point;
+    }
+    return best;
+}
+
+// The wire closest to a world point, or null when the point is not over one.
+function wireAtPoint(p) {
+    let best = null;
+    let bestDistance = Infinity;
+    for (const edge of state.edges) {
+        const from = nodeById(edge.from);
+        const to = nodeById(edge.to);
+        if (!from || !to) continue;
+        const outEl = nodeEl(from.id)?.querySelector(`.port.out[data-port="${cssEscape(edge.fromPort || "out")}"]`);
+        const inEl = nodeEl(to.id)?.querySelector(`.port.in[data-port="${cssEscape(edge.toPort)}"]`);
+        const a = portCenter(outEl);
+        const b = portCenter(inEl);
+        if (!a || !b) continue;
+        const distance = distanceToWire(p, a, b);
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            best = edge;
+        }
+    }
+    return bestDistance <= WIRE_DROP_REACH ? best : null;
+}
+
+// The middle of the curve a wire is drawn as, in world units: where a pick from the command
+// box puts the node it is splicing in.
+function wireMidpoint(edge) {
+    const from = nodeById(edge.from);
+    const to = nodeById(edge.to);
+    if (!from || !to) return null;
+    const outEl = nodeEl(from.id)?.querySelector(`.port.out[data-port="${cssEscape(edge.fromPort || "out")}"]`);
+    const inEl = nodeEl(to.id)?.querySelector(`.port.in[data-port="${cssEscape(edge.toPort)}"]`);
+    const a = portCenter(outEl);
+    const b = portCenter(inEl);
+    return a && b ? wirePoint(wireCurve(a, b), 0.5) : null;
+}
+
+// A node dropped onto a wire goes into the middle of it: the wire splits and both halves
+// reattach to the node's main ports, so a step can be added to a chain without cutting the
+// wire and drawing two new ones. Refused for any node with no main way in and out (a note, a
+// flow-control step, a two-sided tool); the caller then drops it beside the wire as usual.
+function spliceNodeIntoWire(built, p, edge) {
+    if (!built || !edge) return false;
+    if (!nodeInPorts(built).includes("main") || !nodeOutPorts(built).includes("out")) return false;
+    built.x = Math.round(p.x - 155);
+    built.y = Math.round(p.y - 40);
+    state.nodes.push(built);
+    state.edges = state.edges.filter(e => e.id !== edge.id);
+    state.edges.push({id: optsEdgeId(), from: edge.from, fromPort: edge.fromPort || "out", to: built.id, toPort: "main"});
+    state.edges.push({id: optsEdgeId(), from: built.id, fromPort: "out", to: edge.to, toPort: edge.toPort});
+    setSelection([built.id]);
+    renderAllNodes();
+    // Now that the card can be measured, sit its middle on the point it was dropped at, so
+    // the wire runs into and out of it at the height the pointer was at.
+    const el = nodeEl(built.id);
+    if (el) {
+        built.x = Math.round(p.x - el.offsetWidth / 2);
+        built.y = Math.round(p.y - el.offsetHeight / 2);
+        el.style.left = `${built.x}px`;
+        el.style.top = `${built.y}px`;
+        scheduleEdges();
+    }
+    onGraphEdited(true);
+    requestAnimationFrame(() => ensureNodeVisible(built));
+    toast(`“${sourceTitle(built)}” spliced into the wire`);
+    return true;
 }
 // The node a Graph-list entry stands for, built but not placed. Adding and replacing share
 // this, so a node type has one definition of what it starts as. A declaration that only
@@ -10383,7 +10677,7 @@ const INTEGRATION_CHECK_IDS = [
     "base64", "aes", "join", "cycle", "selection", "clipboard", "wirehint",
     "function-run", "function-outputs", "function-recursion", "argwire", "undoredo",
     "fnsample", "fntyped", "fnsamplepipe", "magic", "magic-benchmark",
-    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "bypass", "freeze", "diff", "replace", "recipe", "note", "sticky", "snap",
+    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "bypass", "freeze", "diff", "replace", "inverse", "splice", "recipe", "note", "sticky", "snap",
     "save-reload", "export-import", "suite-coverage"
 ];
 function integrationDefinitions() {
@@ -11333,6 +11627,71 @@ function integrationDefinitions() {
             })
         },
         {
+            id: "inverse",
+            title: "A step's inverse is one command away",
+            description: "With one node selected, the command palette offers the operation that undoes it: Insert inverse puts that step right after the node, wired to its output and carrying the settings both steps share, and the Ctrl+Shift+K opening swaps the node for its inverse in place with its wires intact. A node with no inverse is refused rather than guessed at.",
+            run: () => withScratchGraph(async s => {
+                const source = makeNode("input", {id: 1, x: 40, y: 90, text: "Hello, World!"});
+                const enc = makeNode("op", {id: 2, x: 380, y: 90, op: "To Base64", values: nodeValuesWith("To Base64", {Alphabet: "A-Za-z0-9-_"})});
+                const sink = makeNode("input", {id: 3, x: 720, y: 90, text: ""});
+                s.nodes.push(source, enc, sink);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"}
+                );
+                setSelection([enc.id]);
+                const wasReplace = cmdkReplace;
+                cmdkReplace = false;
+                const insertRow = commandPaletteItems().find(i => i.label === "Insert inverse");
+                const inserted = Boolean(insertRow) && insertRow.run();
+                const inverse = s.nodes.find(n => n.op === "From Base64") || null;
+                const beside = Boolean(inverse) && inverse.x > enc.x && inverse.y === enc.y;
+                const wired = Boolean(inverse) && s.edges.some(e => e.from === enc.id && e.to === inverse.id && e.toPort === "main");
+                // The URL-safe alphabet is a setting both steps understand, so it travels.
+                const carried = Boolean(inverse) && inverse.values?.[0] === "A-Za-z0-9-_";
+                const ran = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const undone = inverse ? utf8(ran.results.get(inverse.id)?.bytes || new Uint8Array()) : "";
+
+                // The Shift opening swaps the selected node for its inverse where it stands.
+                const place = inverse ? {x: inverse.x, y: inverse.y} : null;
+                const fedBy = inverse ? s.edges.filter(e => e.to === inverse.id).map(e => e.from).sort() : [];
+                const edgesBefore = s.edges.length;
+                setSelection(inverse ? [inverse.id] : [enc.id]);
+                cmdkReplace = true;
+                const replaceRow = commandPaletteItems().find(i => i.label === "Replace with inverse");
+                const swapped = Boolean(replaceRow) && replaceRow.run();
+                const back = s.nodes.find(n => n.type === "op" && n.op === "To Base64" && n.id !== enc.id) || null;
+                const inPlace = Boolean(back) && Boolean(place) && back.x === place.x && back.y === place.y;
+                const stillWired = Boolean(back) &&
+                    s.edges.filter(e => e.to === back.id).map(e => e.from).sort().join(",") === fedBy.join(",") &&
+                    s.edges.length === edgesBefore;
+
+                // A node with nothing to undo explains itself instead of guessing.
+                cmdkReplace = false;
+                setSelection([source.id]);
+                const noneRow = commandPaletteItems().find(i => i.label === "Insert inverse");
+                const countBefore = s.nodes.length;
+                const refused = Boolean(noneRow) && noneRow.run() === false && s.nodes.length === countBefore;
+                cmdkReplace = wasReplace;
+                // The partner comes from the name rules, not a list: every one of these is a
+                // pair the catalogue itself supplies.
+                const named = [
+                    ["A1Z26 Cipher Encode", "A1Z26 Cipher Decode"],
+                    ["AES Encrypt", "AES Decrypt"],
+                    ["Bzip2 Compress", "Bzip2 Decompress"],
+                    ["URL Encode", "URL Decode"],
+                    ["CSV to JSON", "JSON to CSV"],
+                    ["To Dvorak", "To Qwerty"]
+                ].every(([a, b]) => inverseOpFor(makeNode("op", {op: a})) === b && inverseOpFor(makeNode("op", {op: b})) === a);
+                const ok = Boolean(insertRow) && inserted && beside && wired && carried && undone === "Hello, World!" &&
+                    Boolean(replaceRow) && swapped && inPlace && stillWired && refused && named;
+                return {
+                    ok,
+                    detail: `inverse row ${insertRow ? "offered" : "missing"}, From Base64 ${beside ? "beside the node" : "nowhere"} and ${wired ? "wired to it" : "unwired"}, alphabet ${carried ? "carried" : "lost"}, chain undid to ${JSON.stringify(undone)} · Shift row ${replaceRow ? "offered" : "missing"}, ${back ? `swapped to ${back.op}` : "nothing swapped"} ${inPlace ? "in place" : "out of place"}, wires ${stillWired ? "kept" : "lost"} · a node with no inverse ${refused ? "was refused" : "changed the graph"} · name pairs ${named ? "found" : "missed"} · ${INVERSE_OPS.size} operation(s) have an inverse`
+                };
+            })
+        },
+        {
             id: "recipe",
             title: "A chain round-trips through a CyberChef recipe",
             description: "A two-step chain copies as the JSON CyberChef's own Copy recipe writes — operation names, typed arguments and a disabled step — and pasting that JSON rebuilds the same wired chain with the same values, ready to run.",
@@ -11438,6 +11797,52 @@ function integrationDefinitions() {
                     back.view?.zoom === 1.1 && back.view?.x === 123 && back.view?.y === -45;
                 return {ok, detail: `${back.nodes.length} node(s), ${back.edges.length} wire(s), ${back.functions.length} function(s), view ${back.view?.zoom}, size ${t?.w}×${t?.h}, typed ${JSON.stringify(inst2?.typedInputs)}`};
             })
+        },
+        {
+            id: "splice",
+            title: "A node dropped on a wire joins the chain",
+            description: "Dropping an operation across a wire splits it and reattaches both halves to the node's main ports, so a step can be added in the middle of a chain without cutting the wire and drawing two new ones. A node with no main ports is refused and lands beside the wire. With a wire selected, a pick from the command box splices into it the same way.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const source = makeNode("input", {id: 1, x: 40, y: 90, text: "Hello, World!"});
+                const enc = makeNode("op", {id: 2, x: 380, y: 90, op: "To Base64"});
+                const sink = makeNode("input", {id: 3, x: 720, y: 90, text: ""});
+                s.nodes.push(source, enc, sink);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"}
+                );
+                renderAllNodes();
+                applyView();
+                // Aim at the middle of the second wire, the way a drop would.
+                const from = portCenter(nodeEl(enc.id)?.querySelector('.port.out[data-port="out"]'));
+                const to = portCenter(nodeEl(sink.id)?.querySelector('.port.in[data-port="main"]'));
+                const middle = from && to ? {x: (from.x + to.x) / 2, y: (from.y + to.y) / 2} : null;
+                const nearest = middle ? wireAtPoint(middle) : null;
+                const built = makeNode("op", {op: "From Base64"});
+                const spliced = Boolean(middle) && nearest?.id === "e2" && spliceNodeIntoWire(built, middle, nearest);
+                const split = spliced && s.edges.length === 3 && !s.edges.some(e => e.id === "e2") &&
+                    s.edges.some(e => e.from === enc.id && e.fromPort === "out" && e.to === built.id && e.toPort === "main") &&
+                    s.edges.some(e => e.from === built.id && e.fromPort === "out" && e.to === sink.id && e.toPort === "main");
+                const ran = spliced ? await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000}) : null;
+                const out = ran ? utf8(ran.results.get(sink.id)?.bytes || new Uint8Array()) : "";
+                // A node with no main ports cannot sit on a wire: the wire is left exactly as it was.
+                const joinBefore = s.edges.length;
+                const refused = Boolean(middle) && !spliceNodeIntoWire(makeNode("join", {title: "Join"}), middle, nearest) && s.edges.length === joinBefore;
+                // The command box takes the same path when a wire is selected: a pick goes in.
+                selectEdge("e1");
+                const pick = paletteSpliceEdge({kind: "op", op: "Reverse"});
+                const pickBuilt = pick ? makeNode("op", {op: "Reverse"}) : null;
+                const pickMiddle = pick && pickBuilt ? wireMidpoint(pick) : null;
+                const picked = Boolean(pickMiddle) && spliceNodeIntoWire(pickBuilt, pickMiddle, pick);
+                const pickedWiring = picked &&
+                    s.edges.some(e => e.from === source.id && e.fromPort === "out" && e.to === pickBuilt.id && e.toPort === "main") &&
+                    s.edges.some(e => e.from === pickBuilt.id && e.fromPort === "out" && e.to === enc.id && e.toPort === "main");
+                const ok = spliced && split && out === "Hello, World!" && refused && picked && pickedWiring;
+                return {
+                    ok,
+                    detail: `wire under the drop ${nearest?.id === "e2" ? "found" : "missed"}, ${spliced ? "spliced" : "not spliced"}, ${split ? "both halves rewired" : "wiring wrong"}, chain gave ${JSON.stringify(out)} · a node with no main ports ${refused ? "was refused" : "changed the wire"} · a pick with a wire selected ${picked ? (pickedWiring ? "spliced into it" : "wired wrong") : "did not splice"}`
+                };
+            }))
         },
         {
             id: "suite-coverage",
@@ -11949,6 +12354,14 @@ function bindGlobalEvents() {
         if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "s") {
             ev.preventDefault();
             if (ev.shiftKey) saveGraphFile(); else saveCurrentGraph();
+        }
+        // The inverse without opening the box: with one node selected, the operation that
+        // undoes it is put right after it, wired and set up the same way the palette row does
+        // it. Shift swaps the node for its inverse in place instead of adding one. Alt is in
+        // the combo because Ctrl+Shift+I is DevTools and never reaches the page.
+        if (!typing && !textSelected && (ev.ctrlKey || ev.metaKey) && ev.altKey && ev.key.toLowerCase() === "i" && selection.size === 1) {
+            ev.preventDefault();
+            runInverseCommand([...selection][0], ev.shiftKey);
         }
     });
 

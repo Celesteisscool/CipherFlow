@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import zlib from "node:zlib";
 import {MODULE_NAME, renderModule} from "./dcode/payload.mjs";
 import {glyphDataBundle, spriteStats} from "./symbols/index.mjs";
 
@@ -15,8 +14,8 @@ const HOOK = `
 ;(function () {
     // CipherFlow host hooks -------------------------------------------------
     // The extracted CyberChef worker normally fetches modules/<Name>.js from its
-    // own origin. In this single-file build the host page delivers every module
-    // over postMessage instead, so preloaded modules satisfy the recipe loader.
+    // own origin. Here the host page fetches the module file and delivers it over
+    // postMessage instead, so the worker still runs entirely from its own blob.
     self.loadRequiredModules = function (recipeConfig) {
         for (const step of recipeConfig || []) {
             const mod = self.OperationConfig && self.OperationConfig[step.op] && self.OperationConfig[step.op].module;
@@ -94,12 +93,9 @@ const modules = moduleFiles.map(file => ({
 const meta = fs.readFileSync(path.join(ROOT, "dev/meta.json"), "utf8");
 const tests = fs.readFileSync(path.join(ROOT, "dev/testplan.json"), "utf8");
 const css = fs.readFileSync(path.join(ROOT, "dev/styles.css"), "utf8");
-// The Bad Apple node plays the PV from inside the page: the clip is a data URL in this build,
-// the same way the glyphs and the engine travel. dev/app.js carries the placeholder token, so
-// the readable source stays readable and the single-file output still needs no network.
-const badAppleVideo = fs.readFileSync(path.join(ROOT, "dev/badapple.webm")).toString("base64");
-const app = fs.readFileSync(path.join(ROOT, "dev/app.js"), "utf8")
-    .replace("__BAD_APPLE_VIDEO__", () => `data:video/webm;base64,${badAppleVideo}`);
+// The Bad Apple node plays the PV from a file beside the page; the browser fetches it when the
+// first card is placed, so dev/app.js just names the path and no copy is inlined here.
+const app = fs.readFileSync(path.join(ROOT, "dev/app.js"), "utf8");
 // The symbol tag vocabulary and its measurements, shared with the build scripts: the app
 // runs this exact file over a picture, dev/symbols/tags.mjs runs it over the shipped art.
 const tagMath = fs.readFileSync(path.join(ROOT, "dev/symbols/tagmath.js"), "utf8");
@@ -107,25 +103,36 @@ const tagMath = fs.readFileSync(path.join(ROOT, "dev/symbols/tagmath.js"), "utf8
 // dev's checks, so the board in the page and the tests agree on what a legal move is.
 const chessJs = fs.readFileSync(path.join(ROOT, "dev/chess.js"), "utf8");
 
-// Symbol ciphers travel as one JSON island of data URLs: the panel and the node draw
-// straight from it, so a single-file offline build never fetches a glyph at runtime.
-// Every cipher in here has already passed its count check (dev/symbols/index.mjs).
+// Symbol ciphers travel as one JSON file of data URLs under assets/: the panel and the
+// node draw straight from it once it is fetched, and a visit that never opens a symbol
+// cipher never downloads it. Every cipher has already passed its count check
+// (dev/symbols/index.mjs).
 const glyphs = glyphDataBundle();
 const glyphStats = spriteStats();
 console.log("glyphs:", glyphStats.ciphers, "ciphers", glyphStats.symbols, "symbols",
     (glyphStats.bytes / 1024).toFixed(0), "KB of source art");
 
-const gzB64 = str => zlib.gzipSync(Buffer.from(str, "utf8"), {level: 9}).toString("base64");
 const jsonForScript = str => str.replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 
-function chunks(b64, width = 200) {
-    const out = [];
-    for (let i = 0; i < b64.length; i += width) out.push(b64.slice(i, i + width));
-    return out.join("\n");
-}
-
-const engineB64 = chunks(gzB64(worker));
-const moduleTags = modules.map(m => `<script type="text/plain" id="moduleGzip-${m.name}" data-module-gzip="${m.name}">\n${chunks(gzB64(m.source))}\n</script>`).join("\n");
+// The site is static but no longer one file: everything heavy is written to assets/ beside
+// index.html and fetched when it is first needed. index.html keeps the shell, the app and
+// the operation catalogue; the engine, the per-operation modules, the symbol art, the test
+// plan and the PV are plain files, so a first visit downloads a small document, a graph that
+// never opens the lab or a symbol cipher never pays for either, and only the modules a
+// carried recipe actually names are ever fetched.
+const ASSET_DIR = path.join(ROOT, "assets");
+const MODULE_OUT = path.join(ASSET_DIR, "modules");
+fs.rmSync(MODULE_OUT, {recursive: true, force: true});
+fs.mkdirSync(MODULE_OUT, {recursive: true});
+fs.writeFileSync(path.join(ASSET_DIR, "chefworker.js"), worker);
+for (const m of modules) fs.writeFileSync(path.join(MODULE_OUT, m.name + ".js"), m.source);
+fs.writeFileSync(path.join(ASSET_DIR, "glyphs.json"), JSON.stringify(glyphs));
+fs.writeFileSync(path.join(ASSET_DIR, "testplan.json"), tests);
+fs.copyFileSync(path.join(ROOT, "dev/badapple.webm"), path.join(ASSET_DIR, "badapple.webm"));
+const fixedAssets = ["chefworker.js", "glyphs.json", "testplan.json", "badapple.webm"]
+    .reduce((n, name) => n + fs.statSync(path.join(ASSET_DIR, name)).size, 0);
+const assetBytes = fixedAssets + modules.reduce((n, m) => n + Buffer.byteLength(m.source), 0);
+console.log("assets:", (assetBytes / 1024 / 1024).toFixed(1), "MB in", modules.length, "modules");
 
 // The favicon is the sidebar's node-graph mark, inline as an SVG data URI: no extra file to
 // ship, no request, and it still works when index.html is opened straight off disk or served
@@ -159,7 +166,8 @@ const html = `<!doctype html>
 })();
 </script>
 <title>CipherFlow — node-based CyberChef</title>
-<meta name="description" content="A single-file, offline node editor for chaining CyberChef's operations with multiple inputs.">
+<meta name="description" content="A node editor for chaining CyberChef's operations with multiple inputs.">
+<meta name="cipherflow-symbols" content="${glyphStats.ciphers}">
 <style>
 ${css}
 </style>
@@ -171,8 +179,8 @@ ${css}
     <div class="boot-card">
         <span class="boot-spinner" aria-hidden="true"></span>
         <div class="boot-title">CipherFlow</div>
-        <div class="boot-sub">Offline node editor — everything runs in this page</div>
-        <div class="boot-status" id="bootStatus">Loading the embedded engine…</div>
+        <div class="boot-sub">Node editor — everything runs in your browser</div>
+        <div class="boot-status" id="bootStatus">Loading the engine…</div>
         <div class="boot-progress" aria-hidden="true">
             <div class="boot-bar"><span class="boot-bar-fill" id="bootBarFill"></span></div>
             <span class="boot-pct" id="bootPct">4%</span>
@@ -218,12 +226,12 @@ ${css}
             <button class="zoom-btn fit-btn" id="snapBtn" title="Snap is off: click to keep every node on the grid" aria-pressed="false"><span id="snapBtnIcon"></span>Snap</button>
             <button class="zoom-btn fit-btn" id="orderBtn" title="Order nodes: lay the graph out left to right"><span id="orderBtnIcon"></span>Order</button>
         </div>
-        <div class="run-status" id="runStatus" title="Last run summary"><span class="status-dot"></span><span id="runStatusText">Loading embedded engine…</span></div>
+        <div class="run-status" id="runStatus" title="Last run summary"><span class="status-dot"></span><span id="runStatusText">Loading engine…</span></div>
     </main>
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-head">
-            <div class="brand"><span class="brand-mark"></span><span>CipherFlow · offline node editor</span></div>
+            <div class="brand"><span class="brand-mark"></span><span>CipherFlow · node editor</span></div>
             <div class="sidebar-title-row">
                 <h1 class="sidebar-title">Node list</h1>
                 <span class="count-badge"><span id="opCount">0</span> nodes</span>
@@ -243,7 +251,7 @@ ${css}
         <div class="sidebar-body" id="paletteBody"></div>
         <div class="sidebar-foot">
             <span class="engine-dot" id="engineDot"></span>
-            <span class="foot-text" id="engineStatus">Starting embedded engine…</span>
+            <span class="foot-text" id="engineStatus">Starting the engine…</span>
         </div>
     </aside>
 </div>
@@ -256,7 +264,7 @@ ${css}
             <div class="lab-title-wrap">
                 <div class="lab-kicker"><span id="labKickerIcon"></span> Verification lab</div>
                 <h2 class="lab-title">Every operation, checked</h2>
-                <p class="lab-sub">Known-answer vectors from CyberChef's own test suite where they exist, live probes through the embedded engine everywhere else, and graph-wiring integration checks. Nothing leaves this page.</p>
+                <p class="lab-sub">Known-answer vectors from CyberChef's own test suite where they exist, live probes through the engine everywhere else, and graph-wiring integration checks. Nothing leaves this page.</p>
                 <div class="lab-tabs">
                     <button class="lab-tab on" data-labtab="ops">Operations</button>
                     <button class="lab-tab" data-labtab="wiring">Graph wiring</button>
@@ -378,7 +386,7 @@ ${css}
                     <li><b>Audio Levels</b> is the loudness measurement — peak, RMS, DC offset, clipping and silence.</li>
                 </ul>
                 <p>Each takes bytes on its left port and hands back one text report.</p>
-                <p>The rest of a sweep is already in the operation list, and these reports pipe into it: <b>Strings</b> for printable runs, <b>Extract LSB</b> and <b>View Bit Plane</b> for hidden bit layers, <b>Extract RGBA</b> and <b>Randomize Colour Palette</b> for channel and palette tricks, <b>Extract EXIF</b> for camera metadata, <b>Scan for Embedded Files</b> for signatures at any offset, and <b>Extract Files</b> for carving. Native tools such as steghide, outguess, zsteg and binwalk are separate programs with no browser equivalent, so they are not bundled — everything above runs in the page, offline, with nothing uploaded.</p>
+                <p>The rest of a sweep is already in the operation list, and these reports pipe into it: <b>Strings</b> for printable runs, <b>Extract LSB</b> and <b>View Bit Plane</b> for hidden bit layers, <b>Extract RGBA</b> and <b>Randomize Colour Palette</b> for channel and palette tricks, <b>Extract EXIF</b> for camera metadata, <b>Scan for Embedded Files</b> for signatures at any offset, and <b>Extract Files</b> for carving. Native tools such as steghide, outguess, zsteg and binwalk are separate programs with no browser equivalent, so they are not bundled — everything above runs in the page, with nothing uploaded.</p>
             </details>
             <details class="help-section">
                 <summary><h3>Canvas, wires and view</h3></summary>
@@ -435,7 +443,7 @@ ${css}
                 <p>The <b>File</b> menu in the toolbar keeps your graphs. <b>Load</b> lists everything saved in this browser, newest first — click one to open it, or use the trash to delete it. <b>New blank graph</b> and <b>Browse examples…</b> replace whatever is on the canvas; the saved graphs stay.</p>
                 <p><b>Browse examples…</b> opens the gallery: ready-made graphs for a ROT13 round trip, Base64 and Morse chains, a JWT, a symbol alphabet, an Fstring, a hex decode and the AES example. Each one opens as an ordinary graph with its wires in place, so it can be taken apart, renamed and saved like anything else.</p>
                 <p><b>Save</b> keeps the graph under its name: <b>Save “name”</b> overwrites it and <b>Save as…</b> saves it under another name. A graph with no name asks for one, and the name it is saved under shows at the top of the menu. Separately, the canvas is autosaved as you work, so a reload brings back exactly what you had even if you never named it.</p>
-                <p><b>Import</b> opens a <code>.json</code> graph file and <b>Export</b> downloads the current graph, or every saved graph in one file. Everything runs in this page, offline — no data leaves it.</p>
+                <p><b>Import</b> opens a <code>.json</code> graph file and <b>Export</b> downloads the current graph, or every saved graph in one file. Everything runs in this page — no data leaves it.</p>
                 <p><b>Copy as CyberChef recipe</b> and <b>Paste a CyberChef recipe…</b>, in the File menu, move a straight chain of operations between CipherFlow and CyberChef. The copy writes the same JSON CyberChef's own Copy recipe button does — operation names, typed arguments, and a bypassed step as a disabled one — and the paste builds that chain left to right with its arguments filled in. Only one unbranched chain travels: a wire into an argument, a branch, a bundle or a CipherFlow-only operation is refused with a message rather than quietly dropped.</p>
                 <p><b>Copy share link</b> puts the graph in the address bar as a link, compressed and encoded after the <code>#</code> — the part a browser never sends to the server. Opening one asks before it replaces the canvas; attached file bytes are not included, because a link is too small to carry them.</p>
             </details>
@@ -473,12 +481,6 @@ ${css}
 <div id="toasts"></div>
 
 <script type="application/json" id="metaData">${jsonForScript(meta)}</script>
-<script type="application/json" id="testData">${jsonForScript(tests)}</script>
-<script type="application/json" id="glyphData" data-ciphers="${glyphStats.ciphers}">${jsonForScript(JSON.stringify(glyphs))}</script>
-<script type="text/plain" id="engineGzip">
-${engineB64}
-</script>
-${moduleTags}
 
 <script>
 ${tagMath}

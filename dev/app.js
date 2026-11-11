@@ -302,32 +302,34 @@ function downloadBlob(blob, name) {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
-/* A gzip stream's trailer states how many bytes it decompresses to, so an embedded payload
- * can report progress as an exact fraction of the work rather than as an estimate. */
-function gzipIsize(bytes) {
-    const n = bytes.length;
-    if (n < 18 || bytes[0] !== 0x1f || bytes[1] !== 0x8b) return 0;
-    return (bytes[n - 4] | (bytes[n - 3] << 8) | (bytes[n - 2] << 16) | (bytes[n - 1] << 24)) >>> 0;
-}
-async function gunzipBase64(b64, onProgress) {
-    const raw = b64ToBytes(b64);
-    if (typeof DecompressionStream === "undefined") {
-        throw new Error("This browser does not support embedded gzip. Use a current Chrome, Edge, Firefox or Safari.");
+/* The page ships beside a static assets/ folder: the engine, its per-operation modules, the
+ * symbol art, the test plan and the PV are fetched when they are first needed instead of
+ * riding inside the document. The fetches are same-origin GETs for files the site already
+ * serves; nothing here posts anything anywhere. */
+const ASSET_BASE = "assets/";
+async function fetchAssetText(path, onProgress) {
+    let res;
+    try {
+        res = await fetch(path);
+    } catch {
+        throw new Error(`Could not fetch ${path} — the site could not be reached.`);
     }
-    const total = onProgress ? gzipIsize(raw) : 0;
-    let stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream("gzip"));
-    if (total) {
-        // Count what comes out: the splash bar can then fill with bytes actually unpacked.
-        let seen = 0;
-        stream = stream.pipeThrough(new TransformStream({
-            transform(chunk, controller) {
-                seen += chunk.length;
-                onProgress(Math.min(1, seen / total));
-                controller.enqueue(chunk);
-            }
-        }));
+    if (!res.ok) throw new Error(`Could not load ${path} (HTTP ${res.status}).`);
+    const total = Number(res.headers.get("content-length")) || 0;
+    if (!onProgress || !res.body || !total) return res.text();
+    // Content-Length counts the bytes on the wire; a host that compresses the file reports
+    // fewer than are decoded, so the fraction is clamped rather than trusted to reach 1.
+    const reader = res.body.getReader();
+    const parts = [];
+    let seen = 0;
+    for (;;) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        parts.push(value);
+        seen += value.length;
+        onProgress(Math.min(1, seen / total));
     }
-    return new TextDecoder("utf-8").decode(await new Response(stream).arrayBuffer());
+    return new Blob(parts).text();
 }
 
 async function copyText(text) {
@@ -384,7 +386,9 @@ function naturalNumber(v, fallback = 0) {
 
 /* ================================================================ meta */
 const META = JSON.parse($("#metaData").textContent);
-const TESTPLAN = JSON.parse($("#testData").textContent);
+// The verification plan is megabytes of vectors that nothing on the canvas needs, so it is
+// fetched the first time the lab opens. Until then it is null and the lab starts empty.
+let TESTPLAN = null;
 const OPS = META.ops;
 const OP_NAMES = Object.keys(OPS);
 const FLOW_OPS = new Set(OP_NAMES.filter(n => OPS[n].flowControl));
@@ -557,8 +561,8 @@ function opAccent(op) {
 }
 
 /* ================================================================ engine */
-// The inline worker source is the same for every engine, and unpacks to several megabytes.
-// Decode it once: the Magic pool starts three more engines from it.
+// The worker source is the same for every engine and runs to several megabytes. Fetch it
+// once: the Magic pool starts three more engines from it.
 let engineSourceCache = null;
 // How much of one start() unpacking the payload accounts for. The rest is the worker
 // compiling it, which reports nothing from inside, so the splash splits its bar this way.
@@ -626,7 +630,7 @@ class ChefEngine {
         if (this.loaded && this.worker) return;
         if (this.loading) return this.loading;
         this.loading = (async () => {
-            this.setStatus("loading", "Unpacking the embedded engine…");
+            this.setStatus("loading", "Loading the engine…");
             this.report(0);
             const source = await this.source(f => this.report(f * UNPACK_SHARE));
             this.setStatus("loading", "Starting the local engine…");
@@ -640,7 +644,7 @@ class ChefEngine {
             }
             this.worker = worker;
             await new Promise((resolve, reject) => {
-                const timer = setTimeout(() => reject(new Error("The embedded CyberChef worker did not start.")), 20000);
+                const timer = setTimeout(() => reject(new Error("The CyberChef worker did not start.")), 20000);
                 const onReady = e => {
                     if (e.data?.action === "workerLoaded") {
                         clearTimeout(timer);
@@ -651,7 +655,7 @@ class ChefEngine {
                 worker.addEventListener("message", onReady);
                 worker.addEventListener("error", ev => {
                     clearTimeout(timer);
-                    const msg = ev.message || "Embedded engine failed to start.";
+                    const msg = ev.message || "The engine failed to start.";
                     reject(new Error(msg));
                 }, {once: true});
             });
@@ -696,9 +700,7 @@ class ChefEngine {
             if (onProgress) onProgress(1);
             return engineSourceCache;
         }
-        const b64 = $("#engineGzip").textContent.trim().replace(/\s+/g, "");
-        if (!b64) throw new Error("The embedded engine payload is missing.");
-        engineSourceCache = await gunzipBase64(b64, onProgress);
+        engineSourceCache = await fetchAssetText(ASSET_BASE + "chefworker.js", onProgress);
         return engineSourceCache;
     }
 
@@ -746,14 +748,16 @@ class ChefEngine {
         if (this.modulePromises.has(name)) return this.modulePromises.get(name);
         const task = (async () => {
             await this.start();
-            const holder = document.getElementById("moduleGzip-" + name) ||
-                document.querySelector(`[data-module-gzip="${name}"]`);
-            if (!holder) throw new Error(`The embedded ${name} module is missing from this build.`);
-            const source = await gunzipBase64(holder.textContent.trim().replace(/\s+/g, ""));
+            let source;
+            try {
+                source = await fetchAssetText(`${ASSET_BASE}modules/${encodeURIComponent(name)}.js`);
+            } catch (err) {
+                throw new Error(`The ${name} module could not be loaded: ${err.message || err}`);
+            }
             await new Promise((resolve, reject) => {
                 const timer = setTimeout(() => {
                     this.moduleWaiters.delete(name);
-                    reject(new Error(`The embedded ${name} module did not load.`));
+                    reject(new Error(`The ${name} module did not load.`));
                 }, 25000);
                 this.moduleWaiters.set(name, {resolve, reject, timer});
                 this.worker.postMessage({action: "cipherflowModule", name, source});
@@ -829,7 +833,7 @@ class ChefEngine {
                 const p = this.pending;
                 this.pending = null;
                 clearTimeout(p.timer);
-                p.reject(new Error("The embedded engine returned an unreadable message."));
+                p.reject(new Error("The engine returned an unreadable message."));
             }
         };
     }
@@ -7393,7 +7397,7 @@ async function runGraph(force = false) {
     runPending = false;
     runButton.disabled = true;
     runButton.innerHTML = `${svg("clock")} Running`;
-    setRunStatus("running", "Starting embedded engine…");
+    setRunStatus("running", "Starting the engine…");
     const generation = ++runGeneration;
     try {
         await engine.start();
@@ -8988,7 +8992,7 @@ const EXAMPLES = [
         name: "Base64 round trip",
         blurb: "Encode text to Base64, then decode it again — a two-step chain that ends where it started.",
         nodes: [
-            exampleNode(1, "input", 40, 120, {title: "Input", text: "CipherFlow — offline and free", encoding: "utf8"}),
+            exampleNode(1, "input", 40, 120, {title: "Input", text: "CipherFlow — free and local", encoding: "utf8"}),
             exampleNode(2, "op", 410, 120, {op: "To Base64"}),
             exampleNode(3, "op", 780, 120, {op: "From Base64"}),
             exampleNode(4, "input", 1150, 120, {title: "Result", text: ""})
@@ -9184,7 +9188,7 @@ async function openGraphFile(file, opts = {}) {
 /* ================================================================ share links */
 // A graph can travel in the URL fragment: `#g=<version><codec><base64url>&n=<name>`.
 // A fragment is never sent to the server, so a link works on Pages, on a local server or
-// from a downloaded copy without uploading anything, and the page stays a single file with
+// from a downloaded copy without uploading anything, and the page stays a static site with
 // no backend. The payload is the JSON an exported file carries — validated on the way in by
 // normalizeLoaded — except for attached file bytes, which a link is too small to carry.
 const SHARE_VERSION = "1";
@@ -9870,6 +9874,9 @@ function initTheme() {
 // sweep that took minutes. A rebuilt test plan changes the signature, and old results are
 // discarded rather than shown against checks that no longer exist.
 const LAB_RESULTS_KEY = "cipherflow.lab.results.v1";
+// The failure count alone, kept apart from the results so the flask can wear its badge on a
+// reload without fetching the test plan just to count them.
+const LAB_BADGE_KEY = "cipherflow.lab.badge.v1";
 const LAB_RESULT_TEXT_LIMIT = 2000;
 // WebCrypto is absent on plain-HTTP origins other than localhost. That is an environment
 // limit, not a wrong answer, so these rows are reported as blocked rather than failed.
@@ -9884,7 +9891,72 @@ function labPlanSignature() {
     for (const tr of TESTPLAN.textRoundtrips || []) mix(`tr:${tr.id}:${tr.label}`);
     return `${(h >>> 0).toString(16)}:${TESTPLAN.tests.length}`;
 }
-const LAB_PLAN = labPlanSignature();
+let LAB_PLAN = "";
+let testPlanLoading = null;
+/* The plan arrives with the first open of the lab. Everything the lab keeps per check is
+ * derived from it here, once, and the saved results (keyed to its signature) are replayed
+ * over the fresh rows. */
+function labItemsFromPlan(plan) {
+    return [
+        ...plan.tests.map((t, i) => ({
+            ...t,
+            index: i,
+            status: "pending",
+            actual: null,
+            error: "",
+            duration: 0,
+            opened: false,
+            thumbUrl: ""
+        })),
+        ...(plan.roundtrips || []).map((rt, i) => ({
+            ...rt,
+            kind: "roundtrip",
+            index: plan.tests.length + i,
+            name: `${rt.encoder} → ${rt.decoder} roundtrip`,
+            input: rt.sample,
+            status: "pending",
+            actual: null,
+            error: "",
+            duration: 0,
+            opened: false,
+            thumbUrl: ""
+        })),
+        ...(plan.textRoundtrips || []).map((tr, i) => ({
+            ...tr,
+            kind: "textroundtrip",
+            index: plan.tests.length + (plan.roundtrips || []).length + i,
+            name: tr.label,
+            input: tr.sample,
+            status: "pending",
+            actual: null,
+            error: "",
+            duration: 0,
+            opened: false,
+            thumbUrl: ""
+        }))
+    ];
+}
+function ensureTestPlan() {
+    if (TESTPLAN) return Promise.resolve(TESTPLAN);
+    if (!testPlanLoading) {
+        testPlanLoading = fetchAssetText(ASSET_BASE + "testplan.json")
+            .then(text => {
+                TESTPLAN = JSON.parse(text);
+                LAB_PLAN = labPlanSignature();
+                lab.items = labItemsFromPlan(TESTPLAN);
+                loadLabResults();
+                updateLabBadge();
+                updateLabSummary();
+                updateLabRunControls();
+                return TESTPLAN;
+            })
+            .catch(err => {
+                testPlanLoading = null;
+                throw err;
+            });
+    }
+    return testPlanLoading;
+}
 const lab = {
     opened: false,
     running: false,
@@ -9897,44 +9969,7 @@ const lab = {
     batchDone: 0,
     batchTotal: 0,
     batchLabel: "",
-    items: [
-        ...TESTPLAN.tests.map((t, i) => ({
-            ...t,
-            index: i,
-            status: "pending",
-            actual: null,
-            error: "",
-            duration: 0,
-            opened: false,
-            thumbUrl: ""
-        })),
-        ...(TESTPLAN.roundtrips || []).map((rt, i) => ({
-            ...rt,
-            kind: "roundtrip",
-            index: TESTPLAN.tests.length + i,
-            name: `${rt.encoder} → ${rt.decoder} roundtrip`,
-            input: rt.sample,
-            status: "pending",
-            actual: null,
-            error: "",
-            duration: 0,
-            opened: false,
-            thumbUrl: ""
-        })),
-        ...(TESTPLAN.textRoundtrips || []).map((tr, i) => ({
-            ...tr,
-            kind: "textroundtrip",
-            index: TESTPLAN.tests.length + (TESTPLAN.roundtrips || []).length + i,
-            name: tr.label,
-            input: tr.sample,
-            status: "pending",
-            actual: null,
-            error: "",
-            duration: 0,
-            opened: false,
-            thumbUrl: ""
-        }))
-    ],
+    items: [],
     rowEls: new Map(),
     integration: [],
     integrationRunning: false,
@@ -9970,16 +10005,39 @@ function initLab() {
     });
     $("#labList").addEventListener("click", onLabListClick);
     buildIntegrationCards();
-    loadLabResults();
+    // The results themselves wait for the plan, but the flask can still wear last run's
+    // failure count without fetching the plan just to count it.
+    try {
+        const savedBadge = Number(localStorage.getItem(LAB_BADGE_KEY) || 0);
+        const flask = $("#labOpenBtn");
+        if (flask && savedBadge > 0) {
+            flask.dataset.badge = savedBadge > 99 ? "99+" : String(savedBadge);
+            flask.title = `Open the verification lab — ${savedBadge} check${savedBadge === 1 ? "" : "s"} failed`;
+        }
+    } catch { /* private mode */ }
     renderIntegration();
     updateLabSummary();
     updateLabBadge();
     updateLabRunControls();
 }
 
-function openLab() {
+async function openLab() {
     lab.opened = true;
     $("#lab").hidden = false;
+    if (!TESTPLAN) {
+        const list = $("#labList");
+        if (list && !list.childElementCount) list.innerHTML = `<div class="search-empty">Loading the test plan…</div>`;
+        try {
+            await ensureTestPlan();
+        } catch (err) {
+            if (list) list.innerHTML = `<div class="search-empty">${esc(err.message || String(err))}</div>`;
+            toast("The test plan could not be loaded: " + (err.message || err), "error");
+            lab.opened = false;
+            $("#lab").hidden = true;
+            return;
+        }
+        if (list) list.innerHTML = "";
+    }
     if (!lab.rowEls.size) buildLabRows();
     renderLabVisible();
     updateLabSummary();
@@ -10132,7 +10190,7 @@ function renderTestDetail(item) {
         : (item.skip ? "Skipped: " + item.skip
             : item.expected !== undefined ? testPreview(item.expected, 1600)
             : item.expectedContains ? "Output must contain: " + item.expectedContains
-            : "No fixed expected output. This is a live probe through the embedded engine.");
+            : "No fixed expected output. This is a live probe through the engine.");
     const actual = item.actual != null && item.actual !== ""
         ? testPreview(item.actual, 1800)
         : item.error ? "Error:\n" + item.error : (item.skip ? "Not run (see reason)." : "Not run.");
@@ -10277,8 +10335,11 @@ function saveLabResults() {
     const integration = lab.integration
         .filter(def => def.status === "pass" || def.status === "fail")
         .map(def => ({id: def.id, s: def.status, d: def.detail || "", t: Math.round(def.duration || 0)}));
+    const failed = lab.items.filter(item => item.status === "fail").length +
+        integration.filter(def => def.s === "fail").length;
     try {
         localStorage.setItem(LAB_RESULTS_KEY, JSON.stringify({v: 1, plan: LAB_PLAN, at: lab.resultsAt, items, integration}));
+        localStorage.setItem(LAB_BADGE_KEY, String(failed));
     } catch {
         // Results are a convenience; a full quota must never take the lab down with it.
     }
@@ -10377,7 +10438,10 @@ function clearLabResults() {
         def.duration = 0;
     }
     lab.resultsAt = 0;
-    try { localStorage.removeItem(LAB_RESULTS_KEY); } catch {}
+    try {
+        localStorage.removeItem(LAB_RESULTS_KEY);
+        localStorage.removeItem(LAB_BADGE_KEY);
+    } catch {}
     renderIntegration();
     renderLabVisible();
     updateLabSummary();
@@ -10630,7 +10694,7 @@ async function copyLabReport() {
         generatedAt: new Date().toISOString(),
         finishedAt: lab.resultsAt ? new Date(lab.resultsAt).toISOString() : null,
         operations: lab.items.length,
-        knownAnswerTests: TESTPLAN.official,
+        knownAnswerTests: TESTPLAN ? TESTPLAN.official : undefined,
         counts,
         executedByKind: byKind,
         totalDurationMs: Math.round(executed.reduce((sum, item) => sum + (item.duration || 0), 0)),
@@ -11928,7 +11992,7 @@ function refreshIntegrationSummary() {
 function renderIntegration() {
     const wrap = $("#integrationWrap");
     wrap.innerHTML = `
-        <div class="integration-intro">These checks exercise the node runner and the editor itself: typed input/output nodes, fan-out to argument ports, fan-in merging, cycle protection, multi-select, the clipboard, wired-value previews, function blocks, wires into numbers, switches and dropdowns, undo/redo, file-backed function test samples, test samples piped in from inside a function, values typed straight onto a function instance, Compact/Expand/Pick bundles, Fstring, Switch, collapse, preview mode and Full, resize persistence, bypass, notes, Snap, saves and export/import. They run through the same embedded engine as the canvas.</div>
+        <div class="integration-intro">These checks exercise the node runner and the editor itself: typed input/output nodes, fan-out to argument ports, fan-in merging, cycle protection, multi-select, the clipboard, wired-value previews, function blocks, wires into numbers, switches and dropdowns, undo/redo, file-backed function test samples, test samples piped in from inside a function, values typed straight onto a function instance, Compact/Expand/Pick bundles, Fstring, Switch, collapse, preview mode and Full, resize persistence, bypass, notes, Snap, saves and export/import. They run through the same engine as the canvas.</div>
         <div class="integration-toolbar">
             <button class="btn-secondary" data-action="run-integrations">${iconFill("play")} Run all wiring checks</button>
             <button class="btn-secondary" data-action="stop-integrations" disabled>Stop</button>
@@ -13028,7 +13092,7 @@ function closeHelp() {
 }
 
 /* ================================================================ boot splash
- * The shell is unusable until the embedded engine has started, so a splash covers it
+ * The shell is unusable until the engine has started, so a splash covers it
  * and reports progress. It fades away once the engine is ready and the first run has
  * settled; if the engine cannot start it stays put and explains why.
  *
@@ -13084,14 +13148,14 @@ function bootFailed(message) {
     const err = $("#bootError");
     if (err) {
         err.hidden = false;
-        err.textContent = message || "The embedded engine could not start.";
+        err.textContent = message || "The engine could not start.";
     }
     const retry = $("#bootRetry");
     if (retry && retry.hidden) {
         retry.hidden = false;
         retry.addEventListener("click", () => location.reload(), {once: true});
     }
-    bootStatus("The embedded engine could not start.");
+    bootStatus("The engine could not start.");
 }
 function hideBoot() {
     if (boot.done || !boot.engineReady) return;
@@ -13105,8 +13169,6 @@ function hideBoot() {
     setTimeout(() => {
         el.classList.add("done");
         setTimeout(() => el.remove(), 420);
-        // Off the boot path: the drawer builds now, so its first open is instant.
-        setTimeout(() => symbolBuildList?.(), 0);
         // And the walkthrough, once the splash is out of the way and the canvas is on screen.
         // maybeStartTour offers it on a browser that has never seen it, which is the whole of
         // "first run" here — a graph already on the canvas is snapshotted and put back.
@@ -13135,6 +13197,13 @@ async function init() {
     setupPaletteDelegation();
     buildPalette();
     renderAllNodes();
+    // A restored graph can carry symbol nodes; their art is fetched now rather than shipped
+    // in the page, so draw them again once the glyphs arrive.
+    if (state.nodes.some(n => n.type === "symbol")) {
+        ensureGlyphData()
+            .then(() => { if (state && state.nodes.some(n => n.type === "symbol")) renderAllNodes(); })
+            .catch(err => toast("The symbol art could not be loaded: " + (err.message || err), "error"));
+    }
     updateAutoSwitch();
     initLab();
     initHelp();
@@ -13164,13 +13233,13 @@ async function init() {
         const dot = $("#engineDot");
         const label = $("#engineStatus");
         dot.className = "engine-dot" + (status === "ready" ? " ready" : status === "error" ? " error" : "");
-        if (status === "loading") label.innerHTML = "Loading embedded engine…";
+        if (status === "loading") label.innerHTML = "Loading engine…";
         else if (status === "ready") label.innerHTML = `<b>${ENGINE_LABEL}</b> · ${OP_NAMES.length} ops · local only`;
         else label.innerHTML = `<span style="color:var(--danger)">Engine error</span> · ${esc(engine.lastError || "restarting")}`;
         if (status === "error") {
-            setRunStatus("error", "Embedded engine error");
+            setRunStatus("error", "Engine error");
             bootStopEase();
-            bootFailed(engine.lastError || "The embedded engine reported an error.");
+            bootFailed(engine.lastError || "The engine reported an error.");
         } else if (status === "ready") {
             boot.engineReady = true;
             bootStopEase();
@@ -13203,8 +13272,8 @@ async function init() {
         else hideBoot();
         setTimeout(offerSharedGraph, 700);
     }).catch(err => {
-        setRunStatus("error", "Embedded engine could not start: " + (err.message || err));
-        toast("Embedded engine could not start: " + (err.message || err), "error");
+        setRunStatus("error", "Engine could not start: " + (err.message || err));
+        toast("Engine could not start: " + (err.message || err), "error");
         bootFailed(err.message || String(err));
     });
 
@@ -13224,8 +13293,8 @@ async function init() {
  * A symbol node is a transcription surface: the source's own glyph art in a grid, a
  * click on a tile appends its letter, the strip under the grid repeats what has been
  * clicked as smaller labelled glyphs, and the text under that is what flows out of the
- * node. Everything drawn here comes from the #glyphData island that dev/build.mjs
- * inlines, so this panel and these nodes never fetch at runtime.
+ * node. Everything drawn here comes from assets/glyphs.json, which is fetched the first
+ * time a symbol cipher is involved rather than shipped in the page.
  *
  * Data contract (dev/symbols/index.mjs):
  *   SYMBOLS.ciphers[slug] = {name, artFrom, glyphs:[{index,key,label,src}],
@@ -13235,11 +13304,28 @@ async function init() {
  * where every `src` is already a data: URL, and a cipher is only in the island if its
  * count check passed and all of its art was on disk.
  */
-// Parsed on first use: nothing on the canvas needs the island until a symbol cipher is
-// involved, and it is the biggest thing in the page. `SYMBOLS.ciphers` keeps every call
-// site as it was; `glyphCipherCount()` answers the panel's count without parsing.
+// Fetched on first use: nothing on the canvas needs the art until a symbol cipher is
+// involved, and it is the biggest asset the site ships. `SYMBOLS.ciphers` keeps every call
+// site as it was and is empty until the fetch lands.
 let glyphDataParsed = null;
-const SYMBOLS = {get ciphers() { return readGlyphData().ciphers; }};
+let glyphDataLoading = null;
+const SYMBOLS = {get ciphers() { return (glyphDataParsed && glyphDataParsed.ciphers) || {}; }};
+function ensureGlyphData() {
+    if (glyphDataParsed) return Promise.resolve(glyphDataParsed);
+    if (!glyphDataLoading) {
+        glyphDataLoading = fetchAssetText(ASSET_BASE + "glyphs.json")
+            .then(text => {
+                const parsed = JSON.parse(text);
+                glyphDataParsed = parsed && typeof parsed === "object" && parsed.ciphers ? parsed : {ciphers: {}};
+                return glyphDataParsed;
+            })
+            .catch(err => {
+                glyphDataLoading = null;
+                throw err;
+            });
+    }
+    return glyphDataLoading;
+}
 // Set by initSymbolPanel; lets the drawer build its list when it is first needed.
 let symbolBuildList = null;
 const SYMBOL_COLOR = "#8b5cf6";
@@ -13307,25 +13393,12 @@ function symbolTagMatch(cipher, tags) {
     return {hits, pct: set.length ? sum / set.length : 1};
 }
 
-function readGlyphData() {
-    if (glyphDataParsed) return glyphDataParsed;
-    try {
-        const el = typeof document !== "undefined" && document.getElementById("glyphData");
-        if (!el) return {ciphers: {}};
-        const parsed = JSON.parse(el.textContent || "{}");
-        glyphDataParsed = parsed && typeof parsed === "object" && parsed.ciphers ? parsed : {ciphers: {}};
-    } catch {
-        glyphDataParsed = {ciphers: {}};
-    }
-    return glyphDataParsed;
-}
-
-/* How many ciphers the island holds, without parsing it: dev/build.mjs bakes the figure onto
- * the tag, so the rail and the drawer header can count while the island is still untouched. */
+/* How many ciphers the site ships, without fetching them: dev/build.mjs bakes the figure
+ * into a meta tag, so the rail and the drawer header can count before the art arrives. */
 function glyphCipherCount() {
     if (glyphDataParsed) return Object.keys(glyphDataParsed.ciphers).length;
-    const el = typeof document !== "undefined" && document.getElementById("glyphData");
-    return Number(el?.dataset?.ciphers) || 0;
+    const el = typeof document !== "undefined" && document.querySelector('meta[name="cipherflow-symbols"]');
+    return Number(el?.content) || 0;
 }
 
 function symbolCipher(slug) {
@@ -14905,12 +14978,13 @@ function noteDropWatcher() {
 
 /* ================================================================ Bad Apple node
  * The Silly Stuff toy: a card with no ports at all that plays the Bad Apple!! shadow-art PV.
- * The clip travels inside this same file as a data URL (dev/build.mjs fills in the source of
- * dev/badapple.webm, 320x240 VP9 + Opus), so the node plays offline and downloads nothing.
+ * The clip is a file beside the page (dev/build.mjs copies dev/badapple.webm into assets/,
+ * 320x240 VP9 + Opus) and the browser fetches it when the first card is placed, so a graph
+ * without a Bad Apple node never downloads it.
  * The PV is the well-known silhouette animation of ZUN's theme, as arranged by Alstroemeria
  * Records.
  */
-const BAD_APPLE_VIDEO = "__BAD_APPLE_VIDEO__";
+const BAD_APPLE_VIDEO = "assets/badapple.webm";
 const BAD_APPLE_DURATION = 219.15; // 3:39 — until the element reports its own duration
 
 // One <video> per card, kept out of the DOM so a repaint can move the same element into the
@@ -14925,8 +14999,8 @@ function badAppleClock(ms) {
 function badAppleDuration(video) {
     return video && Number.isFinite(video.duration) && video.duration > 0 ? video.duration : BAD_APPLE_DURATION;
 }
-// Forget a clip: pause it and drop its source. Its data URL is megabytes of decoded video,
-// and a card that is gone should leave neither that nor its sound behind.
+// Forget a clip: pause it and drop its source. The clip is megabytes of decoded video, and
+// a card that is gone should leave neither that nor its sound behind.
 function dropBadApple(id) {
     const video = badApple.videos.get(id);
     if (!video) return;
@@ -15007,7 +15081,7 @@ function buildBadAppleNode(node) {
         <div class="ba-track"><span class="ba-fill" data-ba-fill></span></div>
         <div class="ba-row">
             <button type="button" class="ba-play" data-ba-play>Play</button>
-            <span class="ba-note">shadow-art PV · offline</span>
+            <span class="ba-note">shadow-art PV · local</span>
             <span class="ba-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
         </div>
     `;
@@ -15089,7 +15163,13 @@ function buildGateNode(node) {
 }
 
 /** Place a symbol node from the left panel, the same way the palette places its nodes. */
-function addSymbolNode(slug, x, y) {
+async function addSymbolNode(slug, x, y) {
+    try {
+        await ensureGlyphData();
+    } catch (err) {
+        toast("The symbol art could not be loaded: " + (err.message || err), "error");
+        return;
+    }
     const cipher = symbolCipher(slug);
     if (!cipher) return;
     const p = (x === undefined) ? spawnPoint() : {x, y};
@@ -15283,13 +15363,22 @@ function initSymbolPanel() {
     // Deferred: the island parse and a hundred rows of sample art cost more than the rest
     // of init, and none of it is visible until the drawer opens.
     let listBuilt = false;
-    const buildList = () => {
+    const buildList = async () => {
         if (listBuilt) return;
+        try {
+            await ensureGlyphData();
+        } catch (err) {
+            list.innerHTML = `<div class="search-empty">The symbol art could not be loaded: ${esc(err.message || String(err))}</div>`;
+            return;
+        }
         listBuilt = true;
         renderTags();
         renderList();
     };
     symbolBuildList = buildList;
+    // A drawer restored open builds itself now; otherwise it waits for the first open, so a
+    // visit that never looks at a symbol cipher never downloads the art.
+    if (open) buildList();
 
     document.getElementById("symRailBtn").addEventListener("click", toggleSymbolDrawer);
     document.getElementById("symClose").addEventListener("click", () => setSymbolDrawer(false));

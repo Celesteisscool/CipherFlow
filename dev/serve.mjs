@@ -1,4 +1,4 @@
-// Dev-only static file server. Not part of the deliverable (the app is a single HTML file).
+// Dev-only static file server. Not part of the deliverable (the site is index.html plus assets/).
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -16,6 +16,7 @@ const TYPES = {
     ".json": "application/json; charset=utf-8",
     ".png": "image/png",
     ".svg": "image/svg+xml",
+    ".webm": "video/webm",
     ".br": "text/javascript",
     ".gz": "text/javascript"
 };

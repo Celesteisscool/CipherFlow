@@ -216,6 +216,7 @@ ${css}
             <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
             <button class="zoom-btn fit-btn" id="fitBtn" title="Fit graph to view"><span id="fitBtnIcon"></span>Fit</button>
             <button class="zoom-btn fit-btn" id="snapBtn" title="Snap is off: click to keep every node on the grid" aria-pressed="false"><span id="snapBtnIcon"></span>Snap</button>
+            <button class="zoom-btn fit-btn" id="orderBtn" title="Order nodes: lay the graph out left to right"><span id="orderBtnIcon"></span>Order</button>
         </div>
         <div class="run-status" id="runStatus" title="Last run summary"><span class="status-dot"></span><span id="runStatusText">Loading embedded engine…</span></div>
     </main>
@@ -325,7 +326,7 @@ ${css}
             </div>
             <details class="help-section" open>
                 <summary><h3>Build a graph</h3></summary>
-                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Fstring, Math, Switch, Gate and Magic), <b>Bundles</b> (Compact, Expand, Pick and Fork, the nodes that carry lists) and <b>Operations</b> by category. The operations recreated from dCode and CacheSleuth come after the built-in ones in categories of their own, and the <b>Symbols</b> tab down the left edge of the canvas holds the symbol alphabets, which have a section below.</p>
+                <p>Every node is a step. Circles on a node are <b>ports</b>: inputs on the left, outputs on the right. Drag from an output to an input to draw a wire, and data flows along it. Add nodes from the list on the left — click one, drag it onto the canvas, or search for it. The list is grouped into <b>Functions</b> (blocks you build), <b>Graph</b> (the wiring nodes: Text Input / Output, File Input / Output, Join, Diff, Fstring, Math, Switch, Gate and Magic), <b>Bundles</b> (Compact, Expand, Pick and Fork, the nodes that carry lists) and <b>Operations</b> by category. The operations recreated from dCode and CacheSleuth come after the built-in ones in categories of their own, and the <b>Symbols</b> tab down the left edge of the canvas holds the symbol alphabets, which have a section below.</p>
                 <p>New here? <b>Take the tour</b> at the top of this panel walks through the canvas in seven steps — it also offers itself the first time the page is opened in a browser, and the <b>?</b> button in the sidebar brings this panel back whenever you want it.</p>
             </details>
             <details class="help-section">
@@ -341,6 +342,7 @@ ${css}
                 <p>Every operation carries a box for its own main input, and <b>every</b> argument it has gets a port of its own — a key, an IV, a password, but also a number, a switch or a dropdown. Type straight into a box and the node runs on what you typed, or wire another node's output into the port and the wire wins: the box dims and shows the value arriving on the wire, cut short if it runs long. A wired number is read as a number, a switch as on or off, and a wire into a dropdown picks whichever option it matches.</p>
                 <ul>
                     <li><b>Join</b> merges several wires into one in order, with an optional separator.</li>
+                    <li><b>Diff</b> puts two wires side by side: wire the value you expect into <b>Expected</b> and the value you got into <b>Actual</b>, and the node marks every character that differs, with a headline that reads identical or counts the changes. Bytes that are not text are compared as hex, so a changed byte shows up the same way. The marked reading flows out as text, so it can be copied or fed into the next step.</li>
                     <li><b>Fstring</b> builds one string out of several: type a shape like <code>Hello {input1}, key {input2}</code> and each slot is filled from that numbered port — an f-string whose variables are wires.</li>
                     <li><b>Math</b> uses the same numbered slots for arithmetic: type <code>({input1} * {input2}) - {input3}</code> and it evaluates <code>+ - * / %</code>, parentheses and <code>^</code> (or <code>**</code>) over the wired numbers.</li>
                     <li><b>Switch</b> is a lookup table: wire a value into it, add a case per key with the value to hand on, and give an <em>otherwise</em> value for when nothing matches. Both halves of a case and the otherwise value take wires too — the wire wins while it is connected. With no otherwise at all (nothing wired and nothing typed) the input is passed straight through. Keys match exactly, once surrounding spaces are trimmed.</li>
@@ -373,7 +375,6 @@ ${css}
                     <li><b>PDF Scan</b> is the pdfid/pdfinfo view: header and version, object, stream and page counts, title/author strings, the risky markers (/JS, /OpenAction, /Launch, /EmbeddedFile, /Encrypt…), every %%EOF, and data appended after the last one.</li>
                     <li><b>Image Info</b> is identify: format, dimensions, bit depth, frames and metadata for PNG, JPEG, GIF, WebP and BMP.</li>
                     <li><b>Spectrogram</b> draws audio as a frequency plot over time: scroll or pinch to zoom the time axis, hold <kbd>Shift</kbd> while scrolling to zoom the frequency band, drag the picture to move it and double-click to fit the file again. Its <b>Merge channels</b> switch folds left and right into one plot instead of giving each a lane, and the whole file leaves on the node's output wire as a PNG of the same plot.</li>
-                    <li><b>Audio Info</b> reports an audio file's format, stream and tags: ID3v1 and ID3v2, Vorbis comments and iTunes atoms, with sample rate, bit rate and duration.</li>
                     <li><b>Audio Levels</b> is the loudness measurement — peak, RMS, DC offset, clipping and silence.</li>
                 </ul>
                 <p>Each takes bytes on its left port and hands back one text report.</p>
@@ -386,6 +387,7 @@ ${css}
                     <li>The <b>chevron</b> in a node's header collapses it. Wires stay connected while collapsed.</li>
                     <li>A <b>Note</b>, from the Graph list, is a sticky note on the canvas: no ports and nothing to run, just somewhere to explain the graph. Click one of the four dots along its bottom edge to tint it; the words and the tint are saved with the graph, and a resized note gives the extra room to its text.</li>
                     <li>The <b>eye</b> beside it bypasses the node: its input passes through untouched, so one step can be switched off without unwiring it. The title is struck through while it is bypassed, and clicking the eye again runs it normally. A bypassed node is saved that way, and undo puts it back.</li>
+                    <li>The <b>snowflake</b> beside the eye freezes the node: it holds the output it has at that moment and stops running, so an edit upstream cannot overwrite a reference value. The card wears an icy ring while it is frozen and the snowflake stays pressed in; click it again to let the node run. A freeze lasts for this session only — it is not written into the save, so a reload runs the node afresh.</li>
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename any node, an operation or a function instance included.</li>
                     <li><b>Snap</b>, beside Fit in the bottom-left controls, is a toggle. Turning it on puts every node on the graph back on the nearest grid dot and then keeps them there: dragged nodes track the grid as they move. It lights up while it is holding and the setting is remembered, so a reload comes back snapped. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
                     <li>Click a wire to select it — an <b>×</b> appears in the middle. Click the × to remove it, or double-click the wire.</li>
@@ -415,7 +417,7 @@ ${css}
                 <summary><h3>Running and shortcuts</h3></summary>
                 <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed.</p>
                 <ul class="help-keys">
-                    <li><kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette: run, fit, save, share, or jump to any operation, node or function</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette: run, fit, save, share, or jump to any operation, node or function. Add <kbd>Shift</kbd> with one node selected and the same box <b>replaces</b> that node instead of adding another: the node keeps its place on the canvas, its input and output wires stay connected where the replacement has the same ports, and Enter on a command row still just runs the command.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph</li>
                     <li><kbd>Ctrl</kbd>+<kbd>S</kbd> saves in this browser</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> downloads the graph</li>
@@ -432,6 +434,7 @@ ${css}
                 <p><b>Browse examples…</b> opens the gallery: ready-made graphs for a ROT13 round trip, Base64 and Morse chains, a JWT, a symbol alphabet, an Fstring, a hex decode and the AES example. Each one opens as an ordinary graph with its wires in place, so it can be taken apart, renamed and saved like anything else.</p>
                 <p><b>Save</b> keeps the graph under its name: <b>Save “name”</b> overwrites it and <b>Save as…</b> saves it under another name. A graph with no name asks for one, and the name it is saved under shows at the top of the menu. Separately, the canvas is autosaved as you work, so a reload brings back exactly what you had even if you never named it.</p>
                 <p><b>Import</b> opens a <code>.json</code> graph file and <b>Export</b> downloads the current graph, or every saved graph in one file. Everything runs in this page, offline — no data leaves it.</p>
+                <p><b>Copy as CyberChef recipe</b> and <b>Paste a CyberChef recipe…</b>, in the File menu, move a straight chain of operations between CipherFlow and CyberChef. The copy writes the same JSON CyberChef's own Copy recipe button does — operation names, typed arguments, and a bypassed step as a disabled one — and the paste builds that chain left to right with its arguments filled in. Only one unbranched chain travels: a wire into an argument, a branch, a bundle or a CipherFlow-only operation is refused with a message rather than quietly dropped.</p>
                 <p><b>Copy share link</b> puts the graph in the address bar as a link, compressed and encoded after the <code>#</code> — the part a browser never sends to the server. Opening one asks before it replaces the canvas; attached file bytes are not included, because a link is too small to carry them.</p>
             </details>
             <details class="help-section">

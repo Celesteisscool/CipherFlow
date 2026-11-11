@@ -563,15 +563,25 @@ button svg { flex: 0 0 auto; }
     text-transform: uppercase;
     opacity: .8;
 }
+/* A hairline between the two header groups: bypass and freeze on one side, collapse and
+ * the delete X on the other. */
+.node-sep {
+    width: 1px; height: 12px;
+    flex: 0 0 auto;
+    margin: 0 -2px;
+    border-radius: 1px;
+    background: color-mix(in srgb, var(--ink) 14%, transparent);
+}
 .node-close {
     width: 22px; height: 22px;
     flex: 0 0 auto;
+    padding: 0;
     border-radius: 6px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--faint);
-    opacity: 0;
+    opacity: .55;
     transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
 }
 .node:hover .node-close { opacity: 1; }
@@ -588,6 +598,9 @@ button svg { flex: 0 0 auto; }
 .node-mini {
     width: 20px; height: 20px;
     flex: 0 0 auto;
+    /* No padding: the browser's default 1px 6px leaves a content box narrower than the
+     * 11px icon, so the glyph sits against an edge instead of in the middle of the button. */
+    padding: 0;
     border-radius: 5px;
     display: inline-flex;
     align-items: center;
@@ -614,6 +627,17 @@ button svg { flex: 0 0 auto; }
     background: color-mix(in srgb, var(--node-accent) 12%, transparent);
 }
 .node-mini.node-bypass[aria-pressed="true"]:hover { color: var(--node-accent); background: color-mix(in srgb, var(--node-accent) 18%, transparent); }
+/* A frozen node holds the value it had when the snowflake was pressed: the runner skips it,
+ * so the card wears a frosty ring while its output stays live and readable. */
+.node.frozen { outline: 1.5px solid rgba(126, 181, 212, .55); outline-offset: 1px; }
+.node.frozen .node-title { color: color-mix(in srgb, var(--ink) 72%, #5f9fc4); }
+.node.frozen .node-dot { box-shadow: 0 0 0 3px rgba(126, 181, 212, .22); }
+.node-mini.node-freeze[aria-pressed="true"] {
+    opacity: 1;
+    color: #6faecd;
+    background: color-mix(in srgb, #6faecd 14%, transparent);
+}
+.node-mini.node-freeze[aria-pressed="true"]:hover { color: #6faecd; background: color-mix(in srgb, #6faecd 22%, transparent); }
 .node.collapsed { box-shadow: 0 2px 5px rgba(20, 22, 27, 0.09), 0 8px 18px rgba(20, 22, 27, 0.05); }
 /* Resize grip in the bottom-right corner. */
 .node-resize {
@@ -1068,6 +1092,87 @@ select.control { padding-right: 4px; }
 .magic-value { flex: 0 0 auto; width: 22px; text-align: right; font-size: 8.2px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .magic-notes { margin-top: 4px; color: var(--faint); font-size: 8.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .magic-warning { margin-top: 6px; color: var(--danger); font-size: 8.6px; overflow-wrap: anywhere; }
+/* Diff: the verdict, then both values with the changed characters marked. The marks sit on
+ * the characters rather than on the lines, so a single substituted letter is visible inside
+ * an otherwise identical word. */
+.diff-head {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    color: var(--faint);
+    font-size: 8.6px;
+}
+.diff-verdict { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.diff-verdict.same { color: color-mix(in srgb, #2f8f5b 76%, var(--ink)); }
+.diff-legend { display: inline-flex; gap: 4px; margin-left: auto; font-size: 8.2px; }
+.diff-legend .diff-key { padding: 0 3px; border-radius: 3px; }
+.diff-list {
+    margin-top: 4px;
+    max-height: 168px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--preview-bg);
+    font-family: var(--mono);
+    font-size: 8.8px;
+    line-height: 1.45;
+    scrollbar-width: thin;
+}
+.node.resized .diff-list { max-height: none; flex: 1 1 0; min-height: 0; }
+.diff-row { display: flex; align-items: flex-start; min-height: 12px; }
+.diff-sign { flex: 0 0 auto; width: 12px; text-align: center; color: var(--faint); user-select: none; -webkit-user-select: none; }
+.diff-row.add .diff-sign { color: color-mix(in srgb, #2f8f5b 65%, var(--ink)); }
+.diff-row.del .diff-sign { color: color-mix(in srgb, #c14b42 65%, var(--ink)); }
+.diff-text { flex: 1 1 auto; min-width: 0; padding-right: 6px; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+.diff-row.same .diff-text { color: color-mix(in srgb, var(--ink) 80%, var(--muted)); }
+.d-del, .diff-key.del { background: color-mix(in srgb, #c14b42 20%, transparent); color: color-mix(in srgb, #c14b42 72%, var(--ink)); border-radius: 2px; }
+.d-add, .diff-key.add { background: color-mix(in srgb, #2f8f5b 20%, transparent); color: color-mix(in srgb, #2f8f5b 72%, var(--ink)); border-radius: 2px; }
+.diff-more { margin-top: 4px; flex: none; color: var(--faint); font-size: 8.2px; }
+/* Hex viewer: offset, sixteen bytes, then the ASCII gutter, one fixed-height row per sixteen
+ * bytes so the virtualized window can be cut to the pixel. Byte classes are the forensic
+ * ones: printable, whitespace, control/delete, NUL and high-bit. */
+.node.type-hex { width: 396px; }
+.hex-node { display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+.hex-bar { display: flex; flex: none; align-items: center; gap: 6px; }
+.hex-find { flex: 1 1 auto; min-width: 0; height: 19px; font-size: 9.2px; }
+.hex-len { flex: none; color: var(--faint); font-size: 8.4px; font-variant-numeric: tabular-nums; }
+.hex-view {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 92px;
+    max-height: 170px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--preview-bg);
+    font-family: var(--mono);
+    font-size: 9px;
+    line-height: 16px;
+    scrollbar-width: thin;
+}
+.hex-canvas { position: relative; }
+.hex-rows { position: absolute; top: 0; left: 0; right: 0; }
+.hex-row { display: flex; height: 16px; white-space: pre; }
+.hex-off { flex: none; width: 54px; padding-left: 5px; color: var(--faint); user-select: none; -webkit-user-select: none; }
+.hex-cells { flex: none; display: inline-flex; width: 208px; }
+.hex-byte { width: 13px; text-align: center; border-radius: 2px; user-select: none; -webkit-user-select: none; }
+.hex-ascii { flex: none; width: 96px; padding-left: 6px; color: color-mix(in srgb, var(--ink) 82%, var(--muted)); }
+.hex-char { display: inline-block; width: 5.6px; text-align: center; border-radius: 2px; }
+.hex-byte.sel, .hex-char.sel { background: color-mix(in srgb, var(--accent) 26%, transparent); color: var(--ink); }
+.hex-byte.hit, .hex-char.hit { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--accent) 70%, transparent); }
+.hex-byte.first, .hex-char.first { background: color-mix(in srgb, var(--accent) 42%, transparent); }
+.hex-byte.hx-ctl, .hex-char.hx-ctl { color: color-mix(in srgb, #c14b42 62%, var(--ink)); }
+.hex-byte.hx-nul, .hex-char.hx-nul { color: var(--faint); }
+.hex-byte.hx-hi, .hex-char.hx-hi { color: color-mix(in srgb, #8a6bd1 66%, var(--ink)); }
+.hex-byte.hx-space, .hex-char.hx-space { color: color-mix(in srgb, #2f8f5b 60%, var(--ink)); }
+.hex-empty { padding: 8px; color: var(--faint); font-size: 9px; }
+.hex-foot { display: flex; flex: none; align-items: center; gap: 4px; color: var(--faint); font-size: 8.4px; }
+.hex-sel { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hex-copy { flex: none; height: 17px; padding: 0 5px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel-2); color: var(--muted); font-size: 8.2px; }
+.hex-copy:hover { color: var(--ink); border-color: var(--line-strong); }
+.node.resized .hex-view { max-height: none; flex: 1 1 0; }
 /* A node's output is text you may want a piece of, so it reads like text: select it and
    copy it the ordinary way. The rest of the node stays unselectable, which is what stops a
    drag from smearing a selection across the canvas. */
@@ -1124,10 +1229,10 @@ select.control { padding-right: 4px; }
     display: flex;
     flex-direction: column;
 }
-/* Input, file, join and function nodes build their body inside a wrapper, so the chain has
- * to continue through it: without this the preview is not a flex child of the body and keeps
- * its full content height, spilling out of the fixed-size card. */
-.node.resized:is(.type-input, .type-file, .type-join, .fn-node) .node-body > div {
+/* Input, file, join, Diff and function nodes build their body inside a wrapper, so the chain
+ * has to continue through it: without this the preview is not a flex child of the body and
+ * keeps its full content height, spilling out of the fixed-size card. */
+.node.resized:is(.type-input, .type-file, .type-join, .type-diff, .type-hex, .fn-node) .node-body > div {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -1792,6 +1897,9 @@ a.icon-button:hover { color: var(--ink); }
     font-size: 12.5px;
 }
 .cmdk-input::placeholder { color: var(--faint); }
+/* The global focus ring draws a blue box around any focused input, and inside the palette
+ * header that reads as a border around the text box. The caret is the focus cue here. */
+.cmdk-input:focus-visible { outline: none; }
 .cmdk-esc {
     flex: 0 0 auto;
     height: 19px;
@@ -3315,10 +3423,9 @@ textarea.note-text {
 @media (pointer: coarse) {
     .node-head { height: 44px; touch-action: none; }
     .node-mini { width: 26px; height: 26px; }
-    .node-mini.node-bypass { opacity: .8; }
+    .node-mini.node-bypass, .node-mini.node-freeze { opacity: .8; }
     .node-mini svg { width: 13px; height: 13px; }
-    /* The delete X is revealed on hover, and a finger never hovers: on a phone it sat at
-       opacity 0 in every node's corner, invisible but still tappable. */
+    /* A finger never hovers, so the delete X stays at full strength on a phone. */
     .node-close { opacity: 1; }
     .node-resize { width: 26px; height: 26px; }
     /* The dot stays 11px on the edge of the card; the circle that takes the press reaches
@@ -3365,3 +3472,47 @@ textarea.note-text {
     body.has-sym-rail .toolbar,
     body.has-sym-rail .stage-controls { left: 8px; }
 }
+
+/* --------------------------------------------------------------- slow-load guard
+   Offered when a restored graph has run for five seconds without settling: one button
+   clears the heavy save, the other keeps waiting. Fixed above the canvas so it is reachable
+   even when every node is busy, and above the boot splash (z-index 300): the case it exists
+   for is a first pass that never settles, which leaves the splash up at 97% forever. */
+.load-guard {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 320;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: min(780px, 94vw);
+    flex-wrap: wrap;
+    padding: 9px 10px 9px 13px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--ink);
+    font: 500 11.5px/1.35 var(--sans);
+    box-shadow: var(--shadow);
+    animation: toast-in 150ms ease both;
+}
+.load-guard[hidden] { display: none; }
+.load-guard-text { flex: 1; min-width: 0; color: var(--muted); }
+.load-guard-reset,
+.load-guard-cold,
+.load-guard-keep {
+    flex: none;
+    padding: 6px 10px;
+    border-radius: 7px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink);
+    font: 600 11px/1 var(--sans);
+    cursor: pointer;
+}
+.load-guard-reset { border-color: var(--accent); background: var(--accent); color: #fff; }
+.load-guard-reset:hover { border-color: var(--accent-2); background: var(--accent-2); }
+.load-guard-cold:hover,
+.load-guard-keep:hover { border-color: var(--line-strong); }

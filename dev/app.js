@@ -67,7 +67,14 @@ const ICONS = {
     // An eye for the bypass toggle, and the same eye struck through while a node is bypassed.
     eye: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 8S3.7 3.9 8 3.9 14.4 8 14.4 8 12.3 12.1 8 12.1 1.6 8 1.6 8Z"/><circle cx="8" cy="8" r="2"/></svg>',
     eyeOff: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 9.9C1.9 9 1.6 8 1.6 8S3.7 3.9 8 3.9c.8 0 1.5.15 2.2.4M13.1 6.4c.8.9 1.3 1.6 1.3 1.6S12.3 12.1 8 12.1c-.8 0-1.5-.15-2.2-.4"/><path d="M2.6 2.6l10.8 10.8"/></svg>',
+    // A snowflake for the freeze toggle: three arms crossed at the centre, with a pair of
+    // ticks near each tip, so it reads as frost rather than as a pin.
+    snow: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.9v12.2M2.7 4.95l10.6 6.1M13.3 4.95 2.7 11.05"/><path d="M8 4.4 6.4 2.9M8 4.4l1.6-1.5M8 11.6l-1.6 1.5M8 11.6l1.6 1.5M4.6 6.2 2.5 6.4M4.6 6.2 3.9 4.3M11.4 9.8l2.1-.2M11.4 9.8l.7 1.9M4.6 9.8l-2.1-.2M4.6 9.8l-.7 1.9M11.4 6.2l2.1.2M11.4 6.2l.7-1.9"/></svg>',
     fit: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3H3v3M10 3h3v3M6 13H3v-3M10 13h3v-3"/></svg>',
+    // Three columns for Order: one card feeding two, the shape the layout puts a graph in.
+    order: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="6.2" width="3.4" height="3.6" rx="1"/><rect x="11" y="1.8" width="3.5" height="3.6" rx="1"/><rect x="11" y="10.6" width="3.5" height="3.6" rx="1"/><path d="M4.9 8h2.3M7.2 8V3.6h3.8M7.2 8v4.4h3.8"/></svg>',
+    // A table for the Hex viewer: a header row over a grid of cells.
+    hex: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="1.6"/><path d="M2 6h12M6.4 6v7.5M10.5 6v7.5"/></svg>',
     play: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 2.8c0-.6.65-.96 1.15-.64l7.05 4.7a.75.75 0 0 1 0 1.28l-7.05 4.7A.75.75 0 0 1 4.5 12.2V2.8Z"/></svg>',
     sun: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.8"/><path d="M8 1.5v1.3M8 13.2v1.3M1.5 8h1.3M13.2 8h1.3M3.4 3.4l.9.9M11.7 11.7l.9.9M12.6 3.4l-.9.9M4.3 11.7l-.9.9"/></svg>',
     moon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M13.1 9.6A5.5 5.5 0 0 1 6.4 2.9 5.5 5.5 0 1 0 13.1 9.6Z"/></svg>',
@@ -83,6 +90,8 @@ const ICONS = {
     input: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 8h8M7 5l3 3-3 3M12 3v10"/></svg>',
     output: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M14 8H6M9 5 6 8l3 3M4 3v10"/></svg>',
     join: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h4M2 12h4M6 4v8M6 8h7"/><path d="m10.7 5.7 2.5 2.3-2.5 2.3"/></svg>',
+    // Two arrows pointing opposite ways for the Diff node: a value set against another.
+    diff: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.6h6.4"/><path d="m6.6 2.8 1.8 1.8-1.8 1.8"/><path d="M14 11.4H7.6"/><path d="m9.4 9.6-1.8 1.8 1.8 1.8"/></svg>',
     // Curly braces for the Fstring node: the {inputN} slots it fills in.
     template: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.1 2.4c-1.3 0-1.6.9-1.6 2v2.1c0 .9-.4 1.5-1.3 1.5.9 0 1.3.6 1.3 1.5v2.1c0 1.1.3 2 1.6 2"/><path d="M9.9 2.4c1.3 0 1.6.9 1.6 2v2.1c0 .9.4 1.5 1.3 1.5-.9 0-1.3.6-1.3 1.5v2.1c0 1.1-.3 2-1.6 2"/></svg>',
     // A calculator for the Math node: a display strip above rows of keys.
@@ -459,6 +468,9 @@ function nodeInPorts(node, lookup) {
             return ["main", ...(OPS[node.op]?.args || []).map((a, i) => argTypeWirable(a.type) ? "arg:" + i : null).filter(Boolean)];
         case "join":
             return Array.from({length: node.joinCount || 0}, (_, i) => "join:" + i);
+        case "diff":
+            // Expected on the first side, actual on the second: neither is the "main" value.
+            return ["a", "b"];
         case "template":
             return Array.from({length: templatePorts(node)}, (_, i) => "in:" + i);
         case "math":
@@ -1423,7 +1435,7 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
     // which keeps the wire and shows the same value.
     const wasOutput = raw.type === "output";
     const type = wasOutput ? "input" : raw.type;
-    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "audioinfo", "audiolevels", "join", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol", "badapple", "note"].includes(type)) return null;
+    if (!["input", "file", "pngchunks", "pdfscan", "imginfo", "spectrogram", "audiolevels", "join", "diff", "hex", "template", "math", "switch", "chess", "gate", "compact", "expand", "pick", "fork", "op", "fn", "fnin", "fnout", "symbol", "badapple", "note"].includes(type)) return null;
     if (type === "op" && (!raw.op || !OPS[raw.op])) return null;
     if (type === "fn" && !raw.fnId) return null;
     // The text and file nodes were renamed once they grew a port on each side. A saved title
@@ -1598,6 +1610,7 @@ function applyGraph(data, {fit = true} = {}) {
     updateAutoSwitch();
     if (fit) requestAnimationFrame(() => fitView());
     saveLocalNow();
+    armLoadGuard();
     scheduleRun(true, 160);
 }
 
@@ -1757,13 +1770,14 @@ function sourceTitle(node) {
     if (node.type === "pdfscan") return node.title || "PDF Scan";
     if (node.type === "imginfo") return node.title || "Image Info";
     if (node.type === "spectrogram") return node.title || "Spectrogram";
-    if (node.type === "audioinfo") return node.title || "Audio Info";
     if (node.type === "audiolevels") return node.title || "Audio Levels";
     if (node.type === "symbol") return node.title || symbolCipherName(node.symbolCipher);
     if (node.type === "chess") return node.title || "Chess";
     if (node.type === "badapple") return node.title || "Bad Apple";
     if (node.type === "gate") return node.title || "Gate";
     if (node.type === "join") return node.title || "Join";
+    if (node.type === "diff") return node.title || "Diff";
+    if (node.type === "hex") return node.title || "Hex Viewer";
     if (node.type === "template") return node.title || "Fstring";
     if (node.type === "math") return node.title || "Math";
     if (node.type === "switch") return node.title || "Switch";
@@ -1781,7 +1795,7 @@ function nodeAccent(node) {
     if (node.type === "op") return opAccent(node.op);
     if (node.type === "fn" || node.type === "fnin" || node.type === "fnout") return FUNCTION_COLOR;
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-        node.type === "spectrogram" || node.type === "audioinfo" || node.type === "audiolevels") {
+        node.type === "spectrogram" || node.type === "audiolevels") {
         return CAT_COLORS.Multimedia;
     }
     if (node.type === "symbol") return SYMBOL_COLOR;
@@ -1792,7 +1806,7 @@ function nodeCategoryLabel(node) {
     if (node.type === "file") return "File";
     if (node.type === "note") return "Note";
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-        node.type === "spectrogram" || node.type === "audioinfo" || node.type === "audiolevels") {
+        node.type === "spectrogram" || node.type === "audiolevels") {
         return "Multimedia";
     }
     if (node.type === "symbol") return "Symbols";
@@ -1800,6 +1814,8 @@ function nodeCategoryLabel(node) {
     if (node.type === "badapple") return "Silly Stuff";
     if (node.type === "gate") return "Gate";
     if (node.type === "join") return "Join";
+    if (node.type === "diff") return "Diff";
+    if (node.type === "hex") return "Hex Viewer";
     if (node.type === "template") return "Fstring";
     if (node.type === "math") return "Math";
     if (node.type === "switch") return "Switch";
@@ -1851,12 +1867,13 @@ function renderAllNodes() {
     paintBadAppleCards();
 }
 
-// Nodes that do work, and so can be skipped. A text or file node is already just a value,
-// and a function's boundary nodes describe a function rather than run in one.
+// Nodes that do work, and so can be skipped — by the bypass eye, which passes their input
+// through, or by the snowflake, which holds their output. A text or file node is already
+// just a value, and a function's boundary nodes describe a function rather than run in one.
 const BYPASSABLE = new Set([
     "op", "join", "template", "math", "switch", "chess", "gate",
     "compact", "expand", "pick", "fork", "fn",
-    "spectrogram", "pngchunks", "pdfscan", "imginfo", "audioinfo", "audiolevels"
+    "spectrogram", "pngchunks", "pdfscan", "imginfo", "audiolevels"
 ]);
 
 function buildNode(node) {
@@ -1886,6 +1903,8 @@ function buildNode(node) {
     el.classList.toggle("collapsed", Boolean(node.collapsed));
     // A skipped step says so on the card: struck title, hollow dot, a pressed eye.
     el.classList.toggle("bypassed", Boolean(node.bypass));
+    // A frozen node holds its value: an icy ring around the card and a pressed snowflake.
+    el.classList.toggle("frozen", Boolean(node.frozen));
     el.innerHTML = `
         <div class="node-head">
             <span class="node-dot"></span>
@@ -1893,6 +1912,8 @@ function buildNode(node) {
             <span class="node-cat">${esc(cat)}</span>
             ${openFn}
             ${BYPASSABLE.has(node.type) ? `<button class="node-mini node-bypass" data-action="toggle-bypass" data-node="${node.id}" title="${node.bypass ? "Bypassed — the value passes through. Click to run this node again" : "Bypass this node: its input passes through untouched"}" aria-pressed="${node.bypass ? "true" : "false"}">${iconFill(node.bypass ? "eyeOff" : "eye")}</button>` : ""}
+            ${BYPASSABLE.has(node.type) ? `<button class="node-mini node-freeze" data-action="toggle-freeze" data-node="${node.id}" title="${node.frozen ? "Frozen — holding the value it had when pressed. Click to let this node run again" : "Freeze this node: hold the value it has now, whatever happens upstream"}" aria-pressed="${node.frozen ? "true" : "false"}">${iconFill("snow")}</button>` : ""}
+            ${BYPASSABLE.has(node.type) ? `<span class="node-sep" aria-hidden="true"></span>` : ""}
             <button class="node-mini node-collapse" data-action="toggle-collapse" data-node="${node.id}" title="${node.collapsed ? "Expand node" : "Collapse node"}">${iconFill("chevron")}</button>
             <button class="node-close" data-action="delete-node" data-node="${node.id}" title="Delete node">${iconFill("x")}</button>
         </div>
@@ -1914,7 +1935,7 @@ function buildNode(node) {
     } else if (node.type === "file") {
         body.appendChild(buildFileNode(node));
     } else if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-        node.type === "audioinfo" || node.type === "audiolevels") {
+        node.type === "audiolevels") {
         // Read-only audits: nothing to set, so the node is its input port and its report.
         body.appendChild(mainInputRow(node, "In"));
         body.appendChild(buildPreview(node));
@@ -1931,6 +1952,10 @@ function buildNode(node) {
         body.appendChild(buildNoteNode(node));
     } else if (node.type === "join") {
         body.appendChild(buildJoinNode(node));
+    } else if (node.type === "diff") {
+        body.appendChild(buildDiffNode(node));
+    } else if (node.type === "hex") {
+        body.appendChild(buildHexNode(node));
     } else if (node.type === "template") {
         body.appendChild(buildTemplateNode(node));
     } else if (node.type === "math") {
@@ -2029,6 +2054,12 @@ function collapsedPorts(node) {
         for (let i = 0; i < mathPorts(node); i++) ports.push({name: "in:" + i, label: "In " + (i + 1)});
     } else if (node.type === "compact") {
         for (let i = 0; i < compactInputs(node); i++) ports.push({name: "in:" + i, label: portNameAt(node, "in", i, "In " + (i + 1))});
+    } else if (node.type === "diff") {
+        // Both sides are anchors, so a collapsed Diff keeps both of its wires.
+        ports.push({name: "a", label: "Expected"}, {name: "b", label: "Actual"});
+    } else if (node.type === "hex") {
+        // A viewer reads on its single pipe, and keeps that wire while collapsed.
+        ports.push({name: "main", label: "In"});
     } else if (node.type === "expand" || node.type === "pick" || node.type === "fork") {
         ports.push({name: "main", label: portNameAt(node, "in", 0, "In")});
     } else if (node.type === "switch") {
@@ -2349,6 +2380,250 @@ function buildJoinNode(node) {
     $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
     const sep = $("[data-join-separator]", wrap);
     sep.addEventListener("input", () => { node.separator = sep.value; node._sig = ""; onGraphEdited(); });
+    return wrap;
+}
+
+/* Diff is a two-wire comparison: expected on one side, actual on the other. There is nothing
+ * to type — the values themselves are the whole input — so the card is the two labelled
+ * ports and the reading the last run produced. */
+function buildDiffNode(node) {
+    const wrap = document.createElement("div");
+    wrap.appendChild(fnNote("Compares what the two wires carry, character by character. The difference flows out as text."));
+    for (const [port, label] of [["a", "Expected"], ["b", "Actual"]]) {
+        const edge = edgeInto(node.id, port);
+        const row = document.createElement("div");
+        row.className = "io-row join-row";
+        row.innerHTML = `<span class="port in${edge ? " connected" : ""}" data-port="${port}"></span>
+            <span class="io-label">${label}</span>
+            <span class="port-label">${edge ? chipHtml(edgeSource(edge), edge) : `<span class="bytes">nothing wired</span>`}</span>`;
+        wrap.appendChild(row);
+        if (edge) {
+            const hint = document.createElement("div");
+            hint.className = "wire-hint";
+            hint.dataset.hintPort = port;
+            hint.title = "What this input is carrying";
+            hint.textContent = wireHintFor(node, port);
+            wrap.appendChild(hint);
+        }
+    }
+    wrap.appendChild(buildPreview(node));
+    wrap.appendChild(buildError(node));
+    $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
+    return wrap;
+}
+
+/* The Hex viewer: every byte on the wire with its offset, sixteen to a row and an ASCII
+ * gutter beside it. A press picks a byte, shift extends the range, and the footer copies that
+ * range as hex, escaped or base64; the find box searches text or hex and jumps with @offset.
+ * Only the rows on screen are in the DOM, so a megabyte scrolls instead of building 65,536
+ * elements. A viewer passes its bytes straight through, so it can sit anywhere in a chain. */
+const HEX_ROW_BYTES = 16;
+const HEX_ROW_H = 16;
+const HEX_MAX_HITS = 400;
+function hexByteHex(b) { return b.toString(16).padStart(2, "0"); }
+function hexByteClass(b) {
+    if (b === 0) return "nul";
+    if (b < 0x20 || b === 0x7f) return "ctl";
+    if (b === 0x20) return "space";
+    if (b >= 0x80) return "hi";
+    return "print";
+}
+function hexAsciiText(b) { return b >= 0x20 && b < 0x7f ? String.fromCharCode(b) : "."; }
+// What the find box asked for: an offset to jump to, or the bytes to search for. Text is the
+// default, because "flag" is what a person types; spaced or unspaced hex pairs are read as
+// bytes so "50 4b" finds a ZIP header.
+function hexNeedleFor(query) {
+    const q = String(query || "").trim();
+    if (!q) return null;
+    if (/^[@#]\d+$/.test(q)) return {jump: parseInt(q.slice(1), 10)};
+    if (/^0x[0-9a-f]+$/i.test(q)) return {jump: parseInt(q.slice(2), 16)};
+    if (/^[0-9a-f]{2}(?:[ \t]+[0-9a-f]{2})+$/i.test(q)) {
+        return {bytes: Uint8Array.from(q.split(/[ \t]+/).map(part => parseInt(part, 16)))};
+    }
+    if (/^(?:[0-9a-f]{2}){2,}$/i.test(q)) {
+        return {bytes: Uint8Array.from(q.match(/[0-9a-f]{2}/gi).map(part => parseInt(part, 16)))};
+    }
+    return {bytes: enc.encode(q)};
+}
+function hexFindAll(bytes, needle) {
+    const hits = [];
+    if (!needle || !needle.length) return hits;
+    for (let i = 0; i + needle.length <= bytes.length && hits.length < HEX_MAX_HITS; i++) {
+        let ok = true;
+        for (let j = 0; j < needle.length; j++) if (bytes[i + j] !== needle[j]) { ok = false; break; }
+        if (ok) { hits.push(i); i += needle.length - 1; }
+    }
+    return hits;
+}
+function hexBase64(bytes) {
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(binary);
+}
+function hexCopyText(bytes, kind) {
+    if (kind === "hex") return Array.from(bytes, hexByteHex).join(" ");
+    if (kind === "escape") return Array.from(bytes, b => "\\x" + hexByteHex(b)).join("");
+    return hexBase64(bytes);
+}
+
+function buildHexNode(node) {
+    const wrap = document.createElement("div");
+    wrap.className = "hex-node";
+    wrap.appendChild(fnNote("Every byte on the wire, with offsets and an ASCII gutter. Click a byte, shift-click to extend, then copy the range as hex, escaped or base64."));
+    // The viewer reads its input wire, so the card needs a port to drag one onto; without
+    // this row it only worked on graphs that already carried an edge into it.
+    const inputEdge = edgeInto(node.id, "main");
+    const ioRow = document.createElement("div");
+    ioRow.className = "io-row join-row";
+    ioRow.innerHTML = `<span class="port in${inputEdge ? " connected" : ""}" data-port="main" title="Pipe bytes in"></span>
+        <span class="io-label">Bytes</span>
+        <span class="port-label">${inputEdge ? chipHtml(edgeSource(inputEdge), inputEdge) : `<span class="bytes">nothing wired</span>`}</span>`;
+    wrap.appendChild(ioRow);
+    if (inputEdge) {
+        const hint = document.createElement("div");
+        hint.className = "wire-hint";
+        hint.dataset.hintPort = "main";
+        hint.title = "What this input is carrying";
+        hint.textContent = wireHintFor(node, "main");
+        wrap.appendChild(hint);
+    }
+    const bar = document.createElement("div");
+    bar.className = "hex-bar";
+    bar.innerHTML = `<input class="control hex-find" placeholder="Find text or hex, or @offset" spellcheck="false" aria-label="Find bytes on this wire">
+        <span class="hex-len"></span>`;
+    wrap.appendChild(bar);
+    const view = document.createElement("div");
+    view.className = "hex-view";
+    view.innerHTML = `<div class="hex-canvas"><div class="hex-rows"></div></div>`;
+    wrap.appendChild(view);
+    const foot = document.createElement("div");
+    foot.className = "hex-foot";
+    foot.innerHTML = `<span class="hex-sel"></span>
+        <button class="hex-copy" type="button" data-hex-copy="hex" title="Copy the selection as hex">Hex</button>
+        <button class="hex-copy" type="button" data-hex-copy="escape" title="Copy the selection as \\xNN escapes">Escaped</button>
+        <button class="hex-copy" type="button" data-hex-copy="base64" title="Copy the selection as base64">Base64</button>`;
+    wrap.appendChild(foot);
+
+    const findInput = $(".hex-find", bar);
+    const lenLabel = $(".hex-len", bar);
+    const canvas = $(".hex-canvas", view);
+    const rowsEl = $(".hex-rows", view);
+    const selLabel = $(".hex-sel", foot);
+    const found = {needle: null, hits: [], first: -1};
+
+    const bytesOf = () => {
+        const bytes = node._hex && node._hex.bytes;
+        return bytes && typeof bytes.length === "number" ? bytes : null;
+    };
+    // The picked range lives on the node, not on this DOM: a run rebuilds the card and the
+    // selection has to survive that, the same way the find box's text does.
+    const rangeOf = () => {
+        const bytes = bytesOf(), sel = node._hexSel;
+        if (!bytes || !sel || sel.from == null || sel.from < 0) return null;
+        const other = sel.to == null ? sel.from : sel.to;
+        const from = Math.max(0, Math.min(sel.from, other));
+        const to = Math.min(bytes.length - 1, Math.max(sel.from, other));
+        return from <= to ? {from, to} : null;
+    };
+    const rowHtml = (bytes, row, marks) => {
+        const start = row * HEX_ROW_BYTES;
+        const end = Math.min(bytes.length, start + HEX_ROW_BYTES);
+        const range = rangeOf();
+        let hex = "", ascii = "";
+        for (let i = start; i < end; i++) {
+            const b = bytes[i];
+            const on = `${range && i >= range.from && i <= range.to ? " sel" : ""}${marks.has(i) ? " hit" : ""}${i === found.first ? " first" : ""}`;
+            const cls = `hx-${hexByteClass(b)}${on}`;
+            hex += `<span class="hex-byte ${cls}" data-hex-off="${i}">${hexByteHex(b)}</span>`;
+            ascii += `<span class="hex-char ${cls}" data-hex-off="${i}">${esc(hexAsciiText(b))}</span>`;
+        }
+        return `<div class="hex-row"><span class="hex-off">${start.toString(16).padStart(8, "0")}</span><span class="hex-cells">${hex}</span><span class="hex-ascii">${ascii}</span></div>`;
+    };
+    const paint = () => {
+        const bytes = bytesOf();
+        const range = rangeOf();
+        lenLabel.textContent = bytes ? `${bytes.length.toLocaleString()} byte${bytes.length === 1 ? "" : "s"}` : "nothing wired";
+        if (!bytes) {
+            canvas.style.height = "0px";
+            rowsEl.style.transform = "translateY(0px)";
+            rowsEl.innerHTML = `<div class="hex-empty">Wire a value in to inspect its bytes.</div>`;
+            selLabel.textContent = "nothing wired";
+            return;
+        }
+        const rows = Math.ceil(bytes.length / HEX_ROW_BYTES);
+        canvas.style.height = `${rows * HEX_ROW_H}px`;
+        const height = view.clientHeight || 160;
+        const firstRow = Math.max(0, Math.min(rows - 1, Math.floor(view.scrollTop / HEX_ROW_H) - 3));
+        const lastRow = Math.min(rows - 1, firstRow + Math.ceil(height / HEX_ROW_H) + 6);
+        const marks = new Set();
+        if (found.needle) for (const hit of found.hits) for (let i = hit; i < hit + found.needle.length; i++) marks.add(i);
+        const html = [];
+        for (let row = firstRow; row <= lastRow; row++) html.push(rowHtml(bytes, row, marks));
+        rowsEl.style.transform = `translateY(${firstRow * HEX_ROW_H}px)`;
+        rowsEl.innerHTML = html.join("");
+        // The footer says what is picked and what the search found, because both are true at
+        // once: a byte can be picked inside a match, and the match count must not vanish.
+        const parts = [];
+        if (range) parts.push(`${range.to - range.from + 1} byte${range.to === range.from ? "" : "s"} · 0x${range.from.toString(16)}–0x${range.to.toString(16)}`);
+        else parts.push(`${bytes.length.toLocaleString()} byte${bytes.length === 1 ? "" : "s"}`);
+        if (found.needle) parts.push(found.hits.length ? `${found.hits.length} match${found.hits.length === 1 ? "" : "es"}` : "no matches");
+        selLabel.textContent = parts.join(" · ");
+    };
+    const applyFind = () => {
+        const bytes = bytesOf();
+        node._hexFind = findInput.value;
+        found.needle = null; found.hits = []; found.first = -1;
+        const parsed = hexNeedleFor(findInput.value);
+        if (bytes && parsed) {
+            if (parsed.jump != null) {
+                const off = clamp(parsed.jump, 0, Math.max(0, bytes.length - 1));
+                node._hexSel = {from: off, to: off};
+                found.first = off;
+                paint();
+                view.scrollTop = Math.max(0, Math.floor(off / HEX_ROW_BYTES) * HEX_ROW_H - (view.clientHeight || 160) / 2);
+                return;
+            }
+            found.needle = parsed.bytes;
+            found.hits = hexFindAll(bytes, parsed.bytes);
+            found.first = found.hits.length ? found.hits[0] : -1;
+            if (found.first >= 0) view.scrollTop = Math.max(0, Math.floor(found.first / HEX_ROW_BYTES) * HEX_ROW_H - (view.clientHeight || 160) / 3);
+        }
+        paint();
+    };
+
+    findInput.addEventListener("input", applyFind);
+    view.addEventListener("scroll", paint, {passive: true});
+    rowsEl.addEventListener("pointerdown", ev => {
+        const cell = ev.target.closest?.("[data-hex-off]");
+        if (!cell || !bytesOf()) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const off = Number(cell.dataset.hexOff);
+        const current = node._hexSel;
+        node._hexSel = ev.shiftKey && current && current.from != null
+            ? {from: current.from, to: off}
+            : {from: off, to: off};
+        paint();
+    });
+    for (const btn of $$("[data-hex-copy]", foot)) {
+        btn.addEventListener("click", async () => {
+            const bytes = bytesOf();
+            if (!bytes) return;
+            const range = rangeOf();
+            const slice = range ? bytes.subarray(range.from, range.to + 1) : bytes;
+            const kind = btn.dataset.hexCopy;
+            const label = kind === "hex" ? "hex" : kind === "escape" ? "escaped bytes" : "base64";
+            const ok = await copyText(hexCopyText(slice, kind));
+            toast(ok ? `Copied ${slice.length} byte${slice.length === 1 ? "" : "s"} as ${label}` : "Could not copy to the clipboard");
+        });
+    }
+    findInput.value = node._hexFind || "";
+    wrap._hexRender = () => { if (findInput.value.trim()) applyFind(); else paint(); };
+    wrap._hexRender();
+    // The first paint runs before the card has been laid out, so the window on screen is only
+    // guessed at; one frame later the real height is known and the right rows are drawn.
+    $$(".port.in", wrap).forEach(p => bindInputPort(p, node.id, p.dataset.port));
+    requestAnimationFrame(paint);
     return wrap;
 }
 
@@ -3356,9 +3631,9 @@ function updatePreviewEl(wrap, node) {
     // Text and file nodes are the display side of a graph now, so they get the roomier
     // preview the old Output node had (and its save button, below).
     const isSink = node.type === "input" || node.type === "file" || node.type === "join" || node.type === "template" || node.type === "math" || node.type === "switch" || node.type === "fn" ||
-        node.type === "compact" || node.type === "expand" || node.type === "pick" ||
+        node.type === "compact" || node.type === "expand" || node.type === "pick" || node.type === "diff" ||
         node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-        node.type === "audioinfo" || node.type === "audiolevels";
+        node.type === "audiolevels";
     // Every preview can lift its truncation. Text and raw count characters, so the byte
     // length is always enough to clear the cut-off; hex writes three characters per byte.
     const full = Boolean(node.fullPreview);
@@ -3386,7 +3661,12 @@ function updatePreviewEl(wrap, node) {
     wrap.classList.toggle("full", full);
     wrap.dataset.kind = kind;
     let body;
-    if (node.op === "Magic" && Array.isArray(node._magic)) {
+    if (node.type === "diff" && node._diff && !bundled && mode === "text") {
+        // The comparison is drawn as its own list in the Text view, not as one preformatted
+        // string: the colour has to sit on the changed characters. Raw and Hex still read
+        // the marked text itself, so the mode switch keeps its meaning.
+        body = diffHtml(node);
+    } else if (node.op === "Magic" && Array.isArray(node._magic)) {
         body = magicListHtml(node);
     } else if (imageUrl) {
         body = `<div class="preview-media"><img class="preview-img" src="${esc(imageUrl)}" alt="Operation output" loading="lazy"></div>`;
@@ -3460,6 +3740,25 @@ function magicListHtml(node) {
         <div class="magic-notes">${notes.length ? esc(notes.join(" · ")) : "best result"}</div>`;
 }
 
+// The Diff card: the verdict, then the two values with every changed character marked.
+function diffHtml(node) {
+    const report = node._diff;
+    const {rows, more} = diffRows(report.parts, node.fullPreview ? Infinity : DIFF_ROWS);
+    const head = report.identical
+        ? `<div class="diff-head"><span class="diff-verdict same">identical</span></div>`
+        : `<div class="diff-head"><span class="diff-verdict">${report.changed} difference${report.changed === 1 ? "" : "s"}</span><span class="diff-legend"><span class="diff-key del">removed</span><span class="diff-key add">added</span></span></div>`;
+    const list = rows.map(cells => {
+        const hasDel = cells.some(c => c.kind === "del");
+        const hasAdd = cells.some(c => c.kind === "add");
+        const kind = hasDel && hasAdd ? "edit" : hasAdd ? "add" : hasDel ? "del" : "same";
+        const sign = kind === "add" ? "+" : kind === "del" ? "-" : kind === "edit" ? "~" : " ";
+        const inner = cells.map(c => `<span class="d-${c.kind}">${esc(c.text)}</span>`).join("");
+        return `<div class="diff-row ${kind}"><span class="diff-sign">${sign}</span><span class="diff-text">${inner || " "}</span></div>`;
+    }).join("");
+    const moreRow = more ? `<div class="diff-more">${more} more line${more === 1 ? "" : "s"} — press Full</div>` : "";
+    return `${head}<div class="diff-list">${list || `<div class="diff-row same"><span class="diff-sign"> </span><span class="diff-text">(both empty)</span></div>`}</div>${moreRow}`;
+}
+
 function buildError(node) {
     const div = document.createElement("div");
     div.className = "error-box";
@@ -3480,6 +3779,9 @@ function refreshNodePreview(node) {
     // A Spectrogram follows a new WAV on either of its ports the same way.
     const specBody = node.type === "spectrogram" ? $(".spec-node", el) : null;
     if (specBody && typeof specBody._specRender === "function") specBody._specRender();
+    // The Hex viewer draws whatever the latest run read, so it repaints with it.
+    const hexBody = node.type === "hex" ? $(".hex-node", el) : null;
+    if (hexBody && typeof hexBody._hexRender === "function") hexBody._hexRender();
     // The input box of an operation shows what its wire is carrying, refreshed on every run.
     const opInput = $("[data-op-input]", el);
     if (opInput) {
@@ -4182,6 +4484,76 @@ function snapNodesToGrid({quiet = false} = {}) {
     if (!quiet) toast(`Snapped ${moved.length} node${moved.length === 1 ? "" : "s"} to the grid`);
 }
 
+// Left-to-right auto-layout, the Graph-menu "tidy" the ideas list asked for: every node sits
+// one column right of the furthest thing feeding it, a column is as wide as its widest card,
+// and each column is stacked in the order its nodes were already in so a tidy graph still
+// looks familiar. A loop cannot be ordered by longest path, so whatever is left takes its own
+// column after the rest rather than making this spin.
+const ORDER_GAP_X = 92;
+const ORDER_GAP_Y = 38;
+function orderNodes() {
+    if (!state || !state.nodes.length) return;
+    const nodes = state.nodes;
+    const byId = new Map(nodes.map(n => [n.id, n]));
+    const outgoing = new Map(nodes.map(n => [n.id, []]));
+    const indeg = new Map(nodes.map(n => [n.id, 0]));
+    for (const edge of state.edges) {
+        if (!byId.has(edge.from) || !byId.has(edge.to)) continue;
+        outgoing.get(edge.from).push(edge.to);
+        indeg.set(edge.to, indeg.get(edge.to) + 1);
+    }
+    const depth = new Map(nodes.map(n => [n.id, 0]));
+    const queue = nodes.filter(n => indeg.get(n.id) === 0).map(n => n.id);
+    const placed = new Set();
+    while (queue.length) {
+        const id = queue.shift();
+        placed.add(id);
+        for (const to of outgoing.get(id)) {
+            depth.set(to, Math.max(depth.get(to), depth.get(id) + 1));
+            indeg.set(to, indeg.get(to) - 1);
+            if (indeg.get(to) === 0) queue.push(to);
+        }
+    }
+    let stray = nodes.reduce((max, n) => placed.has(n.id) ? Math.max(max, depth.get(n.id)) : max, -1) + 1;
+    for (const node of nodes) {
+        if (placed.has(node.id)) continue;
+        depth.set(node.id, stray++);
+        placed.add(node.id);
+    }
+    const columns = new Map();
+    for (const node of nodes) {
+        const d = depth.get(node.id) || 0;
+        if (!columns.has(d)) columns.set(d, []);
+        columns.get(d).push(node);
+    }
+    let x = 0;
+    for (const key of [...columns.keys()].sort((a, b) => a - b)) {
+        const column = columns.get(key).sort((a, b) => a.y - b.y || a.id - b.id);
+        let widest = 300;
+        for (const node of column) widest = Math.max(widest, nodeEl(node.id)?.offsetWidth || 300);
+        let y = 0;
+        for (const node of column) {
+            const height = nodeEl(node.id)?.offsetHeight || 170;
+            node.x = snapToGrid(x);
+            node.y = snapToGrid(y);
+            y += height + ORDER_GAP_Y;
+        }
+        x += widest + ORDER_GAP_X;
+    }
+    for (const node of nodes) {
+        const el = nodeEl(node.id);
+        if (!el) continue;
+        el.style.left = node.x + "px";
+        el.style.top = node.y + "px";
+    }
+    scheduleEdges();
+    saveLocalSoon();
+    // One history entry for the whole arrangement, so a single undo puts the graph back.
+    pushHistory();
+    toast(`Ordered ${nodes.length} node${nodes.length === 1 ? "" : "s"} left to right`);
+    requestAnimationFrame(() => fitView());
+}
+
 /* Marquee selection: shift-drag on the empty canvas gathers every node the box touches.
  * It lives in screen space and tests nodes in world space, so it stays correct at any
  * zoom and never fights the pan handler for the same gesture. */
@@ -4595,7 +4967,7 @@ function inputSignature(node, incoming, results, opts) {
         return JSON.stringify(["file", node.fileSize, node.fileName, fnvBytes(b64ToBytes(node.fileData || "")), s.sig]);
     }
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-        node.type === "audioinfo" || node.type === "audiolevels") {
+        node.type === "audiolevels") {
         const s = sourceBytesForPort(incoming, node.id, "main", results);
         return JSON.stringify([node.type, s.sig]);
     }
@@ -4606,6 +4978,16 @@ function inputSignature(node, incoming, results, opts) {
             parts.push(s.sig);
         }
         return JSON.stringify(["join", node.separator, node.joinCount, parts]);
+    }
+    if (node.type === "diff") {
+        // Both wires decide the comparison, so both are part of the signature: a change on
+        // either side has to re-run the node rather than keep the old reading.
+        const a = sourceBytesForPort(incoming, node.id, "a", results);
+        const b = sourceBytesForPort(incoming, node.id, "b", results);
+        return JSON.stringify(["diff", a.sig, b.sig]);
+    }
+    if (node.type === "hex") {
+        return JSON.stringify(["hex", sourceBytesForPort(incoming, node.id, "main", results).sig]);
     }
     if (node.type === "template") {
         const parts = [];
@@ -4698,6 +5080,121 @@ function inputSignature(node, incoming, results, opts) {
 
 function createResult(node, bytes, error, sig, extra = {}) {
     return {bytes: bytes || null, error: error || "", sig: sig || sigHash(node.id + ":" + node.type), ...extra};
+}
+
+/* ---------------------------------------------------------------- Diff
+ * The Diff node compares the two values wired into it. The comparison is a character-level
+ * longest common subsequence: the shared head and tail are trimmed first, so a long text
+ * with one changed word costs almost nothing, and only the middle is walked with a table.
+ * A middle too large for that table is compared line by line instead, which is how a pair of
+ * big values still comes back quickly and stays readable.
+ */
+const DIFF_CELL_BUDGET = 2000000;
+// How many lines the card draws before it asks for Full, so a large diff does not make the
+// node thousands of rows tall.
+const DIFF_ROWS = 300;
+
+// Lines with their endings kept, so joining the units back gives exactly the text again.
+function diffLineUnits(text) {
+    return text.match(/[^\n]*\n|[^\n]+/g) || [];
+}
+
+// The LCS walk over two sequences of units — characters, or lines. Runs come out in reading
+// order marked same, del or add, and neighbours of one kind are merged into one run.
+function diffRuns(a, b) {
+    const out = [];
+    const push = (kind, text) => {
+        const last = out[out.length - 1];
+        if (last && last.kind === kind) last.text += text;
+        else out.push({kind, text});
+    };
+    if (!a.length) { for (const unit of b) push("add", unit); return out; }
+    if (!b.length) { for (const unit of a) push("del", unit); return out; }
+    const width = b.length + 1;
+    const table = new Uint32Array((a.length + 1) * width);
+    for (let i = a.length - 1; i >= 0; i--) {
+        const row = i * width, next = row + width;
+        for (let j = b.length - 1; j >= 0; j--) {
+            table[row + j] = a[i] === b[j]
+                ? table[next + j + 1] + 1
+                : Math.max(table[next + j], table[row + j + 1]);
+        }
+    }
+    let i = 0, j = 0;
+    while (i < a.length && j < b.length) {
+        if (a[i] === b[j]) { push("same", a[i]); i++; j++; }
+        else if (table[(i + 1) * width + j] >= table[i * width + j + 1]) push("del", a[i++]);
+        else push("add", b[j++]);
+    }
+    while (i < a.length) push("del", a[i++]);
+    while (j < b.length) push("add", b[j++]);
+    return out;
+}
+
+// One side as text. Bytes that are not text are written as spaced hex, so a changed byte
+// still reads as a changed character and one comparison covers both kinds of value.
+function diffSideText(bytes) {
+    if (!bytes || !bytes.length) return "";
+    return looksBinary(bytes) ? bytesToHex(bytes, " ") : utf8(bytes);
+}
+
+function diffReport(leftBytes, rightBytes) {
+    const left = diffSideText(leftBytes);
+    const right = diffSideText(rightBytes);
+    let parts = [];
+    if (left !== right) {
+        const shorter = Math.min(left.length, right.length);
+        let head = 0;
+        while (head < shorter && left[head] === right[head]) head++;
+        let tail = 0;
+        while (tail < shorter - head && left[left.length - 1 - tail] === right[right.length - 1 - tail]) tail++;
+        const aMid = left.slice(head, left.length - tail);
+        const bMid = right.slice(head, right.length - tail);
+        const mid = aMid.length * bMid.length <= DIFF_CELL_BUDGET
+            ? diffRuns([...aMid], [...bMid])
+            : diffRuns(diffLineUnits(aMid), diffLineUnits(bMid));
+        if (head) parts.push({kind: "same", text: left.slice(0, head)});
+        parts = parts.concat(mid);
+        if (tail) parts.push({kind: "same", text: left.slice(left.length - tail)});
+    } else if (left) {
+        parts.push({kind: "same", text: left});
+    }
+    const changed = parts.reduce((n, part) => n + (part.kind === "same" ? 0 : part.text.length), 0);
+    // What the node hands downstream: the text with the changed runs bracketed the way a
+    // word diff writes them, so a substituted letter is visible inside the word it belongs
+    // to instead of pulling the line apart.
+    const text = parts.map(part => part.kind === "del" ? `[-${part.text}-]`
+        : part.kind === "add" ? `{+${part.text}+}` : part.text).join("");
+    return {
+        parts,
+        changed,
+        identical: changed === 0,
+        text: changed === 0 ? "identical" : text
+    };
+}
+
+// Rows for the card. A run can cross a line break, and one line can hold both unchanged and
+// changed characters, so a row is split into inline runs of a single kind: that is what puts
+// the colour on the characters themselves rather than on whole lines.
+function diffRows(parts, maxRows) {
+    const rows = [];
+    let cells = [];
+    let more = 0;
+    for (const part of parts) {
+        for (const unit of diffLineUnits(part.text)) {
+            if (rows.length >= maxRows) { more++; continue; }
+            const ends = unit.endsWith("\n");
+            const body = ends ? unit.slice(0, -1) : unit;
+            if (body) {
+                const last = cells[cells.length - 1];
+                if (last && last.kind === part.kind) last.text += body;
+                else cells.push({kind: part.kind, text: body});
+            }
+            if (ends) { rows.push(cells); cells = []; }
+        }
+    }
+    if (cells.length && rows.length < maxRows) rows.push(cells);
+    return {rows, more};
 }
 
 function base64ToArrayBuffer(b64) {
@@ -5384,6 +5881,14 @@ async function runMagicNode(node, inputBytes, argValues) {
     return {bytes, files, rows: ranked, error: "", warning};
 }
 
+// A held value has to keep its shape: copying a bundle with slice() would drop the item
+// list riding on its bytes, so a bundled value is rebuilt as a bundle of copies.
+function frozenCopy(value) {
+    if (!(value instanceof Uint8Array)) return null;
+    if (!isListValue(value)) return value.slice();
+    return makeListValue(value.__items.map(item => item.slice()));
+}
+
 // The value a bypassed node hands on: the first thing wired into it, the main port first
 // and then its numbered inputs (a Join or an Fstring has no main port). With nothing wired
 // in, an operation or text node still contributes its own typed value.
@@ -5405,7 +5910,7 @@ async function executeGraph(nodes, edges, opts = {}) {
     const incoming = buildIncoming(edges);
     const {order, cycle} = topoSort(nodes, edges);
     const started = performance.now();
-    let reused = 0, ran = 0;
+    let reused = 0, ran = 0, held = 0;
     const errors = [];
     // Failures a definition was told to carry on past: still recorded on their node, but they
     // do not stop the graph and do not block the nodes downstream of them.
@@ -5433,12 +5938,24 @@ async function executeGraph(nodes, edges, opts = {}) {
                 node.type === "chess" ||
                 node.type === "expand" || node.type === "pick" || node.type === "fork" ||
                 node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
-                node.type === "spectrogram" || node.type === "audioinfo" || node.type === "audiolevels";
+                node.type === "spectrogram" || node.type === "audiolevels";
             const main = takesMain
                 ? sourceBytesForPort(incoming, node.id, "main", results)
                 : {bytes: null, error: "", sig: "none"};
             if (main.error) error = "Upstream error: " + main.error;
-            if (node.bypass) {
+            if (node.frozen && node.frozen.bytes) {
+                // Frozen: the value captured when the snowflake was pressed rides every run,
+                // whatever happens upstream. That is what makes it a reference to compare
+                // against, so the node does not run, is not counted as having run, and an
+                // upstream error is not allowed to overwrite the held value. The card's own
+                // output, port outputs and file list stay as they were, since none of the
+                // work below happens.
+                sig = "frozen";
+                error = "";
+                out = node.frozen.bytes;
+                held++;
+                countIt = false;
+            } else if (node.bypass) {
                 // A bypassed node is a straight pipe: whatever arrives on its first wired
                 // input keeps going, so switching one step off leaves the rest of the graph
                 // working. A node with nothing wired in still hands on the value it would
@@ -5582,19 +6099,6 @@ async function executeGraph(nodes, edges, opts = {}) {
                         }
                     }
                 }
-            } else if (node.type === "audioinfo") {
-                // A container report: format, stream and tags, all read from the bytes. No
-                // decode, so an MP3's tags are readable even when its frames are not.
-                sig = sigHash(inputSignature(node, incoming, results, opts));
-                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
-                else if (!error) {
-                    if (main.bytes == null || !main.bytes.length) error = "Pipe an audio file into this node.";
-                    else {
-                        const report = audioInfoReport(main.bytes);
-                        if (!report) error = "Not a WAV, MP3, FLAC, OGG, M4A or AIFF file.";
-                        else out = enc.encode(report);
-                    }
-                }
             } else if (node.type === "audiolevels") {
                 // Levels need samples, so this one decodes — asynchronously, because unpacking
                 // MP3, OGG and the rest is the browser's work. The run waits for the numbers.
@@ -5659,6 +6163,41 @@ async function executeGraph(nodes, edges, opts = {}) {
                 sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
                 else out = gateHeldBytes(node);
+            } else if (node.type === "diff") {
+                // Two wires in, one reading out. Each side is read from its own port, and the
+                // comparison is the node's whole value; only the report the card draws is
+                // kept besides it, so a reload simply compares again.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else {
+                    const left = sourceBytesForPort(incoming, node.id, "a", results);
+                    const right = sourceBytesForPort(incoming, node.id, "b", results);
+                    node._diff = null;
+                    if (left.error || right.error) error = "Upstream error: " + (left.error || right.error);
+                    else if (left.bytes == null && right.bytes == null) error = "Wire a value into each side to compare them.";
+                    else if (isListValue(left.bytes) || isListValue(right.bytes)) error = "A bundle is wired in — use Pick to choose one value for each side.";
+                    else {
+                        const report = diffReport(left.bytes, right.bytes);
+                        node._diff = report;
+                        out = enc.encode(report.text);
+                    }
+                }
+            } else if (node.type === "hex") {
+                // A viewer is a pass-through: it reads the bytes on its wire, keeps a copy for
+                // the card to draw, and hands the same bytes on, so it can sit anywhere in a
+                // chain without changing what the rest of the graph sees.
+                sig = sigHash(inputSignature(node, incoming, results, opts));
+                if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
+                else {
+                    const src = sourceBytesForPort(incoming, node.id, "main", results);
+                    node._hex = null;
+                    if (src.error) error = "Upstream error: " + src.error;
+                    else if (isListValue(src.bytes)) error = "A bundle is wired in — use Pick to choose one value to inspect.";
+                    else if (src.bytes != null) {
+                        node._hex = {bytes: src.bytes};
+                        out = src.bytes;
+                    }
+                }
             } else if (node.type === "fork") {
                 // One text in, every part out on one bundled wire — the value Compact would
                 // have assembled from those parts, so the rest of the graph sees a list.
@@ -5925,6 +6464,11 @@ async function executeGraph(nodes, edges, opts = {}) {
             softErrors.push({node, error});
         }
         node._output = error && !soft ? null : out;
+        // A snowflake pressed before the node had a value holds whatever this first pass
+        // produces, rather than freezing an empty placeholder.
+        if (node.frozen && !node.frozen.bytes && !error && node._output) {
+            node.frozen.bytes = frozenCopy(node._output);
+        }
         if (error && !soft) node._files = null;
         node._error = error;
         node._duration = duration;
@@ -5944,7 +6488,7 @@ async function executeGraph(nodes, edges, opts = {}) {
     }
     return {
         results, order, cycle, errors, softErrors,
-        reused, ran,
+        reused, ran, held,
         duration: performance.now() - started
     };
 }
@@ -6623,725 +7167,12 @@ function imageReport(bytes) {
     return null;
 }
 
-/* ================================================================ audio audit nodes
- * EXIF is an image format: it never describes an audio file, so no image operation will find
- * a track's title or artist. Audio tags live in the container's own block instead — ID3v2 and
- * ID3v1 in MP3, Vorbis comments in FLAC and OGG, iTunes data atoms in M4A, LIST/INFO chunks in
- * WAV and the text chunks of AIFF — so reading them is a walk over the container rather than a
- * decode of the samples. Audio Info reads the bytes alone; Audio Levels is the one node that
- * decodes, and it measures what the samples are doing.
+/* ================================================================ audio levels node
+ * Audio tags live in a container's own block — ID3 in MP3, Vorbis comments in FLAC and OGG,
+ * iTunes atoms in M4A, RIFF INFO in WAV — and CyberChef's Extract Audio Metadata operation
+ * already reports them, so there is no second metadata reader here. Audio Levels is the node
+ * that decodes: it measures what the samples are doing, not what the container says.
  */
-
-// Frame and comment keys as a reader would name them. Only the four-character ID3v2.3/2.4 form
-// is listed: a 2.2 frame is renamed on the way in, so both tag versions read alike here.
-const AUDIO_TAG_LABELS = {
-    TIT2: "Title", TPE1: "Artist", TALB: "Album", TPE2: "Album artist", TDRC: "Year",
-    TRCK: "Track", TPOS: "Disc", TCON: "Genre", TCOM: "Composer", TPE3: "Conductor",
-    TENC: "Encoded by", TSSE: "Encoder settings", TCOP: "Copyright", TIT1: "Grouping",
-    TIT3: "Subtitle", TPUB: "Publisher", TSRC: "ISRC", TBPM: "BPM", TKEY: "Key",
-    TLAN: "Language", TMOO: "Mood", TXXX: "Text", COMM: "Comment", USLT: "Lyrics",
-    APIC: "Picture", WXXX: "URL", PCNT: "Play count", POPM: "Rating", MCDI: "CD id"
-};
-const ID3V22 = {
-    TT2: "TIT2", TP1: "TPE1", TAL: "TALB", TP2: "TPE2", TYE: "TDRC", TRK: "TRCK",
-    TPA: "TPOS", TCO: "TCON", TCM: "TCOM", TEN: "TENC", TSS: "TSSE", TCR: "TCOP",
-    TT1: "TIT1", TT3: "TIT3", TPB: "TPUB", TRC: "TSRC", TBP: "TBPM", TKE: "TKEY",
-    TLA: "TLAN", TXX: "TXXX", COM: "COMM", ULT: "USLT", PIC: "APIC", WXX: "WXXX"
-};
-const MP4_TAG_LABELS = {
-    "©nam": "Title", "©ART": "Artist", "aART": "Album artist", "©alb": "Album",
-    "©day": "Date", "©gen": "Genre", gnre: "Genre", trkn: "Track", disk: "Disc",
-    "©wrt": "Composer", "©cmt": "Comment", "©too": "Encoder", "©lyr": "Lyrics",
-    covr: "Cover", "©grp": "Grouping", cprt: "Copyright", tmpo: "BPM", "©mvn": "Movement"
-};
-const WAV_CODEC = {
-    1: "integer PCM", 3: "IEEE float", 6: "A-law", 7: "µ-law", 0x11: "IMA ADPCM",
-    0x55: "MPEG Layer III", 0x161: "WMA", 0xFFFE: "extensible PCM"
-};
-
-// A magic string at an offset. Chunk ids are read with audioTag4 instead, because those are
-// printable by definition while a magic — "ID3", "OggS" — is often followed by a raw byte.
-function bytesMatch(bytes, at, text) {
-    if (at < 0 || at + text.length > bytes.length) return false;
-    for (let i = 0; i < text.length; i++) if (bytes[at + i] !== text.charCodeAt(i)) return false;
-    return true;
-}
-function audioTag4(bytes, at) {
-    if (at < 0 || at + 4 > bytes.length) return "";
-    let out = "";
-    for (let i = 0; i < 4; i++) {
-        const c = bytes[at + i];
-        out += c >= 0x20 && c < 0x7f ? String.fromCharCode(c) : ".";
-    }
-    return out;
-}
-function audioBE16(bytes, at) {
-    if (at < 0 || at + 2 > bytes.length) return 0;
-    return (bytes[at] << 8) | bytes[at + 1];
-}
-function audioBE32(bytes, at) {
-    if (at < 0 || at + 4 > bytes.length) return 0;
-    return bytes[at] * 16777216 + (bytes[at + 1] << 16) + (bytes[at + 2] << 8) + bytes[at + 3];
-}
-function audioLE16(bytes, at) {
-    if (at < 0 || at + 2 > bytes.length) return 0;
-    return bytes[at] | (bytes[at + 1] << 8);
-}
-function audioLE32(bytes, at) {
-    if (at < 0 || at + 4 > bytes.length) return 0;
-    return bytes[at] + bytes[at + 1] * 256 + bytes[at + 2] * 65536 + bytes[at + 3] * 16777216;
-}
-// ID3's own 28-bit size: four bytes with the top bit of each left clear.
-function audioSyncsafe(bytes, at) {
-    if (at < 0 || at + 4 > bytes.length) return 0;
-    return ((bytes[at] & 0x7f) << 21) | ((bytes[at + 1] & 0x7f) << 14) |
-        ((bytes[at + 2] & 0x7f) << 7) | (bytes[at + 3] & 0x7f);
-}
-function audioUtf8(bytes, at, len) {
-    const body = bytes.subarray(at, Math.min(bytes.length, at + len));
-    let text;
-    try { text = new TextDecoder("utf-8").decode(body); } catch (_) { text = bytesToLatin1(body); }
-    return text.replace(/\u0000[\s\S]*$/, "").trim();
-}
-function audioUtf16be(bytes) {
-    let out = "";
-    for (let i = 0; i + 1 < bytes.length; i += 2) {
-        const code = (bytes[i] << 8) | bytes[i + 1];
-        if (!code) break;
-        out += String.fromCharCode(code);
-    }
-    return out;
-}
-// An MP3 text frame starts with an encoding byte; 1 is UTF-16 with a byte-order mark, which is
-// how a tag written on Windows and one written on a Mac end up in the same file.
-function decodeId3(body, enc) {
-    if (!body || !body.length) return "";
-    if (enc === 0) return bytesToLatin1(body);
-    if (enc === 3) {
-        try { return new TextDecoder("utf-8").decode(body); } catch (_) { return bytesToLatin1(body); }
-    }
-    if (enc === 1 || enc === 2) {
-        let src = body;
-        let big = enc === 2;
-        if (enc === 1 && body.length >= 2) {
-            if (body[0] === 0xff && body[1] === 0xfe) { big = false; src = body.subarray(2); }
-            else if (body[0] === 0xfe && body[1] === 0xff) { big = true; src = body.subarray(2); }
-        }
-        let out = "";
-        for (let i = 0; i + 1 < src.length; i += 2) {
-            const code = big ? (src[i] << 8) | src[i + 1] : src[i] | (src[i + 1] << 8);
-            if (!code) break;
-            out += String.fromCharCode(code);
-        }
-        return out;
-    }
-    return bytesToLatin1(body);
-}
-function id3FrameText(bytes, frame) {
-    const body = bytes.subarray(frame.at, frame.at + frame.len);
-    if (!body.length) return "";
-    if (frame.id === "APIC") return `attached picture, ${formatBytes(frame.len)}`;
-    // A frame's first byte is its encoding; a comment or lyric also names a language and a
-    // description before the text that matters.
-    const start = /^(COMM|USLT)$/.test(frame.id) ? 4 : 1;
-    const parts = decodeId3(body.subarray(start), body[0]).split("\u0000").map(s => s.trim()).filter(Boolean);
-    if (frame.id === "TXXX" || frame.id === "WXXX") return parts.join(" — ");
-    if (/^(COMM|USLT)$/.test(frame.id)) return parts[parts.length - 1] || "";
-    return parts[0] || "";
-}
-
-/* ------------------------------------------------------------ ID3 */
-function id3v2(bytes) {
-    if (!bytesMatch(bytes, 0, "ID3") || bytes.length < 10) return null;
-    const major = bytes[3];
-    const minor = bytes[4];
-    const flags = bytes[5];
-    if (major < 2 || major > 4) return null;
-    const size = audioSyncsafe(bytes, 6);
-    const end = Math.min(bytes.length, 10 + size + ((flags & 0x10) ? 10 : 0));
-    const v22 = major === 2;
-    const frames = [];
-    let at = 10;
-    // A v2.3 extended header counts itself in its size only from v2.4 on.
-    if (!v22 && (flags & 0x40) && at + 4 <= end) {
-        const ext = major === 4 ? audioSyncsafe(bytes, at) : audioBE32(bytes, at);
-        at += major === 4 ? ext : 4 + ext;
-    }
-    while (at + (v22 ? 6 : 10) <= end) {
-        const raw = audioTag4(bytes, at);
-        const id = v22 ? raw.slice(0, 3) : raw;
-        if (!(v22 ? /^[A-Z0-9]{3}$/ : /^[A-Z0-9]{4}$/).test(id)) break;
-        const len = v22
-            ? (bytes[at + 3] << 16) | (bytes[at + 4] << 8) | bytes[at + 5]
-            : major === 4 ? audioSyncsafe(bytes, at + 4) : audioBE32(bytes, at + 4);
-        const head = v22 ? 6 : 10;
-        if (!len || at + head + len > end) break;
-        frames.push({id: v22 ? ID3V22[id] || id : id, at: at + head, len});
-        at += head + len;
-    }
-    return {major, minor, flags, size, end, frames};
-}
-function id3v1(bytes) {
-    if (bytes.length < 128) return null;
-    const at = bytes.length - 128;
-    if (bytes[at] !== 0x54 || bytes[at + 1] !== 0x41 || bytes[at + 2] !== 0x47) return null;
-    const field = (from, len) => bytesToLatin1(bytes.subarray(at + from, at + from + len))
-        .replace(/\u0000[\s\S]*$/, "").trim();
-    // v1.1 stole the last two comment bytes for a track number: a zero, then the number.
-    const track = bytes[at + 125] === 0 ? bytes[at + 126] : 0;
-    return {
-        title: field(3, 30), artist: field(33, 30), album: field(63, 30), year: field(93, 4),
-        comment: field(97, track ? 28 : 30), track, genre: bytes[at + 127]
-    };
-}
-function id3v2Tags(tag, bytes) {
-    const tags = [];
-    for (const frame of tag.frames) {
-        const value = id3FrameText(bytes, frame);
-        if (!value) continue;
-        tags.push({key: AUDIO_TAG_LABELS[frame.id] || frame.id, value});
-    }
-    return tags;
-}
-
-/* ------------------------------------------------------------ WAV (RIFF) */
-function wavInfoTags(bytes, at, end) {
-    const tags = [];
-    const names = {
-        INAM: "Title", IART: "Artist", IPRD: "Album", ICRD: "Date", ICMT: "Comment",
-        ISFT: "Software", ICOP: "Copyright", IGNR: "Genre", ITCH: "Engineer",
-        ISBJ: "Subject", IKEY: "Keywords"
-    };
-    while (at + 8 <= end) {
-        const id = audioTag4(bytes, at);
-        const size = audioLE32(bytes, at + 4);
-        if (!size || size > end - at - 8) break;
-        const value = audioUtf8(bytes, at + 8, size);
-        if (names[id] && value) tags.push({key: names[id], value});
-        at += 8 + size + (size % 2);
-    }
-    return tags;
-}
-function wavInfo(bytes) {
-    if (!bytesMatch(bytes, 0, "RIFF") || !bytesMatch(bytes, 8, "WAVE")) return null;
-    let fmt = null;
-    let dataBytes = 0;
-    let tags = [];
-    let chunks = 0;
-    let bext = "";
-    let lastEnd = 12;
-    let at = 12;
-    while (at + 8 <= bytes.length) {
-        const id = audioTag4(bytes, at);
-        const size = audioLE32(bytes, at + 4);
-        const body = at + 8;
-        const avail = Math.max(0, Math.min(size, bytes.length - body));
-        chunks++;
-        if (id === "fmt " && avail >= 16) {
-            fmt = {
-                tag: audioLE16(bytes, body),
-                channels: audioLE16(bytes, body + 2),
-                rate: audioLE32(bytes, body + 4),
-                byteRate: audioLE32(bytes, body + 8),
-                bits: audioLE16(bytes, body + 14)
-            };
-            // An extensible header names the real format in its sub-format GUID.
-            if (fmt.tag === 0xFFFE && avail >= 26) fmt.tag = audioLE16(bytes, body + 24);
-            if (avail >= 18) fmt.validBits = audioLE16(bytes, body + 18) || fmt.bits;
-        } else if (id === "data") {
-            dataBytes = avail;
-        } else if (id === "LIST" && bytesMatch(bytes, body, "INFO")) {
-            tags = wavInfoTags(bytes, body + 4, body + avail);
-        } else if (id === "bext" && avail >= 256) {
-            bext = audioUtf8(bytes, body, Math.min(256, avail));
-        }
-        // Chunks are word aligned; a chunk that claims to start before it ends would loop.
-        const next = body + size + (size % 2);
-        if (next <= at) break;
-        lastEnd = next;
-        at = next;
-    }
-    if (!fmt) return null;
-    const lines = [];
-    const valid = fmt.validBits && fmt.validBits !== fmt.bits ? ` (${fmt.validBits} used)` : "";
-    lines.push(`Stream: ${WAV_CODEC[fmt.tag] || `format 0x${fmt.tag.toString(16)}`} · ${fmt.channels} channel${fmt.channels === 1 ? "" : "s"} · ${fmt.rate} Hz · ${fmt.bits}-bit${valid}`);
-    if (fmt.byteRate) {
-        lines.push(`Byte rate: ${fmt.byteRate.toLocaleString()} B/s · ${Math.round(fmt.byteRate * 8 / 1000)} kbps`);
-        if (dataBytes) lines.push(`Duration: ${specTime(dataBytes / fmt.byteRate)} · ${dataBytes.toLocaleString()} bytes of samples`);
-    }
-    lines.push(`Chunks: ${chunks}${bext ? ` · broadcast extension: ${bext}` : ""}`);
-    if (lastEnd < bytes.length) lines.push(`Trailing data: ${formatBytes(bytes.length - lastEnd)} after the last chunk`);
-    return {format: "WAV", mime: "audio/wav", lines, tagGroups: tags.length ? [{label: "RIFF INFO tags", tags}] : []};
-}
-
-/* ------------------------------------------------------------ FLAC */
-function vorbisComments(bytes, at, end) {
-    const out = [];
-    let vendor = "";
-    if (at + 4 > end) return {vendor, comments: out};
-    const vendorLen = audioLE32(bytes, at);
-    at += 4;
-    if (vendorLen > end - at) return {vendor, comments: out};
-    vendor = audioUtf8(bytes, at, vendorLen);
-    at += vendorLen;
-    if (at + 4 > end) return {vendor, comments: out};
-    const count = audioLE32(bytes, at);
-    at += 4;
-    // A corrupt count would walk the whole file; 256 entries is already a very tagged track.
-    for (let i = 0; i < Math.min(count, 256) && at + 4 <= end; i++) {
-        const len = audioLE32(bytes, at);
-        at += 4;
-        if (!len || len > end - at) break;
-        const text = audioUtf8(bytes, at, len);
-        at += len;
-        const eq = text.indexOf("=");
-        if (eq > 0) out.push({key: text.slice(0, eq), value: text.slice(eq + 1)});
-    }
-    return {vendor, comments: out};
-}
-function flacInfo(bytes) {
-    const id3 = bytesMatch(bytes, 0, "ID3") ? id3v2(bytes) : null;
-    const base = id3 ? id3.end : 0;
-    if (!bytesMatch(bytes, base, "fLaC")) return null;
-    let stream = null;
-    let vendor = "";
-    let tags = [];
-    let pictures = 0;
-    let blocks = 0;
-    let at = base + 4;
-    while (at + 4 <= bytes.length) {
-        const header = bytes[at];
-        const type = header & 0x7f;
-        const len = (bytes[at + 1] << 16) | (bytes[at + 2] << 8) | bytes[at + 3];
-        const body = at + 4;
-        const end = Math.min(bytes.length, body + len);
-        blocks++;
-        if (type === 0 && len >= 34 && body + 34 <= bytes.length) {
-            const b = bytes.subarray(body, body + 34);
-            const rate = (b[10] << 12) | (b[11] << 4) | (b[12] >> 4);
-            const channels = ((b[12] >> 1) & 0x7) + 1;
-            const bits = (((b[12] & 1) << 4) | (b[13] >> 4)) + 1;
-            // Total samples is a 36-bit field: four bits of b[13] then four whole bytes.
-            const total = (b[13] & 0x0f) * 4294967296 +
-                b[14] * 16777216 + b[15] * 65536 + b[16] * 256 + b[17];
-            let md5 = "";
-            for (let i = 18; i < 34; i++) md5 += b[i].toString(16).padStart(2, "0");
-            stream = {rate, channels, bits, total, md5};
-        } else if (type === 4) {
-            const parsed = vorbisComments(bytes, body, end);
-            vendor = parsed.vendor;
-            tags = parsed.comments;
-        } else if (type === 6) {
-            pictures++;
-        }
-        if (header & 0x80) break;
-        at = body + len;
-    }
-    if (!stream) return null;
-    const lines = [`Stream: FLAC · ${stream.channels} channel${stream.channels === 1 ? "" : "s"} · ${stream.rate} Hz · ${stream.bits}-bit`];
-    const seconds = stream.rate && stream.total ? stream.total / stream.rate : 0;
-    if (seconds) {
-        lines.push(`Duration: ${specTime(seconds)} · ${stream.total.toLocaleString()} samples`);
-        lines.push(`Bitrate: ${Math.round(bytes.length * 8 / seconds / 1000)} kbps (average)`);
-    }
-    lines.push(`Blocks: ${blocks}${vendor ? ` · encoder ${vendor}` : ""}`);
-    if (pictures) lines.push(`Pictures: ${pictures}`);
-    if (stream.md5 && stream.md5 !== "0".repeat(32)) lines.push(`Audio MD5: ${stream.md5}`);
-    if (id3) lines.push(`Leading ID3v2: ${formatBytes(id3.size)} (ignored by decoders)`);
-    return {format: "FLAC", mime: "audio/flac", lines, tagGroups: tags.length ? [{label: "Vorbis comments", tags}] : []};
-}
-
-/* ------------------------------------------------------------ OGG */
-function oggInfo(bytes) {
-    if (!bytesMatch(bytes, 0, "OggS")) return null;
-    const has = (text, at) => bytesMatch(bytes, at, text);
-    let at = 0;
-    let pages = 0;
-    let granule = 0;
-    let head = null;
-    let vendor = "";
-    let tags = [];
-    const serials = new Set();
-    while (at + 27 <= bytes.length) {
-        if (!bytesMatch(bytes, at, "OggS")) break;
-        const segments = bytes[at + 26];
-        if (at + 27 + segments > bytes.length) break;
-        let payload = 0;
-        for (let i = 0; i < segments; i++) payload += bytes[at + 27 + i];
-        const body = at + 27 + segments;
-        const end = Math.min(bytes.length, body + payload);
-        // The granule of the last page is the stream's length in samples.
-        const length = audioLE32(bytes, at + 10) * 4294967296 + audioLE32(bytes, at + 6);
-        if (length > 0) granule = length;
-        pages++;
-        serials.add(audioLE32(bytes, at + 14));
-        if (!head) {
-            if (has("\x01vorbis", body)) {
-                head = {codec: "Vorbis", channels: bytes[body + 11], rate: audioLE32(bytes, body + 12), nominal: audioLE32(bytes, body + 20)};
-            } else if (has("OpusHead", body)) {
-                head = {codec: "Opus", channels: bytes[body + 9], rate: 48000, inputRate: audioLE32(bytes, body + 12)};
-            } else if (has("\x7fFLAC", body)) {
-                head = {codec: "FLAC", channels: 0, rate: 0};
-            } else if (has("Speex   ", body)) {
-                head = {codec: "Speex", channels: 0, rate: 0};
-            }
-        }
-        if (has("\x03vorbis", body)) {
-            const parsed = vorbisComments(bytes, body + 7, end);
-            vendor = parsed.vendor;
-            tags = parsed.comments;
-        } else if (has("OpusTags", body)) {
-            const parsed = vorbisComments(bytes, body + 8, end);
-            vendor = parsed.vendor;
-            tags = parsed.comments;
-        }
-        if (end <= at) break;
-        at = end;
-    }
-    if (!head) return null;
-    const codec = head.codec;
-    const rate = head.rate || (codec === "Opus" ? 48000 : 0);
-    const lines = [`Stream: ${codec}${head.channels ? ` · ${head.channels} channel${head.channels === 1 ? "" : "s"}` : ""}${rate ? ` · ${rate} Hz` : ""}`];
-    if (codec === "Opus") lines.push("Decoding rate: always 48000 Hz (Opus resamples on playback)");
-    if (head.nominal) lines.push(`Bitrate: ${Math.round(head.nominal / 1000)} kbps (nominal)`);
-    if (rate && granule) lines.push(`Duration: ${specTime(granule / rate)} · ${granule.toLocaleString()} samples`);
-    lines.push(`Pages: ${pages} · ${serials.size} logical stream${serials.size === 1 ? "" : "s"}${vendor ? ` · encoder ${vendor}` : ""}`);
-    return {
-        format: `OGG ${codec}`.trim(), mime: "audio/ogg",
-        lines, tagGroups: tags.length ? [{label: "Vorbis comments", tags}] : []
-    };
-}
-
-/* ------------------------------------------------------------ MP4 / M4A */
-// MP4 names its boxes with Latin-1: the iTunes metadata boxes start with 0xA9, so this reads
-// the four bytes as characters rather than as the printable-only ids used elsewhere.
-function mp4Type(bytes, at) {
-    if (at < 0 || at + 4 > bytes.length) return "";
-    let out = "";
-    for (let i = 0; i < 4; i++) out += String.fromCharCode(bytes[at + i]);
-    return out;
-}
-function mp4Atoms(bytes, start, end) {
-    const out = [];
-    let at = start;
-    while (at + 8 <= end) {
-        let size = audioBE32(bytes, at);
-        const type = mp4Type(bytes, at + 4);
-        let head = 8;
-        if (size === 1) {
-            if (at + 16 > end) break;
-            size = audioBE32(bytes, at + 8) * 4294967296 + audioBE32(bytes, at + 12);
-            head = 16;
-        } else if (size === 0) {
-            size = end - at;
-        }
-        if (size < head) break;
-        const body = at + head;
-        const stop = Math.min(end, at + size);
-        out.push({type, start: body, size: Math.max(0, stop - body)});
-        at += Math.max(head, size);
-    }
-    return out;
-}
-function mp4Tags(bytes, moov) {
-    const udta = mp4Atoms(bytes, moov.start, moov.start + moov.size).find(a => a.type === "udta");
-    if (!udta) return [];
-    // meta is a full box: four bytes of version and flags sit before its children.
-    const meta = mp4Atoms(bytes, udta.start, udta.start + udta.size).find(a => a.type === "meta");
-    if (!meta) return [];
-    const ilst = mp4Atoms(bytes, meta.start + 4, meta.start + meta.size).find(a => a.type === "ilst");
-    if (!ilst) return [];
-    const tags = [];
-    for (const item of mp4Atoms(bytes, ilst.start, ilst.start + ilst.size)) {
-        const data = mp4Atoms(bytes, item.start, item.start + item.size).find(a => a.type === "data");
-        if (!data || data.size < 8) continue;
-        const kind = audioBE32(bytes, data.start) & 0xffffff;
-        const payload = bytes.subarray(data.start + 8, data.start + data.size);
-        let value = "";
-        if (kind === 1) value = audioUtf8(payload, 0, payload.length);
-        else if (kind === 2) value = audioUtf16be(payload).trim();
-        else if (kind === 13 || kind === 14) value = `${kind === 13 ? "JPEG" : "PNG"} picture, ${formatBytes(payload.length)}`;
-        else if ((item.type === "trkn" || item.type === "disk") && payload.length >= 4) {
-            value = `${payload[2] || 0}${payload[3] ? ` of ${payload[3]}` : ""}`;
-        } else value = audioUtf8(payload, 0, payload.length);
-        if (!value) continue;
-        tags.push({key: MP4_TAG_LABELS[item.type] || item.type, value});
-    }
-    return tags;
-}
-function mp4Info(bytes) {
-    const top = mp4Atoms(bytes, 0, bytes.length);
-    const ftyp = top.find(a => a.type === "ftyp");
-    if (!ftyp) return null;
-    const brand = mp4Type(bytes, ftyp.start);
-    const compatible = [];
-    for (let at = ftyp.start + 8; at + 4 <= ftyp.start + ftyp.size; at += 4) {
-        const name = mp4Type(bytes, at).trim();
-        if (/^[\x20-\x7e]{3,4}$/.test(name)) compatible.push(name);
-    }
-    const moov = top.find(a => a.type === "moov");
-    let timescale = 0;
-    let duration = 0;
-    let codec = "";
-    let channels = 0;
-    let bits = 0;
-    let rate = 0;
-    let handler = "";
-    let tags = [];
-    if (moov) {
-        const kids = mp4Atoms(bytes, moov.start, moov.start + moov.size);
-        const mvhd = kids.find(a => a.type === "mvhd");
-        if (mvhd) {
-            if (bytes[mvhd.start] === 1) {
-                timescale = audioBE32(bytes, mvhd.start + 20);
-                duration = audioBE32(bytes, mvhd.start + 24) * 4294967296 + audioBE32(bytes, mvhd.start + 28);
-            } else {
-                timescale = audioBE32(bytes, mvhd.start + 12);
-                duration = audioBE32(bytes, mvhd.start + 16);
-            }
-        }
-        const trak = kids.find(a => a.type === "trak");
-        if (trak) {
-            const tk = mp4Atoms(bytes, trak.start, trak.start + trak.size);
-            const mdia = tk.find(a => a.type === "mdia");
-            if (mdia) {
-                const md = mp4Atoms(bytes, mdia.start, mdia.start + mdia.size);
-                const hdlr = md.find(a => a.type === "hdlr");
-                // The handler type follows a version/flags word and a 4-byte pre-defined field.
-                if (hdlr) handler = mp4Type(bytes, hdlr.start + 8);
-                const mdhd = md.find(a => a.type === "mdhd");
-                if (mdhd) {
-                    const big = bytes[mdhd.start] === 1;
-                    const trackRate = big ? audioBE32(bytes, mdhd.start + 20) : audioBE32(bytes, mdhd.start + 12);
-                    const trackLength = big
-                        ? audioBE32(bytes, mdhd.start + 24) * 4294967296 + audioBE32(bytes, mdhd.start + 28)
-                        : audioBE32(bytes, mdhd.start + 16);
-                    if (trackRate) { timescale = trackRate; duration = trackLength; }
-                }
-                const minf = md.find(a => a.type === "minf");
-                const stbl = minf ? mp4Atoms(bytes, minf.start, minf.start + minf.size).find(a => a.type === "stbl") : null;
-                const stsd = stbl ? mp4Atoms(bytes, stbl.start, stbl.start + stbl.size).find(a => a.type === "stsd") : null;
-                if (stsd) {
-                    const entry = mp4Atoms(bytes, stsd.start + 8, stsd.start + stsd.size)[0];
-                    if (entry) {
-                        codec = entry.type;
-                        // AudioSampleEntry: 8 bytes of sample-entry header, then version, revision
-                        // and vendor, then channels, sample size and the 16.16 sample rate.
-                        channels = audioBE16(bytes, entry.start + 16);
-                        bits = audioBE16(bytes, entry.start + 18);
-                        rate = audioBE32(bytes, entry.start + 24) >>> 16;
-                    }
-                }
-            }
-        }
-        tags = mp4Tags(bytes, moov);
-    }
-    const lines = [];
-    if (codec) {
-        lines.push(`Stream: ${codec === "mp4a" ? "MPEG-4 audio" : codec === "alac" ? "ALAC" : codec}${channels ? ` · ${channels} channel${channels === 1 ? "" : "s"}` : ""}${rate ? ` · ${rate} Hz` : ""}${bits ? ` · ${bits}-bit` : ""}`);
-    }
-    const seconds = timescale && duration ? duration / timescale : 0;
-    if (seconds) lines.push(`Duration: ${specTime(seconds)} · ${Math.round(seconds * 1000).toLocaleString()} ms`);
-    if (seconds) lines.push(`Bitrate: ${Math.round(bytes.length * 8 / seconds / 1000)} kbps (average)`);
-    lines.push(`Brand: ${brand.trim()}${compatible.length > 1 ? ` · compatible ${compatible.join(", ")}` : ""}`);
-    if (handler) lines.push(`Handler: ${handler}${handler === "vide" ? " (this file carries video)" : ""}`);
-    if (!moov) lines.push("No moov atom — the file is either unfinalised or truncated.");
-    return {
-        format: handler === "vide" ? "MP4" : "M4A", mime: handler === "vide" ? "video/mp4" : "audio/mp4",
-        lines, tagGroups: tags.length ? [{label: "iTunes metadata", tags}] : []
-    };
-}
-
-/* ------------------------------------------------------------ AIFF */
-// The 80-bit extended float AIFF uses for its sample rate.
-function extended80(bytes, at) {
-    const exp = ((bytes[at] & 0x7f) << 8) | bytes[at + 1];
-    if (!exp) return 0;
-    const mantissa = audioBE32(bytes, at + 2) * 4294967296 + audioBE32(bytes, at + 6);
-    return mantissa * Math.pow(2, exp - 16383 - 63);
-}
-function aiffInfo(bytes) {
-    if (!bytesMatch(bytes, 0, "FORM")) return null;
-    const form = audioTag4(bytes, 8);
-    if (form !== "AIFF" && form !== "AIFC") return null;
-    let comm = null;
-    let compression = "";
-    let soundBytes = 0;
-    const tags = [];
-    let at = 12;
-    while (at + 8 <= bytes.length) {
-        const id = audioTag4(bytes, at);
-        const size = audioBE32(bytes, at + 4);
-        const body = at + 8;
-        const avail = Math.max(0, Math.min(size, bytes.length - body));
-        if (id === "COMM" && avail >= 18) {
-            comm = {
-                channels: audioBE16(bytes, body),
-                frames: audioBE32(bytes, body + 2),
-                bits: audioBE16(bytes, body + 6),
-                rate: Math.round(extended80(bytes, body + 8))
-            };
-            if (form === "AIFC" && avail >= 22) compression = audioTag4(bytes, body + 18);
-        } else if (id === "SSND") {
-            soundBytes = avail;
-        } else if (["NAME", "AUTH", "(c) ", "ANNO"].includes(id)) {
-            const label = {NAME: "Title", AUTH: "Artist", "(c) ": "Copyright", ANNO: "Comment"}[id];
-            const value = audioUtf8(bytes, body, avail);
-            if (value) tags.push({key: label, value});
-        }
-        if (size <= 0) break;
-        at = body + size + (size % 2);
-    }
-    if (!comm) return null;
-    const lines = [`Stream: ${form === "AIFC" && compression ? `AIFC ${compression}` : "AIFF"} · ${comm.channels} channel${comm.channels === 1 ? "" : "s"} · ${comm.rate} Hz · ${comm.bits}-bit`];
-    if (comm.rate && comm.frames) lines.push(`Duration: ${specTime(comm.frames / comm.rate)} · ${comm.frames.toLocaleString()} samples`);
-    if (soundBytes) lines.push(`Samples: ${formatBytes(soundBytes)}`);
-    return {
-        format: form === "AIFC" ? "AIFC" : "AIFF", mime: "audio/aiff",
-        lines, tagGroups: tags.length ? [{label: "Text chunks", tags}] : []
-    };
-}
-
-/* ------------------------------------------------------------ MP3 */
-const MP3_BITRATES = {
-    "1-1": [0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448],
-    "1-2": [0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384],
-    "1-3": [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320],
-    "2-1": [0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256],
-    "2-2": [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160],
-    "2-3": [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160]
-};
-const MP3_RATES = {3: [44100, 48000, 32000], 2: [22050, 24000, 16000], 0: [11025, 12000, 8000]};
-const MP3_NAMES = {3: "MPEG-1", 2: "MPEG-2", 0: "MPEG-2.5"};
-const MP3_LAYERS = {1: "Layer III", 2: "Layer II", 3: "Layer I"};
-function mp3FrameAt(bytes, at) {
-    if (at + 4 > bytes.length) return null;
-    if (bytes[at] !== 0xff || (bytes[at + 1] & 0xe0) !== 0xe0) return null;
-    const version = (bytes[at + 1] >> 3) & 3;
-    const layer = (bytes[at + 1] >> 1) & 3;
-    const bitrateIdx = (bytes[at + 2] >> 4) & 0xf;
-    const rateIdx = (bytes[at + 2] >> 2) & 3;
-    if (version === 1 || !layer || !bitrateIdx || bitrateIdx === 15 || rateIdx === 3) return null;
-    const table = MP3_BITRATES[`${version === 3 ? 1 : 2}-${layer === 3 ? 1 : layer === 2 ? 2 : 3}`] || [];
-    const bitrate = table[bitrateIdx];
-    const sampleRate = MP3_RATES[version][rateIdx];
-    if (!bitrate || !sampleRate) return null;
-    const padding = (bytes[at + 2] >> 1) & 1;
-    const mode = (bytes[at + 3] >> 6) & 3;
-    // Layer I counts 384 samples a frame; every other layer 1152 at MPEG-1 and 576 below it.
-    const samples = layer === 3 ? 384 : version === 3 ? 1152 : 576;
-    const length = layer === 3
-        ? (Math.floor(12 * bitrate * 1000 / sampleRate) + padding) * 4
-        : Math.floor(samples / 8 * bitrate * 1000 / sampleRate) + padding;
-    return {
-        version, layer, bitrate, sampleRate, samples, length,
-        channels: mode === 3 ? 1 : 2, mono: mode === 3
-    };
-}
-// A VBR file puts its frame count and byte count in a Xing or Info header inside the first
-// frame, which is the only way to know its length without reading every frame.
-function mp3Xing(bytes, frame, frameAt) {
-    const side = frame.version === 3 ? (frame.mono ? 17 : 32) : (frame.mono ? 9 : 17);
-    const start = frameAt + 4 + side;
-    const id = audioTag4(bytes, start);
-    if (id !== "Xing" && id !== "Info") return null;
-    const flags = audioBE32(bytes, start + 4);
-    let at = start + 8;
-    const out = {id};
-    if (flags & 1) { out.frames = audioBE32(bytes, at); at += 4; }
-    if (flags & 2) { out.bytes = audioBE32(bytes, at); at += 4; }
-    if (flags & 4) at += 100;
-    if (flags & 8) { out.quality = audioBE32(bytes, at); at += 4; }
-    // The encoder string sits in the LAME extension that follows the header.
-    const text = bytesToLatin1(bytes.subarray(start, Math.min(bytes.length, start + 260))).replace(/\u0000/g, " ");
-    const named = /(LAME[\w.\- ]{0,12}|Lavf[\w.]{0,10}|Lavc[\w.]{0,10}|FhG[\w.\-]{0,10})/.exec(text);
-    if (named) out.encoder = named[1].trim();
-    return out;
-}
-function mp3Info(bytes) {
-    const tag = id3v2(bytes);
-    const v1 = id3v1(bytes);
-    const from = tag ? tag.end : 0;
-    let frame = null;
-    let frameAt = from;
-    // A stale tag or padding can push the first frame along; look a little way in.
-    for (let at = from; at < Math.min(bytes.length - 4, from + 4096); at++) {
-        const found = mp3FrameAt(bytes, at);
-        if (found) { frame = found; frameAt = at; break; }
-    }
-    if (!frame && !tag && !v1) return null;
-    const xing = frame ? mp3Xing(bytes, frame, frameAt) : null;
-    let seconds = 0;
-    if (frame && xing && xing.frames) seconds = xing.frames * frame.samples / frame.sampleRate;
-    else if (frame) {
-        const audio = Math.max(0, (v1 ? bytes.length - 128 : bytes.length) - from);
-        seconds = audio * 8 / (frame.bitrate * 1000);
-    }
-    const lines = [];
-    if (frame) {
-        const mode = xing ? ` (${xing.id === "Xing" ? "VBR" : "CBR"})` : "";
-        lines.push(`Stream: ${MP3_NAMES[frame.version]} ${MP3_LAYERS[frame.layer]} · ${frame.sampleRate} Hz · ${frame.channels} channel${frame.channels === 1 ? "" : "s"} · ${frame.bitrate} kbps${mode}`);
-        lines.push(`Frame: ${frame.length} bytes · ${frame.samples} samples${xing && xing.frames ? ` · ${xing.frames.toLocaleString()} frames` : ""}`);
-    } else {
-        lines.push("Stream: no audio frame found after the tag");
-    }
-    if (seconds) {
-        lines.push(`Duration: ${specTime(seconds)}`);
-        lines.push(`Bitrate: ${Math.round(bytes.length * 8 / seconds / 1000)} kbps (average)`);
-    }
-    if (xing && xing.encoder) lines.push(`Encoder: ${xing.encoder}`);
-    const groups = [];
-    if (tag) {
-        const unsync = (tag.flags & 0x80) ? " · unsynchronised" : "";
-        lines.push(`ID3v2: 2.${tag.major}.${tag.minor} · ${formatBytes(tag.size)} · ${tag.frames.length} frame${tag.frames.length === 1 ? "" : "s"}${unsync}`);
-        const tags = id3v2Tags(tag, bytes);
-        if (tags.length) groups.push({label: "ID3v2 tags", tags});
-    } else {
-        lines.push("ID3v2: none");
-    }
-    if (v1) {
-        lines.push(`ID3v1: present${v1.year ? ` · ${v1.year}` : ""}${v1.track ? ` · track ${v1.track}` : ""}`);
-        const tags = [];
-        for (const [key, value] of [["Title", v1.title], ["Artist", v1.artist], ["Album", v1.album], ["Comment", v1.comment]]) {
-            if (value) tags.push({key, value});
-        }
-        if (tags.length) groups.push({label: "ID3v1 tags", tags});
-    }
-    return {format: "MP3", mime: "audio/mpeg", lines, tagGroups: groups};
-}
-
-/* ------------------------------------------------------------ the two nodes */
-// One report shape for every container: a header line, the container's own description of its
-// stream, then its tags, whichever block they came from.
-function audioInfoReport(bytes) {
-    if (!bytes || !bytes.length) return null;
-    const info = wavInfo(bytes) || flacInfo(bytes) || oggInfo(bytes) || mp4Info(bytes) ||
-        aiffInfo(bytes) || mp3Info(bytes);
-    if (!info) return null;
-    const lines = [`Audio · ${formatBytes(bytes.length)}`, `Format: ${info.format} (${info.mime})`];
-    for (const line of info.lines || []) if (line) lines.push(line);
-    // Vorbis keys are written TITLE=…; the other containers already name their fields, so a
-    // key that is all capitals and underscores is the one that needs prettifying.
-    const keyName = key => /^[A-Z0-9_]+$/.test(key)
-        ? key.toLowerCase().replace(/(^|_)([a-z0-9])/g, (m, gap, letter) => (gap ? " " : "") + letter.toUpperCase())
-        : key;
-    for (const group of info.tagGroups || []) {
-        lines.push("");
-        lines.push(`${group.label} (${group.tags.length}):`);
-        for (const t of group.tags.slice(0, 40)) {
-            const value = String(t.value).replace(/\s+/g, " ").trim();
-            lines.push(`  ${keyName(t.key)}: ${value.length > 300 ? value.slice(0, 300) + "…" : value}`);
-        }
-        if (group.tags.length > 40) lines.push(`  … ${group.tags.length - 40} more`);
-    }
-    // Nothing in an audio file's bytes is EXIF, so a reader looking for it is told where the
-    // tags actually came from rather than left wondering why the image operation found none.
-    lines.push("");
-    lines.push(info.tagGroups && info.tagGroups.length
-        ? "Tags come from the container (ID3, Vorbis comments, iTunes atoms or RIFF INFO), not from EXIF."
-        : "No tags found. EXIF is an image format and never describes audio.");
-    return lines.join("\n") + "\n";
-}
 
 // What the samples are doing: peak, RMS, DC offset, clipping and the longest silence. The
 // Spectrogram's decoder is used, so a WAV is read here and every other format is decoded by
@@ -7440,6 +7271,83 @@ function graphHadInput() {
     });
 }
 
+/* ================================================================ slow-load guard
+ * A saved graph can be heavy enough that restoring it never settles: a handful of nodes that
+ * balloon to tens of megabytes each keep the runner busy for minutes, and because that same
+ * graph is the autosave, every reload repeats the wait. A load that has not finished after
+ * five seconds therefore offers a way out — drop the graph and clear the autosave, so the
+ * save cannot stay bricked. Nothing is interrupted on its own: the button is a choice, and
+ * taking it bumps the run generation so whatever the heavy graph answers is thrown away. */
+const LOAD_GUARD_MS = 5000;
+const loadGuard = {armed: false, timer: 0, el: null};
+
+function loadGuardElement() {
+    if (loadGuard.el) return loadGuard.el;
+    const box = document.createElement("div");
+    box.className = "load-guard";
+    box.setAttribute("role", "status");
+    box.hidden = true;
+    box.innerHTML = `<span class="load-guard-text">This graph has been loading for 5 seconds. A very large or expensive save can take minutes.</span>
+        <button class="load-guard-reset" type="button">Reset graph</button>
+        <button class="load-guard-cold" type="button" title="Reload the page and open this graph without running it">Reload, auto-run off</button>
+        <button class="load-guard-keep" type="button">Keep waiting</button>`;
+    document.body.appendChild(box);
+    $(".load-guard-reset", box).addEventListener("click", resetSlowGraph);
+    $(".load-guard-cold", box).addEventListener("click", reloadWithoutRunning);
+    $(".load-guard-keep", box).addEventListener("click", () => { box.hidden = true; });
+    loadGuard.el = box;
+    return box;
+}
+function armLoadGuard() {
+    loadGuard.armed = true;
+    clearTimeout(loadGuard.timer);
+    loadGuard.timer = setTimeout(() => {
+        loadGuard.timer = 0;
+        if (!loadGuard.armed) return;
+        loadGuardElement().hidden = false;
+    }, LOAD_GUARD_MS);
+}
+function settleLoadGuard() {
+    loadGuard.armed = false;
+    clearTimeout(loadGuard.timer);
+    loadGuard.timer = 0;
+    if (loadGuard.el) loadGuard.el.hidden = true;
+}
+function resetSlowGraph() {
+    settleLoadGuard();
+    // Abandon the heavy pass: the generation bump makes every result it returns stale.
+    runGeneration++;
+    running = false;
+    runPending = false;
+    clearTimeout(runTimer);
+    // The autosave is what brings the graph back on the next reload, so it goes first.
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* private mode */ }
+    // A graph carried in the address would come straight back on a refresh.
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+    applyGraph(blankState(), {fit: true});
+    resetHistory();
+    setRunStatus("", "Graph reset — the heavy save was cleared.");
+    toast("Graph reset — the heavy save was cleared");
+    // applyGraph arms the guard again for its own run; a blank graph needs none.
+    settleLoadGuard();
+}
+
+// The other way out of a heavy graph: keep it, but come back with auto-run off so the canvas
+// opens without the pass that was taking so long. The flag rides in the autosave, and the URL
+// is stripped so a shared link cannot re-offer the same graph with running switched on.
+function reloadWithoutRunning() {
+    settleLoadGuard();
+    try {
+        if (state) {
+            state.autoRun = false;
+            updateAutoSwitch();
+            saveLocalNow();
+        }
+    } catch { /* private mode: reload anyway */ }
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+    location.reload();
+}
+
 function scheduleRun(force = false, delay = 430) {
     if (!state) return;
     if (!state.autoRun && !force) return;
@@ -7489,6 +7397,7 @@ async function runGraph(force = false) {
         const errCount = result.errors.length;
         const parts = [`Ran ${result.ran} node${result.ran === 1 ? "" : "s"} in ${Math.max(1, Math.round(result.duration))} ms`];
         if (result.reused) parts.push(`${result.reused} reused`);
+        if (result.held) parts.push(`${result.held} frozen`);
         if (errCount) parts.push(`${errCount} error${errCount === 1 ? "" : "s"}`);
         setRunStatus(errCount ? "error" : "ok", parts.join(" · "));
         if (result.cycle.length) {
@@ -7510,6 +7419,7 @@ async function runGraph(force = false) {
             runButton.disabled = false;
             runButton.innerHTML = `${iconFill("play")} Run`;
             if (runPending) scheduleRun(false, 80);
+            settleLoadGuard();
         }
         // The first completed pass is the last thing the splash was waiting for.
         hideBoot();
@@ -8017,6 +7927,8 @@ const GRAPH_ITEMS = [
     {type: "input", label: TEXT_NODE_TITLE, icon: "input", keys: "text source plain value output", about: "Type a value, or show what arrives"},
     {type: "file", label: FILE_NODE_TITLE, icon: "file", keys: "upload bytes attach binary", about: "Attach a file, or pass bytes through"},
     {type: "join", label: "Join", icon: "join", keys: "merge combine concatenate append several inputs", about: "Concatenate several inputs into one"},
+    {type: "diff", label: "Diff", icon: "diff", keys: "diff compare difference expected actual changed identical lcs check verify mismatch", about: "Compare two wires and see exactly which characters differ"},
+    {type: "hex", label: "Hex Viewer", icon: "hex", keys: "hex dump viewer bytes offsets ascii inspect forensic binary xxd table gutter", about: "Read the bytes on a wire: offsets, an ASCII gutter, and a selection you can copy as hex, escaped or base64"},
     {type: "note", label: "Note", icon: "note", keys: "note comment sticky memo annotation explain label remind text documentation", about: "Write a note on the canvas — no ports, no run, just an explanation that saves with the graph"},
     {type: "compact", label: "Compact", icon: "bundle", section: "Bundles", keys: "bundle list multiple values many wires combine pack gather collect", about: "Collect several wires into one bundled wire"},
     {type: "expand", label: "Expand", icon: "split", section: "Bundles", keys: "unbundle split list multiple outputs separate distribute unpack", about: "Split a bundled wire into separate outputs"},
@@ -8033,7 +7945,6 @@ const GRAPH_ITEMS = [
     {type: "pdfscan", label: "PDF Scan", icon: "doc", section: "Multimedia", keys: "pdfid pdfinfo pdf objects streams javascript embedded scan document steg hidden", about: "Count a PDF's objects, pages and risky features"},
     {type: "imginfo", label: "Image Info", icon: "search", section: "Multimedia", keys: "identify image dimensions format exif jpeg gif webp bmp png metadata steg", about: "Report an image's format, size, depth and metadata"},
     {type: "spectrogram", label: "Spectrogram", icon: "wave", section: "Multimedia", keys: "audio spectrogram sound spectrum frequencies fft sonogram waterfall zoom pan drag merge mix channels stereo left right wav mp3 ogg flac m4a aac webm multimedia", about: "See audio's frequencies, zoom in, and merge left and right"},
-    {type: "audioinfo", label: "Audio Info", icon: "doc", section: "Multimedia", keys: "audio metadata tags id3 id3v2 id3v1 vorbis comments flac ogg opus mp3 m4a mp4 wav aiff album artist title genre bitrate duration sample rate exif", about: "Report an audio file's format, stream and tags (ID3, Vorbis comments, iTunes atoms)"},
     {type: "audiolevels", label: "Audio Levels", icon: "wave", section: "Multimedia", keys: "audio levels peak rms loudness dbfs clipping silence dc offset crest dynamics steg samples wav mp3 ogg flac m4a", about: "Measure an audio file's peak, RMS, DC offset, clipping and silence"}
 ];
 // Split once: each section draws its own tools, and the audits are appended to the
@@ -8245,7 +8156,7 @@ function makeDragGhost(payload) {
         ghost.style.setProperty("--node-accent", SYMBOL_COLOR);
         ghost.textContent = symbolCipher(payload.slug)?.name || payload.slug;
     } else {
-        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", template: "Fstring", math: "Math", switch: "Switch", chess: "Chess", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", spectrogram: "Spectrogram", audioinfo: "Audio Info", audiolevels: "Audio Levels", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
+        ghost.textContent = {input: TEXT_NODE_TITLE, file: FILE_NODE_TITLE, join: "Join", diff: "Diff", template: "Fstring", math: "Math", switch: "Switch", chess: "Chess", pngchunks: "PNG Chunks", pdfscan: "PDF Scan", imginfo: "Image Info", spectrogram: "Spectrogram", audiolevels: "Audio Levels", magic: "Magic", fnin: "Function input", fnout: "Function output"}[payload.node] || payload.node;
     }
     ghost.style.transform = `translate(-500px, -500px)`;
     document.body.appendChild(ghost);
@@ -8325,6 +8236,8 @@ const PALETTE_COMMANDS = [
     {label: "Save in this browser", keys: "save graph store local", hint: "Ctrl+S", run: () => saveCurrentGraph()},
     {label: "Download graph file", keys: "export download json file", hint: "Ctrl+Shift+S", run: () => saveGraphFile()},
     {label: "Copy share link", keys: "share url link clipboard", hint: "Link", run: () => copyShareLink()},
+    {label: "Copy as CyberChef recipe", keys: "cyberchef recipe export copy operations chain", hint: "File", run: () => copyAsRecipe()},
+    {label: "Paste a CyberChef recipe", keys: "cyberchef recipe import paste load operations chain", hint: "File", run: () => pasteRecipe()},
     {label: "New blank graph", keys: "new clear empty reset", hint: "File", run: () => newGraph()},
     {label: "Browse examples", keys: "example gallery samples demo", hint: "File", run: () => openExampleGallery()},
     {label: "Toggle theme", keys: "dark light mode appearance colour color", hint: "Appearance", run: () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark")},
@@ -8333,7 +8246,9 @@ const PALETTE_COMMANDS = [
     {label: "Help and shortcuts", keys: "help manual documentation shortcut", hint: "?", run: () => $("#helpBtn")?.click()}
 ];
 
-let cmdkEl = null, cmdkCard = null, cmdkInput = null, cmdkList = null, cmdkRows = [], cmdkIndex = 0;
+let cmdkEl = null, cmdkCard = null, cmdkInput = null, cmdkList = null, cmdkEnter = null, cmdkRows = [], cmdkIndex = 0;
+// Whether this opening of the box was asked to replace the selection (Ctrl+Shift+K).
+let cmdkReplace = false;
 // Last pointer position in viewport coordinates; the box opens where the user's pointer is.
 let cmdkPointer = null;
 
@@ -8347,17 +8262,17 @@ function commandPaletteItems() {
     const nodeLabels = new Set(GRAPH_ITEMS.map(item => item.label.toLowerCase()));
     for (const item of GRAPH_ITEMS) {
         items.push({kind: "node", label: item.label, keys: `${item.keys} ${item.about}`,
-            hint: item.section || "Graph", run: p => addGraphNode(item.type, p?.x, p?.y)});
+            hint: item.section || "Graph", type: item.type, run: p => addGraphNode(item.type, p?.x, p?.y)});
     }
     for (const fn of state?.functions || []) {
         items.push({kind: "function", label: fn.name, keys: "function subgraph instance",
-            hint: "Function", run: p => addFunctionNode(fn.id, p?.x, p?.y)});
+            hint: "Function", fnId: fn.id, run: p => addFunctionNode(fn.id, p?.x, p?.y)});
     }
     for (const op of OP_NAMES) {
         if (FLOW_OPS.has(op) || nodeLabels.has(op.toLowerCase())) continue;
         const meta = OPS[op] || {};
         items.push({kind: "op", label: op, keys: `op ${meta.category || ""} ${meta.description || ""}`,
-            hint: SILLY_OPS.has(op) ? "Silly Stuff" : (meta.category || "Operation"), run: p => addOperationNode(op, p?.x, p?.y)});
+            hint: SILLY_OPS.has(op) ? "Silly Stuff" : (meta.category || "Operation"), op, run: p => addOperationNode(op, p?.x, p?.y)});
     }
     return items;
 }
@@ -8397,6 +8312,7 @@ function highlightCommandPaletteRow(index) {
         row.setAttribute("aria-selected", on ? "true" : "false");
         if (on) row.scrollIntoView({block: "nearest"});
     }
+    updateCommandPaletteAction();
 }
 
 // Placed at the pointer, like a context menu, and clamped so the whole card stays on screen.
@@ -8429,8 +8345,9 @@ function renderCommandPalette(query) {
     positionCommandPalette();
 }
 
-function openCommandPalette() {
+function openCommandPalette(replace = false) {
     if (!cmdkEl) return;
+    cmdkReplace = Boolean(replace);
     cmdkEl.hidden = false;
     cmdkInput.value = "";
     renderCommandPalette("");
@@ -8441,6 +8358,73 @@ function closeCommandPalette() {
     if (!cmdkEl || cmdkEl.hidden) return;
     cmdkEl.hidden = true;
     cmdkInput.blur();
+}
+
+// What a palette row would build. Commands have no node, which is how "Run graph" and the
+// rest keep their own behaviour while every node-shaped row can also be a replacement.
+function paletteNodeFor(item) {
+    if (!item || item.kind === "command") return null;
+    if (item.kind === "op") return OPS[item.op] ? makeNode("op", {op: item.op}) : null;
+    if (item.kind === "function") return functionById(item.fnId) ? makeNode("fn", {fnId: item.fnId}) : null;
+    if (item.kind === "node") return createGraphNode(item.type);
+    return null;
+}
+
+// Shift is the difference: plain Ctrl+K adds and runs exactly as it always did, and only a
+// Ctrl+Shift+K opening swaps. A pick replaces when that opening asked for it and exactly one
+// node is selected; everything else takes the add path.
+function paletteReplaces(item) {
+    if (!cmdkReplace || !item || item.kind === "command" || selection.size !== 1) return false;
+    return Boolean(nodeById([...selection][0]));
+}
+
+// Ctrl+Shift+K with one node selected swaps that node for the pick instead of adding a second one.
+// Its place on the canvas is kept, and so is every wire the replacement still has a port for:
+// the main pipe in and out survives an operation swap, a wired argument does not (the
+// arguments it was wired to are gone), and a port the replacement does not have takes its
+// wire with it. Returns false when there is nothing to replace, so the row can add as usual.
+function replaceSelectedNode(item) {
+    const target = selection.size === 1 ? nodeById([...selection][0]) : null;
+    if (!target || !item || item.kind === "command") return false;
+    const built = paletteNodeFor(item);
+    // A refusal has already been explained (a function's port declaration outside a function);
+    // the canvas is left exactly as it was, which is why this still counts as handled.
+    if (!built) return true;
+    built.x = target.x;
+    built.y = target.y;
+    const inPorts = new Set(nodeInPorts(built));
+    const outPorts = new Set(nodeOutPorts(built));
+    const edges = [];
+    for (const e of state.edges) {
+        if (e.to === target.id) {
+            if (!inPorts.has(String(e.toPort))) continue;
+            e.to = built.id;
+        }
+        if (e.from === target.id) {
+            if (!outPorts.has(String(e.fromPort || "out"))) continue;
+            e.from = built.id;
+        }
+        edges.push(e);
+    }
+    state.edges = edges;
+    state.nodes = state.nodes.filter(n => n.id !== target.id);
+    state.nodes.push(built);
+    setSelection([built.id]);
+    renderAllNodes();
+    onGraphEdited(true);
+    toast(`Replaced “${sourceTitle(target)}” with “${sourceTitle(built)}”`);
+    return true;
+}
+
+// What Enter will do to the highlighted row. With one node selected, a node-shaped row says
+// it will replace that node, so the swap is never a surprise.
+function updateCommandPaletteAction() {
+    if (!cmdkEnter) return;
+    const item = cmdkRows[cmdkIndex];
+    const target = paletteReplaces(item) ? nodeById([...selection][0]) : null;
+    cmdkEnter.innerHTML = target
+        ? `<kbd>Enter</kbd> replace “${esc(sourceTitle(target))}”`
+        : `<kbd>Enter</kbd> run`;
 }
 
 function runCommandPaletteRow(index) {
@@ -8457,6 +8441,8 @@ function runCommandPaletteRow(index) {
         at = {x: Math.round(p.x), y: Math.round(p.y)};
     }
     closeCommandPalette();
+    // Only a Ctrl+Shift+K opening replaces; every other opening adds or runs as it always did.
+    if (paletteReplaces(item) && replaceSelectedNode(item)) return;
     item.run(at);
 }
 
@@ -8474,12 +8460,13 @@ function initCommandPalette() {
             <button class="cmdk-esc" type="button" title="Close">Esc</button>
         </div>
         <div class="cmdk-list" id="cmdkList" role="listbox" aria-label="Matches"></div>
-        <div class="cmdk-foot"><span><kbd>↑</kbd><kbd>↓</kbd> choose</span><span><kbd>Enter</kbd> run</span><span><kbd>Ctrl</kbd>+<kbd>K</kbd> opens this</span></div>
+        <div class="cmdk-foot"><span><kbd>↑</kbd><kbd>↓</kbd> choose</span><span id="cmdkEnterHint"><kbd>Enter</kbd> run</span><span><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> replaces</span></div>
     </div>`;
     document.body.appendChild(cmdkEl);
     cmdkCard = $(".cmdk-card", cmdkEl);
     cmdkInput = $(".cmdk-input", cmdkEl);
     cmdkList = $(".cmdk-list", cmdkEl);
+    cmdkEnter = $(".cmdk-foot #cmdkEnterHint", cmdkEl);
     $(".cmdk-icon", cmdkEl).innerHTML = svg("search");
 
     // Capture phase so a handler that swallows the event on the canvas cannot hide the
@@ -8514,7 +8501,8 @@ function initCommandPalette() {
     document.addEventListener("keydown", ev => {
         if (!((ev.ctrlKey || ev.metaKey) && !ev.altKey && ev.key.toLowerCase() === "k")) return;
         ev.preventDefault();
-        if (cmdkEl.hidden) openCommandPalette(); else closeCommandPalette();
+        // Shift decides what Enter will do, so it is read at the moment the box opens.
+        if (cmdkEl.hidden) openCommandPalette(ev.shiftKey); else closeCommandPalette();
     }, true);
 }
 
@@ -8529,63 +8517,53 @@ function addOperationNode(op, x, y) {
     requestAnimationFrame(() => ensureNodeVisible(node));
     if (window.innerWidth <= 900) closeSidebar();
 }
-function addGraphNode(type, x, y) {
-    const p = (x === undefined) ? spawnPoint() : {x, y};
-    let added = null;
+// The node a Graph-list entry stands for, built but not placed. Adding and replacing share
+// this, so a node type has one definition of what it starts as. A declaration that only
+// means something inside a function is refused here, with the same message as before.
+function createGraphNode(type) {
     if (type === "magic") {
         // Magic is an operation, but it is offered as a graph tool: it sweeps the library for
         // the input rather than being one step of it.
-        added = makeNode("op", {op: MAGIC_OP, x: p.x, y: p.y});
-        state.nodes.push(added);
-    } else if (type === "input") {
-        added = makeNode("input", {x: p.x, y: p.y, title: TEXT_NODE_TITLE, text: "Hello, World!"});
-        state.nodes.push(added);
-    } else if (type === "file") {
-        added = makeNode("file", {x: p.x, y: p.y, title: FILE_NODE_TITLE});
-        state.nodes.push(added);
-    } else if (type === "join") {
-        added = makeNode("join", {x: p.x, y: p.y, title: "Join"});
-        state.nodes.push(added);
-    } else if (type === "template") {
-        added = makeNode("template", {x: p.x, y: p.y, title: "Fstring", text: "{input1}"});
-        state.nodes.push(added);
-    } else if (type === "math") {
-        added = makeNode("math", {x: p.x, y: p.y, title: "Math", text: "{input1} + {input2}"});
-        state.nodes.push(added);
-    } else if (type === "switch") {
-        added = makeNode("switch", {x: p.x, y: p.y, title: "Switch"});
-        state.nodes.push(added);
-    } else if (type === "chess") {
-        added = makeNode("chess", {x: p.x, y: p.y, title: "Chess"});
-        state.nodes.push(added);
-    } else if (type === "badapple") {
-        added = makeNode("badapple", {x: p.x, y: p.y, title: "Bad Apple"});
-        state.nodes.push(added);
-    } else if (type === "note") {
-        added = makeNode("note", {x: p.x, y: p.y, title: "Note"});
-        state.nodes.push(added);
-    } else if (type === "gate") {
-        added = makeNode("gate", {x: p.x, y: p.y, title: "Gate"});
-        state.nodes.push(added);
-    } else if (type === "compact" || type === "expand" || type === "pick" || type === "fork") {
-        added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
-        state.nodes.push(added);
-    } else if (type === "pngchunks" || type === "pdfscan" || type === "imginfo" || type === "spectrogram" ||
-        type === "audioinfo" || type === "audiolevels") {
-        added = makeNode(type, {x: p.x, y: p.y, title: sourceTitle({type})});
-        state.nodes.push(added);
-    } else if (type === "fnin" || type === "fnout") {
+        return makeNode("op", {op: MAGIC_OP});
+    }
+    if (type === "input") return makeNode("input", {title: TEXT_NODE_TITLE, text: "Hello, World!"});
+    if (type === "file") return makeNode("file", {title: FILE_NODE_TITLE});
+    if (type === "join") return makeNode("join", {title: "Join"});
+    if (type === "diff") return makeNode("diff", {title: "Diff"});
+    if (type === "hex") return makeNode("hex", {title: "Hex Viewer"});
+    if (type === "template") return makeNode("template", {title: "Fstring", text: "{input1}"});
+    if (type === "math") return makeNode("math", {title: "Math", text: "{input1} + {input2}"});
+    if (type === "switch") return makeNode("switch", {title: "Switch"});
+    if (type === "chess") return makeNode("chess", {title: "Chess"});
+    if (type === "badapple") return makeNode("badapple", {title: "Bad Apple"});
+    if (type === "note") return makeNode("note", {title: "Note"});
+    if (type === "gate") return makeNode("gate", {title: "Gate"});
+    if (["compact", "expand", "pick", "fork", "pngchunks", "pdfscan", "imginfo",
+        "spectrogram", "audiolevels"].includes(type)) {
+        return makeNode(type, {title: sourceTitle({type})});
+    }
+    if (type === "fnin" || type === "fnout") {
         // Only meaningful inside a function: these declare the ports of a definition.
         if (!editingFunctionId) {
             toast("Function input and output nodes only belong inside a function.", "error");
-            return;
+            return null;
         }
-        added = makeNode(type, {x: p.x, y: p.y, title: type === "fnin" ? "Function input" : "Function output"});
-        state.nodes.push(added);
+        return makeNode(type, {title: type === "fnin" ? "Function input" : "Function output"});
     }
-    if (added) setSelection([added.id]);
+    return null;
+}
+
+function addGraphNode(type, x, y) {
+    const p = (x === undefined) ? spawnPoint() : {x, y};
+    const added = createGraphNode(type);
+    if (!added) return;
+    added.x = Math.round(p.x);
+    added.y = Math.round(p.y);
+    state.nodes.push(added);
+    setSelection([added.id]);
     renderAllNodes();
     onGraphEdited();
+    requestAnimationFrame(() => ensureNodeVisible(added));
     if (window.innerWidth <= 900) closeSidebar();
 }
 let spawnIndex = 0;
@@ -9226,6 +9204,8 @@ function initFileMenu() {
             case "save-as": promptSaveGraph(); break;
             case "import": $("#openFileInput").click(); break;
             case "share": copyShareLink(); break;
+            case "recipe": pasteRecipe(); break;
+            case "recipe-copy": copyAsRecipe(); break;
             case "export": saveGraphFile(); break;
             case "export-all": exportAllSavedGraphs(); break;
         }
@@ -9318,18 +9298,228 @@ function renderFileMenu() {
             <button class="fm-row" data-group-toggle="import" aria-expanded="false">${iconFill("input")}<span>Import</span><span class="fm-chev">${iconFill("chevron")}</span></button>
             <div class="fm-sub" role="menu">
                 <button class="fm-item" data-act="import" role="menuitem"><span>Graph file (.json)…</span></button>
+                <button class="fm-item" data-act="recipe" role="menuitem"><span>Paste a CyberChef recipe…</span></button>
             </div>
         </div>
         <div class="fm-group">
             <button class="fm-row" data-group-toggle="export" aria-expanded="false">${iconFill("output")}<span>Export</span><span class="fm-chev">${iconFill("chevron")}</span></button>
             <div class="fm-sub" role="menu">
                 <button class="fm-item" data-act="share" role="menuitem"><span>Copy share link</span></button>
+                <button class="fm-item" data-act="recipe-copy" role="menuitem"><span>Copy as CyberChef recipe</span></button>
                 <div class="fm-sep"></div>
                 <button class="fm-item" data-act="export" role="menuitem"><span>Download this graph</span></button>
                 <button class="fm-item" data-act="export-all" role="menuitem"><span>${saves.length ? `Download all ${saves.length} saves` : "Download all saves"}</span></button>
             </div>
         </div>
     `;
+}
+
+
+/* ================================================================ CyberChef recipes
+ * A CyberChef recipe is a list of operations with their typed arguments, and a single chain
+ * of operation nodes is exactly that. Export writes the same JSON CyberChef's own "Copy
+ * recipe" produces; import turns that JSON back into op nodes wired head to tail. What a
+ * recipe cannot express — a branch, a bundle, a wire into an argument, or a CipherFlow-only
+ * operation — is refused by name rather than dropped, because a recipe that quietly lost a
+ * step is worse than one that was not copied.
+ */
+// Operations recreated for this page (dCode and CacheSleuth) are not in CyberChef's library,
+// so naming one in a recipe would produce a file that no other CyberChef could open.
+const RECIPE_FOREIGN_MODULE = "CipherFlowDcode";
+function recipeOpAvailable(name) {
+    const meta = OPS[name];
+    return Boolean(meta) && !meta.flowControl && meta.module !== RECIPE_FOREIGN_MODULE;
+}
+function recipeNameList(names, limit = 3) {
+    const shown = names.slice(0, limit).map(n => `“${n}”`).join(", ");
+    return names.length > limit ? `${shown} and ${names.length - limit} more` : shown;
+}
+
+// The graph as a recipe, or the reason it cannot be one. Only `state` is read; nothing is
+// changed by an export.
+function graphRecipe() {
+    const ops = state.nodes.filter(n => n.type === "op");
+    if (!ops.length) return {error: "There are no operation nodes to copy."};
+    // A note is canvas decoration and travels nowhere; everything else that is not an
+    // operation either carries the input or is a graph feature a recipe has no place for.
+    const outsiders = state.nodes.filter(n => n.type !== "op" && n.type !== "note");
+    const sources = outsiders.filter(n => n.type === "input" || n.type === "file");
+    if (outsiders.length !== sources.length) {
+        const stray = outsiders.find(n => !sources.includes(n));
+        return {error: `A recipe is one straight chain of operations — this graph also has a ${nodeCategoryLabel(stray)} node.`};
+    }
+    if (sources.length > 1) return {error: `A recipe carries one value, but this graph has ${sources.length} input nodes.`};
+    const opIds = new Set(ops.map(n => n.id));
+    const mainIn = id => state.edges.filter(e => e.to === id && String(e.toPort || "main") === "main");
+    for (const node of ops) {
+        const wired = state.edges.find(e => e.to === node.id && String(e.toPort || "").startsWith("arg:"));
+        if (wired) {
+            return {error: `“${sourceTitle(node)}” has a wired argument. A recipe only carries arguments typed on the node — unwire it first.`};
+        }
+        if (mainIn(node.id).length > 1) return {error: `“${sourceTitle(node)}” has more than one input wire.`};
+    }
+    // A chain starts at an operation nothing else feeds, or at one the input node feeds.
+    const starts = ops.filter(n => {
+        const ins = mainIn(n.id);
+        return !ins.length || !opIds.has(ins[0].from);
+    });
+    if (!starts.length) return {error: "These operations loop, so they cannot be one recipe."};
+    if (starts.length > 1) return {error: `This graph has ${starts.length} separate chains of operations; a recipe is one.`};
+    const chain = [];
+    const seen = new Set();
+    let node = starts[0];
+    while (node) {
+        if (seen.has(node.id)) return {error: "These operations loop, so they cannot be one recipe."};
+        seen.add(node.id);
+        const outs = state.edges.filter(e => e.from === node.id && (e.fromPort || "out") === "out");
+        if (outs.length > 1) {
+            return {error: `“${sourceTitle(node)}” feeds ${outs.length} nodes. A recipe is one chain, with no branches.`};
+        }
+        if (outs.length === 1 && String(outs[0].fromPort || "out") !== "out") {
+            return {error: `“${sourceTitle(node)}” hands a second output out. A recipe is one chain.`};
+        }
+        chain.push(node);
+        const next = outs.length && opIds.has(outs[0].to) ? ops.find(n => n.id === outs[0].to) : null;
+        node = next;
+    }
+    if (chain.length !== ops.length) {
+        const off = ops.find(n => !seen.has(n.id));
+        return {error: `“${sourceTitle(off)}” is off the chain, so it cannot be part of the recipe.`};
+    }
+    const foreign = [...new Set(chain.filter(n => !recipeOpAvailable(n.op)).map(n => n.op))];
+    if (foreign.length) {
+        return {error: `${recipeNameList(foreign)} ${foreign.length === 1 ? "is" : "are"} not a CyberChef operation, so the recipe would not open anywhere else.`};
+    }
+    const recipe = chain.map(n => {
+        const args = OPS[n.op]?.args || [];
+        const values = Array.isArray(n.values) && n.values.length === args.length ? n.values : defaultNodeValues(n.op);
+        const item = {op: n.op, args: args.map((arg, i) => normalizeArgForRecipe(arg, values[i]))};
+        // A bypassed step travels as a disabled one: CyberChef keeps it in the recipe but
+        // does not run it, which is exactly what the eye does here.
+        if (n.bypass) item.disabled = true;
+        return item;
+    });
+    // The text typed into an operation's own input box is not part of a recipe: CyberChef's
+    // recipe is the steps, and its input comes from the user. Say so rather than imply the
+    // copied recipe carries it.
+    const typedInput = chain.some(n => String(n.inputText || "").length > 0);
+    return {recipe, typedInput};
+}
+
+async function copyAsRecipe() {
+    const built = graphRecipe();
+    if (built.error) { toast(built.error, "error"); return; }
+    const ok = await copyText(JSON.stringify(built.recipe, null, 2));
+    if (!ok) { toast("Could not reach the clipboard.", "error"); return; }
+    const count = `${built.recipe.length} operation${built.recipe.length === 1 ? "" : "s"}`;
+    toast(`Copied ${count} as a CyberChef recipe${built.typedInput ? " (typed input text stays in CipherFlow)" : ""}`);
+}
+
+// One argument read out of a recipe. CyberChef writes numbers and booleans as JSON values and
+// a two-part argument as {option, string}; older exports hand some of those over as strings,
+// so both spellings are accepted and anything unrecognised falls back to the node's default.
+function recipeArgValue(arg, raw) {
+    if (raw === undefined) return undefined;
+    switch (arg.type) {
+        case "boolean":
+            if (typeof raw === "boolean") return raw;
+            if (typeof raw === "number") return raw !== 0;
+            {
+                const text = String(raw).trim().toLowerCase();
+                if (text === "true" || text === "1" || text === "on" || text === "yes") return true;
+                if (text === "false" || text === "0" || text === "off" || text === "no" || text === "") return false;
+                return Boolean(raw);
+            }
+        case "number": {
+            const n = Number(typeof raw === "string" ? raw.trim() : raw);
+            return Number.isFinite(n) ? n : 0;
+        }
+        case "toggleString":
+            if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+                return {
+                    string: String(raw.string ?? raw.value ?? ""),
+                    option: String(raw.option ?? raw.name ?? arg.toggleValues?.[0] ?? "Hex")
+                };
+            }
+            return {string: String(raw ?? ""), option: String(arg.toggleValues?.[0] ?? "Hex")};
+        case "populateMultiOption":
+            return Array.isArray(raw) ? cloneValue(raw) : recipeArgValue({...arg, type: "string"}, raw);
+        default:
+            if (raw && typeof raw === "object") {
+                if (Array.isArray(raw)) return cloneValue(raw);
+                return String(raw.value ?? raw.name ?? "");
+            }
+            return String(raw);
+    }
+}
+
+function readRecipeSteps(text) {
+    let data;
+    try {
+        data = JSON.parse(String(text || ""));
+    } catch {
+        return {error: "That is not JSON — paste the recipe exactly as CyberChef copies it."};
+    }
+    const list = Array.isArray(data) ? data
+        : Array.isArray(data?.recipe) ? data.recipe
+            : data && typeof data === "object" ? [data] : null;
+    if (!list || !list.length) return {error: "That recipe has no operations in it."};
+    return {steps: list};
+}
+
+// Build a recipe onto the canvas as a wired chain. Returns the nodes it made, or the reason
+// it cannot: a recipe naming an operation this page does not have would lose that step, so
+// the whole paste is refused and the missing names are reported together.
+function importRecipe(text, opts = {}) {
+    const read = readRecipeSteps(text);
+    if (read.error) return {error: read.error};
+    const missing = [], blocked = [], steps = [];
+    for (const raw of read.steps) {
+        const name = typeof raw?.op === "string" ? raw.op : typeof raw?.name === "string" ? raw.name : "";
+        if (!name.trim()) return {error: "A step in that recipe has no operation name."};
+        const meta = OPS[name];
+        if (!meta || meta.module === RECIPE_FOREIGN_MODULE) {
+            if (!missing.includes(name)) missing.push(name);
+        } else if (meta.flowControl) {
+            if (!blocked.includes(name)) blocked.push(name);
+        } else {
+            steps.push({name, raw, meta});
+        }
+    }
+    if (missing.length) return {error: `No CyberChef operation called ${recipeNameList(missing)} is in this library.`};
+    if (blocked.length) return {error: `Flow-control steps cannot be pasted: ${recipeNameList(blocked)}.`};
+    const start = opts.at || spawnPoint();
+    const added = [];
+    let previous = null;
+    steps.forEach((step, i) => {
+        const args = step.meta.args || [];
+        const rawArgs = Array.isArray(step.raw.args) ? step.raw.args : [];
+        const values = defaultNodeValues(step.name);
+        for (let a = 0; a < args.length; a++) {
+            const value = recipeArgValue(args[a], rawArgs[a]);
+            if (value !== undefined) values[a] = value;
+        }
+        const node = makeNode("op", {op: step.name, x: Math.round(start.x + i * 300), y: Math.round(start.y)});
+        node.values = values;
+        if (step.raw.disabled === true) node.bypass = true;
+        state.nodes.push(node);
+        if (previous) state.edges.push({id: "e" + (edgeSeq++), from: previous.id, to: node.id, toPort: "main", fromPort: "out"});
+        added.push(node);
+        previous = node;
+    });
+    setSelection(added.map(n => n.id));
+    renderAllNodes();
+    onGraphEdited();
+    ensureNodeVisible(added[0]);
+    return {count: added.length, nodes: added};
+}
+
+function pasteRecipe() {
+    const text = prompt("Paste a CyberChef recipe — the JSON copied from its Copy recipe button, or a recipe file:", "");
+    if (!text || !text.trim()) return;
+    const outcome = importRecipe(text);
+    if (outcome.error) { toast(outcome.error, "error"); return; }
+    toast(`Pasted ${outcome.count} operation${outcome.count === 1 ? "" : "s"} from a CyberChef recipe`);
 }
 
 /* ================================================================ theme */
@@ -10162,7 +10352,7 @@ const INTEGRATION_CHECK_IDS = [
     "base64", "aes", "join", "cycle", "selection", "clipboard", "wirehint",
     "function-run", "function-outputs", "function-recursion", "argwire", "undoredo",
     "fnsample", "fntyped", "fnsamplepipe", "magic", "magic-benchmark",
-    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "bypass", "note", "snap",
+    "bundles", "fstring", "switch", "collapse", "previewstate", "resize", "bypass", "freeze", "diff", "replace", "recipe", "note", "snap",
     "save-reload", "export-import", "suite-coverage"
 ];
 function integrationDefinitions() {
@@ -10853,6 +11043,117 @@ function integrationDefinitions() {
             }))
         },
         {
+            id: "freeze",
+            title: "A frozen node holds its output",
+            description: "The snowflake in the header holds the value a node has at that moment: an edit upstream no longer reaches it, the card marks itself frozen, and pressing the snowflake again lets the node run. The hold is for this session only, so it is not written into the save.",
+            run: () => withAutosaveGuard(() => withScratchGraph(async s => {
+                const source = makeNode("input", {id: 1, x: 0, y: 0, text: "Hello, World!"});
+                const rot = makeNode("op", {id: 2, x: 340, y: 0, op: "ROT13"});
+                const sink = makeNode("input", {id: 3, x: 680, y: 0, text: ""});
+                s.nodes.push(source, rot, sink);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"}
+                );
+                renderAllNodes();
+                const card = () => nodeEl(2);
+                const flake = () => card()?.querySelector('[data-action="toggle-freeze"]');
+                const text = async () => {
+                    const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                    const bytes = res.results.get(3)?.bytes;
+                    return bytes ? utf8(bytes) : "";
+                };
+                const before = await text();
+                const offered = Boolean(flake());
+                flake()?.click();
+                const pressed = Boolean(rot.frozen) && Boolean(card()?.classList.contains("frozen")) &&
+                    flake()?.getAttribute("aria-pressed") === "true";
+                // An edit upstream is exactly what a held value must not follow.
+                source.text = "Zebras";
+                const held = await text();
+                const cleaned = cleanNodeForSave(rot);
+                flake()?.click();
+                const after = await text();
+                const ok = before === "Uryyb, Jbeyq!" && offered && pressed && held === "Uryyb, Jbeyq!" &&
+                    cleaned.frozen === undefined && !rot.frozen && after === "Mroenf";
+                return {
+                    ok,
+                    detail: `snowflake ${offered ? "offered" : "missing"}, rotated ${JSON.stringify(before)}, held through an upstream edit ${JSON.stringify(held)}, save drops the hold ${cleaned.frozen === undefined}, let go ${JSON.stringify(after)}`
+                };
+            }))
+        },
+        {
+            id: "diff",
+            title: "Diff marks the changed characters",
+            description: "Two text nodes feed the Diff node's Expected and Actual ports. It counts what differs, marks those characters on the card, says identical when nothing does, and hands the marked reading downstream.",
+            run: () => withScratchGraph(async s => {
+                // Long enough that the comparison has to scroll once the card is a fixed
+                // box: one changed character inside eighty shared lines.
+                const filler = Array.from({length: 40}, (_, i) => `line ${i + 1} of the reference`).join("\n");
+                const expectedText = `${filler}\nHello, World!\n${filler}`;
+                const actualText = `${filler}\nHello, Wörld!\n${filler}`;
+                const expected = makeNode("input", {id: 1, x: 0, y: 0, text: expectedText});
+                const actual = makeNode("input", {id: 2, x: 0, y: 220, text: actualText});
+                const diff = makeNode("diff", {id: 3, x: 420, y: 100});
+                s.nodes.push(expected, actual, diff);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 3, toPort: "a", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "b", fromPort: "out"}
+                );
+                const run = async () => {
+                    const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                    const bytes = res.results.get(diff.id)?.bytes;
+                    return {text: bytes ? utf8(bytes) : "", report: diff._diff};
+                };
+                const first = await run();
+                renderAllNodes();
+                const card = nodeEl(diff.id);
+                const marks = card ? {add: card.querySelectorAll(".d-add").length, del: card.querySelectorAll(".d-del").length} : {add: 0, del: 0};
+                // The mode switch must keep its meaning on a Diff card: Text is the coloured
+                // reading, Hex is the marked text's own bytes, and Text comes back.
+                diff.previewMode = "hex";
+                refreshNodePreview(diff);
+                const hexText = card?.querySelector(".preview > pre")?.textContent || "";
+                // Hex reads the marked reading's own bytes; the first line is unchanged, so
+                // it begins "line 1" in hex. (The field is truncated to the preview limit,
+                // which is why the changed character far down is not the thing to look for.)
+                const hexed = Boolean(card) && !card.querySelector(".diff-list") && /6c 69 6e 65 20 31/.test(hexText);
+                diff.previewMode = "text";
+                refreshNodePreview(diff);
+                const backToText = Boolean(card?.querySelector(".diff-list"));
+                // A long line has to wrap inside the card instead of running off sideways.
+                const wraps = Boolean(card?.querySelector(".diff-text")) &&
+                    getComputedStyle(card.querySelector(".diff-text")).whiteSpace === "pre-wrap";
+                // A resized Diff card is a fixed box, so a long comparison has to scroll
+                // inside it rather than spill out under the card's bottom edge.
+                diff.w = 360;
+                diff.h = 300;
+                renderAllNodes();
+                const sizedCard = nodeEl(diff.id);
+                const sizedList = sizedCard?.querySelector(".diff-list");
+                const cardBox = sizedCard?.getBoundingClientRect();
+                const listBox = sizedList?.getBoundingClientRect();
+                const contained = Boolean(cardBox && listBox) &&
+                    listBox.bottom <= cardBox.bottom + 1 &&
+                    sizedCard.scrollHeight <= sizedCard.clientHeight + 2 &&
+                    sizedList.scrollHeight > sizedList.clientHeight;
+                actual.text = expectedText;
+                const second = await run();
+                const ports = nodeInPorts(diff).join(",");
+                // A saved graph keeps the node as a node: no report travels with it.
+                const reloaded = nodeFromRaw(cleanNodeForSave(diff));
+                const kept = Boolean(reloaded && reloaded.type === "diff" && reloaded.id === diff.id && !("report" in reloaded));
+                const ok = ports === "a,b" && first.report && first.report.changed === 2 &&
+                    first.text.includes("[-o-]{+ö+}") && !first.report.identical &&
+                    marks.del === 1 && marks.add === 1 && kept && hexed && backToText && wraps && contained &&
+                    second.report && second.report.identical && second.text === "identical";
+                return {
+                    ok,
+                    detail: `ports ${ports} · ${first.report ? first.report.changed : 0} difference(s), text ${JSON.stringify(first.text.length > 70 ? first.text.slice(0, 67) + "…" : first.text)}, ${marks.del} removed and ${marks.add} added character(s) drawn · saved as a diff node ${kept} · Hex ${hexed ? "reads the marked bytes" : "was ignored"}, Text back ${backToText}, wraps ${wraps}, stays inside a resized card ${contained} · equal values read ${JSON.stringify(second.text)}`
+                };
+            })
+        },
+        {
             id: "note",
             title: "A note keeps its text and tint",
             description: "A sticky note has no ports in or out, does not upset a run, and its words and colour are written into the save and read back by the loader.",
@@ -10919,6 +11220,95 @@ function integrationDefinitions() {
                 resetHistory();
                 return res;
             }
+        },
+        {
+            id: "replace",
+            title: "Ctrl+Shift+K replaces the selected node in place",
+            description: "Opened with Ctrl+Shift+K and one node selected, a node-shaped pick from the command palette swaps that node instead of adding a second one: its place on the canvas and the wires it still has ports for survive, so the chain runs on with the new step. A plain Ctrl+K opening adds as it always did, and a command row is not a node and must leave the graph alone.",
+            run: () => withScratchGraph(async s => {
+                const source = makeNode("input", {id: 1, x: 40, y: 90, text: "Hello, World!"});
+                const rot = makeNode("op", {id: 2, x: 380, y: 90, op: "ROT13"});
+                const sink = makeNode("input", {id: 3, x: 720, y: 90, text: ""});
+                s.nodes.push(source, rot, sink);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"}
+                );
+                setSelection([rot.id]);
+                const place = {x: rot.x, y: rot.y};
+                const items = commandPaletteItems();
+                const pick = items.find(i => i.kind === "op" && i.op === "To Base64");
+                // The shortcut decides at open time: only the Shift opening may swap.
+                const wasReplace = cmdkReplace;
+                cmdkReplace = false;
+                const plainK = paletteReplaces(pick);
+                cmdkReplace = true;
+                const shiftK = paletteReplaces(pick);
+                const swapped = shiftK && replaceSelectedNode(pick);
+                cmdkReplace = wasReplace;
+                const now = nodeById([...selection][0]);
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const bytes = res.results.get(sink.id)?.bytes;
+                const text = bytes ? utf8(bytes) : "";
+                // A command row must not swap anything, even with a node selected.
+                const beforeCommand = s.nodes.length;
+                const commandSwapped = replaceSelectedNode(items.find(i => i.label === "Run graph"));
+                const ok = Boolean(pick) && shiftK && !plainK && swapped && Boolean(now) && now.op === "To Base64" &&
+                    s.nodes.length === 3 && s.edges.length === 2 &&
+                    now.x === place.x && now.y === place.y &&
+                    text === "SGVsbG8sIFdvcmxkIQ==" &&
+                    !commandSwapped && s.nodes.length === beforeCommand;
+                return {
+                    ok,
+                    detail: `plain Ctrl+K ${plainK ? "swapped a node" : "added"}, Ctrl+Shift+K ${shiftK ? "replaced" : "added"} · picked To Base64 · ${now ? `${now.op} at ${now.x},${now.y}` : "no node"}, ${s.nodes.length} node(s) and ${s.edges.length} wire(s) after the swap, chain ran ${JSON.stringify(text)} · a command row ${commandSwapped ? "swapped a node" : "left the graph alone"}`
+                };
+            })
+        },
+        {
+            id: "recipe",
+            title: "A chain round-trips through a CyberChef recipe",
+            description: "A two-step chain copies as the JSON CyberChef's own Copy recipe writes — operation names, typed arguments and a disabled step — and pasting that JSON rebuilds the same wired chain with the same values, ready to run.",
+            run: () => withScratchGraph(async s => {
+                const source = makeNode("input", {id: 1, x: 0, y: 0, text: "Hello, World!"});
+                const rot = makeNode("op", {id: 2, x: 300, y: 0, op: "ROT13"});
+                const b64 = makeNode("op", {id: 3, x: 600, y: 0, op: "To Base64", values: nodeValuesWith("To Base64", {Alphabet: "A-Za-z0-9-_"})});
+                b64.bypass = true;
+                s.nodes.push(source, rot, b64);
+                s.edges.push(
+                    {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"}
+                );
+                const built = graphRecipe();
+                // What the recipe must carry: this page's own argument values, in CyberChef's
+                // shape. They are read back from the catalogue so a later argument added to
+                // an operation cannot make this check disagree with the export.
+                const rotArgs = (OPS["ROT13"].args || []).map((arg, i) => normalizeArgForRecipe(arg, defaultNodeValues("ROT13")[i]));
+                const b64Values = nodeValuesWith("To Base64", {Alphabet: "A-Za-z0-9-_"});
+                const b64Args = (OPS["To Base64"].args || []).map((arg, i) => normalizeArgForRecipe(arg, b64Values[i]));
+                const copied = Boolean(built.recipe) && built.recipe.length === 2 &&
+                    built.recipe[0].op === "ROT13" && JSON.stringify(built.recipe[0].args) === JSON.stringify(rotArgs) &&
+                    built.recipe[1].op === "To Base64" && JSON.stringify(built.recipe[1].args) === JSON.stringify(b64Args) &&
+                    built.recipe[1].disabled === true;
+                const pasted = copied ? importRecipe(JSON.stringify(built.recipe), {at: {x: 0, y: 420}}) : {error: built.error};
+                const imported = (pasted.nodes || []).slice().sort((a, b) => a.x - b.x);
+                const valuesKept = imported.length === 2 && imported[1].op === "To Base64" &&
+                    JSON.stringify(imported[1].values) === JSON.stringify(nodeValuesWith("To Base64", {Alphabet: "A-Za-z0-9-_"})) &&
+                    imported[1].bypass === true;
+                // Feed the pasted chain and check it runs to the same value as the original.
+                if (imported.length) s.edges.push({id: "e3", from: source.id, to: imported[0].id, toPort: "main", fromPort: "out"});
+                const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
+                const before = res.results.get(b64.id)?.bytes;
+                const after = imported.length ? res.results.get(imported[1].id)?.bytes : null;
+                const runsSame = Boolean(before && after) && utf8(before) === utf8(after) && utf8(after) === "Uryyb, Jbeyq!";
+                // The same graph now has two chains from one source: a recipe must refuse it.
+                const refusal = graphRecipe().error || "";
+                const refused = /2 separate chains/.test(refusal);
+                const ok = copied && valuesKept && runsSame && refused;
+                return {
+                    ok,
+                    detail: `copied ${copied ? `${built.recipe.length} step(s): ${JSON.stringify(built.recipe)}` : JSON.stringify(built.error || built.recipe)} · pasted ${imported.length} node(s), arguments kept ${valuesKept}, chain runs ${runsSame ? JSON.stringify(utf8(after)) : "differently"} · branched graph refused ${refused ? "with a message" : "silently"}`
+                };
+            })
         },
         {
             id: "save-reload",
@@ -11352,6 +11742,17 @@ function bindTouchGestures(stageEl) {
 
 function bindCanvasEvents(stageEl, layerEl) {
     bindTouchGestures(stageEl);
+    // A press on the graph takes the caret out of whatever text box still had it. Several
+    // presses on a node cancel the browser's own focus change — a head press is a drag and an
+    // empty-canvas press is a pan — so without this the text box kept the caret until a second
+    // click landed on something that did not cancel it. A press inside the focused box is its
+    // own, and keeps the caret where the user put it.
+    stageEl.addEventListener("pointerdown", ev => {
+        const active = document.activeElement;
+        if (!active || active === ev.target || active === document.body) return;
+        if (active.contains && active.contains(ev.target)) return;
+        if (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable) active.blur();
+    }, true);
     stageEl.addEventListener("pointerdown", startPan);
     stageEl.addEventListener("wheel", ev => {
         if (ev.ctrlKey || ev.metaKey || Math.abs(ev.deltaY) > 0) {
@@ -11420,6 +11821,7 @@ function bindGlobalEvents() {
     $("#zoomIn").addEventListener("click", () => zoomAt(stage.getBoundingClientRect().left + stage.clientWidth / 2, stage.getBoundingClientRect().top + stage.clientHeight / 2, 1.18));
     $("#fitBtn").addEventListener("click", fitView);
     $("#snapBtn").addEventListener("click", () => setSnap(!snapEnabled));
+    $("#orderBtn").addEventListener("click", orderNodes);
     $("#themeBtn").addEventListener("click", () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
     $("#sidebarCloseBtn").addEventListener("click", closeSidebar);
     sidebarBackdrop.addEventListener("click", closeSidebar);
@@ -11715,6 +12117,20 @@ function onNodeActionClick(ev) {
             // Bypassing changes what flows downstream, so the graph re-runs at once. It is
             // part of the document, so it is saved and can be undone like any other edit.
             node.bypass = !node.bypass;
+            node._sig = "";
+            renderAllNodes();
+            onGraphEdited(true);
+        }
+    } else if (action === "toggle-freeze") {
+        ev.stopPropagation();
+        if (node) {
+            // Freezing holds the value the node is showing right now, so an upstream edit
+            // cannot overwrite it. The held bytes live on the node for this session only,
+            // never in a save, so a reload runs the node again. Pressing the snowflake a
+            // second time lets go and the next run recomputes the node.
+            node.frozen = node.frozen
+                ? null
+                : {time: Date.now(), bytes: frozenCopy(node._output)};
             node._sig = "";
             renderAllNodes();
             onGraphEdited(true);
@@ -12252,6 +12668,7 @@ async function init() {
     $("#searchClear").innerHTML = svg("x");
     $("#fitBtnIcon").innerHTML = svg("fit");
     $("#snapBtnIcon").innerHTML = svg("snap");
+    $("#orderBtnIcon").innerHTML = svg("order");
     initSnap();
     $("#themeBtn").innerHTML = iconFill(document.documentElement.dataset.theme === "dark" ? "sun" : "moon");
     $("#githubBtn").innerHTML = iconFill("github");
@@ -12301,7 +12718,7 @@ async function init() {
         setRunStatus("", "Ready");
         // With auto-run on, the splash waits for the first pass so the canvas is not
         // shown empty; otherwise there is nothing to wait for.
-        if (state.autoRun) scheduleRun(false, 260);
+        if (state.autoRun) { if (restored) armLoadGuard(); scheduleRun(false, 260); }
         else hideBoot();
         setTimeout(offerSharedGraph, 700);
     }).catch(err => {

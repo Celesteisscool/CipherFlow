@@ -13309,11 +13309,27 @@ async function init() {
 // site as it was and is empty until the fetch lands.
 let glyphDataParsed = null;
 let glyphDataLoading = null;
+// How far the download has got, 0..1, kept outside the promise so a panel that opens halfway
+// through a fetch started by something else can still draw a bar at the right place.
+let glyphDataSeen = 0;
+// Whoever is on screen while the fetch runs: the drawer's bar registers here, and every
+// listener is told each new fraction until the fetch settles.
+const glyphProgressHooks = new Set();
 const SYMBOLS = {get ciphers() { return (glyphDataParsed && glyphDataParsed.ciphers) || {}; }};
-function ensureGlyphData() {
+function ensureGlyphData(onProgress) {
+    if (onProgress && !glyphDataParsed) {
+        glyphProgressHooks.add(onProgress);
+        onProgress(glyphDataSeen);
+    }
     if (glyphDataParsed) return Promise.resolve(glyphDataParsed);
     if (!glyphDataLoading) {
-        glyphDataLoading = fetchAssetText(ASSET_BASE + "glyphs.json")
+        glyphDataSeen = 0;
+        glyphDataLoading = fetchAssetText(ASSET_BASE + "glyphs.json", fraction => {
+            glyphDataSeen = fraction;
+            for (const hook of glyphProgressHooks) {
+                try { hook(fraction); } catch { /* a listener's own problem */ }
+            }
+        })
             .then(text => {
                 const parsed = JSON.parse(text);
                 glyphDataParsed = parsed && typeof parsed === "object" && parsed.ciphers ? parsed : {ciphers: {}};
@@ -13322,7 +13338,8 @@ function ensureGlyphData() {
             .catch(err => {
                 glyphDataLoading = null;
                 throw err;
-            });
+            })
+            .finally(() => glyphProgressHooks.clear());
     }
     return glyphDataLoading;
 }
@@ -15229,6 +15246,10 @@ function initSymbolPanel() {
                 <input id="symSearch" class="search-input" placeholder="Search symbol ciphers" autocomplete="off" spellcheck="false" aria-label="Search symbol ciphers">
                 <button class="search-clear" id="symSearchClear" type="button" title="Clear search"></button>
             </div>
+            <div class="sym-loading" id="symLoading" hidden>
+                <div class="sym-loading-bar" aria-hidden="true"><span class="sym-loading-fill" id="symLoadingFill"></span></div>
+                <span class="sym-loading-label" id="symLoadingLabel">Loading symbol art…</span>
+            </div>
             <div class="sym-list" id="symList"></div>
         </aside>`);
     symbolDrawerEl = document.getElementById("symDrawer");
@@ -15241,7 +15262,34 @@ function initSymbolPanel() {
     // Restore last visit's drawer state, bar included, so it opens where it was left.
     document.body.classList.toggle("sym-drawer-open", open);
     const list = document.getElementById("symList");
+    const loadingEl = document.getElementById("symLoading");
+    const loadingFill = document.getElementById("symLoadingFill");
+    const loadingLabel = document.getElementById("symLoadingLabel");
     const search = document.getElementById("symSearch");
+    // The art is 25 MB, so the first open of the drawer is a wait, and an empty list during
+    // it reads as a broken panel. The bar is the same measured one the splash uses; until a
+    // fraction arrives it slides, because a fetch that reports no length has nothing to show.
+    const GLYPH_MB = 25;
+    const paintLoading = fraction => {
+        if (!loadingEl) return;
+        const pct = Math.round(Math.min(1, Math.max(0, fraction)) * 100);
+        // Anything above zero is a real measurement, so the slide gives way to the fill.
+        if (pct > 0) loadingEl.classList.remove("indeterminate");
+        if (loadingFill) loadingFill.style.width = pct + "%";
+        if (loadingLabel) {
+            loadingLabel.textContent = pct > 0
+                ? `Loading symbol art… ${pct}%`
+                : `Loading symbol art… ${GLYPH_MB} MB`;
+        }
+    };
+    const showLoading = on => {
+        // A screen reader gets one "busy" on the list instead of a percentage read out at
+        // every chunk, which is noise rather than progress.
+        list.setAttribute("aria-busy", String(Boolean(on)));
+        if (!loadingEl) return;
+        loadingEl.hidden = !on;
+        if (on) loadingEl.classList.add("indeterminate");
+    };
     const clearBtn = document.getElementById("symSearchClear");
     if (clearBtn) clearBtn.innerHTML = iconFill("x");
     const tagBar = document.getElementById("symTags");
@@ -15313,6 +15361,9 @@ function initSymbolPanel() {
     });
 
     const renderList = () => {
+        // Before the art lands there is nothing to filter: typing in the box must not answer
+        // "no cipher matches" for a catalogue that has not been read yet.
+        if (!glyphDataParsed) return;
         const q = String(search.value || "").trim().toLowerCase();
         // The clear button is only there while there is something to clear.
         if (clearBtn) clearBtn.classList.toggle("show", Boolean(String(search.value || "").length));
@@ -15365,12 +15416,17 @@ function initSymbolPanel() {
     let listBuilt = false;
     const buildList = async () => {
         if (listBuilt) return;
+        if (!glyphDataParsed) showLoading(true);
         try {
-            await ensureGlyphData();
+            await ensureGlyphData(paintLoading);
         } catch (err) {
+            showLoading(false);
             list.innerHTML = `<div class="search-empty">The symbol art could not be loaded: ${esc(err.message || String(err))}</div>`;
             return;
         }
+        // The bar's last frame is whatever the wire reported; the list replacing it is what
+        // says the wait is over, so there is no 100% to linger on.
+        showLoading(false);
         listBuilt = true;
         renderTags();
         renderList();

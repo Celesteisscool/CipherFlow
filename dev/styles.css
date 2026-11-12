@@ -2892,6 +2892,45 @@ body.has-sym-rail .toolbar { left: 43px; }
 .sym-search { padding: 0 12px 10px; }
 /* Room on the right for the clear button, which sits where .search-clear always sits. */
 .sym-search .search-input { padding: 0 34px 0 11px; }
+/* The first open of the drawer downloads the symbol art, which is the largest thing the site
+   ships, so the wait is measured in the same shape as the splash bar: a thin track, an accent
+   fill, and a percentage. Until the fetch reports a length the fill slides, because there is
+   no honest fraction to draw yet. */
+.sym-loading { display: flex; align-items: center; gap: 8px; padding: 0 13px 10px; }
+.sym-loading[hidden] { display: none; }
+.sym-loading-bar {
+    flex: 1;
+    height: 3px;
+    border-radius: 99px;
+    background: var(--line);
+    overflow: hidden;
+}
+.sym-loading-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 180ms linear;
+}
+.sym-loading.indeterminate .sym-loading-fill {
+    width: 35%;
+    animation: sym-loading-slide 1.1s ease-in-out infinite;
+}
+@keyframes sym-loading-slide {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(320%); }
+}
+/* It stays legible with the motion off: the track and the label still say work is happening. */
+@media (prefers-reduced-motion: reduce) {
+    .sym-loading.indeterminate .sym-loading-fill { animation: none; width: 100%; opacity: .45; }
+}
+.sym-loading-label {
+    color: var(--faint);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
 /* Tag pills above the search box: each one narrows the list to the ciphers carrying it.
    Small and quiet, because there are a dozen of them and they are a filter, not content. */
 .sym-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; padding: 0 12px 9px; }

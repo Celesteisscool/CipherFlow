@@ -726,6 +726,49 @@ button svg { flex: 0 0 auto; }
 /* The output port sits in the middle of the node's right edge, not at its bottom corner. */
 .port.out { right: -6px; top: 50%; margin-top: -5.5px; background: var(--node-accent); cursor: crosshair; }
 .port.out:hover { transform: scale(1.5); }
+/* Keyboard wiring: the card the arrow keys stand on, the port Enter has reached, the number
+   keys that jump straight to a port, and the output waiting for its input. */
+.node.kb-cursor {
+    outline: 2px dashed color-mix(in srgb, var(--accent) 70%, transparent);
+    outline-offset: 4px;
+}
+#nodesLayer.kb-porting .port[data-kb-num]::after {
+    content: attr(data-kb-num);
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0 3px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 9px;
+    line-height: 12px;
+    pointer-events: none;
+}
+/* The box E has reached on the keyboard's card. The .node prefix keeps this ahead of
+   `.control`'s own `outline: none`, and the inset ring survives a clipped card edge. */
+.node .kb-field-active {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.port.kb-active {
+    transform: scale(1.75);
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.port.kb-pending {
+    background: var(--accent);
+    border-color: var(--accent);
+    animation: kb-pending 1.1s ease-in-out infinite;
+}
+@keyframes kb-pending {
+    50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 20%, transparent); }
+}
 .port-label {
     margin-left: auto;
     display: inline-flex;

@@ -750,6 +750,49 @@ button svg { flex: 0 0 auto; }
 /* The output port sits in the middle of the node's right edge, not at its bottom corner. */
 .port.out { right: -6px; top: 50%; margin-top: -5.5px; background: var(--node-accent); cursor: crosshair; }
 .port.out:hover { transform: scale(1.5); }
+/* Keyboard wiring: the card the arrow keys stand on, the port Enter has reached, the number
+   keys that jump straight to a port, and the output waiting for its input. */
+.node.kb-cursor {
+    outline: 2px dashed color-mix(in srgb, var(--accent) 70%, transparent);
+    outline-offset: 4px;
+}
+#nodesLayer.kb-porting .port[data-kb-num]::after {
+    content: attr(data-kb-num);
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0 3px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 9px;
+    line-height: 12px;
+    pointer-events: none;
+}
+/* The box E has reached on the keyboard's card. The .node prefix keeps this ahead of
+   `.control`'s own `outline: none`, and the inset ring survives a clipped card edge. */
+.node .kb-field-active {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.port.kb-active {
+    transform: scale(1.75);
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.port.kb-pending {
+    background: var(--accent);
+    border-color: var(--accent);
+    animation: kb-pending 1.1s ease-in-out infinite;
+}
+@keyframes kb-pending {
+    50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 20%, transparent); }
+}
 .port-label {
     margin-left: auto;
     display: inline-flex;
@@ -3930,6 +3973,7 @@ textarea.note-text {
                     <li><kbd>Delete</kbd> or <kbd>Backspace</kbd> removes the selection or a wire</li>
                     <li><kbd>Escape</kbd> closes a panel, cancels a wire, clears the selection</li>
                     <li><kbd>Shift</kbd>+click or drag adds to the selection</li>
+                    <li><kbd>Arrow keys</kbd> walk between cards; <kbd>Enter</kbd> opens a card's ports, the arrows choose one and <kbd>Enter</kbd> picks it, or press <kbd>1</kbd>–<kbd>9</kbd> to pick a port straight away. Pick an output, move to another card and pick an input to wire the two. <kbd>Shift</kbd>+arrows move the selection instead of walking to another card, and with nothing selected they pan the camera like <kbd>I</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd>. <kbd>Shift</kbd>+<kbd>E</kbd> opens a function card's own canvas, and pressing it again inside a function brings you back to the graph. <kbd>E</kbd> chooses a box on the card to type in — arrows move between boxes, <kbd>Enter</kbd> starts typing (or presses a toggle) and <kbd>Escape</kbd> leaves the box. <kbd>W</kbd> steps through the wires on the card so <kbd>Delete</kbd> can remove one. <kbd>I</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> move the camera over the graph, and <kbd>−</kbd> and <kbd>=</kbd> zoom out and in. <kbd>B</kbd> bypasses, <kbd>F</kbd> freezes and <kbd>M</kbd> folds the card the cursor is on, or every selected card. <kbd>Delete</kbd> removes the card the cursor is on and steps to the card nearest it; <kbd>Escape</kbd> backs out.</li>
                 </ul>
             </details>
             <details class="help-section">
@@ -5311,6 +5355,9 @@ function toast(message, kind = "") {
         if (r.width) host.style.left = Math.round(r.left + r.width / 2) + "px";
     } catch { /* before the canvas exists */ }
     host.appendChild(el);
+    // Keyboard work produces toasts faster than they time out, so only the newest five
+    // stay on screen; the oldest leaves as the sixth arrives.
+    while (host.children.length > 5) host.firstElementChild.remove();
     setTimeout(() => {
         el.style.opacity = "0";
         el.style.transform = "translateY(4px)";
@@ -5965,6 +6012,13 @@ let state = null;
 // and marquee selection can gather several nodes before a copy, a drag or a delete.
 let selection = new Set();
 let selectedEdge = null;
+// The keyboard's own cursor: the card the arrow keys are standing on, and, once Enter has
+// opened its ports, which port. A picked output waits in kbPending until an input takes it.
+let kbCursor = {nodeId: 0, mode: "node", index: 0};
+let kbPending = null;
+// True while a box opened from the keyboard has the caret, so Escape can put the keyboard
+// back on the card instead of clearing the whole selection.
+let kbEditing = false;
 let nodeSeq = 1;
 let edgeSeq = 1;
 let runTimer = 0;
@@ -6820,6 +6874,7 @@ function renderAllNodes() {
     scheduleEdges();
     // A removed card takes its clip with it; this also clears what a loaded graph left behind.
     paintBadAppleCards();
+    kbApply();
 }
 
 // Nodes that do work, and so can be skipped — by the bypass eye, which passes their input
@@ -8991,6 +9046,7 @@ function onlySelectedNode() {
 function setSelection(ids) {
     selection = new Set(ids.map(Number));
     selectedEdge = null;
+    kbStandOn(selection.size === 1 ? [...selection][0] : 0);
     syncSelectionClasses();
     updateSelectionBar();
     scheduleEdges();
@@ -9019,6 +9075,8 @@ function clearSelection() {
     if (!selection.size && !selectedEdge) return;
     selection.clear();
     selectedEdge = null;
+    kbPending = null;
+    kbStandOn(0);
     syncSelectionClasses();
     updateSelectionBar();
     scheduleEdges();
@@ -9027,6 +9085,579 @@ function syncSelectionClasses() {
     for (const el of $$(".node", nodesLayer)) {
         el.classList.toggle("selected", selection.has(Number(el.dataset.id)));
     }
+}
+
+/* ================================================================ keyboard wiring
+ * Arrow keys walk from card to card, Enter opens a card's ports, the arrows or 1-9 choose
+ * one, and a second Enter picks it. Picking an output and then an input on another card
+ * draws the wire, so the graph never has to be wired by dragging. Escape backs out one
+ * step at a time, leaving the selection alone until the half-started wire is cancelled.
+ */
+function kbNavBlocked() {
+    const active = document.activeElement;
+    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" ||
+                   active.tagName === "SELECT" || active.isContentEditable)) return true;
+    if (tour.open) return true;
+    if (cmdkEl && !cmdkEl.hidden) return true;
+    if (fileMenu && fileMenu.panel && !fileMenu.panel.hidden) return true;
+    if (exampleGallery.el && !exampleGallery.el.hidden) return true;
+    if (helpOpen()) return true;
+    const lab = $("#lab");
+    return Boolean(lab && !lab.hidden);
+}
+
+function kbVisiblePorts(node) {
+    const el = node ? nodeEl(node.id) : null;
+    if (!el) return [];
+    return [...el.querySelectorAll(".port")].filter(port => port.offsetParent !== null);
+}
+
+function kbPortLabel(node, port) {
+    const name = port.dataset.port || "";
+    if (port.classList.contains("out")) return name === "out" ? "output" : `“${name}”`;
+    if (name === "main") return "input";
+    if (name.startsWith("arg:")) return OPS[node.op]?.args?.[Number(name.slice(4))]?.name || "argument";
+    if (name.startsWith("join:")) return `input ${Number(name.slice(5)) + 1}`;
+    if (name.startsWith("sample:")) return `sample ${Number(name.slice(7)) + 1}`;
+    if (name.startsWith("in:")) return `input ${Number(name.slice(3)) + 1}`;
+    return name || "input";
+}
+
+function kbNodeBox(node) {
+    const el = nodeEl(node.id);
+    const w = el && el.offsetWidth ? el.offsetWidth : 280;
+    const h = el && el.offsetHeight ? el.offsetHeight : 140;
+    return {cx: node.x + w / 2, cy: node.y + h / 2};
+}
+
+function kbStandOn(id) {
+    if (kbCursor.mode === "port" || !state) return;
+    const n = Number(id) || 0;
+    kbCursor = {nodeId: n && nodeById(n) ? n : 0, mode: "node", index: 0};
+    kbApply();
+}
+
+// The highlighted box and the control holding the caret have to be the same one. A toggle
+// pressed with Enter keeps the focus, so moving the highlight would leave Enter pressing the
+// item that has just been left behind; every movement lets go of the old control first.
+function kbReleaseField() {
+    const active = document.activeElement;
+    if (active && active !== document.body && active.closest?.(".node")) active.blur();
+    kbEditing = false;
+}
+
+function kbApply() {
+    if (!state || !nodesLayer) return;
+    if (kbCursor.nodeId && !nodeById(kbCursor.nodeId)) kbCursor = {nodeId: 0, mode: "node", index: 0};
+    const pending = kbPending ? nodeEl(kbPending.nodeId)?.querySelector(`.port.out[data-port="${cssEscape(kbPending.port)}"]`) : null;
+    if (kbPending && !pending) kbPending = null;
+    for (const el of $$(".node", nodesLayer)) {
+        const cursor = Number(el.dataset.id) === kbCursor.nodeId;
+        el.classList.toggle("kb-cursor", cursor);
+        let index = 0;
+        for (const port of el.querySelectorAll(".port")) {
+            if (port.offsetParent === null) continue;
+            port.dataset.kbNum = String(index + 1);
+            port.classList.toggle("kb-active", cursor && kbCursor.mode === "port" && index === kbCursor.index);
+            index++;
+        }
+    }
+    for (const field of $$(".kb-field-active", nodesLayer)) field.classList.remove("kb-field-active");
+    if (kbCursor.mode === "field") {
+        const node = nodeById(kbCursor.nodeId);
+        const fields = kbFields(node);
+        const field = fields.length ? fields[clamp(kbCursor.index, 0, fields.length - 1)] : null;
+        if (field) field.classList.add("kb-field-active");
+    }
+    nodesLayer.classList.toggle("kb-porting", kbCursor.mode === "port");
+    for (const port of $$(".port.kb-pending", nodesLayer)) port.classList.remove("kb-pending");
+    if (pending) pending.classList.add("kb-pending");
+}
+
+function kbStart() {
+    const first = state.nodes.find(n => !stuckTarget(n));
+    if (!first) return null;
+    kbCursor = {nodeId: first.id, mode: "node", index: 0};
+    setSelection([first.id]);
+    ensureNodeVisible(first);
+    kbApply();
+    return first;
+}
+
+function kbMove(dir) {
+    const node = nodeById(kbCursor.nodeId);
+    if (!node) return kbStart();
+    const dx = dir === "left" ? -1 : dir === "right" ? 1 : 0;
+    const dy = dir === "up" ? -1 : dir === "down" ? 1 : 0;
+    const from = kbNodeBox(node);
+    let best = null;
+    let bestScore = Infinity;
+    for (const other of state.nodes) {
+        if (other.id === node.id || stuckTarget(other)) continue;
+        const box = kbNodeBox(other);
+        const along = (box.cx - from.cx) * dx + (box.cy - from.cy) * dy;
+        if (along <= 6) continue;
+        // Straight ahead beats anything off to the side: the side distance costs more than
+        // the distance travelled, so a card in the same row wins over one in the next column.
+        const across = Math.abs((box.cx - from.cx) * dy - (box.cy - from.cy) * dx);
+        const score = along + across * 1.8;
+        if (score < bestScore) { bestScore = score; best = other; }
+    }
+    if (!best) return node;
+    kbReleaseField();
+    kbCursor = {nodeId: best.id, mode: "node", index: 0};
+    setSelection([best.id]);
+    ensureNodeVisible(best);
+    kbApply();
+    return best;
+}
+
+// Shift+arrows move what is selected — or the card under the cursor — instead of walking to
+// another card. The step follows the grid while Snap is on, so nudging keeps the graph tidy.
+function kbNudge(dx, dy) {
+    const ids = selection.size ? [...selection] : (kbCursor.nodeId ? [kbCursor.nodeId] : []);
+    if (!ids.length) return;
+    const step = snapEnabled ? GRID_SIZE : 10;
+    for (const id of ids) {
+        const node = nodeById(id);
+        if (!node) continue;
+        const x = node.x + dx * step;
+        const y = node.y + dy * step;
+        node.x = snapEnabled ? snapToGrid(x) : Math.round(x);
+        node.y = snapEnabled ? snapToGrid(y) : Math.round(y);
+        const el = nodeEl(node.id);
+        if (el) {
+            el.style.left = node.x + "px";
+            el.style.top = node.y + "px";
+        }
+    }
+    scheduleEdges();
+    saveLocalSoon();
+    scheduleHistory();
+    const cursor = nodeById(kbCursor.nodeId);
+    if (cursor) ensureNodeVisible(cursor);
+}
+
+// B, F and M are the card's three switches — bypass, freeze and collapse — applied to the
+// whole selection, so several cards can be skipped or folded in one press.
+function kbToggle(kind) {
+    const nodes = selection.size ? selectedNodes() : (kbCursor.nodeId ? [nodeById(kbCursor.nodeId)] : []);
+    const targets = nodes.filter(Boolean);
+    if (!targets.length) return;
+    let changed = 0;
+    for (const node of targets) {
+        if (kind === "collapse") {
+            node.collapsed = !node.collapsed;
+            changed++;
+        } else if (BYPASSABLE.has(node.type)) {
+            if (kind === "bypass") node.bypass = !node.bypass;
+            else node.frozen = node.frozen ? null : {time: Date.now(), bytes: frozenCopy(node._output)};
+            node._sig = "";
+            changed++;
+        }
+    }
+    if (!changed) {
+        toast(`${sourceTitle(targets[0])} cannot be ${kind === "bypass" ? "bypassed" : "frozen"}.`, "error");
+        return;
+    }
+    renderAllNodes();
+    if (kind === "collapse") {
+        saveLocalSoon();
+        scheduleHistory();
+        toast(changed === 1
+            ? `${targets[0].collapsed ? "Collapsed" : "Expanded"} ${sourceTitle(targets[0])}`
+            : `${changed} cards toggled`);
+        return;
+    }
+    onGraphEdited(true);
+    const verdict = kind === "bypass"
+        ? (targets[0].bypass ? "Bypassed" : "Running")
+        : (targets[0].frozen ? "Frozen" : "Recomputed");
+    toast(changed === 1 ? `${verdict} ${sourceTitle(targets[0])}` : `${changed} cards toggled`);
+}
+
+// I J K L move the camera over the graph: the keyboard's answer to dragging the empty
+// canvas. The view glides instead of stepping, so a tap nudges it a short way and a held
+// key settles into a steady speed.
+const KB_PAN_SPEED = 780;                      // screen pixels per second at full tilt
+const kbPanHeld = {up: false, down: false, left: false, right: false};
+const kbPanVel = {x: 0, y: 0};
+let kbPanFrame = 0;
+let kbPanClock = 0;
+
+function kbPanTick(now) {
+    const dt = Math.min(0.05, Math.max(0.001, (now - kbPanClock) / 1000));
+    kbPanClock = now;
+    // The keys move the camera itself: I goes up the graph, J goes left, rather than dragging
+    // the canvas the opposite way. That is the inversion most people reach for.
+    const dx = (kbPanHeld.left ? 1 : 0) - (kbPanHeld.right ? 1 : 0);
+    const dy = (kbPanHeld.up ? 1 : 0) - (kbPanHeld.down ? 1 : 0);
+    // Ease toward the held direction's velocity rather than jumping a fixed step per key
+    // repeat: the ramp-up is most of the smoothness, and the same easing coasts to a stop.
+    const ease = 1 - Math.exp(-dt * 18);
+    kbPanVel.x += (dx * KB_PAN_SPEED - kbPanVel.x) * ease;
+    kbPanVel.y += (dy * KB_PAN_SPEED - kbPanVel.y) * ease;
+    if (Math.abs(kbPanVel.x) < 1) kbPanVel.x = 0;
+    if (Math.abs(kbPanVel.y) < 1) kbPanVel.y = 0;
+    if (kbPanVel.x || kbPanVel.y) {
+        state.view.x += kbPanVel.x * dt;
+        state.view.y += kbPanVel.y * dt;
+        applyView();
+    }
+    if (!dx && !dy && !kbPanVel.x && !kbPanVel.y) {
+        kbPanFrame = 0;
+        saveLocalSoon();
+        return;
+    }
+    kbPanFrame = requestAnimationFrame(kbPanTick);
+}
+
+function kbPan(dir, down) {
+    if (!(dir in kbPanHeld)) return;
+    kbPanHeld[dir] = down;
+    if (!down || kbPanFrame) return;
+    kbPanClock = performance.now();
+    kbPanFrame = requestAnimationFrame(kbPanTick);
+}
+
+// Everything on a card that takes typing, in the order it is drawn: argument boxes, text
+// areas, file pickers, dropdowns. E highlights them; arrows choose; Enter puts the caret in.
+function kbFields(node) {
+    const el = node ? nodeEl(node.id) : null;
+    if (!el) return [];
+    // Buttons are here too: a boolean argument is a check-row button, and neither it nor a
+    // checkbox takes a caret, so Enter presses instead of typing.
+    return [...el.querySelectorAll("input, textarea, select, [contenteditable], button.check-row")]
+        .filter(field => field.offsetParent !== null && !field.disabled && field.type !== "hidden");
+}
+
+function kbOpenFields(node) {
+    const fields = kbFields(node);
+    if (!fields.length) {
+        toast(`${sourceTitle(node)} has nothing to type in.`, "error");
+        return;
+    }
+    kbCursor = {nodeId: node.id, mode: "field", index: 0};
+    kbApply();
+    toast(`${sourceTitle(node)} — arrows choose a box, Enter types in it, Esc leaves.`);
+}
+
+function kbEditField(node) {
+    const fields = kbFields(node);
+    if (!fields.length) { kbOpenFields(node); return; }
+    const field = fields[clamp(kbCursor.index, 0, fields.length - 1)];
+    field.focus();
+    // A toggle has no caret to place, so Enter presses it the way a click would; text boxes
+    // and dropdowns take the caret, and a focused dropdown changes with the arrow keys.
+    if (field.matches("button, input[type=checkbox], input[type=radio]")) {
+        kbEditing = false;
+        field.click();
+        // A pressed toggle keeps the focus by default, so Enter would press it again after
+        // the arrows have moved the highlight to another item.
+        field.blur();
+        return;
+    }
+    kbEditing = true;
+    if (field.tagName === "INPUT" || field.tagName === "TEXTAREA") field.select?.();
+}
+
+// W steps through the wires that touch the cursor's card, so Delete has something to remove.
+function kbCycleWire(step) {
+    const node = nodeById(kbCursor.nodeId);
+    if (!node) return;
+    const wires = state.edges.filter(edge => edge.from === node.id || edge.to === node.id);
+    if (!wires.length) {
+        toast(`${sourceTitle(node)} has no wires.`, "error");
+        return;
+    }
+    const at = wires.findIndex(edge => edge.id === selectedEdge);
+    const wire = wires[(at + step + wires.length) % wires.length];
+    kbCursor = {nodeId: node.id, mode: "node", index: 0};
+    selectEdge(wire.id);
+    kbApply();
+    toast(`${sourceTitle(nodeById(wire.from))} → ${sourceTitle(nodeById(wire.to))} — Delete removes this wire.`);
+}
+
+function kbOpenPorts(node) {
+    const ports = kbVisiblePorts(node);
+    if (!ports.length) {
+        toast(`${sourceTitle(node)} has no ports to wire.`, "error");
+        return;
+    }
+    // With an output already picked the next Enter wants a destination, so start at an
+    // input; otherwise start at the output a wire leaves from.
+    let start = 0;
+    if (kbPending) {
+        const input = ports.findIndex(port => port.classList.contains("in"));
+        if (input >= 0) start = input;
+    } else {
+        const output = ports.findIndex(port => port.classList.contains("out"));
+        if (output >= 0) start = output;
+    }
+    kbCursor = {nodeId: node.id, mode: "port", index: start};
+    kbApply();
+    const port = ports[start];
+    toast(kbPending
+        ? `${sourceTitle(node)} · ${kbPortLabel(node, port)} — Enter to connect, or move to another port.`
+        : `${sourceTitle(node)} · ${kbPortLabel(node, port)} — arrows or 1–9 choose a port, Enter picks it.`);
+}
+
+function kbPickPort(node, port) {
+    const name = port.dataset.port || "";
+    if (port.classList.contains("out")) {
+        kbPending = {nodeId: node.id, port: name};
+        kbCursor = {nodeId: node.id, mode: "node", index: 0};
+        kbApply();
+        toast(`Wire from ${sourceTitle(node)} · ${kbPortLabel(node, port)} — move to the card to feed and press Enter.`);
+        return;
+    }
+    if (!kbPending) {
+        toast("Pick an output first: Enter on a card, choose its output, then choose this input.", "error");
+        return;
+    }
+    if (kbPending.nodeId === node.id) {
+        toast("A node cannot feed directly into itself.", "error");
+        return;
+    }
+    const from = nodeById(kbPending.nodeId);
+    const fromPort = kbPending.port;
+    kbPending = null;
+    kbCursor = {nodeId: node.id, mode: "node", index: 0};
+    connectEdge(from?.id, node.id, name, fromPort);
+    kbApply();
+    if (state.edges.some(edge => edge.from === from?.id && edge.to === node.id && edge.toPort === name)) {
+        toast(`Wired ${sourceTitle(from)} → ${sourceTitle(node)}`);
+    }
+}
+
+// Cleaning up from the keyboard: the card goes, and the cursor lands on whichever card was
+// nearest it, so a wrong guess can be removed and the wiring carried on from there.
+function kbRemoveNode(node) {
+    const box = kbNodeBox(node);
+    deleteNode(node.id);
+    let next = null;
+    let best = Infinity;
+    for (const other of state.nodes) {
+        if (stuckTarget(other)) continue;
+        const otherBox = kbNodeBox(other);
+        const distance = Math.hypot(otherBox.cx - box.cx, otherBox.cy - box.cy);
+        if (distance < best) { best = distance; next = other; }
+    }
+    if (!next) return;
+    kbCursor = {nodeId: next.id, mode: "node", index: 0};
+    setSelection([next.id]);
+    ensureNodeVisible(next);
+    kbApply();
+}
+
+function kbHandleKey(ev) {
+    if (!state) return;
+    // Escape has to reach a box that already has the caret; the typing guard below would
+    // otherwise hand it to the editor and clear the selection instead of leaving the box.
+    // It leaves any control inside a card — a box focused with Enter, or one clicked with
+    // the mouse — and puts the cursor back on the card, so the next arrow moves to another
+    // node instead of continuing to edit this one's argument. The title bar is left alone:
+    // its rename editor has its own Escape. A native dropdown may swallow the first press
+    // while it closes its list, in which case the next press detaches.
+    if (ev.key === "Escape") {
+        const active = document.activeElement;
+        const box = active && active.closest ? active.closest(".node") : null;
+        const boxed = box && !active.closest(".node-head") &&
+            active.matches("input, textarea, select, button, [contenteditable]");
+        if (boxed || kbEditing) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (boxed) active.blur();
+            kbEditing = false;
+            kbCursor = {nodeId: Number(box?.dataset.id) || kbCursor.nodeId, mode: "node", index: 0};
+            kbApply();
+            return;
+        }
+    }
+    if (kbNavBlocked()) return;
+    if (ev.defaultPrevented || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const active = document.activeElement;
+    const onControl = Boolean(active && (active.tagName === "BUTTON" || active.tagName === "A"));
+    const node = nodeById(kbCursor.nodeId);
+
+    if (ev.key === "Escape") {
+        if (!kbPending && kbCursor.mode === "node") return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        kbPending = null;
+        kbCursor = {nodeId: kbCursor.nodeId, mode: "node", index: 0};
+        kbApply();
+        return;
+    }
+    if ((ev.key === "Delete" || ev.key === "Backspace") && !onControl) {
+        // One card under the cursor is the keyboard's own cleanup; a real multi-selection or
+        // a selected wire belongs to the editor's handler, which already removes all of it.
+        if (!node || selectedEdge || selection.size > 1) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        kbRemoveNode(node);
+        return;
+    }
+    if (ev.key === "Enter") {
+        if (onControl) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (!node) { kbStart(); return; }
+        if (kbCursor.mode === "port") {
+            const ports = kbVisiblePorts(node);
+            if (!ports.length) { kbOpenPorts(node); return; }
+            kbPickPort(node, ports[clamp(kbCursor.index, 0, ports.length - 1)]);
+        } else if (kbCursor.mode === "field") {
+            kbEditField(node);
+        } else {
+            kbOpenPorts(node);
+        }
+        return;
+    }
+    if (ev.shiftKey && ev.key.startsWith("Arrow")) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const dx = ev.key === "ArrowLeft" ? -1 : ev.key === "ArrowRight" ? 1 : 0;
+        const dy = ev.key === "ArrowUp" ? -1 : ev.key === "ArrowDown" ? 1 : 0;
+        // With nothing selected and no card under the cursor there is nothing to nudge, so
+        // Shift+arrow falls back to the same camera pan as I J K L.
+        if (!selection.size && !kbCursor.nodeId) {
+            kbPan(dy < 0 ? "up" : dy > 0 ? "down" : dx < 0 ? "left" : "right", true);
+            return;
+        }
+        kbNudge(dx, dy);
+        return;
+    }
+    if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (!node) { kbStart(); return; }
+        const step = ev.key === "ArrowDown" ? 1 : -1;
+        if (kbCursor.mode === "port") {
+            const ports = kbVisiblePorts(node);
+            if (!ports.length) { kbCursor = {nodeId: node.id, mode: "node", index: 0}; kbApply(); return; }
+            kbCursor.index = clamp(kbCursor.index + step, 0, ports.length - 1);
+            kbApply();
+        } else if (kbCursor.mode === "field") {
+            const fields = kbFields(node);
+            if (!fields.length) { kbCursor = {nodeId: node.id, mode: "node", index: 0}; kbApply(); return; }
+            kbReleaseField();
+            kbCursor.index = clamp(kbCursor.index + step, 0, fields.length - 1);
+            kbApply();
+        } else {
+            kbMove(step > 0 ? "down" : "up");
+        }
+        return;
+    }
+    if (ev.key === "ArrowLeft" || ev.key === "ArrowRight") {
+        if (!node) { ev.preventDefault(); kbStart(); return; }
+        ev.preventDefault();
+        ev.stopPropagation();
+        // Left and right leave a card's ports for the card next door, which is the second
+        // half of a wire: pick an output, step across, open the destination's ports.
+        if (kbCursor.mode !== "node") kbCursor = {nodeId: node.id, mode: "node", index: 0};
+        kbMove(ev.key === "ArrowLeft" ? "left" : "right");
+        return;
+    }
+    if (/^[1-9]$/.test(ev.key) && node && !onControl && kbCursor.mode !== "field") {
+        const ports = kbVisiblePorts(node);
+        const index = Number(ev.key) - 1;
+        if (index >= ports.length) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        // A number is the whole choice: it picks the port there and then, the same as
+        // Enter on it, so a wire is two numbers and one movement instead of six presses.
+        kbCursor = {nodeId: node.id, mode: "port", index};
+        kbApply();
+        kbPickPort(node, ports[index]);
+        return;
+    }
+    const toggle = {b: "bypass", f: "freeze", m: "collapse"}[ev.key.toLowerCase()];
+    if (toggle && !ev.shiftKey && (selection.size || kbCursor.nodeId)) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        kbToggle(toggle);
+        return;
+    }
+    const pan = {i: "up", k: "down", j: "left", l: "right"}[ev.key.toLowerCase()];
+    if (pan && !ev.shiftKey) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        kbPan(pan, true);
+        return;
+    }
+    // Shift+E is the way in and the way out: on a function card it opens that function's own
+    // canvas, and inside one it puts you back on the graph. The card under the cursor wins,
+    // and with no cursor a lone selected function card stands in for it.
+    if (ev.shiftKey && ev.key.toLowerCase() === "e" && !ev.repeat) {
+        if (editingFunctionId) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            closeFunctionEditor();
+            toast("Back on the graph");
+            return;
+        }
+        const target = node?.type === "fn" ? node
+            : (selection.size === 1 ? nodeById([...selection][0]) : null);
+        if (target?.type === "fn") {
+            const def = functionById(target.fnId);
+            if (!def) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                toast("That function is not in this graph.", "error");
+                return;
+            }
+            ev.preventDefault();
+            ev.stopPropagation();
+            openFunctionEditor(def);
+            return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        toast(target ? "Only a function card opens a canvas of its own." : "Move the cursor onto a function card first.", "error");
+        return;
+    }
+    // − and = are the zoom buttons under the keyboard, at the same 1.18 step and about the
+    // middle of the canvas, so the view does not slide away from what is being read.
+    const zoomStep = ev.key === "-" || ev.key === "_" ? 1 / 1.18
+        : ev.key === "=" || ev.key === "+" ? 1.18 : 0;
+    if (zoomStep) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const rect = stage.getBoundingClientRect();
+        zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, zoomStep);
+        return;
+    }
+    if (ev.key.toLowerCase() === "e" && !ev.shiftKey && node) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        kbOpenFields(node);
+        return;
+    }
+    if (ev.key.toLowerCase() === "w" && node) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        kbCycleWire(ev.shiftKey ? -1 : 1);
+    }
+}
+
+// Capture phase: arrows and Enter have to reach the graph before a focused control or the
+// rest of the editor's shortcuts do.
+function bindKeyboardNodeNav() {
+    document.addEventListener("keydown", kbHandleKey, true);
+    // Let go of a pan key and the camera coasts to a stop; losing focus must not leave a
+    // direction stuck down and the graph drifting.
+    document.addEventListener("keyup", ev => {
+        const dir = {i: "up", k: "down", j: "left", l: "right"}[ev.key.toLowerCase()] ||
+            {ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right"}[ev.key];
+        if (dir) kbPan(dir, false);
+    }, true);
+    window.addEventListener("blur", () => {
+        for (const dir of Object.keys(kbPanHeld)) kbPanHeld[dir] = false;
+    });
+    // A press anywhere takes the caret out of the keyboard flow, so Escape falls back to the
+    // editor's own meaning once the user is back on the canvas with the mouse.
+    document.addEventListener("pointerdown", () => { kbEditing = false; }, true);
 }
 
 function removeEdge(id) {
@@ -13231,6 +13862,7 @@ const PALETTE_COMMANDS = [
     {label: "Browse examples", keys: "example gallery samples demo", hint: "File", run: () => openExampleGallery()},
     {label: "Toggle theme", keys: "dark light mode appearance colour color", hint: "Appearance", run: () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark")},
     {label: "Toggle snap to grid", keys: "grid snap align magnet", hint: "Canvas", run: () => setSnap(!snapEnabled)},
+    {label: "Order nodes", keys: "order arrange tidy sort layout align autolayout clean up", hint: "Canvas", run: () => orderNodes()},
     {label: "Verification lab", keys: "lab check test verify wiring", hint: "Checks", run: () => openLab()},
     {label: "Help and shortcuts", keys: "help manual documentation shortcut", hint: "?", run: () => $("#helpBtn")?.click()}
 ];
@@ -13240,6 +13872,9 @@ let cmdkEl = null, cmdkCard = null, cmdkInput = null, cmdkList = null, cmdkEnter
 let cmdkReplace = false;
 // Last pointer position in viewport coordinates; the box opens where the user's pointer is.
 let cmdkPointer = null;
+// When the pointer last moved. A pointer that has sat still means a keyboard request, and
+// the box opens in the middle of the screen instead of under a pointer nobody is using.
+let cmdkPointerAt = 0;
 
 // Built fresh on each keystroke rather than cached: a function added a moment ago has to be
 // findable, and a few hundred small objects cost nothing next to a render.
@@ -13268,6 +13903,10 @@ function commandPaletteItems() {
         items.push({kind: "node", label: item.label, keys: `${item.keys} ${item.about}`,
             hint: item.section || "Graph", type: item.type, run: p => addGraphNode(item.type, p?.x, p?.y)});
     }
+    // A function can be made from the box too, not just opened: creating one lands in its own
+    // canvas with the input and output nodes ready to fill in, the same as the sidebar's button.
+    items.push({kind: "command", label: "New function", keys: "function fn subgraph create new blank",
+        hint: "Function · new", enterHint: "create a function to edit", run: () => newFunction()});
     for (const fn of state?.functions || []) {
         items.push({kind: "function", label: fn.name, keys: "function subgraph instance",
             hint: "Function", fnId: fn.id, run: p => addFunctionNode(fn.id, p?.x, p?.y)});
@@ -13328,13 +13967,18 @@ function highlightCommandPaletteRow(index) {
 }
 
 // Placed at the pointer, like a context menu, and clamped so the whole card stays on screen.
-// Ctrl+K with the pointer never moved falls back to the old top-centre spot.
+// After two still seconds the request came from the keyboard, so the box is centred on the
+// graph instead of waiting under a pointer nobody is using.
 function positionCommandPalette() {
     if (!cmdkCard) return;
     const pad = 8;
     const w = cmdkCard.offsetWidth, h = cmdkCard.offsetHeight;
-    let x = cmdkPointer ? cmdkPointer.x : (window.innerWidth - w) / 2;
-    let y = cmdkPointer ? cmdkPointer.y : Math.round(window.innerHeight * 0.12);
+    const idle = !cmdkPointer || performance.now() - cmdkPointerAt > 2000;
+    // The middle of the graph, not the middle of the window: the node list and the toolbar
+    // take a column and a strip of the window that are not canvas.
+    const rect = stage.getBoundingClientRect();
+    let x = idle ? rect.left + (rect.width - w) / 2 : cmdkPointer.x;
+    let y = idle ? rect.top + (rect.height - h) / 2 : cmdkPointer.y;
     x = Math.min(Math.max(pad, x), Math.max(pad, window.innerWidth - w - pad));
     y = Math.min(Math.max(pad, y), Math.max(pad, window.innerHeight - h - pad));
     cmdkCard.style.left = `${Math.round(x)}px`;
@@ -13646,7 +14290,10 @@ function initCommandPalette() {
 
     // Capture phase so a handler that swallows the event on the canvas cannot hide the
     // pointer from us. Taps count too, for the entry that opens the box without a mouse move.
-    const trackPointer = ev => { cmdkPointer = {x: ev.clientX, y: ev.clientY}; };
+    const trackPointer = ev => {
+        cmdkPointer = {x: ev.clientX, y: ev.clientY};
+        cmdkPointerAt = performance.now();
+    };
     window.addEventListener("pointermove", trackPointer, {capture: true, passive: true});
     window.addEventListener("pointerdown", trackPointer, {capture: true, passive: true});
     window.addEventListener("resize", () => { if (!cmdkEl.hidden) positionCommandPalette(); });
@@ -17272,6 +17919,7 @@ function previewTextSelected() {
 
 function bindGlobalEvents() {
     bindCanvasEvents(stage, nodesLayer);
+    bindKeyboardNodeNav();
 
     stage.addEventListener("dragover", ev => {
         if (ev.dataTransfer?.types?.includes("Files")) {

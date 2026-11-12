@@ -112,6 +112,10 @@ const glyphStats = spriteStats();
 console.log("glyphs:", glyphStats.ciphers, "ciphers", glyphStats.symbols, "symbols",
     (glyphStats.bytes / 1024).toFixed(0), "KB of source art");
 
+// Slug and name for every cipher, so the command box can offer them before any art has
+// arrived; the glyphs stay in assets/glyphs.json where they are only fetched when needed.
+const symbolIndex = Object.fromEntries(Object.entries(glyphs.ciphers).map(([slug, c]) => [slug, c.name]));
+
 const jsonForScript = str => str.replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 
 // The site is static but no longer one file: everything heavy is written to assets/ beside
@@ -426,7 +430,7 @@ ${css}
                 <summary><h3>Running and shortcuts</h3></summary>
                 <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed.</p>
                 <ul class="help-keys">
-                    <li><kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette: run, fit, save, share, or jump to any operation, node or function. Add <kbd>Shift</kbd> with one node selected and the same box <b>replaces</b> that node instead of adding another: the node keeps its place on the canvas, its input and output wires stay connected where the replacement has the same ports, and Enter on a command row still just runs the command. With one node selected it also offers that node's <b>inverse</b>: type “inverse” and pick <b>Insert inverse</b> to put the operation that undoes that step right after it — <b>From Base64</b> after a <b>To Base64</b>, <b>Leet Decode</b> after <b>Leet Encode</b>, <b>AES Decrypt</b> after <b>AES Encrypt</b> — wired to its output and carrying the settings both steps share, or open the box with <kbd>Shift</kbd> and the same row swaps the node for its inverse in place. The partner is found by name, so every operation with an opposite in the library has one: To/From, Encode/Decode, Encrypt/Decrypt, Compress/Decompress, Escape/Unescape, Serialize/Deserialize, or a conversion that reads back the other way, like <b>JSON to CSV</b> after <b>CSV to JSON</b>. A step with no inverse — a hash, a parser — says so instead of guessing. With one <b>wire</b> selected instead, a node-shaped pick goes <b>into</b> that wire: it splits and the new step sits at the middle of the curve, the same splice as dropping it there. A node with no main input and output cannot go into a wire, so it is added where the pointer is and says why.</li>
+                    <li><kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette: run, fit, save, share, or jump to any operation, node, function or symbol cipher. Add <kbd>Shift</kbd> with one node selected and the same box <b>replaces</b> that node instead of adding another: the node keeps its place on the canvas, its input and output wires stay connected where the replacement has the same ports, and Enter on a command row still just runs the command. With one node selected it also offers that node's <b>inverse</b>: type “inverse” and pick <b>Insert inverse</b> to put the operation that undoes that step right after it — <b>From Base64</b> after a <b>To Base64</b>, <b>Leet Decode</b> after <b>Leet Encode</b>, <b>AES Decrypt</b> after <b>AES Encrypt</b> — wired to its output and carrying the settings both steps share, or open the box with <kbd>Shift</kbd> and the same row swaps the node for its inverse in place. The partner is found by name, so every operation with an opposite in the library has one: To/From, Encode/Decode, Encrypt/Decrypt, Compress/Decompress, Escape/Unescape, Serialize/Deserialize, or a conversion that reads back the other way, like <b>JSON to CSV</b> after <b>CSV to JSON</b>. A step with no inverse — a hash, a parser — says so instead of guessing. With one <b>wire</b> selected instead, a node-shaped pick goes <b>into</b> that wire: it splits and the new step sits at the middle of the curve, the same splice as dropping it there. A node with no main input and output cannot go into a wire, so it is added where the pointer is and says why.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> adds the inverse of the selected node without opening the palette: one node selected, and the operation that undoes it is put right after it, wired to its output and carrying the settings both steps share. Add <kbd>Shift</kbd> and the node is swapped for its inverse in place instead. A step with no inverse says so instead of guessing.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs the graph</li>
                     <li><kbd>Ctrl</kbd>+<kbd>S</kbd> saves in this browser</li>
@@ -479,6 +483,8 @@ ${css}
 
 <input type="file" id="openFileInput" accept="application/json,.json" hidden>
 <div id="toasts"></div>
+
+<script type="application/json" id="symbolIndex">${jsonForScript(JSON.stringify(symbolIndex))}</script>
 
 <script type="application/json" id="metaData">${jsonForScript(meta)}</script>
 

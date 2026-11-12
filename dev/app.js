@@ -8330,6 +8330,14 @@ function commandPaletteItems() {
         items.push({kind: "function", label: fn.name, keys: "function subgraph instance",
             hint: "Function", fnId: fn.id, run: p => addFunctionNode(fn.id, p?.x, p?.y)});
     }
+    // Symbol ciphers go on the canvas the way the drawer puts them there, so the box offers
+    // them too. One row per cipher, named from the index rather than the art: typing
+    // "pigpen" finds the cipher before a visit has paid for the download.
+    for (const [slug, name] of Object.entries(symbolIndex())) {
+        items.push({kind: "symbol", label: name, slug,
+            keys: `symbol cipher alphabet glyph transcription ${slug.replace(/[_-]+/g, " ")}`,
+            hint: "Symbol cipher", run: p => addSymbolNode(slug, p?.x, p?.y)});
+    }
     for (const op of OP_NAMES) {
         if (FLOW_OPS.has(op) || nodeLabels.has(op.toLowerCase())) continue;
         const meta = OPS[op] || {};
@@ -8427,6 +8435,9 @@ function closeCommandPalette() {
 function paletteNodeFor(item) {
     if (!item || item.kind === "command") return null;
     if (item.kind === "op") return OPS[item.op] ? makeNode("op", {op: item.op}) : null;
+    // A symbol cipher has no input, so a pick can swap it for another but never splice it
+    // into a wire; paletteSpliceEdge leaves it out for the same reason.
+    if (item.kind === "symbol") return makeNode("symbol", {symbolCipher: item.slug, symbolSource: "cachesleuth"});
     if (item.kind === "function") return functionById(item.fnId) ? makeNode("fn", {fnId: item.fnId}) : null;
     if (item.kind === "node") return createGraphNode(item.type);
     return null;
@@ -8677,7 +8688,7 @@ function initCommandPalette() {
     cmdkEl.innerHTML = `<div class="cmdk-card" role="dialog" aria-modal="true" aria-label="Command palette">
         <div class="cmdk-head">
             <span class="cmdk-icon"></span>
-            <input id="cmdkInput" class="cmdk-input" placeholder="Run a command, or jump to an operation, node or function…"
+            <input id="cmdkInput" class="cmdk-input" placeholder="Run a command, or jump to an operation, node, function or symbol cipher…"
                 autocomplete="off" spellcheck="false" aria-label="Command palette" aria-controls="cmdkList" aria-autocomplete="list">
             <button class="cmdk-esc" type="button" title="Close">Esc</button>
         </div>
@@ -13418,6 +13429,21 @@ function glyphCipherCount() {
     return Number(el?.content) || 0;
 }
 
+/* The ciphers' names, baked into the page beside that count (dev/build.mjs): the command box
+ * lists a cipher by name without waiting on the 25 MB of art, which is only fetched when one
+ * is actually placed. Same ready set as the drawer, so the two cannot disagree. */
+let symbolIndexCache = null;
+function symbolIndex() {
+    if (symbolIndexCache) return symbolIndexCache;
+    symbolIndexCache = {};
+    try {
+        const el = document.getElementById("symbolIndex");
+        const parsed = el ? JSON.parse(el.textContent) : null;
+        if (parsed && typeof parsed === "object") symbolIndexCache = parsed;
+    } catch { /* no index in this build, so the box just lists none */ }
+    return symbolIndexCache;
+}
+
 function symbolCipher(slug) {
     return (slug && SYMBOLS.ciphers[slug]) || null;
 }
@@ -15181,11 +15207,21 @@ function buildGateNode(node) {
 
 /** Place a symbol node from the left panel, the same way the palette places its nodes. */
 async function addSymbolNode(slug, x, y) {
+    // Picked from the command box before the art was ever fetched, this waits on the whole
+    // download with the box already closed, so the status line reports the same fraction the
+    // drawer's bar would rather than leaving the canvas looking idle. The line's own text is
+    // handed back when the wait is over.
+    const waiting = !glyphDataParsed;
+    const wasText = runStatusText ? runStatusText.textContent : "";
     try {
-        await ensureGlyphData();
+        await ensureGlyphData(waiting
+            ? fraction => setRunStatus("running", `Loading symbol art… ${Math.round(Math.min(1, fraction) * 100)}%`)
+            : undefined);
     } catch (err) {
         toast("The symbol art could not be loaded: " + (err.message || err), "error");
         return;
+    } finally {
+        if (waiting) setRunStatus("", wasText);
     }
     const cipher = symbolCipher(slug);
     if (!cipher) return;

@@ -10945,6 +10945,8 @@ const PALETTES = [
     {id: "forest", name: "Forest", note: "Moss and pine"},
     {id: "plum", name: "Plum", note: "Violet and ink"},
     {id: "mono", name: "Graphite", note: "Grey on grey, no hue"},
+    {id: "ocean", name: "Ocean", note: "Deep water and foam"},
+    {id: "honey", name: "Honey", note: "Straw and gold"},
 ];
 // What the page was painted with before this script ran, so the panel opens on the truth.
 let paletteId = document.documentElement.dataset.palette || "default";

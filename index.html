@@ -275,6 +275,76 @@ html[data-palette="mono"][data-theme="dark"] {
     --on-accent: #0f0f10;
     color-scheme: dark;
 }
+html[data-palette="ocean"] {
+    --bg: #e3edf4;
+    --panel: #f4f9fc;
+    --panel-2: #ffffff;
+    --node: #ffffff;
+    --stage: #e9f1f7;
+    --preview-bg: #eef5fa;
+    --ink: #0e2230;
+    --muted: #5b7385;
+    --faint: #8ea3b2;
+    --line: #cddde8;
+    --line-strong: #b2c7d6;
+    --dot: #c4d7e3;
+    --accent: #0b6fa4;
+    --accent-2: #075176;
+    color-scheme: light;
+}
+html[data-palette="ocean"][data-theme="dark"] {
+    --bg: #061620;
+    --panel: #0b2030;
+    --panel-2: #0f2838;
+    --node: #0d2433;
+    --stage: #081a25;
+    --preview-bg: #081a25;
+    --ink: #e6f3fa;
+    --muted: #86a4b6;
+    --faint: #5d7c8e;
+    --line: #1d3546;
+    --line-strong: #2b4a5e;
+    --dot: #162d3d;
+    --accent: #5cc6f0;
+    --accent-2: #8bd9f7;
+    --on-accent: #061620;
+    color-scheme: dark;
+}
+html[data-palette="honey"] {
+    --bg: #f5efd8;
+    --panel: #fdf9ec;
+    --panel-2: #fffdf5;
+    --node: #fffdf5;
+    --stage: #f8f2df;
+    --preview-bg: #faf6e7;
+    --ink: #221d0e;
+    --muted: #72684a;
+    --faint: #a1967a;
+    --line: #e4d9b9;
+    --line-strong: #d0c29c;
+    --dot: #ddd1af;
+    --accent: #9a6b00;
+    --accent-2: #7a5400;
+    color-scheme: light;
+}
+html[data-palette="honey"][data-theme="dark"] {
+    --bg: #14120a;
+    --panel: #1e1b0f;
+    --panel-2: #262213;
+    --node: #221e11;
+    --stage: #17140c;
+    --preview-bg: #17140c;
+    --ink: #f6efd6;
+    --muted: #a89b78;
+    --faint: #7a7157;
+    --line: #332e1c;
+    --line-strong: #473f27;
+    --dot: #2a2515;
+    --accent: #e8c766;
+    --accent-2: #f7db92;
+    --on-accent: #14120a;
+    color-scheme: dark;
+}
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -2643,6 +2713,8 @@ a.icon-button:hover { color: var(--ink); }
 .palette-choice[data-palette="forest"] { --demo-bg: #e7eee3; --demo-panel: #ffffff; --demo-accent: #2a7245; }
 .palette-choice[data-palette="plum"] { --demo-bg: #efe9f2; --demo-panel: #ffffff; --demo-accent: #6f3494; }
 .palette-choice[data-palette="mono"] { --demo-bg: #e9e9e8; --demo-panel: #ffffff; --demo-accent: #4b4b52; }
+.palette-choice[data-palette="ocean"] { --demo-bg: #e3edf4; --demo-panel: #ffffff; --demo-accent: #0b6fa4; }
+.palette-choice[data-palette="honey"] { --demo-bg: #f5efd8; --demo-panel: #fffdf5; --demo-accent: #9a6b00; }
 
 /* Sections inside the panel: a closed summary is the whole section, so the sheet stays short
  * until something is asked for. */
@@ -4342,7 +4414,7 @@ textarea.note-text {
             </details>
             <details class="help-section">
                 <summary><h3>Running and shortcuts</h3></summary>
-                <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed. The gear in the sidebar opens <b>Settings</b>, where each canvas key can be rebound: click the key, press the one you want, and the choice is remembered in this browser. A key already in use swaps with the action that had it, and <b>Reset to defaults</b> puts every key back. The same panel carries the <b>color theme</b>: six palettes — Folio, Ember, Nordic, Forest, Plum and Graphite — each with a light and a dark reading.</p>
+                <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed. The gear in the sidebar opens <b>Settings</b>, where each canvas key can be rebound: click the key, press the one you want, and the choice is remembered in this browser. A key already in use swaps with the action that had it, and <b>Reset to defaults</b> puts every key back. The same panel carries the <b>color theme</b>: eight palettes — Folio, Ember, Nordic, Forest, Plum, Graphite, Ocean and Honey — each with a light and a dark reading.</p>
                 <ul class="help-keys">
                     <li><kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette: run, fit, save, share, or jump to any operation, node, function or symbol cipher. Add <kbd>Shift</kbd> with one node selected and the same box <b>replaces</b> that node instead of adding another: the node keeps its place on the canvas, its input and output wires stay connected where the replacement has the same ports, and Enter on a command row still just runs the command. With one node selected it also offers that node's <b>inverse</b>: type “inverse” and pick <b>Insert inverse</b> to put the operation that undoes that step right after it — <b>From Base64</b> after a <b>To Base64</b>, <b>Leet Decode</b> after <b>Leet Encode</b>, <b>AES Decrypt</b> after <b>AES Encrypt</b> — wired to its output and carrying the settings both steps share, or open the box with <kbd>Shift</kbd> and the same row swaps the node for its inverse in place. The partner is found by name, so every operation with an opposite in the library has one: To/From, Encode/Decode, Encrypt/Decrypt, Compress/Decompress, Escape/Unescape, Serialize/Deserialize, or a conversion that reads back the other way, like <b>JSON to CSV</b> after <b>CSV to JSON</b>. A step with no inverse — a hash, a parser — says so instead of guessing. With one <b>wire</b> selected instead, a node-shaped pick goes <b>into</b> that wire: it splits and the new step sits at the middle of the curve, the same splice as dropping it there. A node with no main input and output cannot go into a wire, so it is added where the pointer is and says why.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> adds the inverse of the selected node without opening the palette: one node selected, and the operation that undoes it is put right after it, wired to its output and carrying the settings both steps share. Add <kbd>Shift</kbd> and the node is swapped for its inverse in place instead. A step with no inverse says so instead of guessing.</li>
@@ -16342,6 +16414,8 @@ const PALETTES = [
     {id: "forest", name: "Forest", note: "Moss and pine"},
     {id: "plum", name: "Plum", note: "Violet and ink"},
     {id: "mono", name: "Graphite", note: "Grey on grey, no hue"},
+    {id: "ocean", name: "Ocean", note: "Deep water and foam"},
+    {id: "honey", name: "Honey", note: "Straw and gold"},
 ];
 // What the page was painted with before this script ran, so the panel opens on the truth.
 let paletteId = document.documentElement.dataset.palette || "default";

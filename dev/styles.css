@@ -249,6 +249,76 @@ html[data-palette="mono"][data-theme="dark"] {
     --on-accent: #0f0f10;
     color-scheme: dark;
 }
+html[data-palette="ocean"] {
+    --bg: #e3edf4;
+    --panel: #f4f9fc;
+    --panel-2: #ffffff;
+    --node: #ffffff;
+    --stage: #e9f1f7;
+    --preview-bg: #eef5fa;
+    --ink: #0e2230;
+    --muted: #5b7385;
+    --faint: #8ea3b2;
+    --line: #cddde8;
+    --line-strong: #b2c7d6;
+    --dot: #c4d7e3;
+    --accent: #0b6fa4;
+    --accent-2: #075176;
+    color-scheme: light;
+}
+html[data-palette="ocean"][data-theme="dark"] {
+    --bg: #061620;
+    --panel: #0b2030;
+    --panel-2: #0f2838;
+    --node: #0d2433;
+    --stage: #081a25;
+    --preview-bg: #081a25;
+    --ink: #e6f3fa;
+    --muted: #86a4b6;
+    --faint: #5d7c8e;
+    --line: #1d3546;
+    --line-strong: #2b4a5e;
+    --dot: #162d3d;
+    --accent: #5cc6f0;
+    --accent-2: #8bd9f7;
+    --on-accent: #061620;
+    color-scheme: dark;
+}
+html[data-palette="honey"] {
+    --bg: #f5efd8;
+    --panel: #fdf9ec;
+    --panel-2: #fffdf5;
+    --node: #fffdf5;
+    --stage: #f8f2df;
+    --preview-bg: #faf6e7;
+    --ink: #221d0e;
+    --muted: #72684a;
+    --faint: #a1967a;
+    --line: #e4d9b9;
+    --line-strong: #d0c29c;
+    --dot: #ddd1af;
+    --accent: #9a6b00;
+    --accent-2: #7a5400;
+    color-scheme: light;
+}
+html[data-palette="honey"][data-theme="dark"] {
+    --bg: #14120a;
+    --panel: #1e1b0f;
+    --panel-2: #262213;
+    --node: #221e11;
+    --stage: #17140c;
+    --preview-bg: #17140c;
+    --ink: #f6efd6;
+    --muted: #a89b78;
+    --faint: #7a7157;
+    --line: #332e1c;
+    --line-strong: #473f27;
+    --dot: #2a2515;
+    --accent: #e8c766;
+    --accent-2: #f7db92;
+    --on-accent: #14120a;
+    color-scheme: dark;
+}
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -2617,6 +2687,8 @@ a.icon-button:hover { color: var(--ink); }
 .palette-choice[data-palette="forest"] { --demo-bg: #e7eee3; --demo-panel: #ffffff; --demo-accent: #2a7245; }
 .palette-choice[data-palette="plum"] { --demo-bg: #efe9f2; --demo-panel: #ffffff; --demo-accent: #6f3494; }
 .palette-choice[data-palette="mono"] { --demo-bg: #e9e9e8; --demo-panel: #ffffff; --demo-accent: #4b4b52; }
+.palette-choice[data-palette="ocean"] { --demo-bg: #e3edf4; --demo-panel: #ffffff; --demo-accent: #0b6fa4; }
+.palette-choice[data-palette="honey"] { --demo-bg: #f5efd8; --demo-panel: #fffdf5; --demo-accent: #9a6b00; }
 
 /* Sections inside the panel: a closed summary is the whole section, so the sheet stays short
  * until something is asked for. */

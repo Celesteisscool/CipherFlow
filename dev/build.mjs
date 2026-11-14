@@ -159,13 +159,15 @@ const html = `<!doctype html>
 <link rel="icon" type="image/svg+xml" href="${faviconHref("#17181a", "#f8f8f5")}">
 <link rel="icon" type="image/svg+xml" href="${faviconHref("#eef0f4", "#14171c")}" media="(prefers-color-scheme: dark)">
 <script>
-// Apply the saved theme before the first paint so the loading screen does not flash
-// the wrong colour. initTheme() repeats this once the app boots.
+// Apply the saved theme and palette before the first paint so the loading screen does not
+// flash the wrong colour. initTheme() repeats this once the app boots.
 (function () {
     try {
         var t = localStorage.getItem("cipherflow.theme.v1") ||
             (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
         document.documentElement.dataset.theme = t;
+        var p = localStorage.getItem("cipherflow.palette.v1");
+        if (p && p !== "default") document.documentElement.dataset.palette = p;
     } catch (e) { /* storage unavailable; keep the default */ }
 })();
 </script>
@@ -241,6 +243,7 @@ ${css}
                 <span class="count-badge"><span id="opCount">0</span> nodes</span>
                 <button class="icon-button" id="themeBtn" title="Toggle dark / light mode"></button>
                 <a class="icon-button" id="githubBtn" href="https://github.com/Celesteisscool/CipherFlow" target="_blank" rel="noopener noreferrer" title="CipherFlow on GitHub" aria-label="CipherFlow on GitHub"></a>
+                <button class="icon-button" id="settingsBtn" title="Settings"></button>
                 <button class="icon-button" id="helpBtn" title="How this works"></button>
                 <button class="icon-button" id="labOpenBtn" title="Open the verification lab"></button>
                 <button class="icon-button sidebar-close" id="sidebarCloseBtn" title="Close node list"></button>
@@ -404,7 +407,7 @@ ${css}
                     <li>Drag the bottom-right corner of a node to resize it. A long output scrolls inside the node instead of forcing it open, so it can be shrunk right down to a readable minimum. Double-click a title to rename any node, an operation or a function instance included.</li>
                     <li><b>Snap</b>, beside Fit in the bottom-left controls, is a toggle. Turning it on puts every node on the graph back on the nearest grid dot and then keeps them there: dragged nodes track the grid as they move. It lights up while it is holding and the setting is remembered, so a reload comes back snapped. The same controls are the function editor's controls: Fit, Snap and zoom act on whichever graph is open.</li>
                     <li>Click a wire to select it — an <b>×</b> appears in the middle. Click the × to remove it, or double-click the wire.</li>
-                    <li>The sun or moon icon in the sidebar switches between dark and light, and the choice is remembered.</li>
+                    <li>The sun or moon icon in the sidebar switches between dark and light, and the choice is remembered. The gear's <b>Color theme</b> section changes the palette the whole editor is drawn in.</li>
                     <li>On a phone the node list and the symbol alphabets are <b>drawers</b>: the two icons at either end of the toolbar open them, and placing a node closes the drawer again so the canvas comes back.</li>
                 </ul>
             </details>
@@ -428,7 +431,7 @@ ${css}
             </details>
             <details class="help-section">
                 <summary><h3>Running and shortcuts</h3></summary>
-                <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed.</p>
+                <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed. The gear in the sidebar opens <b>Settings</b>, where each canvas key can be rebound: click the key, press the one you want, and the choice is remembered in this browser. A key already in use swaps with the action that had it, and <b>Reset to defaults</b> puts every key back. The same panel carries the <b>color theme</b>: six palettes — Folio, Ember, Nordic, Forest, Plum and Graphite — each with a light and a dark reading.</p>
                 <ul class="help-keys">
                     <li><kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette: run, fit, save, share, or jump to any operation, node, function or symbol cipher. Add <kbd>Shift</kbd> with one node selected and the same box <b>replaces</b> that node instead of adding another: the node keeps its place on the canvas, its input and output wires stay connected where the replacement has the same ports, and Enter on a command row still just runs the command. With one node selected it also offers that node's <b>inverse</b>: type “inverse” and pick <b>Insert inverse</b> to put the operation that undoes that step right after it — <b>From Base64</b> after a <b>To Base64</b>, <b>Leet Decode</b> after <b>Leet Encode</b>, <b>AES Decrypt</b> after <b>AES Encrypt</b> — wired to its output and carrying the settings both steps share, or open the box with <kbd>Shift</kbd> and the same row swaps the node for its inverse in place. The partner is found by name, so every operation with an opposite in the library has one: To/From, Encode/Decode, Encrypt/Decrypt, Compress/Decompress, Escape/Unescape, Serialize/Deserialize, or a conversion that reads back the other way, like <b>JSON to CSV</b> after <b>CSV to JSON</b>. A step with no inverse — a hash, a parser — says so instead of guessing. With one <b>wire</b> selected instead, a node-shaped pick goes <b>into</b> that wire: it splits and the new step sits at the middle of the curve, the same splice as dropping it there. A node with no main input and output cannot go into a wire, so it is added where the pointer is and says why.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> adds the inverse of the selected node without opening the palette: one node selected, and the operation that undoes it is put right after it, wired to its output and carrying the settings both steps share. Add <kbd>Shift</kbd> and the node is swapped for its inverse in place instead. A step with no inverse says so instead of guessing.</li>
@@ -478,6 +481,36 @@ ${css}
                     <p class="contact-also">No Discord? <a href="https://github.com/Celesteisscool/CipherFlow/issues/new" target="_blank" rel="noopener noreferrer">Open an issue on GitHub</a> instead — bugs, wrong answers and ideas all get read there.</p>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="settings" hidden>
+    <div class="settings-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="help-head">
+            <div>
+                <div class="lab-kicker">CipherFlow</div>
+                <h2 class="lab-title" id="settingsTitle">Settings</h2>
+                <p class="lab-sub">Pick a color theme, or click a key and press the one you want. Both are saved in this browser.</p>
+            </div>
+            <button class="icon-button lab-close" id="settingsClose" title="Close"></button>
+        </div>
+        <div class="settings-body">
+            <details class="settings-group" open>
+                <summary>Color theme</summary>
+                <div class="palette-list" id="paletteList" role="group" aria-label="Color theme"></div>
+                <p class="kb-fixed">Each palette is drawn light or dark, so the sun and moon button in the sidebar still switches between the two readings. The choice is saved in this browser.</p>
+            </details>
+            <details class="settings-group">
+                <summary>Controls</summary>
+                <div class="kb-bind-list" id="kbBindList"></div>
+                <p class="kb-hint" id="kbHint"></p>
+                <p class="kb-fixed">The arrows, <kbd>Enter</kbd>, <kbd>Escape</kbd>, <kbd>Delete</kbd> and <kbd>1</kbd>–<kbd>9</kbd> stay fixed: they are how a card, a port pick or a box is left, so they cannot be rebound.</p>
+            </details>
+        </div>
+        <div class="settings-foot">
+            <button class="btn-secondary" id="kbReset" type="button">Reset to defaults</button>
+            <button class="btn-primary" id="settingsDone" type="button">Done</button>
         </div>
     </div>
 </div>

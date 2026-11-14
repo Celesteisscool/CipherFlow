@@ -14,6 +14,10 @@
     --dot: #cdcdc4;
     --accent: #2f6fed;
     --accent-2: #1f5bd0;
+    /* Ink for anything painted on --accent. Palettes whose accent is a tint (every dark
+       reading, where the accent has to glow against a near-black ground) flip this to their
+       own dark ink, so a filled button is never white text on a white button. */
+    --on-accent: #fff;
     --danger: #d7443e;
     --danger-soft: #fdeceb;
     --success: #16855b;
@@ -60,6 +64,189 @@ html[data-theme="dark"] {
     --warn-soft: #302516;
     --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
     --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.28);
+    color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ palettes */
+/* A palette swaps the ground a theme is drawn on, not just its accent. Both readings of
+ * every one are here — the light values first, the dark ones after them — so data-theme still
+ * decides between the two and the sun/moon button keeps working. The default palette is the
+ * plain :root block above, which is why every palette rule starts at html[data-palette].
+ * --demo-* is only for the chips in the settings panel, which show a palette in daylight
+ * whatever the page itself is wearing. */
+html[data-palette="ember"] {
+    --bg: #f1e9dd;
+    --panel: #faf5ec;
+    --panel-2: #fffdf8;
+    --node: #fffdf8;
+    --stage: #f5eee2;
+    --preview-bg: #f7f1e6;
+    --ink: #241a12;
+    --muted: #7b6a58;
+    --faint: #a3917c;
+    --line: #ddceb8;
+    --line-strong: #c8b69c;
+    --dot: #d6c5ad;
+    --accent: #b0470f;
+    --accent-2: #8c360a;
+    color-scheme: light;
+}
+html[data-palette="ember"][data-theme="dark"] {
+    --bg: #16110d;
+    --panel: #201a14;
+    --panel-2: #261f17;
+    --node: #241d15;
+    --stage: #191410;
+    --preview-bg: #191410;
+    --ink: #f3e9dc;
+    --muted: #a3947f;
+    --faint: #71645a;
+    --line: #33291f;
+    --line-strong: #463a2d;
+    --dot: #2b2319;
+    --accent: #f0a06a;
+    --accent-2: #ffbe8f;
+    --on-accent: #241a12;
+    color-scheme: dark;
+}
+html[data-palette="nordic"] {
+    --bg: #e6ecf0;
+    --panel: #f5f8fa;
+    --panel-2: #ffffff;
+    --node: #ffffff;
+    --stage: #eaf0f4;
+    --preview-bg: #f0f5f8;
+    --ink: #131a20;
+    --muted: #66737e;
+    --faint: #93a0aa;
+    --line: #d0dae1;
+    --line-strong: #b3c2cc;
+    --dot: #c6d3db;
+    --accent: #14657f;
+    --accent-2: #0d4d63;
+    color-scheme: light;
+}
+html[data-palette="nordic"][data-theme="dark"] {
+    --bg: #0a1014;
+    --panel: #111a20;
+    --panel-2: #16212a;
+    --node: #14202a;
+    --stage: #0d151b;
+    --preview-bg: #0d151b;
+    --ink: #e7f0f5;
+    --muted: #8c9ba6;
+    --faint: #61707b;
+    --line: #25333c;
+    --line-strong: #37474f;
+    --dot: #1e2a32;
+    --accent: #64c8e6;
+    --accent-2: #8adcf4;
+    --on-accent: #0a1014;
+    color-scheme: dark;
+}
+html[data-palette="forest"] {
+    --bg: #e7eee3;
+    --panel: #f6faf3;
+    --panel-2: #ffffff;
+    --node: #ffffff;
+    --stage: #ecf2e8;
+    --preview-bg: #f2f7ef;
+    --ink: #131c14;
+    --muted: #5f735f;
+    --faint: #8fa48c;
+    --line: #cfdbcb;
+    --line-strong: #b3c4ac;
+    --dot: #c7d6c1;
+    --accent: #2a7245;
+    --accent-2: #1d5633;
+    color-scheme: light;
+}
+html[data-palette="forest"][data-theme="dark"] {
+    --bg: #0a120d;
+    --panel: #121b15;
+    --panel-2: #17221a;
+    --node: #15211a;
+    --stage: #0d160f;
+    --preview-bg: #0d160f;
+    --ink: #e8f2e8;
+    --muted: #8ba290;
+    --faint: #60776a;
+    --line: #263328;
+    --line-strong: #38493a;
+    --dot: #1f2b23;
+    --accent: #63cf95;
+    --accent-2: #8be6b3;
+    --on-accent: #0a120d;
+    color-scheme: dark;
+}
+html[data-palette="plum"] {
+    --bg: #efe9f2;
+    --panel: #faf7fc;
+    --panel-2: #ffffff;
+    --node: #ffffff;
+    --stage: #f3edf6;
+    --preview-bg: #f7f1fa;
+    --ink: #1a1420;
+    --muted: #70627c;
+    --faint: #a294ad;
+    --line: #dcd0e2;
+    --line-strong: #c4b3cc;
+    --dot: #d6c8dd;
+    --accent: #6f3494;
+    --accent-2: #57276f;
+    color-scheme: light;
+}
+html[data-palette="plum"][data-theme="dark"] {
+    --bg: #110d16;
+    --panel: #1b1422;
+    --panel-2: #211a29;
+    --node: #1e1726;
+    --stage: #150f1b;
+    --preview-bg: #150f1b;
+    --ink: #f1eaf6;
+    --muted: #a496b0;
+    --faint: #736480;
+    --line: #302538;
+    --line-strong: #43354d;
+    --dot: #271e2e;
+    --accent: #c79cf0;
+    --accent-2: #dcbcff;
+    --on-accent: #110d16;
+    color-scheme: dark;
+}
+html[data-palette="mono"] {
+    --bg: #e9e9e8;
+    --panel: #f7f7f6;
+    --panel-2: #ffffff;
+    --node: #ffffff;
+    --stage: #efefee;
+    --preview-bg: #f2f2f1;
+    --ink: #17181a;
+    --muted: #6d6f72;
+    --faint: #97999c;
+    --line: #d6d6d3;
+    --line-strong: #bdbcba;
+    --dot: #cbcbc8;
+    --accent: #4b4b52;
+    --accent-2: #333338;
+    color-scheme: light;
+}
+html[data-palette="mono"][data-theme="dark"] {
+    --bg: #0f0f10;
+    --panel: #171718;
+    --panel-2: #1d1d1f;
+    --node: #1a1a1c;
+    --stage: #121213;
+    --preview-bg: #121213;
+    --ink: #eeeef0;
+    --muted: #99999e;
+    --faint: #6b6b70;
+    --line: #2b2b2e;
+    --line-strong: #3e3e42;
+    --dot: #242427;
+    --accent: #d2d2d8;
+    --accent-2: #ececf2;
+    --on-accent: #0f0f10;
     color-scheme: dark;
 }
 
@@ -461,12 +648,12 @@ button svg { flex: 0 0 auto; }
     transition: transform 150ms ease;
 }
 .switch.on { background: var(--accent); }
-.switch.on::after { transform: translateX(13px); }
+.switch.on::after { transform: translateX(13px); background: var(--on-accent); }
 .btn-run {
     height: 31px;
     padding: 0 15px;
     border-radius: 999px;
-    color: #fff;
+    color: var(--on-accent);
     background: var(--accent);
     font-size: 11.5px;
     font-weight: 650;
@@ -540,12 +727,28 @@ button svg { flex: 0 0 auto; }
     font-size: 12px;
     font-weight: 640;
     letter-spacing: .005em;
-    white-space: nowrap;
+    /* Two lines, not one: a recreated operation's name is wider than the room its header
+       has beside the category badge, and half a name ("Scream …") says less than the whole
+       one over two lines. The fixed 38px header fits both, and the full name is the title's
+       own hover text. */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    line-height: 1.25;
+    white-space: normal;
     overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
     outline: none;
 }
+/* Editing goes back to one scrolling line: a clamped box cannot scroll to the caret, so
+   typing past the second line would be invisible. */
 .node-title[contenteditable="true"] {
+    display: block;
+    -webkit-line-clamp: none;
+    line-clamp: none;
+    white-space: pre-wrap;
+    overflow: auto;
     background: var(--panel-2);
     border-radius: 4px;
     padding: 1px 4px;
@@ -731,6 +934,13 @@ button svg { flex: 0 0 auto; }
 .node.kb-cursor {
     outline: 2px dashed color-mix(in srgb, var(--accent) 70%, transparent);
     outline-offset: 4px;
+}
+/* R has the card in resize mode, so the ring goes solid and the pointer says which corner the
+   arrows are standing in for. It has to come after the cursor rule to win the outline. */
+.node.kb-sizing {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+    cursor: nwse-resize;
 }
 #nodesLayer.kb-porting .port[data-kb-num]::after {
     content: attr(data-kb-num);
@@ -1982,6 +2192,14 @@ a.icon-button:hover { color: var(--ink); }
     text-overflow: ellipsis;
 }
 .cmdk-row.sel .cmdk-name { color: color-mix(in srgb, var(--accent) 62%, var(--ink)); }
+/* A row that opens a submenu says so, and the submenu's own first row is the way back. */
+.cmdk-row.has-sub .cmdk-hint::after { content: " ›"; }
+.cmdk-back {
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 3px;
+}
+.cmdk-back .cmdk-name { color: var(--faint); font-weight: 640; }
 .cmdk-hint {
     flex: 0 0 auto;
     max-width: 45%;
@@ -2291,6 +2509,154 @@ a.icon-button:hover { color: var(--ink); }
 .help-links a { color: var(--accent); font-weight: 620; text-decoration: none; }
 .help-links a:hover { text-decoration: underline; }
 .help-links span { color: var(--faint); }
+
+/* ------------------------------------------------------- keyboard settings */
+.settings-card {
+    width: min(560px, 96vw);
+    max-height: min(88vh, 740px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 21px;
+    background: var(--panel);
+    box-shadow: 0 40px 110px rgba(0, 0, 0, .3);
+    animation: modal-in 160ms ease both;
+}
+.settings-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px 19px 6px;
+    scrollbar-width: thin;
+}
+.kb-bind-list { display: flex; flex-direction: column; gap: 4px; }
+.kb-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+.kb-row-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.kb-row-name span { color: var(--ink); font-size: 11.5px; font-weight: 600; }
+.kb-row-name small { color: var(--faint); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+.kb-key {
+    min-width: 92px;
+    padding: 5px 10px;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: 7px;
+    background: var(--panel-2);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    cursor: pointer;
+}
+.kb-key:hover { border-color: var(--accent); }
+.kb-key.listening {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 18%, var(--panel-2));
+    color: var(--accent);
+}
+.kb-hint { margin: 9px 0 0; color: var(--muted); font-size: 10.5px; min-height: 15px; }
+.kb-fixed { margin: 8px 0 0; color: var(--faint); font-size: 10px; line-height: 1.5; }
+.kb-fixed kbd {
+    padding: 1px 5px;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: var(--panel-2);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 9.5px;
+}
+/* The palette picker. Each choice is a chip of the palette's daylight colours — ground,
+ * panel, accent — with its name and a line of description beside it. */
+.palette-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+.palette-choice {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 9px;
+    align-items: center;
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--panel-2);
+    text-align: left;
+}
+.palette-choice:hover { border-color: var(--line-strong); }
+.palette-choice.on {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 9%, var(--panel-2));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.palette-chip {
+    grid-row: 1 / span 2;
+    display: flex;
+    width: 34px;
+    height: 26px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--line-strong) 70%, transparent);
+}
+.palette-chip i { display: block; height: 100%; }
+.palette-chip i:nth-child(1) { width: 52%; background: var(--demo-bg); }
+.palette-chip i:nth-child(2) { width: 30%; background: var(--demo-panel); }
+.palette-chip i:nth-child(3) { width: 18%; background: var(--demo-accent); }
+.palette-name { color: var(--ink); font-size: 11.5px; font-weight: 620; }
+.palette-note { color: var(--faint); font-size: 9.5px; line-height: 1.35; }
+.palette-choice[data-palette="default"] { --demo-bg: #ecece8; --demo-panel: #ffffff; --demo-accent: #2f6fed; }
+.palette-choice[data-palette="ember"] { --demo-bg: #f1e9dd; --demo-panel: #fffdf8; --demo-accent: #b0470f; }
+.palette-choice[data-palette="nordic"] { --demo-bg: #e6ecf0; --demo-panel: #ffffff; --demo-accent: #14657f; }
+.palette-choice[data-palette="forest"] { --demo-bg: #e7eee3; --demo-panel: #ffffff; --demo-accent: #2a7245; }
+.palette-choice[data-palette="plum"] { --demo-bg: #efe9f2; --demo-panel: #ffffff; --demo-accent: #6f3494; }
+.palette-choice[data-palette="mono"] { --demo-bg: #e9e9e8; --demo-panel: #ffffff; --demo-accent: #4b4b52; }
+
+/* Sections inside the panel: a closed summary is the whole section, so the sheet stays short
+ * until something is asked for. */
+.settings-group {
+    padding: 10px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
+}
+.settings-group:last-child { border-bottom: 0; }
+.settings-group > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--ink);
+    font-size: 11.5px;
+    font-weight: 680;
+    letter-spacing: .01em;
+    list-style: none;
+}
+.settings-group > summary::-webkit-details-marker { display: none; }
+.settings-group > summary::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 4px solid var(--faint);
+    border-top: 3.5px solid transparent;
+    border-bottom: 3.5px solid transparent;
+    transition: transform 120ms ease;
+}
+.settings-group[open] > summary::before { transform: rotate(90deg); }
+.settings-group > summary:hover { color: var(--accent); }
+.settings-group[open] > summary { margin-bottom: 8px; }
+.settings-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 19px 16px;
+    border-top: 1px solid var(--line);
+}
 .help-section { padding: 12px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 65%, transparent); }
 .help-section:last-child { border-bottom: 0; padding-bottom: 4px; }
 .help-section h3 {
@@ -2374,7 +2740,7 @@ a.icon-button:hover { color: var(--ink); }
     gap: 6px;
     white-space: nowrap;
 }
-.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
 .btn-primary:hover { filter: brightness(1.06); }
 .btn-primary:disabled { opacity: .6; cursor: progress; }
 .btn-secondary { border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); }
@@ -2889,7 +3255,7 @@ body.sym-drawer-open .sym-rail { transform: translateX(var(--sym-drawer-w)); }
     padding: 3px 5px;
     border-radius: 999px;
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
 }
 /* The rail covers the card's left edge, so the stage controls that hang off it step right. */
 body.has-sym-rail .stage-controls { left: 44px; }
@@ -2995,6 +3361,9 @@ body.has-sym-rail .toolbar { left: 43px; }
 }
 .sym-tag:hover { border-color: var(--line-strong); color: var(--ink); }
 .sym-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* The arrow keys draw their own ring on a pill, because the caret stays in the search box
+   below it; it reads the same as the focus ring a Tab would have drawn. */
+.sym-tag.sel { outline: 2px solid var(--accent); outline-offset: 1px; color: var(--ink); }
 .sym-tag.on {
     border-color: color-mix(in srgb, var(--accent) 55%, transparent);
     background: color-mix(in srgb, var(--accent) 16%, transparent);
@@ -3049,6 +3418,13 @@ body.has-sym-rail .toolbar { left: 43px; }
     cursor: pointer;
 }
 .sym-row:hover { background: var(--panel-2); border-color: var(--line-strong); }
+/* The arrow-key cursor: the row Enter would place, marked on the leading edge so it reads
+   apart from hover. */
+.sym-row.sel {
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+    box-shadow: inset 2px 0 0 var(--accent);
+}
 .sym-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
 /* The name sits above its samples: a 5-wide sample grid leaves too little of a 320px
    drawer for a name beside it, and every cipher has samples to show. */
@@ -3096,7 +3472,7 @@ body.has-sym-rail .toolbar { left: 43px; }
     border-radius: 4px;
     cursor: pointer;
 }
-.sym-src button.on { background: var(--accent); color: #fff; }
+.sym-src button.on { background: var(--accent); color: var(--on-accent); }
 .sym-src-fixed { font-size: 10px; font-weight: 620; color: var(--muted); margin-left: auto; }
 .sym-clear { margin-left: 8px; }
 .sym-note {
@@ -3381,6 +3757,8 @@ textarea.note-text {
 .note-text:focus { border-color: color-mix(in srgb, var(--note-tint, #e8b93a) 55%, var(--line)); box-shadow: none; }
 .note-swatches { display: flex; gap: 6px; margin-top: auto; opacity: .5; transition: opacity 120ms ease; }
 .node:hover .note-swatches, .node:focus-within .note-swatches { opacity: 1; }
+/* E can reach the swatches, and a 50% row makes the ring on the chosen one hard to see. */
+.note-swatches:has(.kb-field-active) { opacity: 1; }
 .note-swatch {
     width: 13px; height: 13px;
     padding: 0;
@@ -3678,7 +4056,7 @@ textarea.note-text {
     font: 600 11px/1 var(--sans);
     cursor: pointer;
 }
-.load-guard-reset { border-color: var(--accent); background: var(--accent); color: #fff; }
+.load-guard-reset { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 .load-guard-reset:hover { border-color: var(--accent-2); background: var(--accent-2); }
 .load-guard-cold:hover,
 .load-guard-keep:hover { border-color: var(--line-strong); }

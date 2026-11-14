@@ -18,6 +18,7 @@ const dec = new TextDecoder("utf-8", {fatal: false});
 const decLatin1 = new TextDecoder("latin1");
 const STORAGE_KEY = "cipherflow.graph.v1";
 const THEME_KEY = "cipherflow.theme.v1";
+const PALETTE_KEY = "cipherflow.palette.v1";
 const SNAP_KEY = "cipherflow.snap.v1";
 const ENGINE_LABEL = "CyberChef 11.5.0";
 // The text and file nodes carry a plug on each side, so their names say so. One constant per
@@ -115,6 +116,8 @@ const ICONS = {
     bundle: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 3h3.4l3.2 5h4.6M1.8 13h3.4l3.2-5M1.8 8h3.4"/><path d="m11.4 5.9 2.2 2.1-2.2 2.1"/></svg>',
     split: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 3h-3.4L7.6 8H3M14.2 13h-3.4L7.6 8M14.2 8H7.6"/><path d="m4.4 5.9-2.2 2.1 2.2 2.1"/></svg>',
     help: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M6.1 6.2a1.95 1.95 0 1 1 2.7 1.85c-.65.28-.85.65-.85 1.3"/><path d="M8 11.6v.15"/></svg>',
+    // Three sliders for the keyboard settings panel.
+    settings: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.4 4.6h3.1M9.5 4.6h4.1M2.4 11.4h6.1M12.6 11.4h1"/><circle cx="7.4" cy="4.6" r="1.7"/><circle cx="10.4" cy="11.4" r="1.7"/></svg>',
     // GitHub's mark, filled: the one icon here that is a brand rather than a drawn glyph.
     github: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>',
 };
@@ -368,6 +371,7 @@ function toast(message, kind = "") {
         const r = stage.getBoundingClientRect();
         if (r.width) host.style.left = Math.round(r.left + r.width / 2) + "px";
     } catch { /* before the canvas exists */ }
+    syncToastOffset();
     host.appendChild(el);
     // Keyboard work produces toasts faster than they time out, so only the newest five
     // stay on screen; the oldest leaves as the sixth arrives.
@@ -1033,6 +1037,12 @@ let kbPending = null;
 // True while a box opened from the keyboard has the caret, so Escape can put the keyboard
 // back on the card instead of clearing the whole selection.
 let kbEditing = false;
+// The card R has armed for resizing, or null. While it is set the arrows change that card's
+// width and height instead of walking the graph, which is the keyboard's half of the grip
+// drag in the corner of every card.
+let kbSizing = null;
+let kbSizeFloor = null;
+let kbSized = false;
 let nodeSeq = 1;
 let edgeSeq = 1;
 let runTimer = 0;
@@ -1919,6 +1929,15 @@ function buildNode(node) {
         ? `<button class="node-mini node-open-fn" data-action="fn-edit" data-node="${node.id}" title="Open this function">${iconFill("edit")}</button>`
         : "";
     const cat = nodeCategoryLabel(node);
+    // Where the step came from. A recreated cipher shares a palette section with the rest of
+    // its family but keeps its own source ("CacheSleuth · Substitution"), so the dot and the
+    // hover on the name still say exactly which site it was rebuilt from.
+    const origin = node.type === "op" ? (OPS[node.op]?.source || cat) : cat;
+    // An operation card gives its header to its name: the buttons alone take half the line, and
+    // a category badge beside them leaves too little for a title like "Scream Cipher Encode",
+    // which then reads as "Scream …" — the one thing a card is scanned by. The category rides
+    // on the name's hover text instead. A structural card (Input, Note, Gate…) keeps its badge,
+    // because the name it carries is short and the badge is what says what kind of card it is.
     // A resized node is a fixed box, kept on the node so it survives saves. Collapsing drops
     // the height so the card stays compact; expanding brings it back.
     if (node.w) el.style.width = node.w + "px";
@@ -1931,9 +1950,9 @@ function buildNode(node) {
     el.classList.toggle("frozen", Boolean(node.frozen));
     el.innerHTML = `
         <div class="node-head">
-            <span class="node-dot"></span>
-            <span class="node-title" data-node-title>${esc(title)}</span>
-            <span class="node-cat">${esc(cat)}</span>
+            <span class="node-dot" title="${esc(origin)}"></span>
+            <span class="node-title" data-node-title title="${esc(node.type === "op" ? `${title} — ${origin}` : title)}">${esc(title)}</span>
+            ${node.type === "op" ? "" : `<span class="node-cat" title="${esc(cat)}">${esc(cat)}</span>`}
             ${openFn}
             ${BYPASSABLE.has(node.type) ? `<button class="node-mini node-bypass" data-action="toggle-bypass" data-node="${node.id}" title="${node.bypass ? "Bypassed — the value passes through. Click to run this node again" : "Bypass this node: its input passes through untouched"}" aria-pressed="${node.bypass ? "true" : "false"}">${iconFill(node.bypass ? "eyeOff" : "eye")}</button>` : ""}
             ${BYPASSABLE.has(node.type) ? `<button class="node-mini node-freeze" data-action="toggle-freeze" data-node="${node.id}" title="${node.frozen ? "Frozen — holding the value it had when pressed. Click to let this node run again" : "Freeze this node: hold the value it has now, whatever happens upstream"}" aria-pressed="${node.frozen ? "true" : "false"}">${iconFill("snow")}</button>` : ""}
@@ -3767,8 +3786,11 @@ function magicListHtml(node) {
     }).join("");
     const notes = node._magic[clamp(node.magicChoice || 0, 0, node._magic.length - 1)].notes || [];
     const warning = node._magicWarning ? `<div class="magic-warning">${esc(node._magicWarning)}</div>` : "";
+    // A ranked list with rows marked "(key)" needs to say which key they were run with, since
+    // a key that produced nothing is the answer too.
+    const keyNote = node._magicKey ? `key “${esc(node._magicKey)}” · ` : "";
     return `${warning}<div class="magic-list" title="Ranked by how much each result looks like real output">${rows}</div>
-        <div class="magic-notes">${notes.length ? esc(notes.join(" · ")) : "best result"}</div>`;
+        <div class="magic-notes">${keyNote}${notes.length ? esc(notes.join(" · ")) : "best result"}</div>`;
 }
 
 // The Diff card: the verdict, then the two values with every changed character marked.
@@ -4107,6 +4129,56 @@ function syncSelectionClasses() {
  * draws the wire, so the graph never has to be wired by dragging. Escape backs out one
  * step at a time, leaving the selection alone until the half-started wire is cancelled.
  */
+/* Every key the canvas treats as a command lives in this table, so the settings panel can
+ * move one without the handler knowing. Only a single character can be bound: the arrows,
+ * Enter, Escape and Delete are how a state is left, and a card that could not be left would
+ * be worse than a fixed arrow key.
+ */
+const KB_KEYS_KEY = "cipherflow.keys.v1";
+const KB_BINDINGS = [
+    {id: "fields", label: "Edit a card's boxes", area: "Card", def: "e"},
+    {id: "wires", label: "Step through a card's wires", area: "Card", def: "w"},
+    {id: "bypass", label: "Bypass the card", area: "Card", def: "b"},
+    {id: "freeze", label: "Freeze the card", area: "Card", def: "f"},
+    {id: "fold", label: "Fold the card", area: "Card", def: "m"},
+    {id: "resize", label: "Resize the card", area: "Card", def: "r"},
+    {id: "up", label: "Move the camera up", area: "Camera", def: "i"},
+    {id: "down", label: "Move the camera down", area: "Camera", def: "k"},
+    {id: "left", label: "Move the camera left", area: "Camera", def: "j"},
+    {id: "right", label: "Move the camera right", area: "Camera", def: "l"},
+    {id: "zoomIn", label: "Zoom in", area: "Camera", def: "="},
+    {id: "zoomOut", label: "Zoom out", area: "Camera", def: "-"},
+    {id: "function", label: "Open or close a function", area: "Functions", def: "e", shift: true}
+];
+const kbKeys = Object.fromEntries(KB_BINDINGS.map(binding => [binding.id, binding.def]));
+function kbBinding(id) {
+    return KB_BINDINGS.find(binding => binding.id === id);
+}
+// Shift turns = into + and - into _, and a capital is still the same key: a binding names the
+// key that was pressed, not the character that came out of it.
+function kbKeyId(ev) {
+    let key = String(ev.key || "").toLowerCase();
+    if (key === "_") key = "-";
+    if (key === "+") key = "=";
+    return key;
+}
+function kbIs(id, ev) {
+    return kbKeyId(ev) === kbKeys[id];
+}
+function kbLoadKeys() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(KB_KEYS_KEY) || "null"); } catch {}
+    if (!saved || typeof saved !== "object") return;
+    for (const binding of KB_BINDINGS) {
+        const key = saved[binding.id];
+        if (typeof key === "string" && key.length === 1) kbKeys[binding.id] = key;
+    }
+}
+function kbSaveKeys() {
+    try { localStorage.setItem(KB_KEYS_KEY, JSON.stringify(kbKeys)); } catch {}
+}
+kbLoadKeys();
+
 function kbNavBlocked() {
     const active = document.activeElement;
     if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" ||
@@ -4116,6 +4188,7 @@ function kbNavBlocked() {
     if (fileMenu && fileMenu.panel && !fileMenu.panel.hidden) return true;
     if (exampleGallery.el && !exampleGallery.el.hidden) return true;
     if (helpOpen()) return true;
+    if (settingsOpen()) return true;
     const lab = $("#lab");
     return Boolean(lab && !lab.hidden);
 }
@@ -4146,6 +4219,7 @@ function kbNodeBox(node) {
 
 function kbStandOn(id) {
     if (kbCursor.mode === "port" || !state) return;
+    if (kbSizing) kbStopSizing();
     const n = Number(id) || 0;
     kbCursor = {nodeId: n && nodeById(n) ? n : 0, mode: "node", index: 0};
     kbApply();
@@ -4168,6 +4242,7 @@ function kbApply() {
     for (const el of $$(".node", nodesLayer)) {
         const cursor = Number(el.dataset.id) === kbCursor.nodeId;
         el.classList.toggle("kb-cursor", cursor);
+        el.classList.toggle("kb-sizing", cursor && kbSizing === Number(el.dataset.id));
         let index = 0;
         for (const port of el.querySelectorAll(".port")) {
             if (port.offsetParent === null) continue;
@@ -4290,6 +4365,80 @@ function kbToggle(kind) {
     toast(changed === 1 ? `${verdict} ${sourceTitle(targets[0])}` : `${changed} cards toggled`);
 }
 
+// Resizing from the keyboard. The same floor the drag grip uses: what the card's own controls
+// need, measured with the preview hidden, plus the preview's minimum. Measured once when R
+// arms the card, because measuring puts the card through a reflow and every arrow press
+// would pay for it again.
+const KB_SIZE_STEP = 20;
+function kbMeasureSizeFloor(node, el) {
+    const preview = $(".preview", el);
+    const prevDisplay = preview ? preview.style.display : "";
+    const prevHeight = el.style.height;
+    if (preview) preview.style.display = "none";
+    el.style.height = "auto";
+    const previewFloor = preview ? cssPixels("--node-preview-floor") : 0;
+    const floor = {
+        minW: cssPixels("--node-min-w"),
+        minH: Math.max(cssPixels("--node-min-h"), el.offsetHeight + previewFloor)
+    };
+    if (preview) preview.style.display = prevDisplay;
+    el.style.height = prevHeight;
+    return floor;
+}
+
+function kbStartSizing() {
+    const node = nodeById(kbCursor.nodeId) || (selection.size === 1 ? nodeById([...selection][0]) : null);
+    const el = node ? nodeEl(node.id) : null;
+    if (!node || !el) { toast("Stand on a card first — there is nothing to resize.", "error"); return; }
+    // A folded card has no body to measure and no grip of its own; expanding it is one key
+    // away, so the answer says which one rather than resizing something that is not shown.
+    if (node.collapsed) {
+        toast(`“${sourceTitle(node)}” is folded — ${kbKeyLabel("fold")} expands it first.`, "error");
+        return;
+    }
+    kbReleaseField();
+    kbCursor = {nodeId: node.id, mode: "node", index: 0};
+    kbSizeFloor = kbMeasureSizeFloor(node, el);
+    kbSizing = node.id;
+    kbSized = false;
+    kbApply();
+    toast(`Resizing “${sourceTitle(node)}” — arrows change its size, R or Esc finishes.`);
+}
+
+function kbStopSizing() {
+    if (!kbSizing) return;
+    const node = nodeById(kbSizing);
+    kbSizing = null;
+    kbSizeFloor = null;
+    // One history entry for the whole resize, the way a drag records one on release, so the
+    // arrows do not bury the graph's undo under a step per key press.
+    if (kbSized) {
+        kbSized = false;
+        scheduleEdges();
+        saveLocalSoon();
+        pushHistory();
+    }
+    kbApply();
+    if (node) toast(`“${sourceTitle(node)}” is ${node.w} × ${node.h}`);
+}
+
+// Growing is down and right, the same corner the grip drags from, so the card's top-left —
+// and every wire's start — stays where it was.
+function kbResizeStep(node, dw, dh) {
+    const el = nodeEl(node.id);
+    if (!el || !kbSizeFloor) return;
+    const width = node.w || el.offsetWidth;
+    const height = node.h || el.offsetHeight;
+    node.w = Math.max(kbSizeFloor.minW, Math.round(width + dw));
+    node.h = Math.max(kbSizeFloor.minH, Math.round(height + dh));
+    el.classList.add("resized");
+    el.style.width = node.w + "px";
+    el.style.height = node.h + "px";
+    kbSized = true;
+    scheduleEdges();
+    saveLocalSoon();
+}
+
 // I J K L move the camera over the graph: the keyboard's answer to dragging the empty
 // canvas. The view glides instead of stepping, so a tap nudges it a short way and a held
 // key settles into a steady speed.
@@ -4340,8 +4489,12 @@ function kbFields(node) {
     const el = node ? nodeEl(node.id) : null;
     if (!el) return [];
     // Buttons are here too: a boolean argument is a check-row button, and neither it nor a
-    // checkbox takes a caret, so Enter presses instead of typing.
-    return [...el.querySelectorAll("input, textarea, select, [contenteditable], button.check-row")]
+    // checkbox takes a caret, so Enter presses instead of typing. The add/remove buttons under
+    // the ports are the same kind of control, and for a Join or an f-string they are the only
+    // way to give the card another input, so they belong in the cycle rather than behind a
+    // mouse only. A note's colour swatches are the same case: six buttons, otherwise reachable
+    // only by pointer.
+    return [...el.querySelectorAll("input, textarea, select, [contenteditable], button.check-row, button.join-add, button.join-remove, button.note-swatch")]
         .filter(field => field.offsetParent !== null && !field.disabled && field.type !== "hidden");
 }
 
@@ -4366,6 +4519,10 @@ function kbEditField(node) {
     if (field.matches("button, input[type=checkbox], input[type=radio]")) {
         kbEditing = false;
         field.click();
+        // An add/remove press rebuilds the whole card, which throws the drawn field highlight
+        // away with it; the cursor is still on the same place in the new card, so it is put
+        // back at once instead of reappearing only when an arrow is next pressed.
+        kbApply();
         // A pressed toggle keeps the focus by default, so Enter would press it again after
         // the arrows have moved the highlight to another item.
         field.blur();
@@ -4494,6 +4651,30 @@ function kbHandleKey(ev) {
     const onControl = Boolean(active && (active.tagName === "BUTTON" || active.tagName === "A"));
     const node = nodeById(kbCursor.nodeId);
 
+    // R holds the card under the cursor in resize mode: the arrows change its width and
+    // height rather than walking the graph, R or Escape finishes, and any other key finishes
+    // the resize first and then does its own job, so nothing has to be pressed twice.
+    if (kbSizing) {
+        if (ev.key.startsWith("Arrow")) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const sized = nodeById(kbSizing);
+            if (!sized) { kbStopSizing(); return; }
+            const step = KB_SIZE_STEP;
+            kbResizeStep(sized,
+                ev.key === "ArrowLeft" ? -step : ev.key === "ArrowRight" ? step : 0,
+                ev.key === "ArrowUp" ? -step : ev.key === "ArrowDown" ? step : 0);
+            return;
+        }
+        if (ev.key === "Escape" || (kbIs("resize", ev) && !ev.shiftKey)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            kbStopSizing();
+            return;
+        }
+        kbStopSizing();
+    }
+
     if (ev.key === "Escape") {
         if (!kbPending && kbCursor.mode === "node") return;
         ev.preventDefault();
@@ -4586,14 +4767,20 @@ function kbHandleKey(ev) {
         kbPickPort(node, ports[index]);
         return;
     }
-    const toggle = {b: "bypass", f: "freeze", m: "collapse"}[ev.key.toLowerCase()];
+    const pressed = kbKeyId(ev);
+    const toggle = pressed === kbKeys.bypass ? "bypass"
+        : pressed === kbKeys.freeze ? "freeze"
+            : pressed === kbKeys.fold ? "collapse" : "";
     if (toggle && !ev.shiftKey && (selection.size || kbCursor.nodeId)) {
         ev.preventDefault();
         ev.stopPropagation();
         kbToggle(toggle);
         return;
     }
-    const pan = {i: "up", k: "down", j: "left", l: "right"}[ev.key.toLowerCase()];
+    const pan = pressed === kbKeys.up ? "up"
+        : pressed === kbKeys.down ? "down"
+            : pressed === kbKeys.left ? "left"
+                : pressed === kbKeys.right ? "right" : "";
     if (pan && !ev.shiftKey) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -4603,7 +4790,7 @@ function kbHandleKey(ev) {
     // Shift+E is the way in and the way out: on a function card it opens that function's own
     // canvas, and inside one it puts you back on the graph. The card under the cursor wins,
     // and with no cursor a lone selected function card stands in for it.
-    if (ev.shiftKey && ev.key.toLowerCase() === "e" && !ev.repeat) {
+    if (ev.shiftKey && kbIs("function", ev) && !ev.repeat) {
         if (editingFunctionId) {
             ev.preventDefault();
             ev.stopPropagation();
@@ -4633,8 +4820,8 @@ function kbHandleKey(ev) {
     }
     // − and = are the zoom buttons under the keyboard, at the same 1.18 step and about the
     // middle of the canvas, so the view does not slide away from what is being read.
-    const zoomStep = ev.key === "-" || ev.key === "_" ? 1 / 1.18
-        : ev.key === "=" || ev.key === "+" ? 1.18 : 0;
+    const zoomStep = pressed === kbKeys.zoomOut ? 1 / 1.18
+        : pressed === kbKeys.zoomIn ? 1.18 : 0;
     if (zoomStep) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -4642,13 +4829,19 @@ function kbHandleKey(ev) {
         zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, zoomStep);
         return;
     }
-    if (ev.key.toLowerCase() === "e" && !ev.shiftKey && node) {
+    if (kbIs("resize", ev) && !ev.shiftKey) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        kbStartSizing();
+        return;
+    }
+    if (kbIs("fields", ev) && !ev.shiftKey && node) {
         ev.preventDefault();
         ev.stopPropagation();
         kbOpenFields(node);
         return;
     }
-    if (ev.key.toLowerCase() === "w" && node) {
+    if (kbIs("wires", ev) && node) {
         ev.preventDefault();
         ev.stopPropagation();
         kbCycleWire(ev.shiftKey ? -1 : 1);
@@ -4662,8 +4855,10 @@ function bindKeyboardNodeNav() {
     // Let go of a pan key and the camera coasts to a stop; losing focus must not leave a
     // direction stuck down and the graph drifting.
     document.addEventListener("keyup", ev => {
-        const dir = {i: "up", k: "down", j: "left", l: "right"}[ev.key.toLowerCase()] ||
-            {ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right"}[ev.key];
+        const pressed = kbKeyId(ev);
+        const dir = pressed === kbKeys.up ? "up" : pressed === kbKeys.down ? "down"
+            : pressed === kbKeys.left ? "left" : pressed === kbKeys.right ? "right"
+                : {ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right"}[ev.key];
         if (dir) kbPan(dir, false);
     }, true);
     window.addEventListener("blur", () => {
@@ -4671,7 +4866,10 @@ function bindKeyboardNodeNav() {
     });
     // A press anywhere takes the caret out of the keyboard flow, so Escape falls back to the
     // editor's own meaning once the user is back on the canvas with the mouse.
-    document.addEventListener("pointerdown", () => { kbEditing = false; }, true);
+    document.addEventListener("pointerdown", () => {
+        kbEditing = false;
+        if (kbSizing) kbStopSizing();
+    }, true);
 }
 
 function removeEdge(id) {
@@ -5230,6 +5428,22 @@ function startMarquee(ev) {
 }
 
 /* The selection bar: what is selected, and the things you can do with it. */
+// Pop-ups sit above that bar rather than across it: the bar is often what the message is
+// about, so covering it makes both unreadable. Measured against the viewport instead of
+// hard-coded, so a bar that wraps to two lines on a phone still clears the toast.
+function syncToastOffset() {
+    const host = $("#toasts");
+    if (!host) return;
+    let lift = 0;
+    try {
+        const bar = $(".selection-bar", stage);
+        if (bar && !bar.hidden) {
+            lift = Math.max(0, Math.round(window.innerHeight - bar.getBoundingClientRect().top + 8));
+        }
+    } catch { /* before the canvas exists */ }
+    host.style.bottom = lift ? lift + "px" : "";
+}
+
 let selBar = null;
 function selectionBar() {
     if (!selBar || selBar.parentElement !== stage) {
@@ -5255,6 +5469,7 @@ function updateSelectionBar() {
     if (!selection.size) {
         bar.hidden = true;
         bar.innerHTML = "";
+        syncToastOffset();
         return;
     }
     bar.hidden = false;
@@ -5267,6 +5482,9 @@ function updateSelectionBar() {
         ${canGroup ? `<button class="sel-btn" data-sel-action="fn" title="Move the selection into a new function">${iconFill("flask")} Function</button>` : ""}
         <button class="sel-btn" data-sel-action="delete" title="Delete the selection (Delete)">${iconFill("trash")} Delete</button>
     `;
+    // Now that the bar has its content its height is known, so a pop-up already on screen
+    // steps up above it instead of waiting for the next message.
+    syncToastOffset();
 }
 
 // Cancels the pan in progress: the touch layer calls it when a second finger lands, so a
@@ -6303,7 +6521,29 @@ function magicShiftVariants(name, meta) {
     return out;
 }
 
-function magicCandidates(scope, includeSlow) {
+// The argument of an operation that takes a key: "Key", "Keyword", "Numeric key",
+// "Initial key", "One-time key", "Passphrase", "Password", "Secret". A crib is left out on
+// purpose — it is known plaintext, not a key, and the brute-force operations are never
+// probed anyway.
+function magicKeyArgIndex(meta) {
+    return (meta.args || []).findIndex(arg => arg && arg.type === "string" &&
+        (/\bkey(?:word)?$/i.test(String(arg.name || "")) || /passphrase|password|secret/i.test(String(arg.name || ""))));
+}
+
+// With a key in hand the keyed ciphers stop being unguessable: a Vigenère or Beaufort decode
+// with the right key lands on text, which is exactly the evidence the scorer looks for. The
+// keyed pass is added beside the ordinary one rather than replacing it, so a cryptogram that
+// never needed a key still finds its answer, and both fill one ranking.
+function magicKeyedVariants(name, meta, key) {
+    if (!key) return [];
+    const index = magicKeyArgIndex(meta);
+    if (index < 0) return [];
+    const args = (meta.defaults || []).slice();
+    args[index] = key;
+    return [{op: name, args, label: `${name} (key)`, keyed: true}];
+}
+
+function magicCandidates(scope, includeSlow, key = "") {
     const loaded = engine.loadedModules();
     const out = [];
     for (const [name, meta] of Object.entries(OPS)) {
@@ -6315,6 +6555,9 @@ function magicCandidates(scope, includeSlow) {
         if (!includeSlow && MAGIC_SKIP.has(name)) continue;
         if (scope === "Core module only" && meta.module !== "Default") continue;
         if (scope === "Loaded modules only" && !loaded.has(meta.module)) continue;
+        // Keyed first, so a keyed decode and its unkeyed twin landing on the same text keep
+        // the keyed row, which is the one that says what was done to get there.
+        out.push(...magicKeyedVariants(name, meta, key));
         out.push({op: name, args: meta.defaults || []});
         out.push(...magicShiftVariants(name, meta));
     }
@@ -6327,6 +6570,17 @@ const MAGIC_MIN_GAIN = 2;
 // The bar at which the node stops saying "nothing looks convincing". A top finding that
 // clears it and actually reads turns the list into answers rather than guesses.
 const MAGIC_CONFIDENT_SCORE = 55;
+// How far a result from the keyed pass is lifted when a key was supplied. A key is a claim
+// about which cipher this is, so its results are preferred over unkeyed guesses of the same
+// quality — but the lift goes through the caps like every other prior, so it reorders close
+// results and can never make a scrambled one look like an answer.
+const MAGIC_KEYED_PRIOR = 10;
+
+// Whether a probed row came from the keyed pass. The worker echoes the candidate's label, so
+// the label is the dependable mark even if a field is dropped on the way back.
+function magicResultIsKeyed(result) {
+    return Boolean(result.keyed) || / \(key\)$/.test(String(result.label || ""));
+}
 
 // The input's own quality, measured the same way as a result. An input that is itself noise
 // (a message, markup) scores below zero there, and is treated as zero rather than handing
@@ -6336,18 +6590,55 @@ function magicInputQuality(inputText) {
     return score > -400 ? score : 0;
 }
 
+/* An operation can refuse the input in its output instead of throwing, and then that refusal
+ * comes back from the probe as a perfectly successful result: LS47 answers "Letter H is not
+ * included in LS47", and Magic was offering it as a candidate. A complaint about the input is
+ * never a decode of it, so it is dropped before scoring. The tests are about the whole line
+ * and its shape — a complaint is short, opens with what is wrong and usually has no full
+ * stop — so a real message that merely mentions a word such as "invalid" is kept. */
+const MAGIC_REFUSAL = [
+    /^(?:error|exception)\b/i,
+    /^(?:invalid|unsupported|malformed|truncated|unexpected)\b/i,
+    // "Missing argument: Key" is a refusal; "missing pieces of the map are in the attic" is a
+    // message, so only the message's technical vocabulary counts here.
+    /^(?:missing|required) (?:argument|input|option|key|parameter|field|value|data)\b/i,
+    /^not (?:a valid|valid|enough|supported)\b/i,
+    /^no (?:valid|matching|suitable)\b/i,
+    // "Letter H is not included in LS47", and the same shape from other table ciphers.
+    /\b(?:is|are) not (?:included|supported|allowed|recognised|recognized) in\b/i,
+    /\bdoes not (?:fit|match|correspond)\b/i,
+    /\b(?:the )?(?:key|alphabet|input|ciphertext|plaintext|password|word|text) must (?:be|contain|have)\b/i
+];
+
+function magicIsRefusal(text) {
+    const line = String(text || "").trim();
+    // A refusal is a line or two, not a document: anything long enough to be a message is
+    // left to the scorer even if it contains one of these phrases.
+    if (!line || line.length > 200) return false;
+    if (MAGIC_REFUSAL.some(pattern => pattern.test(line))) return true;
+    // "Cannot decode that" is a refusal; "Cannot wait to see you." is a message.
+    return /^(?:cannot|can ?not|unable to)\b/i.test(line) && !/[.!?]$/.test(line);
+}
+
 function rankMagicResults(results, inputText, limit = Infinity) {
     const baseline = magicInputQuality(inputText);
     const best = new Map();
     for (const result of results) {
         if (!result.ok || !result.text) continue;
         const text = String(result.text);
+        // The operation refused the input; whatever it said about that is not a decode.
+        if (magicIsRefusal(text)) continue;
         const scored = scoreMagicResult(text, inputText, result.op);
         if (scored.score <= -400) continue;
         const {notes, knownWords, structural, reads} = scored;
         // One nudge per operation, then the same caps, so the prior can only reorder results
         // that were already close and can never lift a capped result above its ceiling.
-        const prior = MAGIC_OP_PRIOR.get(result.op) || 0;
+        const opPrior = MAGIC_OP_PRIOR.get(result.op) || 0;
+        // A supplied key is evidence the user already has, not a guess: it says this is one of
+        // the keyed ciphers. Its pass is lifted further than any single operation's prior, so
+        // a worked keyed decode sits above an unkeyed guess of similar quality.
+        const keyed = magicResultIsKeyed(result);
+        const prior = opPrior + (keyed ? MAGIC_KEYED_PRIOR : 0);
         let score = scored.score;
         if (prior) {
             score = magicApplyCaps(score + prior, {
@@ -6357,7 +6648,10 @@ function rankMagicResults(results, inputText, limit = Infinity) {
                 knownRatio: scored.knownRatio || 0,
                 tokens: (text.match(MAGIC_WORD) || []).length
             });
-            if (score !== scored.score) notes.push(`prior ${prior > 0 ? "+" : ""}${prior}`);
+            if (score !== scored.score) {
+                if (opPrior) notes.push(`prior ${opPrior > 0 ? "+" : ""}${opPrior}`);
+                if (keyed) notes.push("run with your key");
+            }
         }
         // Different operations routinely land on the same text — two base64 dialects, a decode
         // and its twin. One row per distinct result, keeping whichever scored highest.
@@ -6365,6 +6659,7 @@ function rankMagicResults(results, inputText, limit = Infinity) {
         const row = {
             op: result.op,
             label: result.label || result.op,
+            keyed,
             args: result.args || OPS[result.op]?.defaults || [],
             score,
             gain: score - baseline,
@@ -6454,12 +6749,18 @@ async function runMagicNode(node, inputBytes, argValues) {
     const topN = clamp(Math.round(Number(argValues[0]) || 10), 1, 40);
     const scope = String(argValues[1] || "Everything (loads every module)");
     const includeSlow = Boolean(argValues[2]);
+    // The node's second input: typed into its Key box or wired into the Key port. Empty means
+    // the sweep is exactly the one it always was. Only text is a key — a bundle arriving on
+    // the port must not turn into "[object Object]" and fill every keyed cipher with it.
+    const keyArg = argValues[3];
+    const key = typeof keyArg === "string" ? keyArg.trim() : "";
     const inputText = utf8(inputBytes).slice(0, 4000);
     const buffer = inputBytes.buffer.slice(inputBytes.byteOffset, inputBytes.byteOffset + inputBytes.byteLength);
     if (!inputBytes.length) return {error: "Magic needs an input", rows: []};
 
-    const candidates = magicCandidates(scope, includeSlow);
+    const candidates = magicCandidates(scope, includeSlow, key);
     if (!candidates.length) return {error: "No operations matched that scope", rows: []};
+    node._magicKey = key;
     // Modules have to be in the worker before their operations can run.
     const modules = [...new Set(candidates.map(c => OPS[c.op]?.module).filter(m => m && m !== "Default"))];
     for (const name of modules) {
@@ -6471,9 +6772,15 @@ async function runMagicNode(node, inputBytes, argValues) {
     }
 
     const chunks = magicChunkCount(candidates.length);
-    setRunStatus("running", chunks > 1
-        ? `Magic is testing ${candidates.length} operations in ${chunks} chunks…`
-        : `Magic is testing ${candidates.length} operations…`);
+    // The keyed rows read as ordinary results, so the count says how many of them had the
+    // key put into them rather than leaving the extra work invisible.
+    // Only the key-filled rows count here: the Caesar variants carry a label of their own and
+    // were not run with any key.
+    const keyed = key ? candidates.filter(c => c.keyed).length : 0;
+    setRunStatus("running", [
+        `Magic is testing ${candidates.length} operations${chunks > 1 ? ` in ${chunks} chunks` : ""}…`,
+        keyed ? `${keyed} of them with the key` : ""
+    ].filter(Boolean).join(" "));
     const probe = await probeMagic(buffer, candidates, modules, chunks);
     const ranked = rankMagicResults(probe.results || [], inputText, topN);
     node._magicProbed = candidates.length;
@@ -8867,8 +9174,13 @@ const PALETTE_COMMANDS = [
     {label: "Fit to view", keys: "zoom frame centre center show all", hint: "View", run: () => fitView()},
     {label: "Undo", keys: "back revert history", hint: "Ctrl+Z", run: () => undo()},
     {label: "Redo", keys: "forward history", hint: "Ctrl+Shift+Z", run: () => redo()},
-    {label: "Save in this browser", keys: "save graph store local", hint: "Ctrl+S", run: () => saveCurrentGraph()},
-    {label: "Download graph file", keys: "export download json file", hint: "Ctrl+Shift+S", run: () => saveGraphFile()},
+
+    {label: "Rename selected node", keys: "rename title name label function operation step",
+        hint: "Canvas", enterHint: "type a new name", run: () => renameSelectedNode()},
+    // File work lives one step deeper: saving, loading what this browser kept, and the two
+    // ways a graph leaves or arrives as a file are all behind this row.
+    {label: "Graph file", keys: "file graph save load open import export download json browser storage backup",
+        hint: "File", enterHint: "open the file submenu", sub: () => graphFilePaletteItems()},
     {label: "Copy share link", keys: "share url link clipboard", hint: "Link", run: () => copyShareLink()},
     {label: "Copy as CyberChef recipe", keys: "cyberchef recipe export copy operations chain", hint: "File", run: () => copyAsRecipe()},
     {label: "Paste a CyberChef recipe", keys: "cyberchef recipe import paste load operations chain", hint: "File", run: () => pasteRecipe()},
@@ -8878,7 +9190,8 @@ const PALETTE_COMMANDS = [
     {label: "Toggle snap to grid", keys: "grid snap align magnet", hint: "Canvas", run: () => setSnap(!snapEnabled)},
     {label: "Order nodes", keys: "order arrange tidy sort layout align autolayout clean up", hint: "Canvas", run: () => orderNodes()},
     {label: "Verification lab", keys: "lab check test verify wiring", hint: "Checks", run: () => openLab()},
-    {label: "Help and shortcuts", keys: "help manual documentation shortcut", hint: "?", run: () => $("#helpBtn")?.click()}
+    {label: "Help and shortcuts", keys: "help manual documentation shortcut", hint: "?", run: () => $("#helpBtn")?.click()},
+    {label: "Settings", keys: "settings keyboard keys bind rebind controls shortcuts theme palette colour color appearance", hint: "⚙", run: () => openSettings()}
 ];
 
 let cmdkEl = null, cmdkCard = null, cmdkInput = null, cmdkList = null, cmdkEnter = null, cmdkRows = [], cmdkIndex = 0;
@@ -8886,15 +9199,126 @@ let cmdkEl = null, cmdkCard = null, cmdkInput = null, cmdkList = null, cmdkEnter
 let cmdkReplace = false;
 // Last pointer position in viewport coordinates; the box opens where the user's pointer is.
 let cmdkPointer = null;
-// When the pointer last moved. A pointer that has sat still means a keyboard request, and
-// the box opens in the middle of the screen instead of under a pointer nobody is using.
-let cmdkPointerAt = 0;
+// Where this opening of the box belongs, decided once when it opens: under the pointer if one
+// has ever been seen, otherwise centred on the graph for a keyboard-only session. Held for
+// every keystroke of that opening, so a box that opened at the pointer cannot jump to the
+// middle mid-typing, and one that opened centred stays there when the pointer moves.
+let cmdkCentred = false;
+// The rows of any submenus the box has stepped into, outermost first. Empty is the top level,
+// so Escape and an empty Backspace walk back out one level at a time.
+let cmdkTrail = [];
+
+// The File row opens this: the browser's named saves, the file in and out, and the backup of
+// everything this browser holds. Built when the submenu opens, so a graph saved a moment ago
+// is already in the list.
+function graphFilePaletteItems() {
+    const items = [
+        {kind: "command", label: "Save in this browser", keys: "save graph store local", hint: "Ctrl+S",
+            run: () => saveCurrentGraph()},
+        {kind: "command", label: "Save as…", keys: "save name as copy new", hint: "File",
+            run: () => promptSaveGraph()},
+        {kind: "command", label: "Download graph file", keys: "export download json file save as", hint: "Ctrl+Shift+S",
+            run: () => saveGraphFile()},
+        {kind: "command", label: "Import a graph file…", keys: "import open load json file upload", hint: "File",
+            run: () => $("#openFileInput")?.click()},
+        {kind: "command", label: "Export every graph saved here", keys: "export backup all saves download", hint: "File",
+            run: () => exportAllSavedGraphs()}
+    ];
+    const saves = savedGraphEntries();
+    if (saves.length) {
+        items.splice(2, 0, ...saves.map(entry => ({
+            kind: "command", label: `Load “${entry.name}”`, keys: "load open saved graph browser",
+            hint: relativeTime(entry.savedAt), run: () => loadNamedGraph(entry.name)
+        })));
+    } else {
+        items.splice(2, 0, {kind: "command", label: "Nothing saved in this browser yet",
+            keys: "load open saved graph browser", hint: "Load",
+            run: () => toast("Nothing saved in this browser yet.")});
+    }
+    return items;
+}
+
+// Rename without a double-click: the same in-place title edit, with the name selected, so a
+// keyboard-only session can type straight over it. Enter keeps the new name, Escape the old.
+function renameSelectedNode() {
+    const node = selection.size === 1 ? nodeById([...selection][0]) : null;
+    if (!node) { toast("Select one node to rename it.", "error"); return; }
+    const el = nodeEl(node.id);
+    const titleEl = el ? $("[data-node-title]", el) : null;
+    if (!titleEl) { toast(`“${sourceTitle(node)}” is not on screen to rename.`, "error"); return; }
+    ensureNodeVisible(node);
+    beginTitleEdit(node, titleEl);
+}
+
+// A function is named by its definition, and every instance follows it, so this is not the
+// same edit as a node's own title: the prompt is the keyboard's own dialog, and an open
+// editor's name field is kept in step with the answer.
+function renameFunctionDefinition(id) {
+    const def = functionById(id);
+    if (!def) return;
+    const name = prompt("Name this function:", def.name || "");
+    if (name === null) return;
+    const clean = name.trim().slice(0, 80);
+    if (!clean) return;
+    def.name = clean;
+    if (fnEditor.name && editingFunctionId === id) fnEditor.name.value = clean;
+    renderAllNodes();
+    saveLocalSoon();
+    toast(`Function renamed to “${clean}”`);
+}
+
+// The drawer focuses its own search field when it opens, so this is "open the panel and put
+// the caret in it" in one call, which is what the row promises.
+function openSymbolPalette() {
+    if (!symbolDrawerEl) { toast("The symbol panel is not loaded on this page.", "error"); return; }
+    setSymbolDrawer(true);
+    $("#symSearch", symbolDrawerEl)?.focus();
+}
+
+// Shutting it from the box, which hands the keyboard back to the rail button — the same place
+// the drawer's own Escape puts it, so the panel leaves no focus behind in a hidden element.
+function closeSymbolPalette() {
+    if (!symbolDrawerEl) return;
+    setSymbolDrawer(false);
+    symbolRailBtn?.focus();
+}
+
+// The rows inside an open submenu, or null at the top level.
+function cmdkSubmenu() {
+    const parent = cmdkTrail[cmdkTrail.length - 1];
+    if (!parent) return null;
+    const sub = typeof parent.sub === "function" ? parent.sub() : parent.sub;
+    return Array.isArray(sub) ? sub : [];
+}
 
 // Built fresh on each keystroke rather than cached: a function added a moment ago has to be
 // findable, and a few hundred small objects cost nothing next to a render.
 function commandPaletteItems() {
     // Node-shaped rows take the point the palette hands them; command rows ignore it.
     const items = PALETTE_COMMANDS.map(c => ({kind: "command", label: c.label, keys: c.keys, hint: c.hint, run: c.run}));
+    // Auto-run is the one command whose row is written here rather than in the fixed list: it
+    // is built under Run graph on every opening, so the label always says what Enter will do
+    // to the state the canvas is in now, not the one it started in.
+    items.splice(1, 0, {
+        kind: "command",
+        label: state?.autoRun ? "Turn auto-run off" : "Turn auto-run on",
+        keys: "auto run automatic live update rerun toggle",
+        hint: state?.autoRun ? "Auto-run on" : "Auto-run off",
+        enterHint: state?.autoRun ? "stop re-running as you edit" : "re-run as you edit",
+        run: () => toggleAutoRun()
+    });
+    // The symbol drawer row points at a panel that can already be open, so it is built here
+    // too: while the drawer is up the row closes it, and the label says which of the two
+    // Enter will do to the panel as it stands.
+    const symbolsOpen = Boolean(symbolDrawerEl?.classList.contains("open"));
+    items.splice(5, 0, {
+        kind: "command",
+        label: symbolsOpen ? "Close symbol panel" : "Open symbol panel",
+        keys: "symbol symbols cipher ciphers alphabet alphabets glyph glyphs drawer panel browse hide close shut",
+        hint: "Symbols",
+        enterHint: symbolsOpen ? "close it and put the caret back on its rail" : "open it and put the caret in its search",
+        run: () => (symbolsOpen ? closeSymbolPalette() : openSymbolPalette())
+    });
     // One node selected, and the box also offers that node's way back. A plain opening puts
     // the inverse right after it; the Ctrl+Shift+K opening swaps the node for it in place, so
     // the row says which of the two it will do.
@@ -8925,6 +9349,16 @@ function commandPaletteItems() {
         items.push({kind: "function", label: fn.name, keys: "function subgraph instance",
             hint: "Function", fnId: fn.id, run: p => addFunctionNode(fn.id, p?.x, p?.y)});
     }
+    // A function's name belongs to the definition, not to one node's title, so it gets its own
+    // row whenever a function is in reach: selected on the canvas, or open in the editor.
+    const fnDef = selectedNode?.type === "fn" ? functionById(selectedNode.fnId)
+        : editingFunctionId ? functionById(editingFunctionId) : null;
+    if (fnDef) {
+        items.push({kind: "command", label: `Rename function “${fnDef.name}”`,
+            keys: "rename function definition shared name every instance",
+            hint: "Function", enterHint: "type a new name for the function",
+            run: () => renameFunctionDefinition(fnDef.id)});
+    }
     // Symbol ciphers go on the canvas the way the drawer puts them there, so the box offers
     // them too. One row per cipher, named from the index rather than the art: typing
     // "pigpen" finds the cipher before a visit has paid for the download.
@@ -8946,7 +9380,7 @@ function commandPaletteItems() {
 // the query, then a word of the name that does, then anything that merely contains it.
 // Every word of the query has to land somewhere, so "xor 13" still finds XOR with key 13.
 function rankCommandPalette(query) {
-    const items = commandPaletteItems();
+    const items = cmdkSubmenu() || commandPaletteItems();
     const q = query.trim().toLowerCase();
     if (!q) return items.slice(0, 40);
     const words = q.split(/\s+/).filter(Boolean);
@@ -8981,18 +9415,18 @@ function highlightCommandPaletteRow(index) {
 }
 
 // Placed at the pointer, like a context menu, and clamped so the whole card stays on screen.
-// After two still seconds the request came from the keyboard, so the box is centred on the
-// graph instead of waiting under a pointer nobody is using.
+// With no pointer known the box is centred on the graph instead — but that choice was made
+// when the box opened, not here, so re-running this as the user types never moves it.
 function positionCommandPalette() {
     if (!cmdkCard) return;
     const pad = 8;
     const w = cmdkCard.offsetWidth, h = cmdkCard.offsetHeight;
-    const idle = !cmdkPointer || performance.now() - cmdkPointerAt > 2000;
+    const at = cmdkPointer && !cmdkCentred ? cmdkPointer : null;
     // The middle of the graph, not the middle of the window: the node list and the toolbar
     // take a column and a strip of the window that are not canvas.
     const rect = stage.getBoundingClientRect();
-    let x = idle ? rect.left + (rect.width - w) / 2 : cmdkPointer.x;
-    let y = idle ? rect.top + (rect.height - h) / 2 : cmdkPointer.y;
+    let x = at ? at.x : rect.left + (rect.width - w) / 2;
+    let y = at ? at.y : rect.top + (rect.height - h) / 2;
     x = Math.min(Math.max(pad, x), Math.max(pad, window.innerWidth - w - pad));
     y = Math.min(Math.max(pad, y), Math.max(pad, window.innerHeight - h - pad));
     cmdkCard.style.left = `${Math.round(x)}px`;
@@ -9002,12 +9436,20 @@ function positionCommandPalette() {
 function renderCommandPalette(query) {
     cmdkRows = rankCommandPalette(query);
     cmdkIndex = 0;
+    // The first row of a submenu is the way back to the list that opened it, drawn above the
+    // matches and outside them so typing never filters it away.
+    const back = cmdkTrail.length
+        ? `<div class="cmdk-row cmdk-back" data-cmdk-back="1" title="Back to every command">
+            <span class="cmdk-name">‹ ${esc(cmdkTrail[cmdkTrail.length - 1].label)}</span>
+            <span class="cmdk-hint">Back</span>
+        </div>`
+        : "";
     if (!cmdkRows.length) {
-        cmdkList.innerHTML = `<div class="cmdk-empty">Nothing matched “${esc(query.trim())}”.<br>Try “rot13”, “note” or “save”.</div>`;
+        cmdkList.innerHTML = back + `<div class="cmdk-empty">Nothing matched “${esc(query.trim())}”.<br>Try “rot13”, “note” or “save”.</div>`;
         positionCommandPalette();
         return;
     }
-    cmdkList.innerHTML = cmdkRows.map((item, i) => `<div class="cmdk-row" role="option" aria-selected="false" data-cmdk-row="${i}" title="${esc(item.keys || item.label)}">
+    cmdkList.innerHTML = back + cmdkRows.map((item, i) => `<div class="cmdk-row${item.sub ? " has-sub" : ""}" role="option" aria-selected="false" data-cmdk-row="${i}" title="${esc(item.keys || item.label)}">
         <span class="cmdk-name">${esc(item.label)}</span>
         <span class="cmdk-hint">${esc(item.hint || "")}</span>
     </div>`).join("");
@@ -9018,6 +9460,10 @@ function renderCommandPalette(query) {
 function openCommandPalette(replace = false) {
     if (!cmdkEl) return;
     cmdkReplace = Boolean(replace);
+    cmdkTrail = [];
+    // One placement decision per opening. A pointer that has sat still for a while still
+    // counts as the place to open at; only never having had one means centred.
+    cmdkCentred = !cmdkPointer;
     cmdkEl.hidden = false;
     cmdkInput.value = "";
     renderCommandPalette("");
@@ -9027,7 +9473,27 @@ function openCommandPalette(replace = false) {
 function closeCommandPalette() {
     if (!cmdkEl || cmdkEl.hidden) return;
     cmdkEl.hidden = true;
+    cmdkTrail = [];
     cmdkInput.blur();
+}
+
+// One step out: a submenu closes back onto the list that opened it, and the top level closes
+// altogether. Escape and Backspace on an empty query both mean this.
+function cmdkBack() {
+    if (!cmdkTrail.length) { closeCommandPalette(); return; }
+    cmdkTrail.pop();
+    cmdkInput.value = "";
+    renderCommandPalette("");
+    cmdkInput.focus();
+}
+
+// A row with a `sub` list steps into it instead of closing: the same card, now showing the
+// children, with the query cleared so all of them are listed.
+function cmdkOpenSubmenu(item) {
+    cmdkTrail.push(item);
+    cmdkInput.value = "";
+    renderCommandPalette("");
+    cmdkInput.focus();
 }
 
 // What a palette row would build. Commands have no node, which is how "Run graph" and the
@@ -9253,6 +9719,7 @@ function updateCommandPaletteAction() {
 function runCommandPaletteRow(index) {
     const item = cmdkRows[index];
     if (!item) return;
+    if (item.sub) { cmdkOpenSubmenu(item); return; }
     // A node picked from the box goes where the box was: at the pointer, in graph coordinates.
     // Clamped to the canvas, since the shortcut also fires with the pointer over the sidebar.
     let at;
@@ -9306,7 +9773,6 @@ function initCommandPalette() {
     // pointer from us. Taps count too, for the entry that opens the box without a mouse move.
     const trackPointer = ev => {
         cmdkPointer = {x: ev.clientX, y: ev.clientY};
-        cmdkPointerAt = performance.now();
     };
     window.addEventListener("pointermove", trackPointer, {capture: true, passive: true});
     window.addEventListener("pointerdown", trackPointer, {capture: true, passive: true});
@@ -9317,7 +9783,8 @@ function initCommandPalette() {
         if (ev.key === "ArrowDown") { ev.preventDefault(); highlightCommandPaletteRow(cmdkIndex + 1); }
         else if (ev.key === "ArrowUp") { ev.preventDefault(); highlightCommandPaletteRow(cmdkIndex - 1); }
         else if (ev.key === "Enter") { ev.preventDefault(); runCommandPaletteRow(cmdkIndex); }
-        else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); closeCommandPalette(); }
+        else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); cmdkBack(); }
+        else if (ev.key === "Backspace" && !cmdkInput.value && cmdkTrail.length) { ev.preventDefault(); cmdkBack(); }
     });
     // A click on the dimmed area closes it; a click on the card is the user's, not the mask's.
     cmdkEl.addEventListener("pointerdown", ev => { if (ev.target === cmdkEl) { ev.preventDefault(); closeCommandPalette(); } });
@@ -9329,6 +9796,7 @@ function initCommandPalette() {
         if (i !== cmdkIndex) highlightCommandPaletteRow(i);
     });
     cmdkList.addEventListener("click", ev => {
+        if (ev.target.closest?.("[data-cmdk-back]")) { cmdkBack(); return; }
         const row = ev.target.closest?.("[data-cmdk-row]");
         if (row) runCommandPaletteRow(Number(row.dataset.cmdkRow));
     });
@@ -10466,6 +10934,73 @@ function pasteRecipe() {
 }
 
 /* ================================================================ theme */
+/* A palette is the ground a theme is drawn on. Both readings of every palette live in
+ * dev/styles.css under html[data-palette="…"], and data-theme still chooses between them, so
+ * the sun and moon button keeps working whatever palette is picked. The default palette is
+ * the plain :root block, which is why it carries no attribute at all. */
+const PALETTES = [
+    {id: "default", name: "Folio", note: "The original blue on paper"},
+    {id: "ember", name: "Ember", note: "Warm sand and rust"},
+    {id: "nordic", name: "Nordic", note: "Cool slate and ice"},
+    {id: "forest", name: "Forest", note: "Moss and pine"},
+    {id: "plum", name: "Plum", note: "Violet and ink"},
+    {id: "mono", name: "Graphite", note: "Grey on grey, no hue"},
+];
+// What the page was painted with before this script ran, so the panel opens on the truth.
+let paletteId = document.documentElement.dataset.palette || "default";
+
+// The browser paints its own chrome from this meta tag. Reading --bg back means a palette
+// supplies its colour once, in the stylesheet, instead of a second copy in here.
+function syncThemeColor() {
+    const meta = $('meta[name="theme-color"]');
+    if (!meta) return;
+    const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+    if (bg) meta.content = bg;
+}
+
+function syncPaletteButtons() {
+    for (const btn of $$("#paletteList .palette-choice")) {
+        const on = btn.dataset.palette === paletteId;
+        btn.classList.toggle("on", on);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+}
+
+function setPalette(id, save = true) {
+    const palette = PALETTES.find(p => p.id === id) || PALETTES[0];
+    paletteId = palette.id;
+    if (palette.id === "default") delete document.documentElement.dataset.palette;
+    else document.documentElement.dataset.palette = palette.id;
+    if (save) localStorage.setItem(PALETTE_KEY, palette.id);
+    syncPaletteButtons();
+    syncThemeColor();
+}
+
+function renderPalettes() {
+    const list = $("#paletteList");
+    if (!list || list.childElementCount) return;
+    for (const palette of PALETTES) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "palette-choice";
+        btn.dataset.palette = palette.id;
+        btn.setAttribute("aria-pressed", "false");
+        btn.title = palette.note;
+        const chip = document.createElement("span");
+        chip.className = "palette-chip";
+        chip.setAttribute("aria-hidden", "true");
+        chip.innerHTML = "<i></i><i></i><i></i>";
+        const name = document.createElement("span");
+        name.className = "palette-name";
+        name.textContent = palette.name;
+        const note = document.createElement("span");
+        note.className = "palette-note";
+        note.textContent = palette.note;
+        btn.append(chip, name, note);
+        list.append(btn);
+    }
+}
+
 function setTheme(theme) {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem(THEME_KEY, theme);
@@ -10474,13 +11009,14 @@ function setTheme(theme) {
         btn.innerHTML = iconFill(theme === "dark" ? "sun" : "moon");
         btn.title = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
     }
-    const meta = $('meta[name="theme-color"]');
-    if (meta) meta.content = theme === "dark" ? "#0b0d10" : "#ecece8";
+    syncThemeColor();
 }
 function initTheme() {
     let saved = localStorage.getItem(THEME_KEY);
     if (!saved) saved = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     setTheme(saved);
+    const palette = localStorage.getItem(PALETTE_KEY);
+    setPalette(PALETTES.some(p => p.id === palette) ? palette : "default", false);
 }
 
 /* ================================================================ verification lab */
@@ -12981,6 +13517,7 @@ function bindGlobalEvents() {
     document.addEventListener("keydown", ev => {
         if (ev.key === "Escape") {
             if (helpOpen()) { closeHelp(); return; }
+            if (settingsOpen()) { closeSettings(); return; }
             if (editingFunctionId) { closeFunctionEditor(); return; }
             if (! $("#lab").hidden) { closeLab(); return; }
             if (connection) {
@@ -13697,6 +14234,159 @@ function initHelp() {
         }
     });
 }
+
+/* ================================================================ keyboard settings
+ * The gear in the sidebar. Every canvas command is a row: click a key, press the one you
+ * want, and the handler answers to it from the next press. Arrows, Enter, Escape, Delete and
+ * 1-9 stay fixed — they are how every state is left, so they cannot be taken away and leave
+ * a card, a port pick or a box with no way out.
+ */
+let kbCapture = null;
+
+function settingsOpen() {
+    const modal = $("#settings");
+    return Boolean(modal && !modal.hidden);
+}
+
+function kbKeyLabel(id) {
+    const binding = kbBinding(id);
+    const key = kbKeys[id] || "";
+    const shown = key === " " ? "Space" : /^[a-z]$/.test(key) ? key.toUpperCase() : key;
+    return (binding?.shift ? "Shift+" : "") + shown;
+}
+
+function kbSyncBindings() {
+    for (const btn of $$("#kbBindList .kb-key")) {
+        const id = btn.dataset.kbAction;
+        btn.textContent = kbCapture === id ? "Press a key…" : kbKeyLabel(id);
+        btn.classList.toggle("listening", kbCapture === id);
+    }
+    // The fixed keys are spelled out once, in the panel's own note under the list; this line
+    // only speaks while a row is listening, so the two never say the same thing.
+    const hint = $("#kbHint");
+    if (hint) hint.textContent = kbCapture ? "Press a letter, number or symbol. Escape cancels." : "";
+}
+
+function kbRenderBindings() {
+    const list = $("#kbBindList");
+    if (!list) return;
+    list.innerHTML = "";
+    for (const binding of KB_BINDINGS) {
+        const row = document.createElement("div");
+        row.className = "kb-row";
+        const name = document.createElement("div");
+        name.className = "kb-row-name";
+        const title = document.createElement("span");
+        title.textContent = binding.label;
+        const area = document.createElement("small");
+        area.textContent = binding.area;
+        name.append(title, area);
+        const key = document.createElement("button");
+        key.type = "button";
+        key.className = "kb-key";
+        key.dataset.kbAction = binding.id;
+        key.title = "Click, then press the key you want";
+        row.append(name, key);
+        list.append(row);
+    }
+    kbSyncBindings();
+}
+
+// Two actions may share a character while one of them needs Shift; they may not share the
+// same chord, so a clash hands the other action the key this one is leaving.
+function kbAssign(action, key) {
+    const binding = kbBinding(action);
+    if (!binding) return;
+    const old = kbKeys[action];
+    const clash = KB_BINDINGS.find(other => other.id !== action && kbKeys[other.id] === key &&
+        Boolean(other.shift) === Boolean(binding.shift));
+    if (clash) kbKeys[clash.id] = old;
+    kbKeys[action] = key;
+    kbCapture = null;
+    kbSaveKeys();
+    kbSyncBindings();
+    toast(`${binding.label}: ${kbKeyLabel(action)}${clash ? ` · ${clash.label} took ${kbKeyLabel(clash.id)}` : ""}`);
+}
+
+function openSettings() {
+    const modal = $("#settings");
+    if (!modal) return;
+    kbCapture = null;
+    kbRenderBindings();
+    renderPalettes();
+    syncPaletteButtons();
+    modal.hidden = false;
+    $("#settingsDone")?.focus();
+}
+
+function closeSettings() {
+    const modal = $("#settings");
+    if (!modal) return;
+    kbCapture = null;
+    modal.hidden = true;
+}
+
+function initSettings() {
+    const modal = $("#settings");
+    if (!modal) return;
+    const gear = $("#settingsBtn");
+    if (gear) {
+        gear.innerHTML = iconFill("settings");
+        gear.addEventListener("click", openSettings);
+    }
+    const close = $("#settingsClose");
+    if (close) {
+        close.innerHTML = iconFill("x");
+        close.addEventListener("click", closeSettings);
+    }
+    $("#settingsDone")?.addEventListener("click", closeSettings);
+    modal.addEventListener("click", ev => { if (ev.target === modal) closeSettings(); });
+    $("#kbReset")?.addEventListener("click", () => {
+        for (const binding of KB_BINDINGS) kbKeys[binding.id] = binding.def;
+        kbCapture = null;
+        kbSaveKeys();
+        kbSyncBindings();
+        toast("Every key is back to its default");
+    });
+    // A row starts listening and the next press is the new key. The canvas stands aside
+    // while this panel is open, so the press that binds is never also a command.
+    modal.addEventListener("click", ev => {
+        const btn = ev.target.closest?.(".kb-key");
+        if (!btn) return;
+        kbCapture = kbCapture === btn.dataset.kbAction ? null : btn.dataset.kbAction;
+        kbSyncBindings();
+    });
+    modal.addEventListener("click", ev => {
+        const btn = ev.target.closest?.(".palette-choice");
+        if (btn) setPalette(btn.dataset.palette);
+    });
+    document.addEventListener("keydown", ev => {
+        if (!kbCapture) return;
+        if (ev.key === "Escape") {
+            ev.preventDefault();
+            ev.stopPropagation();
+            kbCapture = null;
+            kbSyncBindings();
+            return;
+        }
+        const key = kbKeyId(ev);
+        // 1-9 already pick a card's ports, so they are not offered as a binding: a digit
+        // bound here would fire or be swallowed depending on how many ports the card had.
+        if (/^[1-9]$/.test(key)) {
+            const hint = $("#kbHint");
+            if (hint) hint.textContent = "1–9 pick ports, so they stay as they are.";
+            return;
+        }
+        if (key.length !== 1 || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        kbAssign(kbCapture, key);
+    }, true);
+    kbRenderBindings();
+    renderPalettes();
+}
+
+initSettings();
 function helpOpen() {
     const modal = $("#help");
     return Boolean(modal && !modal.hidden);
@@ -13960,6 +14650,9 @@ function ensureGlyphData(onProgress) {
 }
 // Set by initSymbolPanel; lets the drawer build its list when it is first needed.
 let symbolBuildList = null;
+// Set by initSymbolPanel: drops the pill ring, so every opening starts with the arrow keys
+// on the list rather than on a tag left over from last time.
+let symbolClearTagCursor = null;
 const SYMBOL_COLOR = "#8b5cf6";
 const SYMBOL_STORAGE_KEY = "cf.symbolsPanelOpen";
 const SYMBOL_A_TO_Z = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -15462,7 +16155,7 @@ function buildNoteNode(node) {
     wrap.innerHTML = `
         <textarea class="control note-text" spellcheck="true" placeholder="Write a note…" aria-label="Note text">${esc(node.text || "")}</textarea>
         <div class="note-swatches" role="group" aria-label="Note colour">
-            ${NOTE_TONES.map(tone => `<button type="button" class="note-swatch" data-note-tone="${tone}" title="${tone[0].toUpperCase() + tone.slice(1)}" aria-pressed="${(node.noteTone || "yellow") === tone ? "true" : "false"}"></button>`).join("")}
+            ${NOTE_TONES.map(tone => `<button type="button" class="note-swatch" data-note-tone="${tone}" title="${tone[0].toUpperCase() + tone.slice(1)}" aria-label="${tone[0].toUpperCase() + tone.slice(1)}" aria-pressed="${(node.noteTone || "yellow") === tone ? "true" : "false"}"></button>`).join("")}
         </div>
     `;
     const area = $(".note-text", wrap);
@@ -15855,6 +16548,9 @@ function setSymbolDrawer(open) {
     try { localStorage.setItem(SYMBOL_STORAGE_KEY, open ? "1" : "0"); } catch { /* private mode */ }
     if (open) {
         symbolBuildList?.();
+        // A ring still on a pill from before the drawer closed would make Enter in the search
+        // box toggle that tag instead of placing the cipher under the cursor.
+        symbolClearTagCursor?.();
         const search = $("#symSearch", symbolDrawerEl);
         if (search) search.focus();
     }
@@ -15935,6 +16631,21 @@ function initSymbolPanel() {
     const tagBar = document.getElementById("symTags");
     const countBadge = document.getElementById("symCount");
     const resetBtn = document.getElementById("symReset");
+    // The same list of pills wherever it is needed, kept before the renderer so it can be
+    // used from the moment the bar is first drawn.
+    const tagPills = () => (tagBar ? [...tagBar.querySelectorAll("[data-sym-tag]")] : []);
+    // Which pill the arrow keys are on, or -1 for none. The cursor is drawn rather than
+    // focused: the graph's own arrow navigation claims the keys from a focused button, and
+    // leaving the caret in the search box is what lets the pills, the box and the list
+    // share the arrow keys without fighting over them.
+    let tagCursor = -1;
+    const setTagCursor = index => {
+        const pills = tagPills();
+        tagCursor = index >= 0 && pills.length ? Math.min(pills.length - 1, index) : -1;
+        pills.forEach((pill, i) => pill.classList.toggle("sel", i === tagCursor));
+        pills[tagCursor]?.scrollIntoView({block: "nearest", inline: "nearest"});
+    };
+    symbolClearTagCursor = () => setTagCursor(-1);
     // How many ciphers each tag leaves behind. A pill that matches nothing is not drawn.
     // Counting tags needs the island parsed, so it happens the first time the pills are
     // actually drawn rather than in the middle of boot.
@@ -15955,10 +16666,12 @@ function initSymbolPanel() {
         tagBar.innerHTML = CFTAGS.TAG_GROUPS.map(group => {
             const pills = group.filter(tag => totals[tag]).map(tag => {
                 const on = symbolTagFilter.has(tag);
-                return `<button type="button" class="sym-tag${on ? " on" : ""}" data-sym-tag="${tag}" aria-pressed="${on}" title="${totals[tag]} of ${total} ciphers${on ? " — click to clear" : " — click to narrow the list"}">${esc(CFTAGS.TAG_LABELS[tag] || tag)}</button>`;
+                return `<button type="button" class="sym-tag${on ? " on" : ""}" tabindex="-1" data-sym-tag="${tag}" aria-pressed="${on}" title="${totals[tag]} of ${total} ciphers${on ? " — click to clear" : " — click to narrow the list"}">${esc(CFTAGS.TAG_LABELS[tag] || tag)}</button>`;
             }).join("");
             return pills ? `<span class="sym-tag-group">${pills}</span>` : "";
         }).join("");
+        // The bar was just redrawn, so the drawn cursor has to be put back on its pill.
+        setTagCursor(tagCursor);
     };
     // The count in the header is the list's own count: what the tags (and the search) leave
     // behind, not the whole catalogue. It turns accent-coloured while a tag is applied, so a
@@ -15991,7 +16704,18 @@ function initSymbolPanel() {
     };
     if (tagBar) tagBar.addEventListener("click", ev => {
         const pill = ev.target.closest("[data-sym-tag]");
-        if (pill) chooseTag(pill.dataset.symTag);
+        if (!pill) return;
+        // Toggling redraws every pill with its new pressed state, which throws the clicked
+        // button away. A pill clicked with the mouse had the focus, which the graph's arrow
+        // navigation would then claim, so the search box takes it back and the cursor is
+        // left on the tag that was just toggled.
+        const hadFocus = document.activeElement === pill;
+        const index = tagPills().indexOf(pill);
+        chooseTag(pill.dataset.symTag);
+        if (hadFocus) {
+            search.focus();
+            setTagCursor(index);
+        }
     });
     // Only offered while something is selected, so it is never a dead control.
     if (resetBtn) resetBtn.addEventListener("click", () => {
@@ -16000,10 +16724,14 @@ function initSymbolPanel() {
         renderList();
     });
 
+    // Which row the arrow keys are on. -1 is none, so the first Down starts at the top and
+    // the first Up at the bottom, and every new list starts with nothing chosen.
+    let symCursor = -1;
     const renderList = () => {
         // Before the art lands there is nothing to filter: typing in the box must not answer
         // "no cipher matches" for a catalogue that has not been read yet.
         if (!glyphDataParsed) return;
+        symCursor = -1;
         const q = String(search.value || "").trim().toLowerCase();
         // The clear button is only there while there is something to clear.
         if (clearBtn) clearBtn.classList.toggle("show", Boolean(String(search.value || "").length));
@@ -16030,6 +16758,8 @@ function initSymbolPanel() {
                 : `<div class="search-empty">No symbol cipher matches “${esc(search.value || "")}”.</div>`;
             return;
         }
+        // Rows are out of the tab order: there can be hundreds of them, and walking the list
+        // with the arrow keys is the point. Tab keeps its usual meaning around the panel.
         list.innerHTML = rows.map(c => {
             // Ten samples fill the row's 5x2 grid in styles.css.
             const samples = c.glyphs.slice(0, 10).map(g =>
@@ -16039,7 +16769,7 @@ function initSymbolPanel() {
             const badge = tags.length
                 ? `<span class="sym-detect-badge" title="Shape match to the chosen tags">${Math.round(c.match.pct * 100)}%</span>`
                 : "";
-            return `<button class="sym-row" data-sym-slug="${esc(c.slug)}" title="Add ${esc(c.name)} to the canvas">
+            return `<button class="sym-row" tabindex="-1" data-sym-slug="${esc(c.slug)}" title="Add ${esc(c.name)} to the canvas">
                 <span class="sym-row-main">
                     <span class="sym-row-head">
                         <span class="sym-row-name">${esc(c.name)}</span>
@@ -16078,12 +16808,95 @@ function initSymbolPanel() {
 
     document.getElementById("symRailBtn").addEventListener("click", toggleSymbolDrawer);
     document.getElementById("symClose").addEventListener("click", () => setSymbolDrawer(false));
-    search.addEventListener("input", renderList);
+    // Typing puts the horizontal keys back on the query, so the pill cursor goes first.
+    search.addEventListener("input", () => {
+        setTagCursor(-1);
+        renderList();
+    });
     if (clearBtn) clearBtn.addEventListener("click", () => {
         search.value = "";
         renderList();
         search.focus();
     });
+    // The arrow keys walk the list from wherever the caret already is — normally the search
+    // box, which the drawer focuses when it opens — so typing a name, pressing Down and
+    // Enter places a cipher without the mouse or a tab stop per row.
+    const moveSymCursor = ev => {
+        if (!glyphDataParsed) return;
+        const onSearch = document.activeElement === search;
+        if (!onSearch && !list.contains(document.activeElement)) return;
+        const rows = [...list.querySelectorAll("[data-sym-slug]")];
+        const pills = tagPills();
+        const paintRow = index => {
+            symCursor = index;
+            rows.forEach((row, i) => row.classList.toggle("sel", i === index));
+            rows[index]?.scrollIntoView({block: "nearest"});
+        };
+        // The pills are the top of one vertical chain that runs into the list, and the caret
+        // stays in the box throughout: Left/Right walk the row — swallowed there, so the
+        // caret never slides out from under the typing — Enter toggles the tag under the
+        // cursor, and Down hands the keys back to the list.
+        if (tagCursor >= 0 && pills.length) {
+            if (ev.key === "ArrowLeft" || ev.key === "ArrowRight") {
+                ev.preventDefault();
+                setTagCursor(tagCursor + (ev.key === "ArrowRight" ? 1 : -1));
+                return;
+            }
+            if (ev.key === "Home" || ev.key === "End") {
+                ev.preventDefault();
+                setTagCursor(ev.key === "Home" ? 0 : pills.length - 1);
+                return;
+            }
+            if (ev.key === "Enter") {
+                ev.preventDefault();
+                // The cursor stays on the tag it just toggled, so a second Enter clears it
+                // again and the ring never jumps to a pill the user did not choose.
+                const pill = pills[tagCursor];
+                if (pill) chooseTag(pill.dataset.symTag);
+                return;
+            }
+            if (ev.key === "ArrowDown") {
+                ev.preventDefault();
+                setTagCursor(-1);
+                if (rows.length) paintRow(0);
+                return;
+            }
+            if (ev.key === "ArrowUp") {
+                // The pills are the top of the chain and nothing sits above them, so Up
+                // stays put rather than bouncing back onto the row it came from.
+                ev.preventDefault();
+                return;
+            }
+        }
+        // One more Up from the first row leaves the list for the pills above it. Up from a
+        // search box with no row chosen still goes to the bottom of the list, as it always
+        // did — the pills never take a key press the list would have used.
+        if (ev.key === "ArrowUp" && pills.length && (symCursor === 0 || !rows.length)) {
+            ev.preventDefault();
+            setTagCursor(pills.length - 1);
+            return;
+        }
+        if (!rows.length) return;
+        if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+            ev.preventDefault();
+            const step = ev.key === "ArrowDown" ? 1 : -1;
+            const start = symCursor < 0 ? (step > 0 ? -1 : rows.length) : symCursor;
+            paintRow(Math.min(rows.length - 1, Math.max(0, start + step)));
+        } else if (ev.key === "Home" || ev.key === "End") {
+            ev.preventDefault();
+            paintRow(ev.key === "Home" ? 0 : rows.length - 1);
+        } else if (ev.key === "Enter") {
+            // A row that has focus is a button: its own Enter already places it.
+            if (ev.target.closest?.("[data-sym-slug]") === document.activeElement) return;
+            // Nothing chosen yet, so Enter takes the top row, the same one Down would reach.
+            const target = rows[symCursor >= 0 ? symCursor : 0];
+            if (!target) return;
+            ev.preventDefault();
+            addSymbolNode(target.dataset.symSlug);
+        }
+    };
+    search.addEventListener("keydown", moveSymCursor);
+    list.addEventListener("keydown", moveSymCursor);
     list.addEventListener("click", ev => {
         // A drag that just dropped a node on the canvas must not also spawn one here.
         if (performance.now() < suppressPaletteClickUntil) return;

@@ -17,6 +17,20 @@ const dcodeNames = new Set(DCODE.map(spec => spec.name));
 for (const category of CATEGORIES) {
     category.ops = category.ops.filter(op => !dcodeNames.has(op));
 }
+/* dCode and CacheSleuth describe the same families of cipher, so the package files them
+ * together under the family name alone (Substitution, Transposition, …) instead of one set of
+ * sections each. The source is not lost: it stays on the operation as `source`, which is what
+ * a card's dot reports on hover. */
+const RECREATED = /^(?:dCode|CacheSleuth) \u00b7 (.+)$/;
+// The two catch-all families are helpers rather than cipher families of their own, so one
+// section holds them both.
+const MISC = new Set(["Tools", "Code tools"]);
+function categoryFor(spec) {
+    const family = RECREATED.exec(spec.group || "");
+    if (!family) return spec.group;
+    return MISC.has(family[1]) ? "Misc Ciphers" : family[1];
+}
+
 for (const spec of DCODE) {
     CONFIG[spec.name] = {
         module: DCODE_MODULE,
@@ -24,11 +38,13 @@ for (const spec of DCODE) {
         inputType: "string",
         outputType: "string",
         flowControl: false,
+        source: spec.group,
         args: spec.args || []
     };
-    let category = CATEGORIES.find(c => c.name === spec.group);
+    const name = categoryFor(spec);
+    let category = CATEGORIES.find(c => c.name === name);
     if (!category) {
-        category = {name: spec.group, ops: []};
+        category = {name, ops: []};
         CATEGORIES.push(category);
     }
     category.ops.push(spec.name);
@@ -552,6 +568,9 @@ for (const name of opNames) {
         name,
         module: meta.module,
         category: catOf.get(name) || "Other",
+        // Where a recreated operation comes from. Empty for the built-in ones, whose category
+        // is already the whole story.
+        source: meta.source || "",
         description: stripHtml(meta.description).slice(0, 420),
         inputType: meta.inputType,
         outputType: meta.outputType,

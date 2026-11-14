@@ -4135,6 +4135,12 @@ function syncSelectionClasses() {
  * be worse than a fixed arrow key.
  */
 const KB_KEYS_KEY = "cipherflow.keys.v1";
+// The whole table sits behind one switch. The canvas keys are power-user shortcuts, so they
+// start switched off and the arrows, Enter and Escape are the whole keyboard until it is
+// turned on — a browser's own find bar, a screen reader's shortcuts and another app's single
+// letters stay where they are. Nothing outside this table is switchable: those keys are how
+// a card, a port pick or a box is left.
+const KB_ON_KEY = "cipherflow.canvasKeys.v1";
 const KB_BINDINGS = [
     {id: "fields", label: "Edit a card's boxes", area: "Card", def: "e"},
     {id: "wires", label: "Step through a card's wires", area: "Card", def: "w"},
@@ -4151,6 +4157,12 @@ const KB_BINDINGS = [
     {id: "function", label: "Open or close a function", area: "Functions", def: "e", shift: true}
 ];
 const kbKeys = Object.fromEntries(KB_BINDINGS.map(binding => [binding.id, binding.def]));
+// Off is the default: a browser that has never been told otherwise keeps every canvas key
+// silent, so a stray letter never surprises someone who does not know the shortcuts.
+let kbAllOn = false;
+function kbEnabled() {
+    return kbAllOn;
+}
 function kbBinding(id) {
     return KB_BINDINGS.find(binding => binding.id === id);
 }
@@ -4177,7 +4189,14 @@ function kbLoadKeys() {
 function kbSaveKeys() {
     try { localStorage.setItem(KB_KEYS_KEY, JSON.stringify(kbKeys)); } catch {}
 }
+function kbLoadOn() {
+    try { kbAllOn = localStorage.getItem(KB_ON_KEY) === "on"; } catch {}
+}
+function kbSaveOn() {
+    try { localStorage.setItem(KB_ON_KEY, kbAllOn ? "on" : "off"); } catch {}
+}
 kbLoadKeys();
+kbLoadOn();
 
 function kbNavBlocked() {
     const active = document.activeElement;
@@ -4768,19 +4787,22 @@ function kbHandleKey(ev) {
         return;
     }
     const pressed = kbKeyId(ev);
-    const toggle = pressed === kbKeys.bypass ? "bypass"
-        : pressed === kbKeys.freeze ? "freeze"
-            : pressed === kbKeys.fold ? "collapse" : "";
+    // A switched-off command is not a key at all: the press falls through to the browser and
+    // to the editor's other shortcuts, exactly as if no card had been under the cursor.
+    const isOn = id => kbEnabled(id);
+    const toggle = isOn("bypass") && pressed === kbKeys.bypass ? "bypass"
+        : isOn("freeze") && pressed === kbKeys.freeze ? "freeze"
+            : isOn("fold") && pressed === kbKeys.fold ? "collapse" : "";
     if (toggle && !ev.shiftKey && (selection.size || kbCursor.nodeId)) {
         ev.preventDefault();
         ev.stopPropagation();
         kbToggle(toggle);
         return;
     }
-    const pan = pressed === kbKeys.up ? "up"
-        : pressed === kbKeys.down ? "down"
-            : pressed === kbKeys.left ? "left"
-                : pressed === kbKeys.right ? "right" : "";
+    const pan = isOn("up") && pressed === kbKeys.up ? "up"
+        : isOn("down") && pressed === kbKeys.down ? "down"
+            : isOn("left") && pressed === kbKeys.left ? "left"
+                : isOn("right") && pressed === kbKeys.right ? "right" : "";
     if (pan && !ev.shiftKey) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -4790,7 +4812,7 @@ function kbHandleKey(ev) {
     // Shift+E is the way in and the way out: on a function card it opens that function's own
     // canvas, and inside one it puts you back on the graph. The card under the cursor wins,
     // and with no cursor a lone selected function card stands in for it.
-    if (ev.shiftKey && kbIs("function", ev) && !ev.repeat) {
+    if (ev.shiftKey && isOn("function") && kbIs("function", ev) && !ev.repeat) {
         if (editingFunctionId) {
             ev.preventDefault();
             ev.stopPropagation();
@@ -4820,8 +4842,8 @@ function kbHandleKey(ev) {
     }
     // − and = are the zoom buttons under the keyboard, at the same 1.18 step and about the
     // middle of the canvas, so the view does not slide away from what is being read.
-    const zoomStep = pressed === kbKeys.zoomOut ? 1 / 1.18
-        : pressed === kbKeys.zoomIn ? 1.18 : 0;
+    const zoomStep = isOn("zoomOut") && pressed === kbKeys.zoomOut ? 1 / 1.18
+        : isOn("zoomIn") && pressed === kbKeys.zoomIn ? 1.18 : 0;
     if (zoomStep) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -4829,19 +4851,19 @@ function kbHandleKey(ev) {
         zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, zoomStep);
         return;
     }
-    if (kbIs("resize", ev) && !ev.shiftKey) {
+    if (isOn("resize") && kbIs("resize", ev) && !ev.shiftKey) {
         ev.preventDefault();
         ev.stopPropagation();
         kbStartSizing();
         return;
     }
-    if (kbIs("fields", ev) && !ev.shiftKey && node) {
+    if (isOn("fields") && kbIs("fields", ev) && !ev.shiftKey && node) {
         ev.preventDefault();
         ev.stopPropagation();
         kbOpenFields(node);
         return;
     }
-    if (kbIs("wires", ev) && node) {
+    if (isOn("wires") && kbIs("wires", ev) && node) {
         ev.preventDefault();
         ev.stopPropagation();
         kbCycleWire(ev.shiftKey ? -1 : 1);
@@ -4856,9 +4878,13 @@ function bindKeyboardNodeNav() {
     // direction stuck down and the graph drifting.
     document.addEventListener("keyup", ev => {
         const pressed = kbKeyId(ev);
-        const dir = pressed === kbKeys.up ? "up" : pressed === kbKeys.down ? "down"
-            : pressed === kbKeys.left ? "left" : pressed === kbKeys.right ? "right"
-                : {ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right"}[ev.key];
+        // A camera key that is switched off never started a pan, so its release has nothing
+        // to stop; the arrows always release, since Shift+arrows pan whatever IJKL is set to.
+        const dir = pressed === kbKeys.up && kbEnabled("up") ? "up"
+            : pressed === kbKeys.down && kbEnabled("down") ? "down"
+                : pressed === kbKeys.left && kbEnabled("left") ? "left"
+                    : pressed === kbKeys.right && kbEnabled("right") ? "right"
+                        : {ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right"}[ev.key];
         if (dir) kbPan(dir, false);
     }, true);
     window.addEventListener("blur", () => {
@@ -14263,6 +14289,14 @@ function kbSyncBindings() {
         btn.textContent = kbCapture === id ? "Press a key…" : kbKeyLabel(id);
         btn.classList.toggle("listening", kbCapture === id);
     }
+    const master = $("#kbAllSwitch");
+    if (master) {
+        master.classList.toggle("on", kbAllOn);
+        master.setAttribute("aria-checked", String(kbAllOn));
+        master.title = kbAllOn
+            ? "Canvas keys are on. Click to switch them all off"
+            : "Canvas keys are off: click to switch them on";
+    }
     // The fixed keys are spelled out once, in the panel's own note under the list; this line
     // only speaks while a row is listening, so the two never say the same thing.
     const hint = $("#kbHint");
@@ -14345,10 +14379,12 @@ function initSettings() {
     modal.addEventListener("click", ev => { if (ev.target === modal) closeSettings(); });
     $("#kbReset")?.addEventListener("click", () => {
         for (const binding of KB_BINDINGS) kbKeys[binding.id] = binding.def;
+        kbAllOn = false;
         kbCapture = null;
         kbSaveKeys();
+        kbSaveOn();
         kbSyncBindings();
-        toast("Every key is back to its default");
+        toast("Every key is back to its default, and the canvas keys are off");
     });
     // A row starts listening and the next press is the new key. The canvas stands aside
     // while this panel is open, so the press that binds is never also a command.
@@ -14357,6 +14393,14 @@ function initSettings() {
         if (!btn) return;
         kbCapture = kbCapture === btn.dataset.kbAction ? null : btn.dataset.kbAction;
         kbSyncBindings();
+    });
+    // One switch for the whole set: a command keeps its key while it is silent, so turning the
+    // set back on needs no rebinding.
+    $("#kbAllSwitch")?.addEventListener("click", () => {
+        kbAllOn = !kbAllOn;
+        kbSaveOn();
+        kbSyncBindings();
+        toast(kbAllOn ? "Canvas keys on" : "Canvas keys off");
     });
     modal.addEventListener("click", ev => {
         const btn = ev.target.closest?.(".palette-choice");

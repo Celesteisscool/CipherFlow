@@ -276,38 +276,38 @@ html[data-palette="mono"][data-theme="dark"] {
     color-scheme: dark;
 }
 html[data-palette="ocean"] {
-    --bg: #e3edf4;
-    --panel: #f4f9fc;
+    --bg: #e6ecf6;
+    --panel: #f5f8fd;
     --panel-2: #ffffff;
     --node: #ffffff;
-    --stage: #e9f1f7;
-    --preview-bg: #eef5fa;
-    --ink: #0e2230;
-    --muted: #5b7385;
-    --faint: #8ea3b2;
-    --line: #cddde8;
-    --line-strong: #b2c7d6;
-    --dot: #c4d7e3;
-    --accent: #0b6fa4;
-    --accent-2: #075176;
+    --stage: #eaf0f9;
+    --preview-bg: #eff4fb;
+    --ink: #101c30;
+    --muted: #5d6d85;
+    --faint: #91a0b5;
+    --line: #d1dcf0;
+    --line-strong: #b6c6de;
+    --dot: #c9d6ea;
+    --accent: #1a4fbf;
+    --accent-2: #123b93;
     color-scheme: light;
 }
 html[data-palette="ocean"][data-theme="dark"] {
-    --bg: #061620;
-    --panel: #0b2030;
-    --panel-2: #0f2838;
-    --node: #0d2433;
-    --stage: #081a25;
-    --preview-bg: #081a25;
-    --ink: #e6f3fa;
-    --muted: #86a4b6;
-    --faint: #5d7c8e;
-    --line: #1d3546;
-    --line-strong: #2b4a5e;
-    --dot: #162d3d;
-    --accent: #5cc6f0;
-    --accent-2: #8bd9f7;
-    --on-accent: #061620;
+    --bg: #060d1c;
+    --panel: #0b1628;
+    --panel-2: #101d33;
+    --node: #0e1a2e;
+    --stage: #081223;
+    --preview-bg: #081223;
+    --ink: #e8eefc;
+    --muted: #8b9cc0;
+    --faint: #61729a;
+    --line: #1d2c47;
+    --line-strong: #2c3f60;
+    --dot: #17253c;
+    --accent: #58a9ff;
+    --accent-2: #8cc4ff;
+    --on-accent: #060d1c;
     color-scheme: dark;
 }
 html[data-palette="honey"] {
@@ -2637,6 +2637,29 @@ a.icon-button:hover { color: var(--ink); }
 .kb-row-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .kb-row-name span { color: var(--ink); font-size: 11.5px; font-weight: 600; }
 .kb-row-name small { color: var(--faint); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+/* The one switch over the whole canvas key set. It sits above the list, in its own card, so
+ * the whole group reads as silent-or-on rather than as thirteen separate choices. */
+.kb-master {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 2px 0 9px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--panel-2);
+}
+.kb-master-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.kb-master-text b { color: var(--ink); font-size: 11.5px; font-weight: 650; }
+.kb-master-text small { color: var(--faint); font-size: 9.5px; line-height: 1.4; }
+.kb-all {
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: var(--line-strong);
+}
+.kb-all.on { background: var(--accent); }
+.kb-all:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .kb-key {
     min-width: 92px;
     padding: 5px 10px;
@@ -2713,7 +2736,7 @@ a.icon-button:hover { color: var(--ink); }
 .palette-choice[data-palette="forest"] { --demo-bg: #e7eee3; --demo-panel: #ffffff; --demo-accent: #2a7245; }
 .palette-choice[data-palette="plum"] { --demo-bg: #efe9f2; --demo-panel: #ffffff; --demo-accent: #6f3494; }
 .palette-choice[data-palette="mono"] { --demo-bg: #e9e9e8; --demo-panel: #ffffff; --demo-accent: #4b4b52; }
-.palette-choice[data-palette="ocean"] { --demo-bg: #e3edf4; --demo-panel: #ffffff; --demo-accent: #0b6fa4; }
+.palette-choice[data-palette="ocean"] { --demo-bg: #e6ecf6; --demo-panel: #ffffff; --demo-accent: #1a4fbf; }
 .palette-choice[data-palette="honey"] { --demo-bg: #f5efd8; --demo-panel: #fffdf5; --demo-accent: #9a6b00; }
 
 /* Sections inside the panel: a closed summary is the whole section, so the sheet stays short
@@ -4414,7 +4437,7 @@ textarea.note-text {
             </details>
             <details class="help-section">
                 <summary><h3>Running and shortcuts</h3></summary>
-                <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed. The gear in the sidebar opens <b>Settings</b>, where each canvas key can be rebound: click the key, press the one you want, and the choice is remembered in this browser. A key already in use swaps with the action that had it, and <b>Reset to defaults</b> puts every key back. The same panel carries the <b>color theme</b>: eight palettes — Folio, Ember, Nordic, Forest, Plum, Graphite, Ocean and Honey — each with a light and a dark reading.</p>
+                <p>With <b>Auto-run</b> on, the graph re-runs as you edit; <b>Run</b> forces a fresh pass. On a Mac, <kbd>⌘</kbd> works wherever <kbd>Ctrl</kbd> is listed. The gear in the sidebar opens <b>Settings</b>, where each canvas key can be rebound: click the key, press the one you want, and the choice is remembered in this browser. A key already in use swaps with the action that had it, and <b>Reset to defaults</b> puts every key back. A switch over the list turns the whole canvas key set <b>on</b> or off: it starts <b>off</b>, so none of those single letters does anything until you switch it on, while the arrows, <kbd>Enter</kbd>, <kbd>Escape</kbd>, <kbd>Delete</kbd> and <kbd>1</kbd>–<kbd>9</kbd> are always on. The same panel carries the <b>color theme</b>: eight palettes — Folio, Ember, Nordic, Forest, Plum, Graphite, Ocean and Honey — each with a light and a dark reading.</p>
                 <ul class="help-keys">
                     <li><kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette: run, fit, save, share, or jump to any operation, node, function or symbol cipher. Add <kbd>Shift</kbd> with one node selected and the same box <b>replaces</b> that node instead of adding another: the node keeps its place on the canvas, its input and output wires stay connected where the replacement has the same ports, and Enter on a command row still just runs the command. With one node selected it also offers that node's <b>inverse</b>: type “inverse” and pick <b>Insert inverse</b> to put the operation that undoes that step right after it — <b>From Base64</b> after a <b>To Base64</b>, <b>Leet Decode</b> after <b>Leet Encode</b>, <b>AES Decrypt</b> after <b>AES Encrypt</b> — wired to its output and carrying the settings both steps share, or open the box with <kbd>Shift</kbd> and the same row swaps the node for its inverse in place. The partner is found by name, so every operation with an opposite in the library has one: To/From, Encode/Decode, Encrypt/Decrypt, Compress/Decompress, Escape/Unescape, Serialize/Deserialize, or a conversion that reads back the other way, like <b>JSON to CSV</b> after <b>CSV to JSON</b>. A step with no inverse — a hash, a parser — says so instead of guessing. With one <b>wire</b> selected instead, a node-shaped pick goes <b>into</b> that wire: it splits and the new step sits at the middle of the curve, the same splice as dropping it there. A node with no main input and output cannot go into a wire, so it is added where the pointer is and says why.</li>
                     <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> adds the inverse of the selected node without opening the palette: one node selected, and the operation that undoes it is put right after it, wired to its output and carrying the settings both steps share. Add <kbd>Shift</kbd> and the node is swapped for its inverse in place instead. A step with no inverse says so instead of guessing.</li>
@@ -4426,7 +4449,7 @@ textarea.note-text {
                     <li><kbd>Delete</kbd> or <kbd>Backspace</kbd> removes the selection or a wire</li>
                     <li><kbd>Escape</kbd> closes a panel, cancels a wire, clears the selection</li>
                     <li><kbd>Shift</kbd>+click or drag adds to the selection</li>
-                    <li><kbd>Arrow keys</kbd> walk between cards; <kbd>Enter</kbd> opens a card's ports, the arrows choose one and <kbd>Enter</kbd> picks it, or press <kbd>1</kbd>–<kbd>9</kbd> to pick a port straight away. Pick an output, move to another card and pick an input to wire the two. <kbd>Shift</kbd>+arrows move the selection instead of walking to another card, and with nothing selected they pan the camera like <kbd>I</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd>. <kbd>Shift</kbd>+<kbd>E</kbd> opens a function card's own canvas, and pressing it again inside a function brings you back to the graph. <kbd>E</kbd> chooses a box on the card to type in — arrows move between boxes, <kbd>Enter</kbd> starts typing (or presses a toggle) and <kbd>Escape</kbd> leaves the box. <kbd>W</kbd> steps through the wires on the card so <kbd>Delete</kbd> can remove one. <kbd>I</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> move the camera over the graph, and <kbd>−</kbd> and <kbd>=</kbd> zoom out and in. <kbd>B</kbd> bypasses, <kbd>F</kbd> freezes and <kbd>M</kbd> folds the card the cursor is on, or every selected card. <kbd>Delete</kbd> removes the card the cursor is on and steps to the card nearest it; <kbd>Escape</kbd> backs out.</li>
+                    <li><kbd>Arrow keys</kbd> walk between cards; <kbd>Enter</kbd> opens a card's ports, the arrows choose one and <kbd>Enter</kbd> picks it, or press <kbd>1</kbd>–<kbd>9</kbd> to pick a port straight away. Pick an output, move to another card and pick an input to wire the two. <kbd>Shift</kbd>+arrows move the selection instead of walking to another card, and with nothing selected they pan the camera like <kbd>I</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd>. <kbd>Shift</kbd>+<kbd>E</kbd> opens a function card's own canvas, and pressing it again inside a function brings you back to the graph. <kbd>E</kbd> chooses a box on the card to type in — arrows move between boxes, <kbd>Enter</kbd> starts typing (or presses a toggle) and <kbd>Escape</kbd> leaves the box. <kbd>W</kbd> steps through the wires on the card so <kbd>Delete</kbd> can remove one. <kbd>I</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> move the camera over the graph, and <kbd>−</kbd> and <kbd>=</kbd> zoom out and in. <kbd>B</kbd> bypasses, <kbd>F</kbd> freezes and <kbd>M</kbd> folds the card the cursor is on, or every selected card. <kbd>Delete</kbd> removes the card the cursor is on and steps to the card nearest it; <kbd>Escape</kbd> backs out. Everything in this row except the arrows, <kbd>Enter</kbd>, <kbd>Escape</kbd>, <kbd>Delete</kbd> and <kbd>1</kbd>–<kbd>9</kbd> is behind one switch in <b>Settings</b>, off until you turn it on.</li>
                 </ul>
             </details>
             <details class="help-section">
@@ -4474,7 +4497,7 @@ textarea.note-text {
             <div>
                 <div class="lab-kicker">CipherFlow</div>
                 <h2 class="lab-title" id="settingsTitle">Settings</h2>
-                <p class="lab-sub">Pick a color theme, or click a key and press the one you want. Both are saved in this browser.</p>
+                <p class="lab-sub">Pick a color theme, switch the canvas keys on, or click a key and press the one you want. All of it is saved in this browser.</p>
             </div>
             <button class="icon-button lab-close" id="settingsClose" title="Close"></button>
         </div>
@@ -4486,9 +4509,13 @@ textarea.note-text {
             </details>
             <details class="settings-group">
                 <summary>Controls</summary>
-                <div class="kb-bind-list" id="kbBindList"></div>
+                <div class="kb-master">
+                        <span class="kb-master-text"><b>Canvas keys</b><small>Power-user shortcuts: E, W, B, F, M, R, I, J, K, L, −, = and Shift+E</small></span>
+                        <button type="button" class="switch kb-all" id="kbAllSwitch" role="switch" aria-checked="false" aria-label="Canvas keys" title="Canvas keys are off: click to switch them on"></button>
+                    </div>
+                    <div class="kb-bind-list" id="kbBindList"></div>
                 <p class="kb-hint" id="kbHint"></p>
-                <p class="kb-fixed">The arrows, <kbd>Enter</kbd>, <kbd>Escape</kbd>, <kbd>Delete</kbd> and <kbd>1</kbd>–<kbd>9</kbd> stay fixed: they are how a card, a port pick or a box is left, so they cannot be rebound.</p>
+                <p class="kb-fixed">The switch above starts off, so none of these keys does anything until you turn it on. The arrows, <kbd>Enter</kbd>, <kbd>Escape</kbd>, <kbd>Delete</kbd> and <kbd>1</kbd>–<kbd>9</kbd> are always on and cannot be rebound: they are how a card, a port pick or a box is left.</p>
             </details>
         </div>
         <div class="settings-foot">
@@ -9604,6 +9631,12 @@ function syncSelectionClasses() {
  * be worse than a fixed arrow key.
  */
 const KB_KEYS_KEY = "cipherflow.keys.v1";
+// The whole table sits behind one switch. The canvas keys are power-user shortcuts, so they
+// start switched off and the arrows, Enter and Escape are the whole keyboard until it is
+// turned on — a browser's own find bar, a screen reader's shortcuts and another app's single
+// letters stay where they are. Nothing outside this table is switchable: those keys are how
+// a card, a port pick or a box is left.
+const KB_ON_KEY = "cipherflow.canvasKeys.v1";
 const KB_BINDINGS = [
     {id: "fields", label: "Edit a card's boxes", area: "Card", def: "e"},
     {id: "wires", label: "Step through a card's wires", area: "Card", def: "w"},
@@ -9620,6 +9653,12 @@ const KB_BINDINGS = [
     {id: "function", label: "Open or close a function", area: "Functions", def: "e", shift: true}
 ];
 const kbKeys = Object.fromEntries(KB_BINDINGS.map(binding => [binding.id, binding.def]));
+// Off is the default: a browser that has never been told otherwise keeps every canvas key
+// silent, so a stray letter never surprises someone who does not know the shortcuts.
+let kbAllOn = false;
+function kbEnabled() {
+    return kbAllOn;
+}
 function kbBinding(id) {
     return KB_BINDINGS.find(binding => binding.id === id);
 }
@@ -9646,7 +9685,14 @@ function kbLoadKeys() {
 function kbSaveKeys() {
     try { localStorage.setItem(KB_KEYS_KEY, JSON.stringify(kbKeys)); } catch {}
 }
+function kbLoadOn() {
+    try { kbAllOn = localStorage.getItem(KB_ON_KEY) === "on"; } catch {}
+}
+function kbSaveOn() {
+    try { localStorage.setItem(KB_ON_KEY, kbAllOn ? "on" : "off"); } catch {}
+}
 kbLoadKeys();
+kbLoadOn();
 
 function kbNavBlocked() {
     const active = document.activeElement;
@@ -10237,19 +10283,22 @@ function kbHandleKey(ev) {
         return;
     }
     const pressed = kbKeyId(ev);
-    const toggle = pressed === kbKeys.bypass ? "bypass"
-        : pressed === kbKeys.freeze ? "freeze"
-            : pressed === kbKeys.fold ? "collapse" : "";
+    // A switched-off command is not a key at all: the press falls through to the browser and
+    // to the editor's other shortcuts, exactly as if no card had been under the cursor.
+    const isOn = id => kbEnabled(id);
+    const toggle = isOn("bypass") && pressed === kbKeys.bypass ? "bypass"
+        : isOn("freeze") && pressed === kbKeys.freeze ? "freeze"
+            : isOn("fold") && pressed === kbKeys.fold ? "collapse" : "";
     if (toggle && !ev.shiftKey && (selection.size || kbCursor.nodeId)) {
         ev.preventDefault();
         ev.stopPropagation();
         kbToggle(toggle);
         return;
     }
-    const pan = pressed === kbKeys.up ? "up"
-        : pressed === kbKeys.down ? "down"
-            : pressed === kbKeys.left ? "left"
-                : pressed === kbKeys.right ? "right" : "";
+    const pan = isOn("up") && pressed === kbKeys.up ? "up"
+        : isOn("down") && pressed === kbKeys.down ? "down"
+            : isOn("left") && pressed === kbKeys.left ? "left"
+                : isOn("right") && pressed === kbKeys.right ? "right" : "";
     if (pan && !ev.shiftKey) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -10259,7 +10308,7 @@ function kbHandleKey(ev) {
     // Shift+E is the way in and the way out: on a function card it opens that function's own
     // canvas, and inside one it puts you back on the graph. The card under the cursor wins,
     // and with no cursor a lone selected function card stands in for it.
-    if (ev.shiftKey && kbIs("function", ev) && !ev.repeat) {
+    if (ev.shiftKey && isOn("function") && kbIs("function", ev) && !ev.repeat) {
         if (editingFunctionId) {
             ev.preventDefault();
             ev.stopPropagation();
@@ -10289,8 +10338,8 @@ function kbHandleKey(ev) {
     }
     // − and = are the zoom buttons under the keyboard, at the same 1.18 step and about the
     // middle of the canvas, so the view does not slide away from what is being read.
-    const zoomStep = pressed === kbKeys.zoomOut ? 1 / 1.18
-        : pressed === kbKeys.zoomIn ? 1.18 : 0;
+    const zoomStep = isOn("zoomOut") && pressed === kbKeys.zoomOut ? 1 / 1.18
+        : isOn("zoomIn") && pressed === kbKeys.zoomIn ? 1.18 : 0;
     if (zoomStep) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -10298,19 +10347,19 @@ function kbHandleKey(ev) {
         zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, zoomStep);
         return;
     }
-    if (kbIs("resize", ev) && !ev.shiftKey) {
+    if (isOn("resize") && kbIs("resize", ev) && !ev.shiftKey) {
         ev.preventDefault();
         ev.stopPropagation();
         kbStartSizing();
         return;
     }
-    if (kbIs("fields", ev) && !ev.shiftKey && node) {
+    if (isOn("fields") && kbIs("fields", ev) && !ev.shiftKey && node) {
         ev.preventDefault();
         ev.stopPropagation();
         kbOpenFields(node);
         return;
     }
-    if (kbIs("wires", ev) && node) {
+    if (isOn("wires") && kbIs("wires", ev) && node) {
         ev.preventDefault();
         ev.stopPropagation();
         kbCycleWire(ev.shiftKey ? -1 : 1);
@@ -10325,9 +10374,13 @@ function bindKeyboardNodeNav() {
     // direction stuck down and the graph drifting.
     document.addEventListener("keyup", ev => {
         const pressed = kbKeyId(ev);
-        const dir = pressed === kbKeys.up ? "up" : pressed === kbKeys.down ? "down"
-            : pressed === kbKeys.left ? "left" : pressed === kbKeys.right ? "right"
-                : {ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right"}[ev.key];
+        // A camera key that is switched off never started a pan, so its release has nothing
+        // to stop; the arrows always release, since Shift+arrows pan whatever IJKL is set to.
+        const dir = pressed === kbKeys.up && kbEnabled("up") ? "up"
+            : pressed === kbKeys.down && kbEnabled("down") ? "down"
+                : pressed === kbKeys.left && kbEnabled("left") ? "left"
+                    : pressed === kbKeys.right && kbEnabled("right") ? "right"
+                        : {ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right"}[ev.key];
         if (dir) kbPan(dir, false);
     }, true);
     window.addEventListener("blur", () => {
@@ -19732,6 +19785,14 @@ function kbSyncBindings() {
         btn.textContent = kbCapture === id ? "Press a key…" : kbKeyLabel(id);
         btn.classList.toggle("listening", kbCapture === id);
     }
+    const master = $("#kbAllSwitch");
+    if (master) {
+        master.classList.toggle("on", kbAllOn);
+        master.setAttribute("aria-checked", String(kbAllOn));
+        master.title = kbAllOn
+            ? "Canvas keys are on. Click to switch them all off"
+            : "Canvas keys are off: click to switch them on";
+    }
     // The fixed keys are spelled out once, in the panel's own note under the list; this line
     // only speaks while a row is listening, so the two never say the same thing.
     const hint = $("#kbHint");
@@ -19814,10 +19875,12 @@ function initSettings() {
     modal.addEventListener("click", ev => { if (ev.target === modal) closeSettings(); });
     $("#kbReset")?.addEventListener("click", () => {
         for (const binding of KB_BINDINGS) kbKeys[binding.id] = binding.def;
+        kbAllOn = false;
         kbCapture = null;
         kbSaveKeys();
+        kbSaveOn();
         kbSyncBindings();
-        toast("Every key is back to its default");
+        toast("Every key is back to its default, and the canvas keys are off");
     });
     // A row starts listening and the next press is the new key. The canvas stands aside
     // while this panel is open, so the press that binds is never also a command.
@@ -19826,6 +19889,14 @@ function initSettings() {
         if (!btn) return;
         kbCapture = kbCapture === btn.dataset.kbAction ? null : btn.dataset.kbAction;
         kbSyncBindings();
+    });
+    // One switch for the whole set: a command keeps its key while it is silent, so turning the
+    // set back on needs no rebinding.
+    $("#kbAllSwitch")?.addEventListener("click", () => {
+        kbAllOn = !kbAllOn;
+        kbSaveOn();
+        kbSyncBindings();
+        toast(kbAllOn ? "Canvas keys on" : "Canvas keys off");
     });
     modal.addEventListener("click", ev => {
         const btn = ev.target.closest?.(".palette-choice");

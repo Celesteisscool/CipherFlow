@@ -250,38 +250,38 @@ html[data-palette="mono"][data-theme="dark"] {
     color-scheme: dark;
 }
 html[data-palette="ocean"] {
-    --bg: #e3edf4;
-    --panel: #f4f9fc;
+    --bg: #e6ecf6;
+    --panel: #f5f8fd;
     --panel-2: #ffffff;
     --node: #ffffff;
-    --stage: #e9f1f7;
-    --preview-bg: #eef5fa;
-    --ink: #0e2230;
-    --muted: #5b7385;
-    --faint: #8ea3b2;
-    --line: #cddde8;
-    --line-strong: #b2c7d6;
-    --dot: #c4d7e3;
-    --accent: #0b6fa4;
-    --accent-2: #075176;
+    --stage: #eaf0f9;
+    --preview-bg: #eff4fb;
+    --ink: #101c30;
+    --muted: #5d6d85;
+    --faint: #91a0b5;
+    --line: #d1dcf0;
+    --line-strong: #b6c6de;
+    --dot: #c9d6ea;
+    --accent: #1a4fbf;
+    --accent-2: #123b93;
     color-scheme: light;
 }
 html[data-palette="ocean"][data-theme="dark"] {
-    --bg: #061620;
-    --panel: #0b2030;
-    --panel-2: #0f2838;
-    --node: #0d2433;
-    --stage: #081a25;
-    --preview-bg: #081a25;
-    --ink: #e6f3fa;
-    --muted: #86a4b6;
-    --faint: #5d7c8e;
-    --line: #1d3546;
-    --line-strong: #2b4a5e;
-    --dot: #162d3d;
-    --accent: #5cc6f0;
-    --accent-2: #8bd9f7;
-    --on-accent: #061620;
+    --bg: #060d1c;
+    --panel: #0b1628;
+    --panel-2: #101d33;
+    --node: #0e1a2e;
+    --stage: #081223;
+    --preview-bg: #081223;
+    --ink: #e8eefc;
+    --muted: #8b9cc0;
+    --faint: #61729a;
+    --line: #1d2c47;
+    --line-strong: #2c3f60;
+    --dot: #17253c;
+    --accent: #58a9ff;
+    --accent-2: #8cc4ff;
+    --on-accent: #060d1c;
     color-scheme: dark;
 }
 html[data-palette="honey"] {
@@ -2611,6 +2611,29 @@ a.icon-button:hover { color: var(--ink); }
 .kb-row-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .kb-row-name span { color: var(--ink); font-size: 11.5px; font-weight: 600; }
 .kb-row-name small { color: var(--faint); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+/* The one switch over the whole canvas key set. It sits above the list, in its own card, so
+ * the whole group reads as silent-or-on rather than as thirteen separate choices. */
+.kb-master {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 2px 0 9px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--panel-2);
+}
+.kb-master-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.kb-master-text b { color: var(--ink); font-size: 11.5px; font-weight: 650; }
+.kb-master-text small { color: var(--faint); font-size: 9.5px; line-height: 1.4; }
+.kb-all {
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: var(--line-strong);
+}
+.kb-all.on { background: var(--accent); }
+.kb-all:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .kb-key {
     min-width: 92px;
     padding: 5px 10px;
@@ -2687,7 +2710,7 @@ a.icon-button:hover { color: var(--ink); }
 .palette-choice[data-palette="forest"] { --demo-bg: #e7eee3; --demo-panel: #ffffff; --demo-accent: #2a7245; }
 .palette-choice[data-palette="plum"] { --demo-bg: #efe9f2; --demo-panel: #ffffff; --demo-accent: #6f3494; }
 .palette-choice[data-palette="mono"] { --demo-bg: #e9e9e8; --demo-panel: #ffffff; --demo-accent: #4b4b52; }
-.palette-choice[data-palette="ocean"] { --demo-bg: #e3edf4; --demo-panel: #ffffff; --demo-accent: #0b6fa4; }
+.palette-choice[data-palette="ocean"] { --demo-bg: #e6ecf6; --demo-panel: #ffffff; --demo-accent: #1a4fbf; }
 .palette-choice[data-palette="honey"] { --demo-bg: #f5efd8; --demo-panel: #fffdf5; --demo-accent: #9a6b00; }
 
 /* Sections inside the panel: a closed summary is the whole section, so the sheet stays short

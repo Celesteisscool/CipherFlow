@@ -1,8 +1,7 @@
 {
-  "name": "e99e60e51dc6f1188e2d40370566688cc021d656bd305a0f877cabaeaa38ee9c",
+  "name": "cipherflow",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Node-based CyberChef editor that runs locally in the browser.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

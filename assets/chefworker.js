@@ -42,7 +42,12 @@
         const source = data.input instanceof ArrayBuffer
             ? data.input
             : (data.input && data.input.buffer ? data.input.buffer.slice(0) : new ArrayBuffer(0));
-        for (const candidate of data.candidates || []) {
+        const list = data.candidates || [];
+        for (let i = 0; i < list.length; i++) {
+            const candidate = list[i];
+            // One message per candidate lets a timed-out sweep name the operation it was
+            // inside instead of reporting a blank count.
+            self.postMessage({action: "cipherflowProbeProgress", data: {id: data.id, done: i, total: list.length, op: candidate.op}});
             const started = Date.now();
             try {
                 const res = await self.chef.bake(source.slice(0), [{op: candidate.op, args: candidate.args || []}], {returnType: "string"});
@@ -63,6 +68,7 @@
                 results.push({op: candidate.op, args: candidate.args || [], label: candidate.label || "", ok: false, error: String((err && err.message) || err).slice(0, 200), ms: Date.now() - started});
             }
         }
+        self.postMessage({action: "cipherflowProbeProgress", data: {id: data.id, done: list.length, total: list.length, op: ""}});
         self.postMessage({action: "cipherflowProbeDone", data: {id: data.id, results: results, ms: Date.now() - (data.started || Date.now())}});
     });
 })();

@@ -1,17 +1,19 @@
 # NodeChef / CipherFlow
 
-A single-file, offline **node-based CyberChef** editor: drop CyberChef operations onto a
-canvas, wire them together into a graph, and run several inputs through the chain.
+An offline **node-based CyberChef** editor: drop CyberChef operations onto a canvas, wire
+them together into a graph, and run several inputs through the chain.
 
-The whole app ships as one self-contained `index.html` — the CyberChef engine, its
-operation modules and every symbol alphabet are embedded in the page, so there is nothing
-to install, no CDN, and no network access at runtime. Open it and it works offline.
+The app is `index.html` plus an `assets/` folder. The page carries the shell, the editor and
+the operation catalogue; the CyberChef worker, its operation modules, the symbol alphabets,
+the test plan and the Bad Apple video are fetched from `assets/` the first time a feature
+needs them, then cached by the browser. There is nothing to install and no CDN, and once
+those files are cached the app works offline.
 
 The **?** in the node list opens the reference, a seven-step tour walks through the canvas,
 and the **flask** opens the verification lab: known-answer vectors, live probes and graph
 wiring checks for every operation. All three are part of the same page.
 
-- **App entry point:** [`index.html`](index.html) (the built, self-contained app)
+- **App entry point:** [`index.html`](index.html) (the built shell; serve it with `assets/`)
 - **Engine:** CyberChef 11.5.0 (Apache-2.0), bundled inline
 - Extra operations recreated in the style of dCode and CacheSleuth live in [`dev/dcode/`](dev/dcode)
 
@@ -25,7 +27,8 @@ node dev/serve.mjs 8788
 # then open http://127.0.0.1:8788/index.html
 ```
 
-Any static file server works, since the app is a single HTML file.
+Serve the repository root, not `index.html` alone: the server must also expose `assets/`,
+or the engine worker and its modules will 404.
 
 ## Deploy with GitHub Pages
 
@@ -49,23 +52,28 @@ git remote add origin https://github.com/<your-username>/<repo-name>.git
 git push -u origin main
 ```
 
-Note: `index.html` is about 40 MB because it carries the whole engine, its modules and the
-symbol art inline. GitHub Pages serves it compressed — measured at 28 MB gzipped and
-27 MB Brotli — so the first load is the slow one; after that it is cached and runs fully
-offline. A plain static server without compression sends the full 40 MB.
+Note: the shell is **1.7 MB** (measured at 358 KB Brotli). `assets/` is about **66 MB** in
+total, but it is not one download: the worker is 6 MB, the 24 operation modules are about
+29 MB combined (only the modules a recipe names are fetched), the symbol art is 26 MB
+(only when a symbol alphabet is opened), the test plan is 1.9 MB (only when the lab is
+opened) and the Bad Apple video is 4.5 MB (only when that node is placed). GitHub Pages
+serves all of it compressed, so the first use of each feature pays for its file once;
+after that it is cached and runs offline.
 
 ## Repository layout
 
 ```
-index.html            the app (self-contained, this is what gets deployed)
+index.html            the app shell (deployed with assets/)
+assets/               worker, operation modules, glyph art, test plan, Bad Apple PV
 dev/app.js            UI source: canvas, nodes, wiring, run loop
 dev/styles.css        UI source: styles
 dev/dcode/            recreated dCode/CacheSleuth operations (payload + runtime + ops)
 dev/symbols/          symbol alphabets: shipped glyph art, tag vocabulary, source verifier
-dev/build.mjs         inlines app.js, styles.css, the engine and metadata into index.html
+dev/build.mjs         writes index.html and assets/ from the sources and extracted worker
 dev/gen-meta.mjs      builds the operation catalogue + test plan
 dev/serve.mjs         tiny dev static server (dev only, not part of the app)
 dev/collect-*.mjs     scripts that collect the operation fixtures/tests used by gen-meta
+dev/chess.js          pure chess rules for the Chess node; dev/chess.test.mjs checks them
 dev/testregister-stub.mjs
 ```
 

@@ -21,7 +21,7 @@ const TYPES = {
     ".gz": "text/javascript"
 };
 const COMPRESSIBLE = new Set([".html", ".js", ".mjs", ".css", ".json", ".svg"]);
-// index.html is a 42 MB document, so each encoding is compressed once and reused until the
+// index.html is a 1.7 MB document, so each encoding is compressed once and reused until the
 // file changes.
 const encoded = new Map();
 

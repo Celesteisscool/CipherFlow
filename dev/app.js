@@ -618,15 +618,40 @@ class ChefEngine {
             }
             const id = ++this.seq;
             const timeoutMs = Math.max(5000, options.timeout || 90000);
-            const timer = setTimeout(() => {
-                if (this.probeWaiter?.id === id) this.probeWaiter = null;
-                reject(new Error(`Magic timed out after ${Math.round(timeoutMs / 1000)}s.`));
+            const waiter = {
+                id, resolve, reject, timer: 0,
+                total: (candidates || []).length,
+                done: 0,
+                lastOp: "",
+                onProgress: options.onProgress || null
+            };
+            // A probe cannot be cancelled inside the worker: it is one long bake, and the
+            // sweep behind it queues on the same chain. When the budget runs out, stop the
+            // worker rather than leaving it to answer a probe no one is waiting for.
+            const fail = message => {
+                if (this.probeWaiter !== waiter) return;
+                this.probeWaiter = null;
+                clearTimeout(waiter.timer);
+                const old = this.worker;
+                this.worker = null;
+                this.loaded = false;
+                this.loading = null;
+                this.modulesSent.clear();
+                this.modulePromises.clear();
+                this.moduleWaiters.clear();
+                try { old?.terminate(); } catch { /* already gone */ }
+                this.setStatus("error");
+                reject(new Error(message));
+            };
+            waiter.timer = setTimeout(() => {
+                const last = waiter.lastOp ? ` (last operation: ${waiter.lastOp})` : "";
+                fail(`Magic timed out after ${Math.round(timeoutMs / 1000)}s${last}. The engine was restarted.`);
             }, timeoutMs);
-            this.probeWaiter = {id, resolve, reject, timer};
+            this.probeWaiter = waiter;
             try {
                 this.worker.postMessage({action: "cipherflowProbe", data: {id, input, candidates, started: Date.now()}});
             } catch (err) {
-                clearTimeout(timer);
+                clearTimeout(waiter.timer);
                 this.probeWaiter = null;
                 reject(err);
             }
@@ -813,6 +838,17 @@ class ChefEngine {
                 }
                 return;
             }
+            if (msg.action === "cipherflowProbeProgress") {
+                const waiter = this.probeWaiter;
+                if (!waiter || (msg.data && msg.data.id !== waiter.id)) return;
+                waiter.done = Number(msg.data.done) || 0;
+                waiter.lastOp = String(msg.data.op || waiter.lastOp);
+                if (waiter.onProgress) {
+                    // A reporter belongs to the caller; it must not break the probe.
+                    try { waiter.onProgress({done: waiter.done, total: waiter.total, op: waiter.lastOp}); } catch {}
+                }
+                return;
+            }
             if (msg.action === "cipherflowProbeDone") {
                 const waiter = this.probeWaiter;
                 if (!waiter || (msg.data && msg.data.id !== waiter.id)) return;
@@ -965,7 +1001,7 @@ function magicChunkCount(count) {
     if (count < MAGIC_CHUNK_MIN) return 1;
     return Math.min(MAGIC_CHUNKS, Math.ceil(count / MAGIC_CHUNK_MIN));
 }
-async function probeMagic(input, candidates, modules, chunks) {
+async function probeMagic(input, candidates, modules, chunks, onProgress) {
     const total = candidates.length;
     const size = Math.max(1, Math.ceil(total / chunks));
     const slices = [];
@@ -975,20 +1011,34 @@ async function probeMagic(input, candidates, modules, chunks) {
     const primary = engine;
     const runToken = ++magicRunToken;
     const collect = (res, start) => (res.results || []).map((row, i) => ({...row, __index: start + i}));
+    // Each worker reports its own slice; the node wants one running count for the sweep.
+    const progress = slices.map(() => ({done: 0, op: ""}));
     const tasks = slices.map((slice, sliceIndex) => (async () => {
+        const report = next => {
+            progress[sliceIndex] = next;
+            if (!onProgress) return;
+            let done = 0;
+            for (const part of progress) done += part.done;
+            onProgress({done, total, op: next.op || ""});
+        };
         // Slice zero is the primary worker's, so even a two-slice sweep reuses it.
         if (sliceIndex > 0) {
             try {
                 const pooled = await magicPoolEngine(sliceIndex - 1, modules);
-                return collect(await pooled.probe(input, slice.list, {timeout: 120000}), slice.start);
+                return collect(await pooled.probe(input, slice.list, {timeout: 120000, onProgress: report}), slice.start);
             } catch (err) {
                 // A worker that cannot start, or dies mid-sweep, must not cost the run its
-                // chunk: the primary runs that slice instead. The sweep never returns a
-                // silently partial ranking.
-                return collect(await primary.probe(input, slice.list, {timeout: 120000}), slice.start);
+                // chunk: the primary runs that slice instead. A timeout is different — that
+                // input already used its whole budget once, and retrying it on the primary
+                // only doubles the wait before the same answer.
+                if (/timed out/i.test(String((err && err.message) || err))) {
+                    stopMagicPool();
+                    throw err;
+                }
+                return collect(await primary.probe(input, slice.list, {timeout: 120000, onProgress: report}), slice.start);
             }
         }
-        return collect(await primary.probe(input, slice.list, {timeout: 120000}), slice.start);
+        return collect(await primary.probe(input, slice.list, {timeout: 120000, onProgress: report}), slice.start);
     })());
     let parts;
     try {
@@ -6084,7 +6134,12 @@ const MAGIC_SKIP = new Set([
     "Bcrypt", "Bcrypt compare", "Scrypt", "Argon2", "RSA Sign", "RSA Verify",
     "Bombe", "Colossus", "Multiple Bombe", "Optical Character Recognition",
     "Yara Rules", "Detect File Type", "Extract Files", "Scan for Embedded Files",
-    "Magic"
+    "Magic",
+    // A raw deflate stream has no header or checksum, so arbitrary text can inflate into an
+    // unbounded buffer. On the 24-byte hex input this one never returned inside the probe's
+    // 120 s budget and cost a sweep 331 of its 666 candidates; a decoder that can consume the
+    // whole sweep is not safe to offer as a guess.
+    "Raw Inflate"
 ]);
 
 // Operations that only describe or draw their input. They can never be the plaintext a
@@ -6787,6 +6842,13 @@ async function runMagicNode(node, inputBytes, argValues) {
     const candidates = magicCandidates(scope, includeSlow, key);
     if (!candidates.length) return {error: "No operations matched that scope", rows: []};
     node._magicKey = key;
+    // Clear the last sweep before this one starts: a timeout must not leave the previous
+    // rows looking like this run's answer, and the counters are what the lab reports when
+    // the sweep is cut short.
+    node._magic = [];
+    node._magicProbed = candidates.length;
+    node._magicRan = 0;
+    node._magicLastOp = "";
     // Modules have to be in the worker before their operations can run.
     const modules = [...new Set(candidates.map(c => OPS[c.op]?.module).filter(m => m && m !== "Default"))];
     for (const name of modules) {
@@ -6807,7 +6869,16 @@ async function runMagicNode(node, inputBytes, argValues) {
         `Magic is testing ${candidates.length} operations${chunks > 1 ? ` in ${chunks} chunks` : ""}…`,
         keyed ? `${keyed} of them with the key` : ""
     ].filter(Boolean).join(" "));
-    const probe = await probeMagic(buffer, candidates, modules, chunks);
+    let lastProgressPaint = 0;
+    const probe = await probeMagic(buffer, candidates, modules, chunks, progress => {
+        node._magicRan = progress.done;
+        node._magicLastOp = progress.op;
+        const now = Date.now();
+        if (now - lastProgressPaint > 250 || progress.done === progress.total) {
+            lastProgressPaint = now;
+            setRunStatus("running", `Magic: ${progress.done} of ${progress.total} tested…`);
+        }
+    });
     const ranked = rankMagicResults(probe.results || [], inputText, topN);
     node._magicProbed = candidates.length;
     node._magicRan = (probe.results || []).length;
@@ -12327,8 +12398,11 @@ function integrationDefinitions() {
         {
             id: "magic",
             title: "Magic ranks the answer first",
+            // Longer than the probe's own 120 s budget: the check should report which
+            // operation was in flight when a sweep timed out, not be cut off first.
+            timeoutMs: 200000,
             description: "Three inputs a sweep should crack — a Caesar shift, base64 and hex — must each put the right operation at the top with the plaintext as the node's output, and a brute-force table must never be offered as the answer.",
-            run: async () => {
+            run: async progress => {
                 const cases = [
                     // A Caesar shift is named by the rotation that undoes it, so the number
                     // itself is not the contract — the plaintext it produces is.
@@ -12340,7 +12414,10 @@ function integrationDefinitions() {
                     {input: "48656c6c6f2c20576f726c6421", expect: "Hello, World!", top: /^(From Hex|From Charcode)$/}
                 ];
                 const report = [];
-                for (const item of cases) {
+                const failed = [];
+                for (let i = 0; i < cases.length; i++) {
+                    const item = cases[i];
+                    progress?.(`Case ${i + 1}/${cases.length}: ${item.input.slice(0, 28)}${item.input.length > 28 ? "…" : ""}`);
                     const nodes = [B.input(1, item.input, 0), B.op(2, "Magic", 500)];
                     nodes[1].values[0] = 4;
                     const edges = [B.edge(1, 1, 2, "main")];
@@ -12359,14 +12436,16 @@ function integrationDefinitions() {
                         (nodes[1]._error ? ` · ${nodes[1]._error}` : "") +
                         (nodes[1]._magicWarning ? ` · ${nodes[1]._magicWarning}` : "");
                     report.push(`${ok ? "ok" : "no"} ${JSON.stringify(label)} → ${JSON.stringify(out.slice(0, 40))} [${listed}]${countOk ? "" : ` · ${rows.length} rows, expected 4`} (${trail})`);
-                    if (!ok) return {ok: false, detail: report.join(" · ")};
+                    if (!ok) failed.push(item.input);
                 }
-                return {ok: true, detail: report.join(" · ")};
+                return {ok: failed.length === 0, detail: report.join(" · ")};
             }
         },
         {
             id: "magic-benchmark",
             title: "Magic benchmark across encodings",
+            // Nineteen sweeps, so the batch's ordinary per-check cap is too short.
+            timeoutMs: 900000,
             description: "Nineteen inputs: base64, base64url, hex, decimal bytes, binary, octal, URL encoding, two Caesar shifts, Atbash, base32, Morse, a NATO sentence, ICAO spellings, alias spellings, NATO and Morse encoder output fed back in, and two inputs with no answer. Every case must put the right plaintext first and show exactly the ten rows the node asks for; a reading second-best must survive. The two undecodable inputs must warn instead of confidently answering.",
             run: async () => {
                 // Ranking contract first, without the engine: a confident decode plus another
@@ -13219,6 +13298,9 @@ function paintIntegrationCard(def) {
     const btn = card.querySelector("[data-action=run-integration]");
     if (btn) btn.disabled = lab.integrationBatch;
 }
+// A definition can override this; the Magic benchmark runs nineteen sweeps, so it asks for
+// more room than a single check. The cap is a backstop, not the expected duration.
+const INTEGRATION_TIMEOUT_MS = 180000;
 // Run one definition and return its verdict. No DOM work happens here, so the batch and the
 // single-card button cannot drift apart.
 async function executeIntegration(def) {
@@ -13228,10 +13310,34 @@ async function executeIntegration(def) {
     // node) sweep Magic underneath it, so each check starts and ends with no run queued.
     clearTimeout(runTimer);
     runTimer = 0;
+    let deadline = 0;
+    let stopWatch = 0;
     try {
         if (def.run) {
-            // Feature checks drive the editor itself and report their own verdict.
-            const res = await def.run();
+            // Feature checks drive the editor itself and report their own verdict. The check
+            // can print progress, and Stop must reach it without waiting for the next card.
+            const limit = Math.max(1000, Number(def.timeoutMs) || INTEGRATION_TIMEOUT_MS);
+            const report = text => {
+                if (def.status !== "running") return;
+                def.detail = text;
+                paintIntegrationCard(def);
+            };
+            const timeout = new Promise((_, reject) => {
+                deadline = setTimeout(() => reject(new Error(`Check timed out after ${Math.round(limit / 1000)}s.`)), limit);
+            });
+            const stopped = new Promise(resolve => {
+                if (!lab.integrationBatch) return;
+                stopWatch = setInterval(() => {
+                    if (!lab.integrationStop) return;
+                    clearInterval(stopWatch);
+                    stopWatch = 0;
+                    resolve({stopped: true});
+                }, 100);
+            });
+            const res = await Promise.race([def.run(report), timeout, stopped]);
+            if (res && res.stopped) {
+                return {status: "pending", detail: "Stopped.", duration: performance.now() - t0};
+            }
             const duration = performance.now() - t0;
             return {
                 status: res && res.ok ? "pass" : "fail",
@@ -13266,6 +13372,8 @@ async function executeIntegration(def) {
     } finally {
         clearTimeout(runTimer);
         runTimer = 0;
+        clearTimeout(deadline);
+        if (stopWatch) clearInterval(stopWatch);
     }
 }
 async function runIntegration(id) {
@@ -13318,6 +13426,10 @@ async function runAllIntegrations() {
             paintIntegrationCard(def);
             const res = await executeIntegration(def);
             Object.assign(def, res);
+            if (res.status === "pending" && lab.integrationStop) {
+                paintIntegrationCard(def);
+                break;
+            }
             done++;
             if (res.status === "pass") passed++;
             else failed++;

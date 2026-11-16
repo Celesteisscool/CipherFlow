@@ -14,7 +14,7 @@ and the **flask** opens the verification lab: known-answer vectors, live probes 
 wiring checks for every operation. All three are part of the same page.
 
 - **App entry point:** [`index.html`](index.html) (the built shell; serve it with `assets/`)
-- **Engine:** CyberChef 11.5.0 (Apache-2.0), bundled inline
+- **Engine:** CyberChef 11.5.0 (Apache-2.0), loaded from `assets/chefworker.js`; operation modules are fetched on demand
 - Extra operations recreated in the style of dCode and CacheSleuth live in [`dev/dcode/`](dev/dcode)
 
 ## Run it locally

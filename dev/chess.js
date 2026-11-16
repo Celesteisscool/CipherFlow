@@ -56,22 +56,6 @@
     }
 
     /**
-     * Can the side to move actually take on `ep`? Only then is the target part of the position:
-     * a FEN naming an en passant square nobody can use is not the canonical record, and strict
-     * readers reject it.
-     */
-    function epUsable(board, turn, ep) {
-        if (ep < 0) return false;
-        const pawn = turn === "w" ? "P" : "p";
-        // The capturing pawn sits beside the pawn that just moved, one rank below the target
-        // for White and one rank above it for Black — the target is the skipped square.
-        const dr = turn === "w" ? 1 : -1;
-        const left = at(ep, -1, dr);
-        const right = at(ep, 1, dr);
-        return (left >= 0 && board[left] === pawn) || (right >= 0 && board[right] === pawn);
-    }
-
-    /**
      * The FEN record at the start of `text`, or null when it does not start with one.
      * `rest` is whatever follows it, so "FEN then moves" reads as a position and the moves
      * played from it — the same text a Chess node's FEN output hands on.
@@ -110,9 +94,9 @@
             half: m[5] != null ? Number(m[5]) : 0,
             full: m[6] != null ? Number(m[6]) : 1
         };
-        // An en passant square that cannot be taken on is dropped, so what this node reads in
-        // is what it writes back out: the canonical record of the position.
-        if (!epUsable(board, state.turn, state.ep)) state.ep = -1;
+        // Standard FEN records the en passant target after every double pawn move, even when
+        // no adjacent pawn can capture on it. Keep it exactly as written: dropping it made a
+        // strict FEN output and a round trip disagree with every other chess tool.
         return {state, rest: src.slice(m[0].length).trim()};
     }
 
@@ -322,15 +306,11 @@
         if (move.to === 56) next.castling.Q = false;
         if (move.to === 7) next.castling.k = false;
         if (move.to === 0) next.castling.q = false;
-        // The square a pawn skipped over is the one an en passant capture lands on, and it is
-        // only worth recording for the one reply that follows — and only when that reply can
-        // actually take on it. A FEN naming an en passant target nobody can use is not the
-        // canonical record of the position, and strict readers reject it.
+        // Standard FEN records the square a pawn skipped over after every double move, even
+        // when no opposing pawn is placed to capture on it. Moves still only use the target
+        // when an en passant capture is actually legal.
         next.ep = -1;
-        if (type === "p" && Math.abs(move.to - move.from) === 16) {
-            const mid = (move.from + move.to) / 2;
-            if (epUsable(next.board, other(colour), mid)) next.ep = mid;
-        }
+        if (type === "p" && Math.abs(move.to - move.from) === 16) next.ep = (move.from + move.to) / 2;
         next.half = captured || type === "p" ? 0 : state.half + 1;
         next.full = state.full + (colour === "b" ? 1 : 0);
         next.turn = colour === "w" ? "b" : "w";
@@ -429,6 +409,10 @@
         const fen = readFen(text);
         const tokens = (fen ? fen.rest : String(text || "")).split(/[\s,]+/).filter(Boolean);
         let state = fen ? fen.state : start();
+        // The move list has to keep the numbering it started on. A game continued from a FEN
+        // at move 17 with Black to move begins "17...", not "1.".
+        const startTurn = state.turn;
+        const startFull = state.full;
         const sans = [];
         for (let i = 0; i < tokens.length; i++) {
             // "1.e4" and "1...e5" arrive as one token when the numbers were typed tight.
@@ -436,21 +420,31 @@
             if (!token || isNoise(token)) continue;
             const move = parse(state, token);
             if (!move) {
-                return {state, sans, tokens, fromFen: Boolean(fen), error: {index: i, token: tokens[i], ply: sans.length}};
+                return {state, sans, tokens, fromFen: Boolean(fen), startTurn, startFull,
+                    error: {index: i, token: tokens[i], ply: sans.length}};
             }
             sans.push(san(state, move));
             state = apply(state, move);
         }
-        return {state, sans, tokens, fromFen: Boolean(fen), error: null};
+        return {state, sans, tokens, fromFen: Boolean(fen), startTurn, startFull, error: null};
     }
 
-    /** The move list as one line of text: "1. e4 e5 2. Nf3". */
-    function toText(sans) {
+    /**
+     * The move list as one line of text: "1. e4 e5 2. Nf3". `turn` and `full` are where the
+     * list began, so a game continued from a FEN keeps its PGN numbering instead of restarting
+     * at move 1. Black's first move is marked with "...", and later black moves stay bare.
+     */
+    function toText(sans, {turn = "w", full = 1} = {}) {
         const parts = [];
-        (sans || []).forEach((text, i) => {
-            if (i % 2 === 0) parts.push(`${i / 2 + 1}.`);
+        let side = turn === "b" ? "b" : "w";
+        let number = Math.max(1, Math.floor(Number(full) || 1));
+        for (const text of sans || []) {
+            if (side === "w") parts.push(`${number}.`);
+            else if (!parts.length) parts.push(`${number}...`);
             parts.push(text);
-        });
+            if (side === "w") side = "b";
+            else { side = "w"; number++; }
+        }
         return parts.join(" ");
     }
 

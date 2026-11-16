@@ -10343,6 +10343,9 @@ function saveGraphFile() {
 async function openGraphFile(file, opts = {}) {
     try {
         const data = JSON.parse(await file.text());
+        // A backup of every named save is a different document from a graph file. Restore it
+        // as saves instead of letting the graph loader reject it and turn it into a file node.
+        if (isGraphBackup(data)) { importGraphBackup(data, opts); return; }
         const normalized = normalizeLoaded(data);
         applyGraph({...normalized, autoRun: normalized.autoRun}, {fit: !normalized.view && !opts.at});
         resetHistory();
@@ -10364,6 +10367,70 @@ async function openGraphFile(file, opts = {}) {
     }
 }
 
+// The file made by “Download all saves”: one JSON document holding the browser's named-graph
+// map. It is not a graph and never should have been offered to normalizeLoaded.
+function isGraphBackup(data) {
+    return Boolean(data && data.app === "CipherFlow" && data.graphs &&
+        typeof data.graphs === "object" && !Array.isArray(data.graphs));
+}
+
+// Put every readable graph from a backup back into the browser's named saves, then open the
+// most recently saved one so the import has a visible result. Entries that fail validation are
+// skipped and reported instead of aborting the whole restore.
+function importGraphBackup(data, opts = {}) {
+    const entries = [];
+    let skipped = 0;
+    for (const [rawName, rawEntry] of Object.entries(data.graphs)) {
+        const name = String(rawName || "").trim().slice(0, 80);
+        if (!name || !rawEntry || typeof rawEntry !== "object" || !rawEntry.graph) {
+            skipped++;
+            continue;
+        }
+        try {
+            entries.push({
+                name,
+                savedAt: Number(rawEntry.savedAt) || Date.now(),
+                graph: normalizeLoaded(rawEntry.graph)
+            });
+        } catch {
+            skipped++;
+        }
+    }
+    if (!entries.length) {
+        toast("That backup has no readable saved graphs.", "error");
+        return;
+    }
+    entries.sort((a, b) => b.savedAt - a.savedAt);
+    const map = readSavedGraphs();
+    const replacing = entries.filter(entry => Object.prototype.hasOwnProperty.call(map, entry.name)).length;
+    const noun = `${entries.length} saved graph${entries.length === 1 ? "" : "s"}`;
+    const replaces = replacing ? ` ${replacing} existing save${replacing === 1 ? "" : "s"} with the same name will be replaced.` : "";
+    const skips = skipped ? ` ${skipped} unreadable entr${skipped === 1 ? "y" : "ies"} will be skipped.` : "";
+    if (!confirm(`Restore ${noun} from this backup? It replaces the canvas with the most recently saved graph.${replaces}${skips}`)) {
+        toast("Kept the saved graphs already in this browser.");
+        return;
+    }
+    for (const entry of entries) map[entry.name] = {savedAt: entry.savedAt, graph: entry.graph};
+    try {
+        localStorage.setItem(SAVES_KEY, JSON.stringify(map));
+    } catch {
+        toast("Could not restore that backup: this browser's storage is full.", "error");
+        return;
+    }
+    const newest = entries[0];
+    try {
+        applyGraph({...newest.graph, autoRun: newest.graph.autoRun}, {fit: !newest.graph.view && !opts.at});
+        resetHistory();
+        setRunStatus("", "Ready");
+        setCurrentGraphName(newest.name);
+        renderFileMenu();
+        toast(`Restored ${noun}${skipped ? ` (${skipped} unreadable skipped)` : ""} and opened “${newest.name}”`);
+    } catch (err) {
+        renderFileMenu();
+        toast(`Restored ${noun}, but could not open “${newest.name}”: ${err.message || err}`, "error");
+    }
+}
+
 /* ================================================================ share links */
 // A graph can travel in the URL fragment: `#g=<version><codec><base64url>&n=<name>`.
 // A fragment is never sent to the server, so a link works on Pages, on a local server or
@@ -10375,6 +10442,10 @@ const SHARE_VERSION = "1";
 // soft limit, refused past the hard one, and its size is reported either way.
 const SHARE_SOFT_LIMIT = 8 * 1024;
 const SHARE_HARD_LIMIT = 64 * 1024;
+// A link's compressed form is capped above, but its decompressed form is not inherently
+// bounded: a tiny deflate stream can expand enormously. Cap the bytes produced while
+// inflating so opening an untrusted link cannot make the page allocate without limit.
+const SHARE_DECODED_LIMIT = 8 * 1024 * 1024;
 let pendingShare = null;
 
 const b64Url = b64 => String(b64).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -10411,7 +10482,33 @@ async function deflateForShare(bytes) {
 }
 async function inflateForShare(bytes) {
     const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
-    return new Uint8Array(await new Response(stream).arrayBuffer());
+    const reader = stream.getReader();
+    const chunks = [];
+    let total = 0;
+    try {
+        for (;;) {
+            const {done, value} = await reader.read();
+            if (done) break;
+            if (!value || !value.byteLength) continue;
+            total += value.byteLength;
+            if (total > SHARE_DECODED_LIMIT) {
+                const err = new Error("share payload expands too far");
+                err.code = "SHARE_TOO_LARGE";
+                await reader.cancel().catch(() => {});
+                throw err;
+            }
+            chunks.push(value);
+        }
+    } finally {
+        try { reader.releaseLock(); } catch { /* cancelled or already closed */ }
+    }
+    const out = new Uint8Array(total);
+    let at = 0;
+    for (const chunk of chunks) {
+        out.set(chunk, at);
+        at += chunk.byteLength;
+    }
+    return out;
 }
 
 // The link for the graph on the canvas (or the definition being edited, which lives in the
@@ -10490,7 +10587,10 @@ async function readShareFromLocation() {
         } else if (codec !== "u") {
             return {error: "That share link uses an unknown format."};
         }
-    } catch {
+    } catch (err) {
+        if (err && err.code === "SHARE_TOO_LARGE") {
+            return {error: "That share link expands to too much data to open. Ask for the graph as a file instead."};
+        }
         return {error: "That share link is damaged: its payload did not decompress."};
     }
     let graph;
@@ -10515,24 +10615,42 @@ function offerSharedGraph() {
     if (!pendingShare) return;
     const share = pendingShare;
     pendingShare = null;
-    clearShareHash();
     if (share.error) {
+        clearShareHash();
         toast(share.error, "error");
         return;
     }
     const label = share.name ? `“${share.name}”` : "the shared graph";
     if (!confirm(`Open ${label} from this link? It replaces the graph on the canvas, and the autosave is replaced with it.`)) {
-        toast("Kept your graph. Open the link again whenever you want the shared one.");
+        // Keep the fragment on a refusal: the toast tells the user the link is still there,
+        // and clearing it here would make that true only until they looked at the address bar.
+        toast("Kept your graph. The link is still in the address bar; reload it whenever you want the shared one.");
         return;
     }
     try {
         applyGraph(share.graph, {fit: true});
+        // A shared graph is an opened document, not an edit of whatever was on the canvas.
+        // Without this, the first Ctrl+Z would restore the pre-share graph behind it.
+        resetHistory();
         setCurrentGraphName(share.name);
         renderFileMenu();
+        clearShareHash();
         toast(share.name ? `Opened “${share.name}” from the link` : "Opened the shared graph");
     } catch (err) {
         toast("Could not open that shared graph: " + (err.message || err), "error");
     }
+}
+
+// A fragment change in the same tab does not reload the page, so the boot-time read is not
+// enough. Read each new share fragment when it arrives, and ignore a slower read that lost a
+// race with a later one.
+let shareReadToken = 0;
+async function offerShareFromHash() {
+    const token = ++shareReadToken;
+    const share = await readShareFromLocation();
+    if (token !== shareReadToken || !share) return;
+    pendingShare = share;
+    offerSharedGraph();
 }
 
 /* ================================================================ file menu */
@@ -10561,14 +10679,16 @@ function readSavedGraphs() {
     try {
         const raw = localStorage.getItem(SAVES_KEY);
         const map = raw ? JSON.parse(raw) : null;
-        if (!map || typeof map !== "object" || Array.isArray(map)) return {};
-        const out = {};
+        if (!map || typeof map !== "object" || Array.isArray(map)) return Object.create(null);
+        // A null-prototype map keeps names such as “__proto__” as ordinary keys. With a plain
+        // object, saving that name changed the prototype and JSON.stringify wrote nothing.
+        const out = Object.create(null);
         for (const [name, entry] of Object.entries(map)) {
             if (entry && typeof entry === "object" && entry.graph) out[name] = entry;
         }
         return out;
     } catch {
-        return {};
+        return Object.create(null);
     }
 }
 
@@ -10848,17 +10968,22 @@ function recipeNameList(names, limit = 3) {
 function graphRecipe() {
     const ops = state.nodes.filter(n => n.type === "op");
     if (!ops.length) return {error: "There are no operation nodes to copy."};
-    // A note is canvas decoration and travels nowhere; everything else that is not an
-    // operation either carries the input or is a graph feature a recipe has no place for.
+    const mainIn = id => state.edges.filter(e => e.to === id && String(e.toPort || "main") === "main");
+    const mainOut = id => state.edges.filter(e => e.from === id && (e.fromPort || "out") === "out");
+    // A text or file node is both a source and a sink. A sink has a wire in and none out; it
+    // shows the recipe's result and is not a second value to feed it. Every example and the
+    // blank graph end this way, so counting those cards as inputs refused ordinary graphs.
+    const isResultSink = n => (n.type === "input" || n.type === "file") &&
+        mainIn(n.id).length > 0 && mainOut(n.id).length === 0;
     const outsiders = state.nodes.filter(n => n.type !== "op" && n.type !== "note");
-    const sources = outsiders.filter(n => n.type === "input" || n.type === "file");
-    if (outsiders.length !== sources.length) {
-        const stray = outsiders.find(n => !sources.includes(n));
+    const participants = outsiders.filter(n => !isResultSink(n));
+    const sources = participants.filter(n => n.type === "input" || n.type === "file");
+    if (participants.length !== sources.length) {
+        const stray = participants.find(n => !sources.includes(n));
         return {error: `A recipe is one straight chain of operations — this graph also has a ${nodeCategoryLabel(stray)} node.`};
     }
     if (sources.length > 1) return {error: `A recipe carries one value, but this graph has ${sources.length} input nodes.`};
     const opIds = new Set(ops.map(n => n.id));
-    const mainIn = id => state.edges.filter(e => e.to === id && String(e.toPort || "main") === "main");
     for (const node of ops) {
         const wired = state.edges.find(e => e.to === node.id && String(e.toPort || "").startsWith("arg:"));
         if (wired) {
@@ -13020,11 +13145,13 @@ function integrationDefinitions() {
                 const source = makeNode("input", {id: 1, x: 0, y: 0, text: "Hello, World!"});
                 const rot = makeNode("op", {id: 2, x: 300, y: 0, op: "ROT13"});
                 const b64 = makeNode("op", {id: 3, x: 600, y: 0, op: "To Base64", values: nodeValuesWith("To Base64", {Alphabet: "A-Za-z0-9-_"})});
+                const sink = makeNode("input", {id: 4, x: 900, y: 0, title: "Result", text: ""});
                 b64.bypass = true;
-                s.nodes.push(source, rot, b64);
+                s.nodes.push(source, rot, b64, sink);
                 s.edges.push(
                     {id: "e1", from: 1, to: 2, toPort: "main", fromPort: "out"},
-                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"}
+                    {id: "e2", from: 2, to: 3, toPort: "main", fromPort: "out"},
+                    {id: "e3", from: 3, to: 4, toPort: "main", fromPort: "out"}
                 );
                 const built = graphRecipe();
                 // What the recipe must carry: this page's own argument values, in CyberChef's
@@ -13043,7 +13170,7 @@ function integrationDefinitions() {
                     JSON.stringify(imported[1].values) === JSON.stringify(nodeValuesWith("To Base64", {Alphabet: "A-Za-z0-9-_"})) &&
                     imported[1].bypass === true;
                 // Feed the pasted chain and check it runs to the same value as the original.
-                if (imported.length) s.edges.push({id: "e3", from: source.id, to: imported[0].id, toPort: "main", fromPort: "out"});
+                if (imported.length) s.edges.push({id: "e4", from: source.id, to: imported[0].id, toPort: "main", fromPort: "out"});
                 const res = await executeGraph(s.nodes, s.edges, {force: true, timeout: 15000});
                 const before = res.results.get(b64.id)?.bytes;
                 const after = imported.length ? res.results.get(imported[1].id)?.bytes : null;
@@ -13739,6 +13866,9 @@ function bindGlobalEvents() {
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") saveLocalNow();
     });
+    // A share link pasted into this tab changes only the fragment, which does not reload the
+    // page. Treat every new share fragment like a link opened in a fresh tab.
+    window.addEventListener("hashchange", () => { void offerShareFromHash(); });
     window.addEventListener("beforeunload", () => {
         stopMagicPool();
         saveLocalNow();
@@ -16010,7 +16140,7 @@ function chessPortOutputs(text, fenOut, enc) {
     const played = CFCHESS.replay(text);
     const legal = CFCHESS.moves(played.state);
     return new Map([
-        ["out", enc.encode(fenOut ? CFCHESS.toFen(played.state) : CFCHESS.toText(played.sans))],
+        ["out", enc.encode(fenOut ? CFCHESS.toFen(played.state) : CFCHESS.toText(played.sans, {turn: played.startTurn, full: played.startFull}))],
         ["legal", enc.encode(legal.map(m => CFCHESS.san(played.state, m)).join(" "))]
     ]);
 }

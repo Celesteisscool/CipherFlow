@@ -38,10 +38,20 @@ function compress(buf, encoding, ext) {
 }
 
 http.createServer((req, res) => {
-    const urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
-    let file = path.join(ROOT, urlPath);
+    let urlPath;
+    try {
+        urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
+    } catch {
+        // A malformed percent escape is a bad request, not a reason to kill the dev server.
+        res.writeHead(400, {"content-type": "text/plain"}).end("bad request");
+        return;
+    }
+    // Resolve from the root and then compare with path.relative. A bare startsWith(ROOT)
+    // accepts a sibling such as /srv/CipherFlow-other, which is outside the tree.
+    let file = path.resolve(ROOT, "." + (urlPath.startsWith("/") ? urlPath : "/" + urlPath));
     if (urlPath.endsWith("/")) file = path.join(file, "index.html");
-    if (!file.startsWith(ROOT)) {
+    const relative = path.relative(ROOT, file);
+    if (relative === ".." || relative.startsWith(".." + path.sep) || path.isAbsolute(relative)) {
         res.writeHead(403).end("forbidden");
         return;
     }

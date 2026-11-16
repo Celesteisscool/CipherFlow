@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import chess from "./chess.js";
 
-const {start, moves, apply, toFen, readFen, replay, parse} = chess;
+const {start, moves, apply, toFen, readFen, replay, parse, toText, squareIndex} = chess;
 let checks = 0;
 
 function perft(state, depth) {
@@ -48,8 +48,28 @@ const pos5 = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
 check("perft pos5 d1", () => perft(fen(pos5), 1), 44);
 check("perft pos5 d2", () => perft(fen(pos5), 2), 1486);
 
+// Standard FEN keeps the en passant target even when no pawn can take on it.
+const e4Position = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+const afterE4 = replay("e4");
+check("e4 records the en passant target", () => toFen(afterE4.state), e4Position);
+check("unused en passant target round trips", () => toFen(fen(e4Position)), e4Position);
+const epPosition = "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1";
+const epCapture = moves(fen(epPosition)).find(m => m.flag === "ep");
+check("a real en passant capture is offered", () => Boolean(epCapture) && epCapture.from === squareIndex("e5") && epCapture.to === squareIndex("d6"), true);
+check("en passant capture clears the target", () => toFen(apply(fen(epPosition), epCapture)).split(" ")[3], "-");
+
+// A move list continued from a FEN keeps the FEN's move number and side to move.
+const blackAt17 = replay("7k/4p3/8/8/8/8/4K3/8 b - - 0 17 e5");
+check("black continuation is numbered from the FEN",
+    () => toText(blackAt17.sans, {turn: blackAt17.startTurn, full: blackAt17.startFull}), "17... e5");
+const whiteAt17 = replay("7k/8/8/8/8/8/4P3/4K3 w - - 0 17 e4");
+check("white continuation is numbered from the FEN",
+    () => toText(whiteAt17.sans, {turn: whiteAt17.startTurn, full: whiteAt17.startFull}), "17. e4");
+check("later black moves stay bare", () => toText(["e5", "Nf3", "Nc6"], {turn: "b", full: 17}), "17... e5 18. Nf3 Nc6");
+
 // A FEN read and written again names the same position.
 for (const value of [
+    e4Position,
     "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
     "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
     "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8"

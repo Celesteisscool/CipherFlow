@@ -6310,10 +6310,10 @@ const MAGIC_MESSAGE_START = /^(error|sorry|invalid|unknown|cannot|can't|could no
 const MAGIC_MESSAGE_ANY = /\b(one of the following|must be one of|is not a valid|not a valid|does not appear to be|must in the format|invalid key length|invalid nonce length|no key (entered|provided)|exceeds the maximum|must be at least|must be at most|must be less than|is not supported|could not be decoded|cannot be decoded|failed to decode)\b/i;
 const MAGIC_MESSAGE_PHRASE = /\b(does not|doesn't|do not|is not in|is not a\b|is not an\b|are not|was not|must be|must in\b|must contain|must match|appear to be|appears to be|not a valid|is not valid|not enough|need at least|need \d+ (bytes|bits|characters|arguments?)|could not|cannot|can't|unable to|failed to|must supply|must use|each row|out of range|too small|too large|please (enter|provide|specify|supply)|is required|are required|is unsupported|not supported|no match|no key|no input|no data|no valid|invalid|unsupported|malformed|truncated|overflow|underflow|ambiguous|not found|unknown|missing|unexpected|0 bytes|\d+ bytes long)\b/i;
 
-// A labelled record ("Date: …", "Path name: …", "Source MAC: …") is a parser's report
-// about the input, not a message behind it.
+// A labelled record ("Date: …", "Path name: …", "Textual representation: …") is a
+// parser's report about the input, not a message behind it.
 const MAGIC_LABEL_PREFIX = /^([A-Z][A-Za-z0-9 _-]{1,28}):\s/;
-const MAGIC_LABEL_WORDS = /\b(date|time|browser|version|path|name|source|destination|type|length|size|checksum|mode|encoding|format|marker|offset|address|protocol|port|flags|status|user|host|scheme|query|fragment|header|score|scores|keyword|keywords|index|position|count|result|results|output|input|line|column|key|value|values|number|numbers)\b/i;
+const MAGIC_LABEL_WORDS = /\b(date|time|browser|version|path|name|source|destination|type|length|size|checksum|mode|encoding|format|representation|marker|offset|address|protocol|port|flags|status|user|host|scheme|query|fragment|header|score|scores|keyword|keywords|index|position|count|result|results|output|input|line|column|key|value|values|number|numbers)\b/i;
 
 /* How good a result looks. The score is a 0-100 quality measure instead of a pile of
  * bonuses, so a short clean sentence can beat a long artefact: 38% of it is legibility
@@ -6331,11 +6331,11 @@ const MAGIC_WEIGHTS = {
 };
 
 /* Small, explicit nudges for single operations, applied once after scoring and before the
- * caps are re-applied — never instead of them. Four points is a tie-breaker: it can lift a
- * decode above a parser that happened to contain a few dictionary words, and it can push an
- * analysis table below a real sentence, but it cannot turn a 45 into a confident answer.
- * Positive: operations that reveal a message by construction. Negative: operations that
- * describe, list or draw their input rather than uncovering anything. */
+ * caps are re-applied — never instead of them. Positive: operations that reveal a message by
+ * construction. Negative: operations that describe, list or draw their input rather than
+ * uncovering anything. Those use MAGIC_REPORT_PRIOR and are never treated as findings; the
+ * size of the penalty also keeps them out of the near-miss list. */
+const MAGIC_REPORT_PRIOR = -20;
 const MAGIC_OP_PRIOR = new Map([
     ["Spelling Alphabet Decode", 4],   // one word per letter: a readable result is a decode
     ["A1Z26 Cipher Decode", 3],         // numbers to letters, nothing else to explain
@@ -6348,23 +6348,26 @@ const MAGIC_OP_PRIOR = new Map([
     ["Baudot Decode", 2],               // deterministic five-bit table decode
     ["Atbash Cipher", 1],               // always yields letters; only text should survive
     ["ROT13", 1],                       // the shift sweep is the point; ties go to the decode
-    ["Parse UNIX file permissions", -2],// a permissions table describes the input, not a message
-    ["Extract URLs", -2],               // a list of what the input already contains
-    ["Extract domains", -2],            // same, one field out of the input
-    ["Extract email addresses", -2],    // same
-    ["Extract IP addresses", -2],       // same
-    ["Extract hashes", -2],             // same
-    ["Extract MAC addresses", -2],      // same
-    ["Extract dates", -2],              // same
-    ["Extract file paths", -2],         // same
-    ["Extract EXIF", -2],               // metadata dump
-    ["Extract Audio Metadata", -2],     // metadata dump
-    ["Extract ID3", -2],                // metadata dump
-    ["Parse URI", -2],                  // a breakdown of the input
-    ["Parse User Agent", -2],           // a breakdown of the input
-    ["Show on map", -2],                // draws the input
-    ["Generate all checksums", -2],     // a listing of derived values
-    ["Generate all hashes", -2]         // a listing of derived values
+    ["Parse UNIX file permissions", MAGIC_REPORT_PRIOR], // a permissions table, not a message
+    ["Extract URLs", MAGIC_REPORT_PRIOR],               // a list of what the input already contains
+    ["Extract domains", MAGIC_REPORT_PRIOR],            // same, one field out of the input
+    ["Extract email addresses", MAGIC_REPORT_PRIOR],    // same
+    ["Extract IP addresses", MAGIC_REPORT_PRIOR],       // same
+    ["Extract hashes", MAGIC_REPORT_PRIOR],             // same
+    ["Extract MAC addresses", MAGIC_REPORT_PRIOR],      // same
+    ["Extract dates", MAGIC_REPORT_PRIOR],              // same
+    ["Extract file paths", MAGIC_REPORT_PRIOR],         // same
+    ["Extract EXIF", MAGIC_REPORT_PRIOR],               // metadata dump
+    ["Extract Audio Metadata", MAGIC_REPORT_PRIOR],     // metadata dump
+    ["Extract ID3", MAGIC_REPORT_PRIOR],                // metadata dump
+    ["Parse PGP Key", MAGIC_REPORT_PRIOR],              // a key dump, not a message
+    ["Parse X.509 CRL", MAGIC_REPORT_PRIOR],            // a certificate report
+    ["Parse ASN.1 hex string", MAGIC_REPORT_PRIOR],     // an identifier table
+    ["Parse URI", MAGIC_REPORT_PRIOR],                  // a breakdown of the input
+    ["Parse User Agent", MAGIC_REPORT_PRIOR],           // a breakdown of the input
+    ["Show on map", MAGIC_REPORT_PRIOR],                // draws the input
+    ["Generate all checksums", MAGIC_REPORT_PRIOR],     // a listing of derived values
+    ["Generate all hashes", MAGIC_REPORT_PRIOR]         // a listing of derived values
 ]);
 
 // One definition of each cap. scoreMagicResult applies them at the points where a bonus
@@ -6715,6 +6718,7 @@ function rankMagicResults(results, inputText, limit = Infinity) {
         // One nudge per operation, then the same caps, so the prior can only reorder results
         // that were already close and can never lift a capped result above its ceiling.
         const opPrior = MAGIC_OP_PRIOR.get(result.op) || 0;
+        const reportOnly = opPrior < 0;
         // A supplied key is evidence the user already has, not a guess: it says this is one of
         // the keyed ciphers. Its pass is lifted further than any single operation's prior, so
         // a worked keyed decode sits above an unkeyed guess of similar quality.
@@ -6747,8 +6751,10 @@ function rankMagicResults(results, inputText, limit = Infinity) {
             notes,
             // A result with a real word, or a recognisable shape, is a finding. One with
             // neither is a shape that happens to look like language, so it only fills in
-            // when there is nothing better to show. An encoder is never a finding.
-            solid: (knownWords > 0 || structural) && magicOpClass(result.op) !== "encode",
+            // when there is nothing better to show. An encoder or a report/extractor is
+            // never a finding: it describes the input rather than revealing anything.
+            solid: !reportOnly && (knownWords > 0 || structural) && magicOpClass(result.op) !== "encode",
+            reportOnly,
             reads,
             ms: result.ms,
             preview: text.replace(/\s+/g, " ").slice(0, 120)
@@ -6764,8 +6770,9 @@ function rankMagicResults(results, inputText, limit = Infinity) {
     const findings = ranked.filter(row => row.solid && row.gain >= MAGIC_MIN_GAIN);
     const alsoRan = ranked.filter(row => !row.solid && row.gain >= MAGIC_MIN_GAIN);
     // Runners-up are worth listing only while they are close enough to be interesting; a 30
-    // beside an 83 is noise with a rank number in front of it.
-    const nearMisses = alsoRan.filter(row => row.score >= 30 && row.preview.length >= 10).slice(0, 6);
+    // beside an 83 is noise with a rank number in front of it. A report/extractor is never a
+    // runner-up either, however English its labels happen to be.
+    const nearMisses = alsoRan.filter(row => !row.reportOnly && row.score >= 30 && row.preview.length >= 10).slice(0, 6);
     // A confident answer makes this a list of answers, not guesses. `solid` alone is not
     // enough: "Parse UNIX file permissions" carries five dictionary words and scores 38 under
     // a clean octal decode. Only results that read (or have a real structure) stay; a genuine

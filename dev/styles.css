@@ -1778,6 +1778,16 @@ select.control { padding-right: 4px; }
     justify-content: center;
 }
 .brand-mark svg { width: 12px; height: 12px; stroke: currentColor; fill: none; }
+/* The release number sits at the far end of the wordmark, out of the brand's uppercase
+ * letter-spacing: it is the app version (package.json), not part of the title. */
+.brand-version {
+    margin-left: auto;
+    text-transform: none;
+    letter-spacing: .04em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--faint);
+}
 .sidebar-title-row { display: flex; align-items: center; gap: 8px; }
 /* The GitHub link sits in that row as an anchor, so it borrows the icon button's square and
  * drops the link colour and underline a bare anchor would otherwise bring. */
@@ -2751,6 +2761,14 @@ a.icon-button:hover { color: var(--ink); }
     gap: 10px;
     padding: 12px 19px 16px;
     border-top: 1px solid var(--line);
+}
+/* Version left, buttons right: the auto margin keeps the two buttons paired. */
+.settings-version {
+    margin-right: auto;
+    color: var(--faint);
+    font-size: 9.5px;
+    letter-spacing: .04em;
+    font-variant-numeric: tabular-nums;
 }
 .help-section { padding: 12px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 65%, transparent); }
 .help-section:last-child { border-bottom: 0; padding-bottom: 4px; }

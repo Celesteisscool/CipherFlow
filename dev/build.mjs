@@ -6,6 +6,11 @@ import {glyphDataBundle, spriteStats} from "./symbols/index.mjs";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "index.html");
+// The release number lives in package.json and is written into the page here: the sidebar
+// brand and the Settings footer show it, and <meta name="cipherflow-version"> carries it for
+// anything reading the built shell. x counts proud releases, y okay ones, z unhappy ones.
+const APP_VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).version;
+if (!/^\d+\.\d+\.\d+$/.test(APP_VERSION)) throw new Error("package.json version must be x.y.z, got: " + APP_VERSION);
 const MODULE_DIR = path.join(ROOT, "dev/modules/modules");
 
 const WORKER_PATH = "/tmp/chefworker.js";
@@ -184,6 +189,7 @@ const html = `<!doctype html>
 <title>CipherFlow — node-based CyberChef</title>
 <meta name="description" content="A node editor for chaining CyberChef's operations with multiple inputs.">
 <meta name="cipherflow-symbols" content="${glyphStats.ciphers}">
+<meta name="cipherflow-version" content="${APP_VERSION}">
 <style>
 ${css}
 </style>
@@ -247,7 +253,7 @@ ${css}
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-head">
-            <div class="brand"><span class="brand-mark"></span><span>CipherFlow · node editor</span></div>
+            <div class="brand"><span class="brand-mark"></span><span>CipherFlow · node editor</span><span class="brand-version" title="CipherFlow version ${APP_VERSION}">v${APP_VERSION}</span></div>
             <div class="sidebar-title-row">
                 <h1 class="sidebar-title">Node list</h1>
                 <span class="count-badge"><span id="opCount">0</span> nodes</span>
@@ -524,6 +530,7 @@ ${css}
             </details>
         </div>
         <div class="settings-foot">
+            <span class="settings-version" title="CipherFlow version ${APP_VERSION}">CipherFlow v${APP_VERSION}</span>
             <button class="btn-secondary" id="kbReset" type="button">Reset to defaults</button>
             <button class="btn-primary" id="settingsDone" type="button">Done</button>
         </div>

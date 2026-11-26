@@ -21,7 +21,7 @@ export const ops = [
     {
         name: "JPHide / JPSeek Extract",
         group: "Steganography",
-        description: "Extracts a file hidden in a JPEG by JPHide/JPSeek. Rebuilds JPSeek's coefficient scan and its four native little-endian Blowfish streams from the passphrase, then returns the original file bytes. Needs a three-component (colour) JPEG and the exact passphrase used when hiding.",
+        description: "Extracts a file hidden in a JPEG by JPHide/JPSeek v0.3 (Linux) or JPHide/JPSeek 0.5/0.51 (Windows). Rebuilds JPSeek's coefficient scan and the version's four Blowfish streams, reads the 8- or 16-byte header, applies the 0.5/0.51 mode selector bit, and decompresses LZO1X payloads when the header says they were compressed. Needs a three-component (colour) JPEG and the exact passphrase used when hiding; leave the passphrase empty for a 0.5/0.51 carrier hidden without one.",
         args: [
             {name: "Passphrase", type: "string", value: ""}
         ],

@@ -3,8 +3,9 @@
  *
  * Checks the primitives against independent vectors (MD5, a DES FIPS vector, Java
  * Random's published seed-0 sequence), then runs the real operation classes over
- * OpenStego fixtures built here and over a JPEG hidden by the reference jphide
- * from the original JPHS package, when /tmp/jphs-ref is present.
+ * OpenStego fixtures built here, over the committed vendor JPHide 0.3 and 0.51
+ * fixtures, and over a fresh JPEG hidden by the reference jphide from the
+ * original JPHS package when /tmp/jphs-ref is present.
  *
  * The OpenStego fixtures are embedded with an independent writer that follows the
  * Java classes, and the encryption branch is produced with Node's OpenSSL 3DES in
@@ -136,6 +137,14 @@ for (const vector of [
     T.bfDecryptBytes(state, key);
     bytes(`Blowfish decrypt (${vector.key})`, state, Buffer.from(vector.plain, "hex"));
 }
+
+check("JPHide 0.51 keeps a 50-byte passphrase",
+    Buffer.from(T.jphideV05Pass("a".repeat(50))).equals(Buffer.from("a".repeat(50))));
+check("JPHide 0.51 folds a passphrase over 50 bytes",
+    Buffer.from(T.jphideV05Pass("0123456789".repeat(6))).equals(
+        Buffer.concat([Buffer.alloc(10), Buffer.from("0123456789".repeat(4))])),
+    Buffer.from(T.jphideV05Pass("0123456789".repeat(6))).toString("hex"));
+check("JPHide 0.51 allows an empty passphrase", T.jphideV05Pass("").length === 0);
 
 check("Java Random seed 0 next()", T.javaRandom(0n).next() === -1155484576, String(T.javaRandom(0n).next()));
 const jr = T.javaRandom(0n);
@@ -322,6 +331,24 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
 {
     const plain = PNG.sync.write({width: 20, height: 20, data: makeRgba(20, 20)}, {colorType: 6});
     await throws("OpenStego rejects an image with no header", () => runOp("OpenStego Extract", plain, ["Auto", ""]));
+}
+
+/* ------------------------------------------------------- vendor JPHide fixtures */
+{
+    const fixtureDir = new URL("./fixtures/", import.meta.url);
+    const fixtureManifest = JSON.parse(fs.readFileSync(new URL("manifest.json", fixtureDir), "utf8"));
+    for (const fixture of fixtureManifest.fixtures || []) {
+        if (fixture.operation !== "JPHide / JPSeek Extract") continue;
+        try {
+            const carrier = fs.readFileSync(new URL(fixture.carrier, fixtureDir));
+            const expected = fs.readFileSync(new URL(fixture.payload, fixtureDir));
+            bytes(`${fixture.id} · ${fixture.tool}`, await runOp(fixture.operation, carrier, fixture.values), expected);
+            await wrongSecret(`${fixture.id} does not accept a wrong passphrase`,
+                () => runOp(fixture.operation, carrier, ["wrong-" + fixture.id]), expected);
+        } catch (err) {
+            report(`${fixture.id} · ${fixture.tool}`, String(err && err.message ? err.message : err));
+        }
+    }
 }
 
 /* -------------------------------------------------------------------- JPHide */

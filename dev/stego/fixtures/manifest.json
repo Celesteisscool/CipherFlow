@@ -1,5 +1,5 @@
 {
-  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout.",
+  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X.",
   "fixtures": [
     {
       "id": "openstego-randomlsb",
@@ -24,6 +24,30 @@
       "cover": "magick -size 320x240 plasma:fractal -quality 92 -interlace none cover.jpg",
       "command": "jphide cover.jpg jphide.jpg jphide.payload.txt (passphrase browser-jphide-pass entered twice)",
       "verified": "jpseek jphide.jpg verify.bin (passphrase browser-jphide-pass)"
+    },
+    {
+      "id": "jphide-v05-raw",
+      "operation": "JPHide / JPSeek Extract",
+      "values": ["v05-raw-pass"],
+      "carrier": "jphide-v05-raw.jpg",
+      "payload": "jphide-v05-raw.payload.txt",
+      "mime": "image/jpeg",
+      "tool": "JPHide/JPSeek 0.51 (Windows)",
+      "cover": "magick -size 320x240 plasma:fractal -quality 92 -interlace none cover.jpg",
+      "command": "jphide.exe cover.jpg jphide-v05-raw.jpg jphide-v05-raw.payload.txt (passphrase v05-raw-pass entered twice)",
+      "verified": "jpseek.exe jphide-v05-raw.jpg verify.bin (passphrase v05-raw-pass)"
+    },
+    {
+      "id": "jphide-v05-lzo",
+      "operation": "JPHide / JPSeek Extract",
+      "values": ["v05-lzo-pass"],
+      "carrier": "jphide-v05-lzo.jpg",
+      "payload": "jphide-v05-lzo.payload.txt",
+      "mime": "image/jpeg",
+      "tool": "JPHide/JPSeek 0.51 (Windows)",
+      "cover": "magick -size 320x240 plasma:fractal -quality 92 -interlace none cover.jpg",
+      "command": "jphide.exe cover.jpg jphide-v05-lzo.jpg jphide-v05-lzo.payload.txt (passphrase v05-lzo-pass entered twice)",
+      "verified": "jpseek.exe jphide-v05-lzo.jpg verify.bin (passphrase v05-lzo-pass)"
     }
   ]
 }

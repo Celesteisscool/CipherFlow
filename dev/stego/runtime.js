@@ -8,12 +8,14 @@
  *   OpenStego  RandomLSB and sequential LSB, header v1/v2, optional password
  *              (PBEWithMD5AndDES or PBES2/HMAC-SHA256/AES) and optional GZIP
  *              compression.
- *   JPHide     JPSeek's coefficient scan and four native little-endian Blowfish
- *              streams, for 3-component JPEGs.
+ *   JPHide     JPSeek's coefficient scan for JPHide 0.3 on Linux (big-endian
+ *              streams) and JPHide/JPSeek 0.5/0.51 on Windows (native
+ *              little-endian streams, mode selector bit, LZO1X payloads), for
+ *              3-component JPEGs.
  *
  * Both formats are reconstructed from their published sources: OpenStego
  * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto) and Allan Latham's
- * JPHide/JPSeek 0.5 (jpseek.c, bf.c, ltable.h).
+ * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h).
  */
 var CF_STEGO = (function () {
     "use strict";
@@ -746,9 +748,16 @@ var CF_STEGO = (function () {
         return [(r ^ key[0]) >>> 0, l];
     }
 
-    // Native little-endian words, used only while expanding the key.
+    // Native little-endian words, used while expanding the key and by the
+    // Windows 0.5/0.51 streams; the 0.3 Linux streams use the big-endian pair.
     function bfEncryptNativeLE(state, key) {
         var out = bfEncryptWords(readLE32(state, 0), readLE32(state, 4), key);
+        writeLE32(state, 0, out[0]);
+        writeLE32(state, 4, out[1]);
+    }
+
+    function bfDecryptNativeLE(state, key) {
+        var out = bfDecryptWords(readLE32(state, 0), readLE32(state, 4), key);
         writeLE32(state, 0, out[0]);
         writeLE32(state, 4, out[1]);
     }
@@ -793,37 +802,53 @@ var CF_STEGO = (function () {
     var JPH_TAIL2 = 1200;
     var JPH_TAIL3 = 120;
 
-    function jphideFromCoefficients(decoded, passphrase) {
-        if (!decoded || !decoded.components || decoded.components.length !== 3) {
-            fail("JPHide needs a three-component (colour) JPEG.");
-        }
+    function jphidePass(passphrase, maxLength, allowEmpty) {
         var pass = utf8Encode(String(passphrase == null ? "" : passphrase));
-        if (!pass.length) fail("JPHide needs the passphrase that was used to hide the file.");
-        if (pass.length > 120) pass = pass.slice(0, 120);
+        if (!pass.length && !allowEmpty) fail("JPHide needs the passphrase that was used to hide the file.");
+        if (pass.length > maxLength) pass = pass.slice(0, maxLength);
+        return pass;
+    }
 
+    function jphideIv(decoded) {
+        var first = decoded.components[0].blocks[0][0];
+        if (!first) fail("This JPEG has no readable DCT coefficients.");
+        var iv = new Uint8Array(8);
+        for (var i = 0; i < 8; i++) iv[i] = first[i] & 0xff;
+        return iv;
+    }
+
+    function jphideCapacity(decoded) {
+        var comps = decoded.components;
+        var capacity = 0;
+        for (var c = 0; c < 3; c++) capacity += comps[c].blocksPerColumn * comps[c].blocksPerLine * 64;
+        return capacity;
+    }
+
+    // JPSeek's coefficient walk, shared by 0.3 and 0.5/0.51. The two Windows
+    // versions use the native little-endian block functions and can spend one
+    // extra stream-2 selector bit per accepted word when header mode bit 0 is
+    // set. The 0.3 Linux version uses the big-endian blocks and has no such bit.
+    function jphideScanner(decoded, key, iv, headerMode, blockEncrypt) {
         var comps = decoded.components;
         var blocks = comps.map(function (component) { return component.blocks; });
         var hib = comps.map(function (component) { return component.blocksPerColumn; });
         var wib = comps.map(function (component) { return 64 * component.blocksPerLine - 1; });
         if (!blocks[0] || !blocks[0][0] || !blocks[0][0][0]) fail("This JPEG has no readable DCT coefficients.");
 
-        var key = bfExpandKey(pass);
         var cdata = [];
         var cpos = [0, 0, 0, 0];
-        var iv = new Uint8Array(8);
-        var first = blocks[0][0][0];
-        for (var i = 0; i < 8; i++) iv[i] = first[i] & 0xff;
+        var seed = new Uint8Array(iv);
         for (var s = 0; s < 4; s++) {
-            cdata[s] = new Uint8Array(iv);
-            bfEncryptBytes(cdata[s], key);
-            var carry = iv[0];
-            iv.copyWithin(0, 1);
-            iv[7] = carry;
+            cdata[s] = new Uint8Array(seed);
+            blockEncrypt(cdata[s], key);
+            var carry = seed[0];
+            seed.copyWithin(0, 1);
+            seed[7] = carry;
         }
 
         function getCodeBit(stream) {
             var bit = cpos[stream] & 63;
-            if (bit === 0) bfEncryptBytes(cdata[stream], key);
+            if (bit === 0) blockEncrypt(cdata[stream], key);
             var byte = cdata[stream][bit >> 3];
             var shift = bit & 7;
             var value = (((byte << shift) & 0xff) >>> 7);
@@ -902,6 +927,7 @@ var CF_STEGO = (function () {
                         }
                     }
                 }
+                if (ok && headerMode) ok = getCodeBit(2);
                 if (ok && tailOn > 0) ok = getCodeBit(2);
                 if (ok && tailOn > 1) ok = getCodeBit(2);
                 if (ok && tailOn > 2) ok = getCodeBit(2);
@@ -920,40 +946,262 @@ var CF_STEGO = (function () {
             return y & 1;
         }
 
-        var lendata = new Uint8Array(8);
-        for (var b = 0; b < 8; b++) {
-            var value = 0;
-            for (var j = 0; j < 8; j++) {
-                var bit = getBit();
-                if (bit < 0) fail("JPHide data ended inside its length field.");
-                value |= bit << j;
+        function raw(n) {
+            var out = new Uint8Array(n);
+            for (var b = 0; b < n; b++) {
+                var value = 0;
+                for (var j = 0; j < 8; j++) {
+                    var bit = getBit();
+                    if (bit < 0) fail("JPHide data ended inside its header.");
+                    value |= bit << j;
+                }
+                out[b] = value;
             }
-            lendata[b] = value;
+            return out;
         }
+
+        function payload(n) {
+            var out = new Uint8Array(n);
+            for (var byte = 0; byte < n; byte++) {
+                var v = 0;
+                for (var k = 0; k < 8; k++) {
+                    var dataBit = getBit();
+                    if (dataBit < 0) fail("The JPEG ended before the whole JPHide payload was recovered.");
+                    dataBit ^= getCodeBit(1);
+                    v = (v << 1) | dataBit;
+                    tail--;
+                }
+                out[byte] = v;
+            }
+            return out;
+        }
+
+        return {
+            rotatedIv: new Uint8Array(seed),
+            setMode: function (value) { headerMode = value ? 1 : 0; },
+            setLength: function (length) { tail = length * 8 - JPH_TAIL1; tailOn = 0; },
+            raw: raw,
+            payload: payload
+        };
+    }
+
+    // JPHide 0.3 / JPSeek on Linux: eight-byte header, big-endian streams.
+    function jphideFromCoefficients(decoded, passphrase) {
+        if (!decoded || !decoded.components || decoded.components.length !== 3) {
+            fail("JPHide needs a three-component (colour) JPEG.");
+        }
+        var pass = jphidePass(passphrase, 120);
+        var iv = jphideIv(decoded);
+        var key = bfExpandKey(pass);
+        var scanner = jphideScanner(decoded, key, iv, 0, bfEncryptBytes);
+        var lendata = scanner.raw(8);
         bfDecryptBytes(lendata, key);
         var length = (lendata[0] << 16) | (lendata[1] << 8) | lendata[2];
 
-        var capacity = 0;
-        for (var c = 0; c < 3; c++) capacity += comps[c].blocksPerColumn * comps[c].blocksPerLine * 64;
+        var capacity = jphideCapacity(decoded);
         if (length > Math.floor(capacity / 8) + 1) {
             fail("JPHide found a nonsense payload length (" + length + " bytes): the passphrase is wrong or the JPEG was not hidden with JPHide.");
         }
         if (length > MAX_OUTPUT) fail("The JPHide payload is larger than this page will decode.");
 
-        tail = length * 8 - JPH_TAIL1;
-        tailOn = 0;
-        var out = new Uint8Array(length);
-        for (var byte = 0; byte < length; byte++) {
-            var v = 0;
-            for (var k = 0; k < 8; k++) {
-                var dataBit = getBit();
-                if (dataBit < 0) fail("The JPEG ended before the whole JPHide payload was recovered.");
-                dataBit ^= getCodeBit(1);
-                v = (v << 1) | dataBit;
-                tail--;
-            }
-            out[byte] = v;
+        scanner.setLength(length);
+        return scanner.payload(length);
+    }
+
+    function failV05(message) {
+        var err = new Error(message);
+        err.jphideV05 = true;
+        throw err;
+    }
+
+    // The 0.51 reader keeps at most 100 bytes, then folds anything longer than
+    // 50 by XORing byte i with byte i+50 and using the first 50 bytes.
+    function jphideV05Pass(passphrase) {
+        var pass = jphidePass(passphrase, 100, true);
+        if (pass.length > 50) {
+            var folded = pass.slice(0, 50);
+            for (var i = 50; i < pass.length; i++) folded[i - 50] ^= pass[i];
+            pass = folded;
         }
+        return pass;
+    }
+
+    // JPHide/JPSeek 0.5 and 0.51 on Windows. The key is the first six IV bytes
+    // followed by the passphrase; the two eight-byte header blocks, the streams
+    // and the payload all use the native little-endian Blowfish blocks. Returns
+    // null when the sixteen-byte header does not verify, so the caller can try
+    // 0.3.
+    function jphideV05FromCoefficients(decoded, passphrase) {
+        if (!decoded || !decoded.components || decoded.components.length !== 3) {
+            fail("JPHide needs a three-component (colour) JPEG.");
+        }
+        var pass = jphideV05Pass(passphrase);
+        var iv = jphideIv(decoded);
+        var keyBytes = new Uint8Array(6 + pass.length);
+        keyBytes.set(iv.subarray(0, 6), 0);
+        keyBytes.set(pass, 6);
+        var key = bfExpandKey(keyBytes);
+        var scanner = jphideScanner(decoded, key, iv, 0, bfEncryptNativeLE);
+
+        var p1, p2;
+        try {
+            p1 = scanner.raw(8);
+            p2 = scanner.raw(8);
+        } catch (err) {
+            return null; // too few coefficients for a 0.5 header; try 0.3
+        }
+        bfDecryptNativeLE(p1, key);
+        bfDecryptNativeLE(p2, key);
+
+        var length = (p1[0] << 16) | (p1[1] << 8) | p1[2];
+        if (p1[3] > 3 || length <= 0 || length > MAX_OUTPUT) return null;
+        if (p2[1] !== p1[1] || p2[2] !== p1[2]) return null;
+
+        var iv1 = new Uint8Array(scanner.rotatedIv);
+        bfEncryptNativeLE(iv1, key);
+        if (iv1[5] !== p1[5] || iv1[6] !== p1[6] || iv1[7] !== p1[7]) return null;
+        var iv2 = new Uint8Array(iv1);
+        bfEncryptNativeLE(iv2, key);
+        if (iv2[4] !== p2[4] || iv2[5] !== p2[5] || iv2[6] !== p2[6] || iv2[7] !== p2[7]) return null;
+
+        var rlen = (p1[4] << 16) | (p2[0] << 8) | p2[3];
+        if (rlen > MAX_OUTPUT) return null;
+        var capacity = jphideCapacity(decoded);
+        if (length > Math.floor(capacity / 8) + 1) return null;
+
+        scanner.setMode(p1[3] & 1);
+        scanner.setLength(length);
+        var data;
+        try {
+            data = scanner.payload(length);
+        } catch (err) {
+            failV05("The JPEG ended before the whole JPHide/JPSeek payload was recovered.");
+        }
+        if (rlen) {
+            try {
+                data = lzo1xDecompress(data, rlen);
+            } catch (err) {
+                failV05("The JPHide/JPSeek 0.5 payload is marked as LZO-compressed but could not be decompressed: " + (err && err.message ? err.message : err));
+            }
+        }
+        return data;
+    }
+
+    /* ------------------------------------------------------------------- LZO1X
+     * JPHide 0.5/0.51 stores the original length in its header and the payload
+     * as a raw LZO1X-1 stream (LZO 1.01) when compression helped. This decodes
+     * the published LZO1X wire format; it is not lzop's block framing.
+     */
+    function lzo1xDecompress(input, expectedLength) {
+        var src = input instanceof Uint8Array ? input : new Uint8Array(input);
+        var expected = expectedLength >>> 0;
+        var ip = 0;
+        var op = 0;
+        var out = new Uint8Array(expected);
+
+        function needInput(n) { if (ip + n > src.length) throw new Error("the LZO1X stream ended early"); }
+        function needOutput(n) { if (op + n > expected) throw new Error("the LZO1X output is longer than the header says"); }
+        function readByte() { needInput(1); return src[ip++]; }
+        function copyLiterals(n) {
+            needInput(n);
+            needOutput(n);
+            for (var i = 0; i < n; i++) out[op + i] = src[ip + i];
+            ip += n;
+            op += n;
+        }
+        function copyMatch(offset, n) {
+            if (offset <= 0 || offset > op) throw new Error("invalid LZO1X back-reference " + offset + " at " + op);
+            needOutput(n);
+            var from = op - offset;
+            for (var i = 0; i < n; i++) out[op + i] = out[from + i];
+            op += n;
+        }
+        function literals(n) { copyLiterals(n); return n; }
+
+        var state = 0;
+        if (src.length && src[0] > 17) {
+            var firstLength = src[0] - 17;
+            ip = 1;
+            if (firstLength < 4) state = literals(firstLength);
+            else { copyLiterals(firstLength); state = 4; }
+        }
+        for (;;) {
+            var t = readByte();
+            var next, offset, length;
+            if (t < 16) {
+                if (state === 0) {
+                    if (t === 0) {
+                        for (;;) {
+                            var b = readByte();
+                            if (b !== 0) { t += 15 + b; break; }
+                            t += 255;
+                        }
+                    }
+                    copyLiterals(t + 3);
+                    state = 4;
+                    continue;
+                }
+                if (state !== 4) {
+                    next = t & 3;
+                    offset = 1 + (t >> 2) + (readByte() << 2);
+                    copyMatch(offset, 2);
+                    state = literals(next);
+                    continue;
+                }
+                next = t & 3;
+                offset = 1 + 0x0800 + (t >> 2) + (readByte() << 2);
+                copyMatch(offset, 3);
+                state = literals(next);
+                continue;
+            }
+            if (t >= 64) {
+                next = t & 3;
+                offset = 1 + ((t >> 2) & 7) + (readByte() << 3);
+                length = (t >> 5) + 1;
+                copyMatch(offset, length);
+                state = literals(next);
+                continue;
+            }
+            if (t >= 32) {
+                length = (t & 31) + 2;
+                if (length === 2) {
+                    for (;;) {
+                        var b2 = readByte();
+                        if (b2 !== 0) { length += 31 + b2; break; }
+                        length += 255;
+                    }
+                }
+                next = readByte();
+                next |= readByte() << 8;
+                offset = 1 + (next >> 2);
+                next &= 3;
+                copyMatch(offset, length);
+                state = literals(next);
+                continue;
+            }
+            var offsetHigh = (t & 8) << 11;
+            length = (t & 7) + 2;
+            if (length === 2) {
+                for (;;) {
+                    var b3 = readByte();
+                    if (b3 !== 0) { length += 7 + b3; break; }
+                    length += 255;
+                }
+            }
+            next = readByte();
+            next |= readByte() << 8;
+            offset = offsetHigh + (next >> 2);
+            next &= 3;
+            if (offset === 0) {
+                if (length !== 3) throw new Error("the LZO1X end marker has the wrong length");
+                if (next !== 0) throw new Error("the LZO1X end marker has trailing literals");
+                break;
+            }
+            offset += 0x4000;
+            copyMatch(offset, length);
+            state = literals(next);
+        }
+        if (op !== expected) throw new Error("the LZO1X output is " + op + " bytes, but the header says " + expected);
         return out;
     }
 
@@ -966,7 +1214,14 @@ var CF_STEGO = (function () {
         } catch (err) {
             fail("Could not read the JPEG's DCT coefficients: " + (err && err.message ? err.message : err));
         }
-        return jphideFromCoefficients(decoded, passphrase);
+        var v05 = jphideV05FromCoefficients(decoded, passphrase);
+        if (v05) return v05;
+        try {
+            return jphideFromCoefficients(decoded, passphrase);
+        } catch (err) {
+            fail("No JPHide/JPSeek data could be read from this JPEG. Check the passphrase, or the file may have been re-saved (JPHide needs the original JPEG)." +
+                (err && err.message ? " (" + err.message + ")" : ""));
+        }
     }
 
     async function openStegoExtract(input, plugin, password) {
@@ -989,10 +1244,14 @@ var CF_STEGO = (function () {
         passwordSeed: passwordSeed,
         openStegoFromRgba: openStegoFromRgba,
         jphideFromCoefficients: jphideFromCoefficients,
+        jphideV05FromCoefficients: jphideV05FromCoefficients,
+        jphideV05Pass: jphideV05Pass,
         jphideFromJpeg: jphideFromJpeg,
+        lzo1xDecompress: lzo1xDecompress,
         bfExpandKey: bfExpandKey,
         bfEncryptBytes: bfEncryptBytes,
         bfDecryptBytes: bfDecryptBytes,
+        bfDecryptNativeLE: bfDecryptNativeLE,
         extractOpenStego: openStegoExtract,
         extractJphide: jphideExtract
     };

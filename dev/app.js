@@ -6631,12 +6631,26 @@ function magicKeyedVariants(name, meta, key) {
     return [{op: name, args, label: `${name} (key)`, keyed: true}];
 }
 
-function magicCandidates(scope, includeSlow, key = "") {
+// The two steganography decoders read a carrier image, not text: on anything else they can
+// only refuse the input. They join the sweep only when the bytes open like an image one of
+// them can read, so an ordinary text sweep does not spend two candidates on a guaranteed miss.
+const MAGIC_IMAGE_OPS = new Set(["OpenStego Extract", "JPHide / JPSeek Extract"]);
+function magicImageInput(bytes) {
+    if (!bytes || bytes.length < 12) return false;
+    return (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) || // PNG
+        (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) ||                        // JPEG
+        (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) ||    // GIF
+        (bytes[0] === 0x42 && bytes[1] === 0x4d && bytes[6] === 0 && bytes[7] === 0 &&          // BMP
+            bytes[8] === 0 && bytes[9] === 0);
+}
+
+function magicCandidates(scope, includeSlow, key = "", imageInput = false) {
     const loaded = engine.loadedModules();
     const out = [];
     for (const [name, meta] of Object.entries(OPS)) {
         if (meta.flowControl) continue;
         if (MAGIC_NOISE.has(name)) continue;
+        if (!imageInput && MAGIC_IMAGE_OPS.has(name)) continue;
         // "… Brute Force" and Substitute print a table of every possibility. Magic is the
         // brute force here, and such a table is never the answer it is looking for.
         if (/brute.?force/i.test(name) || name === "Substitute") continue;
@@ -6850,7 +6864,7 @@ async function runMagicNode(node, inputBytes, argValues) {
     const buffer = inputBytes.buffer.slice(inputBytes.byteOffset, inputBytes.byteOffset + inputBytes.byteLength);
     if (!inputBytes.length) return {error: "Magic needs an input", rows: []};
 
-    const candidates = magicCandidates(scope, includeSlow, key);
+    const candidates = magicCandidates(scope, includeSlow, key, magicImageInput(inputBytes));
     if (!candidates.length) return {error: "No operations matched that scope", rows: []};
     node._magicKey = key;
     // Clear the last sweep before this one starts: a timeout must not leave the previous

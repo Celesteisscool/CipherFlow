@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Node-based CyberChef editor that runs locally in the browser.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:stego-browser": "node dev/stego/browser-test.mjs"
   },
   "keywords": [],
   "author": "",
@@ -12,5 +13,8 @@
     "cyberchef": "^11.5.0",
     "esbuild": "^0.28.2",
     "terser": "^5.51.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.65.1"
   }
 }

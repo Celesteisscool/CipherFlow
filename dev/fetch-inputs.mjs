@@ -15,8 +15,8 @@
  *
  * The third path is what makes a fresh clone buildable: assets/modules/*.js are the
  * prod modules verbatim and assets/chefworker.js is that worker with the host hook
- * appended, so the inputs are the modules back with the generated dCode bundle left
- * out and the worker back with the two newlines and the hook cut off the end. Whichever
+ * appended, so the inputs are the modules back with the generated operation bundles
+ * left out and the worker back with the two newlines and the hook cut off the end. Whichever
  * path runs, `node dev/build.mjs` afterwards should leave assets/ and index.html as they
  * were, which is the check to run after editing this file.
  *
@@ -30,9 +30,9 @@ const MODULE_DIR = path.join(ROOT, "dev/modules/modules");
 const WORKER_OUT = "/tmp/chefworker.js";
 const ASSET_MODULES = path.join(ROOT, "assets/modules");
 const ASSET_WORKER = path.join(ROOT, "assets/chefworker.js");
-// The recreated dCode operations are generated into their own module by the build, so a
-// copy of an older one is never an input.
-const GENERATED_MODULE = "CipherFlowDcode.js";
+// The recreated dCode and steganography operations are generated into their own modules
+// by the build, so a copy of an older one is never an input.
+const GENERATED_MODULES = new Set(["CipherFlowDcode.js", "CipherFlowStego.js"]);
 // build.mjs writes the worker as raw + "\n" + HOOK, and HOOK starts with a newline and this
 // comment. Cutting at the two newlines before it recovers the raw worker exactly.
 const HOST_HOOK = ";(function () {\n    // CipherFlow host hooks";
@@ -65,7 +65,7 @@ function readDir(dir) {
 function readShipped() {
     if (!fs.existsSync(ASSET_MODULES) || !fs.existsSync(ASSET_WORKER)) return null;
     const files = fs.readdirSync(ASSET_MODULES)
-        .filter(f => f.endsWith(".js") && f !== GENERATED_MODULE)
+        .filter(f => f.endsWith(".js") && !GENERATED_MODULES.has(f))
         .sort();
     if (!files.length) return null;
     const built = fs.readFileSync(ASSET_WORKER, "utf8");

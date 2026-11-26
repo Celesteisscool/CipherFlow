@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import zlib from "node:zlib";
 import {MODULE_NAME as DCODE_MODULE, allChecks as dcodeChecks, allOps as dcodeOps, allPairs as dcodePairs} from "./dcode/payload.mjs";
+import {MODULE_NAME as STEGO_MODULE, allOps as stegoOps} from "./stego/payload.mjs";
 
 const CONFIG = JSON.parse(fs.readFileSync("node_modules/cyberchef/src/core/config/OperationConfig.json", "utf8"));
 const CATEGORIES = JSON.parse(fs.readFileSync("node_modules/cyberchef/src/core/config/Categories.json", "utf8"));
@@ -11,11 +12,13 @@ const VERSION = JSON.parse(fs.readFileSync("node_modules/cyberchef/package.json"
  * and rendered exactly like the built-in ones. They live in their own worker module
  * (dev/dcode/payload.mjs generates it) and their own palette categories. */
 const DCODE = dcodeOps();
+const STEGO = stegoOps();
 /* A recreated operation that reuses a built-in name (Magic) replaces it outright,
  * so the palette must not keep listing the original under its old category. */
 const dcodeNames = new Set(DCODE.map(spec => spec.name));
+const stegoNames = new Set(STEGO.map(spec => spec.name));
 for (const category of CATEGORIES) {
-    category.ops = category.ops.filter(op => !dcodeNames.has(op));
+    category.ops = category.ops.filter(op => !dcodeNames.has(op) && !stegoNames.has(op));
 }
 /* dCode and CacheSleuth describe the same families of cipher, so the package files them
  * together under the family name alone (Substitution, Transposition, …) instead of one set of
@@ -48,6 +51,27 @@ for (const spec of DCODE) {
         CATEGORIES.push(category);
     }
     category.ops.push(spec.name);
+}
+
+/* Steganography is one category of its own, next to Multimedia: these are binary
+ * decoders, not text ciphers, and they live in their own worker module. */
+let stegoCategory = CATEGORIES.find(c => c.name === "Steganography");
+if (!stegoCategory) {
+    stegoCategory = {name: "Steganography", ops: []};
+    const beforeMultimedia = CATEGORIES.findIndex(c => c.name === "Multimedia");
+    if (beforeMultimedia >= 0) CATEGORIES.splice(beforeMultimedia, 0, stegoCategory);
+    else CATEGORIES.push(stegoCategory);
+}
+for (const spec of STEGO) {
+    CONFIG[spec.name] = {
+        module: STEGO_MODULE,
+        description: spec.description,
+        inputType: spec.inputType || "ArrayBuffer",
+        outputType: spec.outputType || "byteArray",
+        flowControl: false,
+        args: spec.args || []
+    };
+    stegoCategory.ops.push(spec.name);
 }
 
 const opNames = Object.keys(CONFIG);
@@ -662,6 +686,17 @@ for (const official of officialVectors) addOfficialVector(official, official.rec
 const primaryCovered = new Set(tests.map(item => item.op));
 for (const name of opNames) {
     if (DCODE_NAMES.has(name) || primaryCovered.has(name)) continue;
+    if (stegoNames.has(name)) {
+        // These need a real carrier and its password, not a text probe; a File Input
+        // node is the way to exercise them.
+        tests.push({
+            op: name,
+            kind: "probe",
+            input: "",
+            skip: "Needs a real OpenStego image or JPHide JPEG and its password; open one with a File Input node."
+        });
+        continue;
+    }
     const vector = officialVectors.find(t => (t.recipeConfig || []).some(step => step.op === name));
     if (vector) {
         addOfficialVector(vector, name);
@@ -742,6 +777,7 @@ const sizes = {
     official: tests.filter(t => t.kind === "official").length,
     dcode: tests.filter(t => t.kind === "dcode").length,
     dcodeOps: DCODE.length,
+    stegoOps: STEGO.length,
     probes: tests.filter(t => t.kind === "probe" && !t.skip && t.expected === undefined && t.expectedContains === undefined).length,
     probeExpected: tests.filter(t => t.kind === "probe" && !t.skip && (t.expected !== undefined || t.expectedContains !== undefined)).length,
     skipped: tests.filter(t => t.skip).length,

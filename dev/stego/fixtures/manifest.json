@@ -1,0 +1,29 @@
+{
+  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout.",
+  "fixtures": [
+    {
+      "id": "openstego-randomlsb",
+      "operation": "OpenStego Extract",
+      "values": ["RandomLSB", "browser-random-pass"],
+      "carrier": "openstego-randomlsb.png",
+      "payload": "openstego-randomlsb.payload.txt",
+      "mime": "image/png",
+      "tool": "OpenStego 0.8.6 CLI",
+      "cover": "magick -size 220x160 plasma:fractal -depth 8 cover.png",
+      "command": "java -jar openstego-0.8.6/lib/openstego.jar embed -a RandomLSB -mf openstego-randomlsb.payload.txt -cf cover.png -sf openstego-randomlsb.png -e -p browser-random-pass",
+      "verified": "java -jar openstego-0.8.6/lib/openstego.jar extract -a RandomLSB -sf openstego-randomlsb.png -xd verify -p browser-random-pass"
+    },
+    {
+      "id": "jphide",
+      "operation": "JPHide / JPSeek Extract",
+      "values": ["browser-jphide-pass"],
+      "carrier": "jphide.jpg",
+      "payload": "jphide.payload.txt",
+      "mime": "image/jpeg",
+      "tool": "JPHide 0.3 (Allan Latham)",
+      "cover": "magick -size 320x240 plasma:fractal -quality 92 -interlace none cover.jpg",
+      "command": "jphide cover.jpg jphide.jpg jphide.payload.txt (passphrase browser-jphide-pass entered twice)",
+      "verified": "jpseek jphide.jpg verify.bin (passphrase browser-jphide-pass)"
+    }
+  ]
+}

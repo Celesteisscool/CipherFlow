@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import {MODULE_NAME, renderModule} from "./dcode/payload.mjs";
+import {MODULE_NAME as STEGO_MODULE_NAME, renderModule as renderStegoModule} from "./stego/payload.mjs";
 import {glyphDataBundle, spriteStats} from "./symbols/index.mjs";
 
 const ROOT = process.cwd();
@@ -90,6 +91,9 @@ const worker = fs.readFileSync(WORKER_PATH, "utf8") + "\n" + HOOK;
 const moduleFile = path.join(MODULE_DIR, MODULE_NAME + ".js");
 fs.writeFileSync(moduleFile, renderModule());
 console.log("Recreated ops module:", (fs.statSync(moduleFile).size / 1024).toFixed(1), "KB");
+const stegoModuleFile = path.join(MODULE_DIR, STEGO_MODULE_NAME + ".js");
+fs.writeFileSync(stegoModuleFile, renderStegoModule());
+console.log("Steganography module:", (fs.statSync(stegoModuleFile).size / 1024).toFixed(1), "KB");
 const moduleFiles = fs.readdirSync(MODULE_DIR).filter(f => f.endsWith(".js")).sort();
 const modules = moduleFiles.map(file => ({
     name: file.replace(/\.js$/, ""),
@@ -399,7 +403,8 @@ ${css}
                     <li><b>Audio Levels</b> is the loudness measurement — peak, RMS, DC offset, clipping and silence.</li>
                 </ul>
                 <p>Each takes bytes on its left port and hands back one text report.</p>
-                <p>The rest of a sweep is already in the operation list, and these reports pipe into it: <b>Strings</b> for printable runs, <b>Extract LSB</b> and <b>View Bit Plane</b> for hidden bit layers, <b>Extract RGBA</b> and <b>Randomize Colour Palette</b> for channel and palette tricks, <b>Extract EXIF</b> for camera metadata, <b>Scan for Embedded Files</b> for signatures at any offset, and <b>Extract Files</b> for carving. Native tools such as steghide, outguess, zsteg and binwalk are separate programs with no browser equivalent, so they are not bundled — everything above runs in the page, with nothing uploaded.</p>
+                <p>The <b>Steganography</b> category holds two decoders for specific tools' carriers. <b>OpenStego Extract</b> reads a PNG, BMP, GIF or JPEG written by OpenStego's RandomLSB or LSB plugin: it parses the OpenStego v1 or v2 header, undoes the optional password-based DES or current AES-128/256 encryption and GZIP compression, and puts the original file bytes on the wire. <b>JPHide / JPSeek Extract</b> reads a JPEG's DCT coefficients with JPSeek's scan and recovers a file hidden by JPHide from its passphrase. Encoding is not offered for either. <b>OpenPuff</b> is not bundled: its carrier layer is closed and undocumented, so a node could not honestly extract it. Native tools such as steghide, outguess, zsteg and binwalk are separate programs with no browser equivalent, so they are not bundled either.</p>
+                <p>The rest of a sweep is already in the operation list, and these reports pipe into it: <b>Strings</b> for printable runs, <b>Extract LSB</b> and <b>View Bit Plane</b> for hidden bit layers, <b>Extract RGBA</b> and <b>Randomize Colour Palette</b> for channel and palette tricks, <b>Extract EXIF</b> for camera metadata, <b>Scan for Embedded Files</b> for signatures at any offset, and <b>Extract Files</b> for carving — all in the page, with nothing uploaded.</p>
             </details>
             <details class="help-section">
                 <summary><h3>Canvas, wires and view</h3></summary>
@@ -455,7 +460,7 @@ ${css}
             <details class="help-section">
                 <summary><h3>Graphs and files</h3></summary>
                 <p>The <b>File</b> menu in the toolbar keeps your graphs. <b>Load</b> lists everything saved in this browser, newest first — click one to open it, or use the trash to delete it. <b>New blank graph</b> and <b>Browse examples…</b> replace whatever is on the canvas; the saved graphs stay.</p>
-                <p><b>Browse examples…</b> opens the gallery: ready-made graphs for a ROT13 round trip, Base64 and Morse chains, a JWT, a symbol alphabet, an Fstring, a hex decode and the AES example. Each one opens as an ordinary graph with its wires in place, so it can be taken apart, renamed and saved like anything else.</p>
+                <p><b>Browse examples…</b> opens the gallery: ready-made graphs for a ROT13 round trip, Base64 and Morse chains, a JWT, a symbol alphabet, an Fstring, a hex decode, the AES example and OpenStego and JPHide extractions. Each one opens as an ordinary graph with its wires in place, so it can be taken apart, renamed and saved like anything else.</p>
                 <p><b>Save</b> keeps the graph under its name: <b>Save “name”</b> overwrites it and <b>Save as…</b> saves it under another name. A graph with no name asks for one, and the name it is saved under shows at the top of the menu. Separately, the canvas is autosaved as you work, so a reload brings back exactly what you had even if you never named it.</p>
                 <p><b>Import</b> opens a <code>.json</code> graph file and <b>Export</b> downloads the current graph, or every saved graph in one file. Everything runs in this page — no data leaves it.</p>
                 <p><b>Copy as CyberChef recipe</b> and <b>Paste a CyberChef recipe…</b>, in the File menu, move a straight chain of operations between CipherFlow and CyberChef. The copy writes the same JSON CyberChef's own Copy recipe button does — operation names, typed arguments, and a bypassed step as a disabled one — and the paste builds that chain left to right with its arguments filled in. Only one unbranched chain travels: a wire into an argument, a branch, a bundle or a CipherFlow-only operation is refused with a message rather than quietly dropped.</p>

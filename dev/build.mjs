@@ -253,7 +253,7 @@ ${css}
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-head">
-            <div class="brand"><span class="brand-mark"></span><span>CipherFlow · node editor</span><span class="brand-version" title="CipherFlow version ${APP_VERSION}">v${APP_VERSION}</span></div>
+            <div class="brand"><span class="brand-mark"></span><span title="CipherFlow version ${APP_VERSION}">CipherFlow · v${APP_VERSION}</span></div>
             <div class="sidebar-title-row">
                 <h1 class="sidebar-title">Node list</h1>
                 <span class="count-badge"><span id="opCount">0</span> nodes</span>

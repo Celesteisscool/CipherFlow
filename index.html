@@ -23,7 +23,7 @@
 <title>CipherFlow — node-based CyberChef</title>
 <meta name="description" content="A node editor for chaining CyberChef's operations with multiple inputs.">
 <meta name="cipherflow-symbols" content="353">
-<meta name="cipherflow-version" content="1.0.0">
+<meta name="cipherflow-version" content="1.0.1">
 <style>
 /* CipherFlow — single-file node editor for the embedded CyberChef engine */
 :root {
@@ -1805,16 +1805,6 @@ select.control { padding-right: 4px; }
     justify-content: center;
 }
 .brand-mark svg { width: 12px; height: 12px; stroke: currentColor; fill: none; }
-/* The release number sits at the far end of the wordmark, out of the brand's uppercase
- * letter-spacing: it is the app version (package.json), not part of the title. */
-.brand-version {
-    margin-left: auto;
-    text-transform: none;
-    letter-spacing: .04em;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    color: var(--faint);
-}
 .sidebar-title-row { display: flex; align-items: center; gap: 8px; }
 /* The GitHub link sits in that row as an anchor, so it borrows the icon button's square and
  * drops the link colour and underline a bare anchor would otherwise bring. */
@@ -4262,7 +4252,7 @@ textarea.note-text {
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-head">
-            <div class="brand"><span class="brand-mark"></span><span>CipherFlow · node editor</span><span class="brand-version" title="CipherFlow version 1.0.0">v1.0.0</span></div>
+            <div class="brand"><span class="brand-mark"></span><span title="CipherFlow version 1.0.1">CipherFlow · v1.0.1</span></div>
             <div class="sidebar-title-row">
                 <h1 class="sidebar-title">Node list</h1>
                 <span class="count-badge"><span id="opCount">0</span> nodes</span>
@@ -4539,7 +4529,7 @@ textarea.note-text {
             </details>
         </div>
         <div class="settings-foot">
-            <span class="settings-version" title="CipherFlow version 1.0.0">CipherFlow v1.0.0</span>
+            <span class="settings-version" title="CipherFlow version 1.0.1">CipherFlow v1.0.1</span>
             <button class="btn-secondary" id="kbReset" type="button">Reset to defaults</button>
             <button class="btn-primary" id="settingsDone" type="button">Done</button>
         </div>
@@ -5532,6 +5522,9 @@ const THEME_KEY = "cipherflow.theme.v1";
 const PALETTE_KEY = "cipherflow.palette.v1";
 const SNAP_KEY = "cipherflow.snap.v1";
 const ENGINE_LABEL = "CyberChef 11.5.0";
+// The release number dev/build.mjs writes into the page; the sidebar footer names this
+// build with it, while ENGINE_LABEL stays the engine version the lab report records.
+const APP_VERSION = $('meta[name="cipherflow-version"]')?.content || "dev";
 // The text and file nodes carry a plug on each side, so their names say so. One constant per
 // node keeps the palette, the defaults, the drag ghost and the title tooltips in step.
 const TEXT_NODE_TITLE = "Text Input / Output";
@@ -20383,7 +20376,7 @@ async function init() {
         const label = $("#engineStatus");
         dot.className = "engine-dot" + (status === "ready" ? " ready" : status === "error" ? " error" : "");
         if (status === "loading") label.innerHTML = "Loading engine…";
-        else if (status === "ready") label.innerHTML = `<b>${ENGINE_LABEL}</b> · ${OP_NAMES.length} ops · local only`;
+        else if (status === "ready") label.innerHTML = `<b>CipherFlow v${APP_VERSION}</b> · ${OP_NAMES.length} ops · local only`;
         else label.innerHTML = `<span style="color:var(--danger)">Engine error</span> · ${esc(engine.lastError || "restarting")}`;
         if (status === "error") {
             setRunStatus("error", "Engine error");

@@ -21,6 +21,9 @@ const THEME_KEY = "cipherflow.theme.v1";
 const PALETTE_KEY = "cipherflow.palette.v1";
 const SNAP_KEY = "cipherflow.snap.v1";
 const ENGINE_LABEL = "CyberChef 11.5.0";
+// The release number dev/build.mjs writes into the page; the sidebar footer names this
+// build with it, while ENGINE_LABEL stays the engine version the lab report records.
+const APP_VERSION = $('meta[name="cipherflow-version"]')?.content || "dev";
 // The text and file nodes carry a plug on each side, so their names say so. One constant per
 // node keeps the palette, the defaults, the drag ghost and the title tooltips in step.
 const TEXT_NODE_TITLE = "Text Input / Output";
@@ -14872,7 +14875,7 @@ async function init() {
         const label = $("#engineStatus");
         dot.className = "engine-dot" + (status === "ready" ? " ready" : status === "error" ? " error" : "");
         if (status === "loading") label.innerHTML = "Loading engine…";
-        else if (status === "ready") label.innerHTML = `<b>${ENGINE_LABEL}</b> · ${OP_NAMES.length} ops · local only`;
+        else if (status === "ready") label.innerHTML = `<b>CipherFlow v${APP_VERSION}</b> · ${OP_NAMES.length} ops · local only`;
         else label.innerHTML = `<span style="color:var(--danger)">Engine error</span> · ${esc(engine.lastError || "restarting")}`;
         if (status === "error") {
             setRunStatus("error", "Engine error");

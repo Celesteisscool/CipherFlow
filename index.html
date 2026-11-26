@@ -7887,16 +7887,22 @@ function buildFileNode(node) {
         wrap.appendChild(buildError(node));
         return wrap;
     }
+    // A name without bytes is what a shared or autosaved graph carries: the link leaves the
+    // payload behind but keeps what the receiver needs in order to reattach it. Say the name
+    // and expected size instead of showing an anonymous empty drop zone.
+    const expected = !node.fileData && node.fileName
+        ? `<div class="file-name">${esc(node.fileName)}</div><div class="bytes">${formatBytes(node.fileSize || 0)} expected · not attached — click to reattach</div>`
+        : "";
     wrap.innerHTML = `
         <div class="io-row">
             <span class="port in" data-port="main" title="Pipe bytes in (overrides the file below)"></span>
             <span class="io-label">In</span>
         </div>
         <div class="file-drop" data-file-drop tabindex="0">
-            ${node.fileData ? `<div class="file-name">${esc(node.fileName || "File attached")}</div><div class="bytes">${formatBytes(node.fileSize || 0)} · click to replace</div>` : `<div>${iconFill("file")}</div><div>Click or drop a file here</div><div style="color:var(--faint);font-size:8.5px;margin-top:2px">bytes stay in this page</div>`}
+            ${node.fileData ? `<div class="file-name">${esc(node.fileName || "File attached")}</div><div class="bytes">${formatBytes(node.fileSize || 0)} · click to replace</div>` : expected || `<div>${iconFill("file")}</div><div>Click or drop a file here</div><div style="color:var(--faint);font-size:8.5px;margin-top:2px">bytes stay in this page</div>`}
         </div>
         <input type="file" hidden data-file-input>
-        <div class="node-foot"><span class="bytes" data-bytes>${formatBytes(node.fileSize || 0)}</span><span style="margin-left:auto" class="bytes">raw bytes</span></div>
+        <div class="node-foot"><span class="bytes" data-bytes>${node.fileData ? formatBytes(node.fileSize || 0) : "0 bytes"}</span><span style="margin-left:auto" class="bytes">raw bytes</span></div>
         <div class="error-box" data-node-error style="display:${node._error ? "block" : "none"}">${esc(node._error || "")}</div>
     `;
     bindInputPort($(".port.in", wrap), node.id, "main");
@@ -12136,6 +12142,12 @@ function magicKeyedVariants(name, meta, key) {
 // only refuse the input. They join the sweep only when the bytes open like an image one of
 // them can read, so an ordinary text sweep does not spend two candidates on a guaranteed miss.
 const MAGIC_IMAGE_OPS = new Set(["OpenStego Extract", "JPHide / JPSeek Extract"]);
+// Base58 and Base62 turn the whole input into one big integer, so their cost grows far
+// faster than the input. A 94 KB PNG spent the whole 120-second probe budget inside To
+// Base62 and the sweep never finished, so those converters are left out of a large-input
+// sweep. Ordinary inputs still test them.
+const MAGIC_BIG_INTEGER_OPS = new Set(["To Base58", "From Base58", "To Base62", "From Base62"]);
+const MAGIC_BIG_INTEGER_LIMIT = 8 * 1024;
 function magicImageInput(bytes) {
     if (!bytes || bytes.length < 12) return false;
     return (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) || // PNG
@@ -12145,13 +12157,14 @@ function magicImageInput(bytes) {
             bytes[8] === 0 && bytes[9] === 0);
 }
 
-function magicCandidates(scope, includeSlow, key = "", imageInput = false) {
+function magicCandidates(scope, includeSlow, key = "", imageInput = false, inputSize = 0) {
     const loaded = engine.loadedModules();
     const out = [];
     for (const [name, meta] of Object.entries(OPS)) {
         if (meta.flowControl) continue;
         if (MAGIC_NOISE.has(name)) continue;
         if (!imageInput && MAGIC_IMAGE_OPS.has(name)) continue;
+        if (inputSize > MAGIC_BIG_INTEGER_LIMIT && MAGIC_BIG_INTEGER_OPS.has(name)) continue;
         // "… Brute Force" and Substitute print a table of every possibility. Magic is the
         // brute force here, and such a table is never the answer it is looking for.
         if (/brute.?force/i.test(name) || name === "Substitute") continue;
@@ -12365,7 +12378,7 @@ async function runMagicNode(node, inputBytes, argValues) {
     const buffer = inputBytes.buffer.slice(inputBytes.byteOffset, inputBytes.byteOffset + inputBytes.byteLength);
     if (!inputBytes.length) return {error: "Magic needs an input", rows: []};
 
-    const candidates = magicCandidates(scope, includeSlow, key, magicImageInput(inputBytes));
+    const candidates = magicCandidates(scope, includeSlow, key, magicImageInput(inputBytes), inputBytes.length);
     if (!candidates.length) return {error: "No operations matched that scope", rows: []};
     node._magicKey = key;
     // Clear the last sweep before this one starts: a timeout must not leave the previous
@@ -14201,8 +14214,10 @@ function deleteFunction(id) {
 function addFunctionNode(fnId, x, y) {
     const def = functionById(fnId);
     if (!def) return;
-    const p = (x === undefined) ? spawnPoint() : {x, y};
-    const node = makeNode("fn", {fnId, x: p.x, y: p.y});
+    const node = makeNode("fn", {fnId});
+    const p = (x === undefined) ? spawnPoint(node) : {x, y};
+    node.x = Math.round(p.x);
+    node.y = Math.round(p.y);
     state.nodes.push(node);
     setSelection([node.id]);
     renderAllNodes();
@@ -15435,8 +15450,10 @@ function initCommandPalette() {
 
 function addOperationNode(op, x, y) {
     if (!op || !OPS[op]) return;
-    const p = (x === undefined) ? spawnPoint() : {x, y};
-    const node = makeNode("op", {op, x: p.x, y: p.y});
+    const node = makeNode("op", {op});
+    const p = (x === undefined) ? spawnPoint(node) : {x, y};
+    node.x = Math.round(p.x);
+    node.y = Math.round(p.y);
     state.nodes.push(node);
     setSelection([node.id]);
     renderAllNodes();
@@ -15588,9 +15605,9 @@ function createGraphNode(type) {
 }
 
 function addGraphNode(type, x, y) {
-    const p = (x === undefined) ? spawnPoint() : {x, y};
     const added = createGraphNode(type);
     if (!added) return;
+    const p = (x === undefined) ? spawnPoint(added) : {x, y};
     added.x = Math.round(p.x);
     added.y = Math.round(p.y);
     state.nodes.push(added);
@@ -15600,11 +15617,68 @@ function addGraphNode(type, x, y) {
     requestAnimationFrame(() => ensureNodeVisible(added));
     if (window.innerWidth <= 900) closeSidebar();
 }
+// A new card goes in the middle of the view when that space is free, then in rings around
+// it. Existing cards are measured from the DOM, so a resized or long operation is avoided
+// by its real footprint; the card being added is not on screen yet, so its size is
+// estimated from its type and the number of argument rows it will draw. Without this, two
+// palette clicks landed on top of each other and a function's first wiring drag would hit
+// the new card instead of the Function input port beneath it.
+const SPAWN_GAP = 24;
+const GRAPH_NODE_SIZES = {
+    input: [310, 230], file: [310, 190], note: [310, 160], join: [310, 230],
+    diff: [360, 260], hex: [400, 320], template: [340, 240], math: [340, 240],
+    switch: [360, 260], gate: [310, 170], compact: [340, 250], expand: [340, 250],
+    fork: [310, 170], pick: [310, 160], fn: [310, 190], fnin: [340, 300],
+    fnout: [340, 190], symbol: [380, 380], badapple: [330, 220], chess: [380, 430],
+    magic: [360, 240], pngchunks: [340, 240], pdfscan: [340, 240], imginfo: [340, 240],
+    spectrogram: [430, 380], audiolevels: [400, 260]
+};
+function estimatedNodeSize(node) {
+    if (node?.type === "op") {
+        const rows = (OPS[node.op]?.args || []).filter(arg => arg.type !== "label").length;
+        return {w: 310, h: 150 + rows * 44};
+    }
+    const [w, h] = GRAPH_NODE_SIZES[node?.type] || [310, 220];
+    return {w, h};
+}
+function nodeWorldSize(node) {
+    const el = nodeEl(node.id);
+    return {w: node.w || el?.offsetWidth || 310, h: node.h || el?.offsetHeight || 220};
+}
 let spawnIndex = 0;
-function spawnPoint() {
+function spawnPoint(node = null) {
+    const size = estimatedNodeSize(node);
     const c = stageCenterWorld();
+    const baseX = Math.round(c.x - size.w / 2);
+    const baseY = Math.round(c.y - size.h / 2);
+    const boxes = state.nodes.map(n => {
+        const s = nodeWorldSize(n);
+        return {x: n.x, y: n.y, w: s.w, h: s.h};
+    });
+    const free = (x, y) => !boxes.some(b =>
+        x < b.x + b.w + SPAWN_GAP && x + size.w + SPAWN_GAP > b.x &&
+        y < b.y + b.h + SPAWN_GAP && y + size.h + SPAWN_GAP > b.y);
+    if (free(baseX, baseY)) return {x: baseX, y: baseY};
+    const stepX = Math.round(size.w + SPAWN_GAP);
+    const stepY = Math.round(size.h + SPAWN_GAP);
+    for (let ring = 1; ring <= 8; ring++) {
+        // Prefer the open space to the right, then below. Starting at the top-left corner
+        // could tuck a card under the toolbar or the sidebar even though the canvas is empty.
+        const cells = [[ring, 0], [0, ring], [-ring, 0], [0, -ring],
+            [ring, ring], [ring, -ring], [-ring, ring], [-ring, -ring]];
+        for (let d = 1; d < ring; d++) {
+            cells.push([ring, d], [d, ring], [-ring, d], [-d, ring],
+                [ring, -d], [d, -ring], [-ring, -d], [-d, -ring]);
+        }
+        for (const [dx, dy] of cells) {
+            const x = baseX + dx * stepX;
+            const y = baseY + dy * stepY;
+            if (free(x, y)) return {x, y};
+        }
+    }
+    // A canvas with no free middle is rare; cascade rather than refusing to add the node.
     const offset = (spawnIndex++ % 6) * 30;
-    return {x: Math.round(c.x - 155 + offset), y: Math.round(c.y - 100 + offset)};
+    return {x: baseX + offset, y: baseY + offset};
 }
 
 /* ================================================================ toolbar / actions */
@@ -16684,7 +16758,7 @@ function importRecipe(text, opts = {}) {
     }
     if (missing.length) return {error: `No CyberChef operation called ${recipeNameList(missing)} is in this library.`};
     if (blocked.length) return {error: `Flow-control steps cannot be pasted: ${recipeNameList(blocked)}.`};
-    const start = opts.at || spawnPoint();
+    const start = opts.at || spawnPoint(steps.length ? {type: "op", op: steps[0].name} : null);
     const added = [];
     let previous = null;
     steps.forEach((step, i) => {
@@ -22373,8 +22447,10 @@ async function addSymbolNode(slug, x, y) {
     }
     const cipher = symbolCipher(slug);
     if (!cipher) return;
-    const p = (x === undefined) ? spawnPoint() : {x, y};
-    const node = makeNode("symbol", {x: p.x, y: p.y, symbolCipher: slug, symbolSource: "cachesleuth"});
+    const node = makeNode("symbol", {symbolCipher: slug, symbolSource: "cachesleuth"});
+    const p = (x === undefined) ? spawnPoint(node) : {x, y};
+    node.x = Math.round(p.x);
+    node.y = Math.round(p.y);
     state.nodes.push(node);
     setSelection([node.id]);
     renderAllNodes();

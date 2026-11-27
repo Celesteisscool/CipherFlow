@@ -1,5 +1,5 @@
 {
-  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The StegFS fixtures are 1 MB volumes made with the vendor 2015.08/202X.XX C library from albinoloverats/stegfs, compiled locally against libgcrypt: one 2015.08 volume holds /stegfs-notes.txt, /docs/nested.txt, an empty /empty.txt and /browser.txt, and one 202X.XX volume holds /docs/stegfs-current.txt and /docs/browser.txt, and a compact 64 KB 202X.XX volume holds /gallery.txt for the example gallery. The short /browser.txt files are used for the browser preview check; the larger files exercise multi-block chains and the 202X.XX MAC in the Node self-test. The gallery carriers are CC0 1.0 photos: pet portraits for the OpenStego, JPHide and StegoShare rows, and a kingfisher cover with a spoonbill hidden in it for the image-in-image row. Their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures.",
+  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The StegFS fixtures are 1 MB volumes made with the vendor 2015.08/202X.XX C library from albinoloverats/stegfs, compiled locally against libgcrypt: one 2015.08 volume holds /stegfs-notes.txt, /docs/nested.txt, an empty /empty.txt and /browser.txt, and one 202X.XX volume holds /docs/stegfs-current.txt and /docs/browser.txt, and a compact 64 KB 202X.XX volume holds /gallery.txt for the example gallery. The short /browser.txt files are used for the browser preview check; the larger files exercise multi-block chains and the 202X.XX MAC in the Node self-test. The OutGuess fixtures are OutGuess 0.2 carriers made from the same CC0 cat photograph used by JPHide: one with -k browser-outguess-pass, one with the tool's default key (no -k), and one with -e -k browser-outguess-ecc. The vendor tool read all three back byte-for-byte. The gallery carriers are CC0 1.0 photos: pet portraits for the OpenStego, JPHide, StegoShare and OutGuess rows, and a kingfisher cover with a spoonbill hidden in it for the image-in-image row. Their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures.",
   "imageLicenses": {
     "openstego-randomlsb.png": {
       "title": "Dog at Nørre Vorupør Strand",
@@ -209,6 +209,51 @@
       "tool": "StegFS 202X.XX format (vendor C library from albinoloverats/stegfs, built with libgcrypt)",
       "command": "truncate -s 65536 stegfs-gallery.img; mkstegfs stegfs-gallery.img -f; the fixture writer linked against the vendor stegfs.c wrote /gallery.txt:gallery-pass",
       "verified": "/tmp/stegfs-verify stegfs-gallery.img /gallery.txt gallery-pass (vendor stegfs_file_read)"
+    },
+    {
+      "id": "outguess-keyed",
+      "operation": "OutGuess Extract",
+      "values": [
+        "browser-outguess-pass",
+        false
+      ],
+      "carrier": "outguess.jpg",
+      "payload": "outguess.payload.txt",
+      "mime": "image/jpeg",
+      "tool": "OutGuess 0.2 (Niels Provos)",
+      "cover": "dev/stego/fixtures/jphide.jpg (CC0 cat portrait, see imageLicenses)",
+      "command": "outguess -k browser-outguess-pass -d outguess.payload.txt cover.jpg outguess.jpg",
+      "verified": "outguess -r -k browser-outguess-pass outguess.jpg verify.bin"
+    },
+    {
+      "id": "outguess-default",
+      "operation": "OutGuess Extract",
+      "values": [
+        "",
+        false
+      ],
+      "carrier": "outguess-default.jpg",
+      "payload": "outguess.payload.txt",
+      "mime": "image/jpeg",
+      "tool": "OutGuess 0.2 (Niels Provos)",
+      "cover": "dev/stego/fixtures/jphide.jpg (CC0 cat portrait, see imageLicenses)",
+      "command": "outguess -d outguess.payload.txt cover.jpg outguess-default.jpg (no -k, so the tool used its default key)",
+      "verified": "outguess -r outguess-default.jpg verify.bin"
+    },
+    {
+      "id": "outguess-ecc",
+      "operation": "OutGuess Extract",
+      "values": [
+        "browser-outguess-ecc",
+        true
+      ],
+      "carrier": "outguess-ecc.jpg",
+      "payload": "outguess.payload.txt",
+      "mime": "image/jpeg",
+      "tool": "OutGuess 0.2 (Niels Provos)",
+      "cover": "dev/stego/fixtures/jphide.jpg (CC0 cat portrait, see imageLicenses)",
+      "command": "outguess -e -k browser-outguess-ecc -d outguess.payload.txt cover.jpg outguess-ecc.jpg",
+      "verified": "outguess -r -e -k browser-outguess-ecc outguess-ecc.jpg verify.bin"
     }
   ]
 }

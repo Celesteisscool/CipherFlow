@@ -17,11 +17,15 @@
  *   StegFS     StegFS 2015.08 and 202X.XX volume blocks: path/name-derived
  *              inode locations, AES-256-CBC with SHA-256 block checks, and
  *              PBKDF2/HMAC-SHA256 for the 202X.XX format.
+ *   OutGuess   OutGuess 0.2's coefficient-parity bitmap, MD5-prefixed RC4
+ *              iterator and streams, default/custom keys, and optional
+ *              (23,12,7) Golay error correction.
  *
  * Each format is reconstructed from its published source: OpenStego
  * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto), Allan Latham's
  * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), StegoShare
- * 1.01 (Stego.java), and StegFS (stegfs.c, mkfs.c).
+ * 1.01 (Stego.java), StegFS (stegfs.c, mkfs.c), and OutGuess 0.2
+ * (jpg.c, iterator.c, arc.c, golay.c).
  */
 var CF_STEGO = (function () {
     "use strict";
@@ -1449,6 +1453,269 @@ var CF_STEGO = (function () {
         }
     }
 
+    /* --------------------------------------------------------------- OUTGUESS
+     * OutGuess 0.2 (Niels Provos) hides a message in the parity of quantised
+     * JPEG DCT coefficients. Its libjpeg hook visits coefficients in MCU order,
+     * component scan order, then natural coefficient order, and skips the
+     * values 0 and 1; negative coefficients are kept. A 16-bit seed and a
+     * 16-bit message length travel first, and the body is read with a
+     * skip-averaging iterator seeded by that value. Both the header and body
+     * are RC4-encrypted with MD5-prefixed keys, and the optional -e mode wraps
+     * the data in the published (23,12,7) Golay code.
+     */
+
+    function outguessBitmap(decoded) {
+        if (!decoded || !decoded.components || !decoded.components.length) {
+            fail("OutGuess needs a JPEG with DCT coefficients.");
+        }
+        var components = decoded.components;
+        var maxH = 1, maxV = 1;
+        for (var c = 0; c < components.length; c++) {
+            if (components[c].h > maxH) maxH = components[c].h;
+            if (components[c].v > maxV) maxV = components[c].v;
+        }
+        var mcusPerLine = Math.ceil(decoded.width / 8 / maxH);
+        var mcusPerColumn = Math.ceil(decoded.height / 8 / maxV);
+        var capacity = 0;
+        for (c = 0; c < components.length; c++) {
+            capacity += components[c].blocksPerLine * components[c].blocksPerColumn * 64;
+        }
+        var bits = new Uint8Array(capacity);
+        var count = 0;
+
+        for (var mcuRow = 0; mcuRow < mcusPerColumn; mcuRow++) {
+            for (var mcuCol = 0; mcuCol < mcusPerLine; mcuCol++) {
+                for (c = 0; c < components.length; c++) {
+                    var component = components[c];
+                    var usefulWidth = Math.min(component.h, component.blocksPerLine - mcuCol * component.h);
+                    var usefulHeight = Math.min(component.v, component.blocksPerColumn - mcuRow * component.v);
+                    for (var y = 0; y < usefulHeight; y++) {
+                        for (var x = 0; x < usefulWidth; x++) {
+                            var block = component.blocks[mcuRow * component.v + y][mcuCol * component.h + x];
+                            for (var k = 0; k < 64; k++) {
+                                var temp = block[k];
+                                // steg_use_bit() skips 0 and +1; negatives keep
+                                // their two's-complement parity.
+                                if ((temp & 1) === temp) continue;
+                                bits[count++] = temp & 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return bits.subarray(0, count);
+    }
+
+    function outguessRc4Init() {
+        var state = new Uint8Array(256);
+        for (var i = 0; i < 256; i++) state[i] = i;
+        return {s: state, i: 0, j: 0};
+    }
+
+    function outguessAddRandom(as, data) {
+        as.i = (as.i - 1) & 0xff;
+        for (var n = 0; n < 256; n++) {
+            as.i = (as.i + 1) & 0xff;
+            var si = as.s[as.i];
+            as.j = (as.j + si + data[n % data.length]) & 0xff;
+            as.s[as.i] = as.s[as.j];
+            as.s[as.j] = si;
+        }
+    }
+
+    // arc4_initkey() hashes the purpose string followed by the key with MD5,
+    // then mixes the digest into a fresh RC4 state. OutGuess uses the stream
+    // from its first byte; there is no RC4 drop here.
+    function outguessRc4Key(type, keyBytes) {
+        var prefix = utf8Encode(type);
+        var input = new Uint8Array(prefix.length + keyBytes.length);
+        input.set(prefix, 0);
+        input.set(keyBytes, prefix.length);
+        var as = outguessRc4Init();
+        outguessAddRandom(as, md5(input));
+        return as;
+    }
+
+    function outguessRc4Byte(as) {
+        as.i = (as.i + 1) & 0xff;
+        var si = as.s[as.i];
+        as.j = (as.j + si) & 0xff;
+        var sj = as.s[as.j];
+        as.s[as.i] = sj;
+        as.s[as.j] = si;
+        return as.s[(si + sj) & 0xff];
+    }
+
+    function outguessRc4Word(as) {
+        return ((outguessRc4Byte(as) << 24) |
+            (outguessRc4Byte(as) << 16) |
+            (outguessRc4Byte(as) << 8) |
+            outguessRc4Byte(as)) >>> 0;
+    }
+
+    function outguessIterator(keyBytes) {
+        var as = outguessRc4Key("Seeding", keyBytes);
+        return {as: as, skipmod: 32, off: outguessRc4Word(as) % 32};
+    }
+
+    function outguessReadByte(bitmap, iter) {
+        var value = 0;
+        for (var bit = 0; bit < 8; bit++) {
+            if (iter.off < 0 || iter.off >= bitmap.length) {
+                fail("This JPEG does not hold an OutGuess 0.2 payload for that key (the coefficient bitmap ended early).");
+            }
+            value |= bitmap[iter.off] << bit;
+            iter.off += (outguessRc4Word(iter.as) % iter.skipmod) + 1;
+        }
+        return value;
+    }
+
+    function outguessSeedIterator(iter, seed) {
+        outguessAddRandom(iter.as, Uint8Array.of(seed & 0xff, (seed >>> 8) & 0xff));
+    }
+
+    // iterator_adapt(): the average skip grows towards 2 early in the image and
+    // fades below it near the end, keeping the body spread over the bitmap.
+    function outguessAdapt(iter, bits, remaining) {
+        var left = bits - iter.off;
+        var thirtySecond = Math.floor(bits / 32);
+        var adjust = thirtySecond > 0 && left > thirtySecond ? 2 : 2 - (thirtySecond - left) / thirtySecond;
+        iter.skipmod = Math.trunc(adjust * left / (8 * remaining));
+        if (!(iter.skipmod > 0)) {
+            fail("This JPEG does not hold an OutGuess 0.2 payload for that key (the coefficient bitmap ran out).");
+        }
+    }
+
+    /* The (23,12,7) Golay decoder from OutGuess's golay.c. Only the syndrome
+     * table is needed for extraction: every error pattern of weight up to three
+     * maps to its syndrome, and correcting a codeword means XORing that pattern
+     * back out. */
+    var OUTGUESS_GOLAY = null;
+
+    function outguessGolaySyndrome(pattern) {
+        var aux = 0x400000; // X^22
+        if (pattern >= 0x800) { // X^11
+            while (pattern & 0x7ff800) {
+                while (!(aux & pattern)) aux >>>= 1;
+                pattern ^= Math.floor(aux / 0x800) * 0xc75;
+            }
+        }
+        return pattern;
+    }
+
+    function outguessGolayTable() {
+        if (OUTGUESS_GOLAY) return OUTGUESS_GOLAY;
+        var table = new Uint32Array(2048);
+        function add(pattern) {
+            table[outguessGolaySyndrome(pattern)] = pattern;
+        }
+        add(0);
+        for (var i = 0; i < 23; i++) add(1 << i);
+        for (i = 0; i < 23; i++) {
+            for (var j = i + 1; j < 23; j++) add((1 << i) | (1 << j));
+        }
+        for (i = 0; i < 23; i++) {
+            for (j = i + 1; j < 23; j++) {
+                for (var k = j + 1; k < 23; k++) add((1 << i) | (1 << j) | (1 << k));
+            }
+        }
+        OUTGUESS_GOLAY = table;
+        return table;
+    }
+
+    function outguessGolayCorrect(word) {
+        var table = outguessGolayTable();
+        return (word ^ table[outguessGolaySyndrome(word)]) & 0x7fffff;
+    }
+
+    function outguessGolayDecode(bytes) {
+        var declen = Math.floor(bytes.length * 12 / 23);
+        var out = new Uint8Array(declen);
+        var bit = 0;
+        var n = 0;
+        var acc = 0;
+        var accBits = 0;
+
+        while (n < declen) {
+            var word = 0;
+            for (var k = 0; k < 23; k++) {
+                var at = bit >> 3;
+                if (at >= bytes.length) {
+                    fail("This OutGuess payload is marked as error-corrected but is too short for its Golay blocks.");
+                }
+                word |= ((bytes[at] >> (bit & 7)) & 1) << k;
+                bit++;
+            }
+            acc |= (outguessGolayCorrect(word) >>> 11) << accBits;
+            accBits += 12;
+            while (accBits >= 8 && n < declen) {
+                out[n++] = acc & 0xff;
+                acc >>>= 8;
+                accBits -= 8;
+            }
+        }
+
+        var padding = out[declen - 1];
+        if (padding > 2) fail("This OutGuess payload has invalid Golay padding; the key or error-correction setting is wrong.");
+        for (var p = 0; p <= padding; p++) {
+            if (out[declen - 1 - p] !== padding - p) {
+                fail("This OutGuess payload has invalid Golay padding; the key or error-correction setting is wrong.");
+            }
+        }
+        return out.subarray(0, declen - padding - 1);
+    }
+
+    function outguessDecrypt(bytes, as) {
+        var out = new Uint8Array(bytes.length);
+        for (var i = 0; i < bytes.length; i++) out[i] = bytes[i] ^ outguessRc4Byte(as);
+        return out;
+    }
+
+    function outguessFromJpeg(input, key, errorCorrection) {
+        var bytes = toBytes(input);
+        if (bytes.length < 2 || bytes[0] !== 0xff || bytes[1] !== 0xd8) {
+            fail("OutGuess needs a JPEG file (no SOI marker).");
+        }
+        var decoded;
+        try {
+            decoded = cfDecodeJpegCoefficients(bytes);
+        } catch (err) {
+            fail("Could not read the JPEG's DCT coefficients: " + (err && err.message ? err.message : err));
+        }
+        var bitmap = outguessBitmap(decoded);
+        var keyText = key == null || String(key).length === 0 ? "Default key" : String(key);
+        var keyBytes = utf8Encode(keyText);
+        var headerStream = outguessRc4Key("Encryption", keyBytes);
+        var bodyStream = {s: new Uint8Array(headerStream.s), i: headerStream.i, j: headerStream.j};
+        var iter = outguessIterator(keyBytes);
+
+        // The header is four bytes, or twelve bytes of Golay-coded data under
+        // -e. steg_retrieve() reads it with the iterator's initial skip of 32.
+        var header = new Uint8Array(errorCorrection ? 12 : 4);
+        for (var h = 0; h < header.length; h++) header[h] = outguessReadByte(bitmap, iter);
+        header = outguessDecrypt(header, headerStream);
+        if (errorCorrection) header = outguessGolayDecode(header);
+        if (header.length < 4) fail("This OutGuess payload has a short header.");
+
+        var seed = header[0] | (header[1] << 8);
+        var length = header[2] | (header[3] << 8);
+        if (length > Math.ceil(bitmap.length / 8)) {
+            fail("This JPEG does not hold an OutGuess 0.2 payload for that key (the header length is larger than the coefficient bitmap).");
+        }
+        if (length === 0) return [];
+
+        outguessSeedIterator(iter, seed);
+        var encrypted = new Uint8Array(length);
+        for (var i = 0; i < length; i++) {
+            outguessAdapt(iter, bitmap.length, length - i);
+            encrypted[i] = outguessReadByte(bitmap, iter);
+        }
+        var data = outguessDecrypt(encrypted, bodyStream);
+        if (errorCorrection) data = outguessGolayDecode(data);
+        return toByteArray(data);
+    }
+
     /* ------------------------------------------------------------- AES-256
      * StegFS uses libgcrypt's CBC mode with no padding and keeps the CBC
      * chaining state across the blocks of one file copy. WebCrypto's AES-CBC
@@ -1921,6 +2188,7 @@ var CF_STEGO = (function () {
         extractJphide: jphideExtract,
         extractStegoShare: stegoshareExtract,
         extractStegFS: stegfsExtract,
+        outguessFromJpeg: outguessFromJpeg,
         aes256CbcDecrypt: aes256CbcDecrypt,
         aesExpandKey: aesExpandKey,
         aesDecryptBlock: aesDecryptBlock,

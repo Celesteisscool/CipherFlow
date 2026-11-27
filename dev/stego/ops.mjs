@@ -46,6 +46,20 @@ export const ops = [
         }
     },
     {
+        name: "OutGuess Extract",
+        group: "Steganography",
+        description: "Extracts a file hidden by OutGuess 0.2 in a JPEG. OutGuess stores the message in the parity of quantised DCT coefficients selected by a key-seeded RC4 iterator; a 16-bit seed and the message length travel in an encrypted header. Leave Key empty for OutGuess's built-in default key (\"Default key\"), which is what the tool uses when no -k option was given. Turn on Error-corrected for carriers written with -e, which wraps the header and body in a (23,12,7) Golay code. The image must be the OutGuess output itself, not a re-saved copy, and the result is the original file's raw bytes.",
+        args: [
+            {name: "Key", type: "string", value: ""},
+            {name: "Error-corrected (-e)", type: "boolean", value: false}
+        ],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
+        run: function (input, args) {
+            return CF_STEGO.outguessFromJpeg(input, args[0] == null ? "" : args[0], Boolean(args[1]));
+        }
+    },
+    {
         name: "StegoShare Extract",
         group: "Steganography",
         description: "Extracts a file hidden by StegoShare 1.01, which spreads one file over a set of PNG images. To prepare the input, use the PNGs StegoShare wrote, not the original covers: attach the single PNG when the file fit in one image; when the tool wrote several, put every one of them in one ordinary ZIP (not ZIP64 — folders, names and stored or deflated compression do not matter) and attach the ZIP, because a File node carries one file. Do not resize, re-encode or convert the images, and do not leave any out. The operation reads each image's 16-bit index, 32-bit length and low-bit payload (three blue, two green and three red LSBs), undoes the MD5(password) XOR keyed by untouched pixel bits, drops the 256-byte file-name block from the first image and joins the shares in index order. Leave the password empty (or type Empty) for a carrier hidden without one. A missing trailing image cannot be detected, because the format has no end marker.",

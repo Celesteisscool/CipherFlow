@@ -4,7 +4,8 @@
  * Checks the primitives against independent vectors (MD5, a DES FIPS vector, Java
  * Random's published seed-0 sequence), then runs the real operation classes over
  * OpenStego fixtures built here, over the committed vendor JPHide 0.3 and 0.51
- * fixtures, over the committed vendor StegoShare 1.01 carriers, and over a fresh
+ * fixtures, over the committed vendor StegoShare 1.01 carriers, over the
+ * committed vendor StegFS volumes and OutGuess 0.2 carriers, and over a fresh
  * JPEG hidden by the reference jphide from the original JPHS package when
  * /tmp/jphs-ref is present.
  *
@@ -392,6 +393,26 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
     old.writeBigUInt64BE(0xc903284d7c593af6n, 2024);
     await throws("StegFS rejects the older 2010.01 format",
         () => runOp("StegFS Extract", old, ["/notes.txt", ""]));
+}
+
+/* ------------------------------------------------------------- OutGuess 0.2 */
+{
+    const fixtureDir = new URL("./fixtures/", import.meta.url);
+    const fixtureManifest = JSON.parse(fs.readFileSync(new URL("manifest.json", fixtureDir), "utf8"));
+    for (const fixture of (fixtureManifest.fixtures || []).filter(f => f.operation === "OutGuess Extract")) {
+        try {
+            const carrier = fs.readFileSync(new URL(fixture.carrier, fixtureDir));
+            const expected = fs.readFileSync(new URL(fixture.payload, fixtureDir));
+            bytes(`${fixture.id} · ${fixture.tool}`, await runOp(fixture.operation, carrier, fixture.values), expected);
+            const wrong = fixture.values.slice();
+            wrong[0] = "wrong-" + fixture.id;
+            await wrongSecret(`${fixture.id} does not accept a wrong key`, () => runOp(fixture.operation, carrier, wrong), expected);
+        } catch (err) {
+            report(`${fixture.id} · ${fixture.tool}`, String(err && err.message ? err.message : err));
+        }
+    }
+    const png = PNG.sync.write({width: 20, height: 20, data: makeRgba(20, 20)}, {colorType: 6});
+    await throws("OutGuess rejects a non-JPEG", () => runOp("OutGuess Extract", png, ["", false]));
 }
 
 /* ------------------------------------------------------- vendor JPHide fixtures */

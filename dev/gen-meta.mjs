@@ -693,7 +693,7 @@ for (const name of opNames) {
             op: name,
             kind: "probe",
             input: "",
-            skip: "Needs a real OpenStego image or JPHide JPEG and its password; open one with a File Input node."
+            skip: "Needs a real OpenStego image, JPHide JPEG or StegoShare PNG/ZIP set and its password; open one with a File Input node."
         });
         continue;
     }

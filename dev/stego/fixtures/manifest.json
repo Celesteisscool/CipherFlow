@@ -1,5 +1,5 @@
 {
-  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X.",
+  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation.",
   "fixtures": [
     {
       "id": "openstego-randomlsb",
@@ -48,6 +48,43 @@
       "cover": "magick -size 320x240 plasma:fractal -quality 92 -interlace none cover.jpg",
       "command": "jphide.exe cover.jpg jphide-v05-lzo.jpg jphide-v05-lzo.payload.txt (passphrase v05-lzo-pass entered twice)",
       "verified": "jpseek.exe jphide-v05-lzo.jpg verify.bin (passphrase v05-lzo-pass)"
+    },
+    {
+      "id": "stegoshare-single",
+      "operation": "StegoShare Extract",
+      "values": ["vendor-single-pass"],
+      "carrier": "stegoshare-single.png",
+      "payload": "stegoshare-single.payload.txt",
+      "mime": "image/png",
+      "tool": "StegoShare 1.01 (Digital Equality Foundation; vendor source compiled with JDK 17)",
+      "cover": "magick -size 64x48 plasma:fractal -depth 8 cover1.png",
+      "command": "java Main.StegoCli hide single-covers stegoshare-single.payload.txt vendor-single-pass",
+      "verified": "java Main.StegoCli extract single-covers/out verify vendor-single-pass"
+    },
+    {
+      "id": "stegoshare-set",
+      "operation": "StegoShare Extract",
+      "values": ["vendor-set-pass"],
+      "carrier": "stegoshare-set.zip",
+      "payload": "stegoshare-set.payload.txt",
+      "mime": "application/zip",
+      "members": ["stegoshare-set-1.png", "stegoshare-set-2.png"],
+      "tool": "StegoShare 1.01 (Digital Equality Foundation; vendor source compiled with JDK 17)",
+      "cover": "magick -size 32x24 plasma:fractal -depth 8 cover1.png ... cover4.png",
+      "command": "java Main.StegoCli hide set-covers stegoshare-set.payload.txt vendor-set-pass (two covers used); python zipfile wrote stegoshare-set.zip from out/1.png and out/2.png",
+      "verified": "java Main.StegoCli extract set-covers/out verify vendor-set-pass"
+    },
+    {
+      "id": "stegoshare-empty",
+      "operation": "StegoShare Extract",
+      "values": [""],
+      "carrier": "stegoshare-empty.png",
+      "payload": "stegoshare-empty.payload.txt",
+      "mime": "image/png",
+      "tool": "StegoShare 1.01 (Digital Equality Foundation; vendor source compiled with JDK 17)",
+      "cover": "magick -size 64x48 plasma:fractal -depth 8 cover1.png",
+      "command": "java Main.StegoCli hide empty-covers stegoshare-empty.payload.txt Empty (the tool's no-password sentinel)",
+      "verified": "java Main.StegoCli extract empty-covers/out verify Empty"
     }
   ]
 }

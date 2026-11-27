@@ -4,8 +4,9 @@
  * Checks the primitives against independent vectors (MD5, a DES FIPS vector, Java
  * Random's published seed-0 sequence), then runs the real operation classes over
  * OpenStego fixtures built here, over the committed vendor JPHide 0.3 and 0.51
- * fixtures, and over a fresh JPEG hidden by the reference jphide from the
- * original JPHS package when /tmp/jphs-ref is present.
+ * fixtures, over the committed vendor StegoShare 1.01 carriers, and over a fresh
+ * JPEG hidden by the reference jphide from the original JPHS package when
+ * /tmp/jphs-ref is present.
  *
  * The OpenStego fixtures are embedded with an independent writer that follows the
  * Java classes, and the encryption branch is produced with Node's OpenSSL 3DES in
@@ -107,7 +108,7 @@ async function runOp(name, input, args) {
 }
 
 /* ---------------------------------------------------------------- primitives */
-check("module registers both operations", Object.keys(registry).length === 2, JSON.stringify(Object.keys(registry)));
+check("module registers every operation", Object.keys(registry).length === allOps().length, JSON.stringify(Object.keys(registry)));
 for (const spec of allOps()) {
     check(`${spec.name} has operation config`, Boolean(config[spec.name]), "missing from OperationConfig");
     check(`${spec.name} takes ArrayBuffer and returns bytes`,
@@ -338,7 +339,7 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
     const fixtureDir = new URL("./fixtures/", import.meta.url);
     const fixtureManifest = JSON.parse(fs.readFileSync(new URL("manifest.json", fixtureDir), "utf8"));
     for (const fixture of fixtureManifest.fixtures || []) {
-        if (fixture.operation !== "JPHide / JPSeek Extract") continue;
+        if (fixture.operation !== "JPHide / JPSeek Extract" && fixture.operation !== "StegoShare Extract") continue;
         try {
             const carrier = fs.readFileSync(new URL(fixture.carrier, fixtureDir));
             const expected = fs.readFileSync(new URL(fixture.payload, fixtureDir));
@@ -381,6 +382,44 @@ if (fs.existsSync(jphide) && fs.existsSync(jpseek) && fs.existsSync(cover)) {
     }
 } else {
     console.log(`skip  JPHide reference fixture (${jphsDir}, or ${cover}, is not present)`);
+}
+
+/* ------------------------------------------------------------- StegoShare */
+{
+    const dir = new URL("./fixtures/", import.meta.url);
+    const single = fs.readFileSync(new URL("stegoshare-single.png", dir));
+    const setFirst = fs.readFileSync(new URL("stegoshare-set-1.png", dir));
+    const setSecond = fs.readFileSync(new URL("stegoshare-set-2.png", dir));
+    const empty = fs.readFileSync(new URL("stegoshare-empty.png", dir));
+    const emptyPayload = fs.readFileSync(new URL("stegoshare-empty.payload.txt", dir));
+
+    check("StegoShare treats an empty password as the zero key",
+        Buffer.from(T.stegoshareKey("")).equals(Buffer.alloc(16)));
+    check("StegoShare treats the literal Empty as the zero key",
+        Buffer.from(T.stegoshareKey("Empty")).equals(Buffer.alloc(16)));
+    check("StegoShare derives a 16-byte MD5 key",
+        Buffer.from(T.stegoshareKey("vendor-single-pass")).toString("hex") ===
+            crypto.createHash("md5").update("vendor-single-pass").digest("hex"));
+
+    bytes("StegoShare accepts the literal Empty for an unprotected carrier",
+        await runOp("StegoShare Extract", empty, ["Empty"]), emptyPayload);
+    await throws("StegoShare rejects a later share on its own",
+        () => runOp("StegoShare Extract", setSecond, ["vendor-set-pass"]));
+    await throws("StegoShare rejects a full first share on its own",
+        () => runOp("StegoShare Extract", setFirst, ["vendor-set-pass"]));
+    const emptyZip = Buffer.concat([Buffer.from([0x50, 0x4b, 0x05, 0x06]), Buffer.alloc(18)]);
+    await throws("StegoShare rejects a ZIP with no PNGs",
+        () => runOp("StegoShare Extract", emptyZip, [""]));
+    const plain = PNG.sync.write({width: 20, height: 20, data: makeRgba(20, 20)}, {colorType: 6});
+    await throws("StegoShare rejects an ordinary PNG",
+        () => runOp("StegoShare Extract", plain, [""]));
+    check("StegoShare reads the 16-bit index and 32-bit length",
+        (() => {
+            const png = PNG.sync.read(single);
+            const share = T.stegoshareReadImage(png.data, png.width, png.height, T.stegoshareKey("vendor-single-pass"));
+            return share.index === 0 && share.size === 336 && share.capacity === png.width * png.height - 6;
+        })(),
+        "header did not decode as expected");
 }
 
 console.log(failures ? `\n${failures} problem(s) across ${executed} executed check(s)` : `\nall ${executed} checks passed`);

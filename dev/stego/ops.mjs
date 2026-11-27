@@ -30,5 +30,18 @@ export const ops = [
         run: function (input, args) {
             return CF_STEGO.extractJphide(input, args[0] == null ? "" : args[0]);
         }
+    },
+    {
+        name: "StegoShare Extract",
+        group: "Steganography",
+        description: "Extracts a file hidden by StegoShare 1.01, which spreads one file over a set of PNG images. Give it the whole set as a ZIP archive, or one image when the file fit in a single cover: it reads each image's 16-bit index, 32-bit length and low-bit payload (three blue, two green and three red LSBs), undoes the MD5(password) XOR keyed by untouched pixel bits, drops the 256-byte file-name block from the first image and joins the shares in index order. Leave the password empty for a carrier hidden without one. A missing trailing image cannot be detected, because the format has no end marker.",
+        args: [
+            {name: "Password", type: "string", value: ""}
+        ],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
+        run: function (input, args) {
+            return CF_STEGO.extractStegoShare(input, args[0] == null ? "" : args[0]);
+        }
     }
 ];

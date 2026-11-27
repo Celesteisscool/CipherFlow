@@ -12,10 +12,13 @@
  *              streams) and JPHide/JPSeek 0.5/0.51 on Windows (native
  *              little-endian streams, mode selector bit, LZO1X payloads), for
  *              3-component JPEGs.
+ *   StegoShare StegoShare 1.01's multi-image LSB layout, MD5-keyed by pixel bits
+ *              the embedder leaves untouched, for PNG carriers and ZIP sets.
  *
- * Both formats are reconstructed from their published sources: OpenStego
- * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto) and Allan Latham's
- * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h).
+ * Each format is reconstructed from its published source: OpenStego
+ * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto), Allan Latham's
+ * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), and StegoShare
+ * 1.01 (Stego.java).
  */
 var CF_STEGO = (function () {
     "use strict";
@@ -494,7 +497,7 @@ var CF_STEGO = (function () {
         try {
             bitmap = await createImageBitmap(new Blob([bytes]));
         } catch (err) {
-            fail("Could not decode the input as an image. OpenStego covers PNG, BMP, GIF and JPEG files.");
+            fail("Could not decode the input as an image. PNG, BMP, GIF and JPEG files are supported.");
         }
         if (bitmap.width * bitmap.height > 100 * 1000 * 1000) {
             fail("That image is too large to scan (" + bitmap.width + "×" + bitmap.height + ").");
@@ -713,6 +716,225 @@ var CF_STEGO = (function () {
         }
         fail("No OpenStego header found. This is not an OpenStego RandomLSB or LSB image" +
             (lastError ? " (" + lastError.message + ")" : "") + ".");
+    }
+
+    /* ------------------------------------------------------------ StegoShare
+     * StegoShare 1.01 (Digital Equality Foundation) spreads one file over a set
+     * of PNGs. Every pixel carries one payload byte in the low bits of blue
+     * (0-2), green (0-1) and red (0-2), least-significant hidden bit first. The
+     * byte is XORed with one of the 16 bytes of MD5(password); the byte is picked
+     * by pixel bits 3, 10, 11 and 19, which the embedder never changes. The first
+     * six pixels hold the image's 16-bit index and 32-bit payload length, both
+     * big-endian. Image 0 begins its payload with a 256-byte name block whose
+     * last byte is 0x0A. No password (or the tool's literal "Empty") means a
+     * zero key rather than an MD5. The shares are joined in index order.
+     */
+    var STEGOSHARE_NAME_BYTES = 256;
+    var STEGOSHARE_BITS = [0, 1, 2, 8, 9, 16, 17, 18];
+
+    function stegoshareKey(password) {
+        var text = password == null ? "" : String(password);
+        if (!text || text === "Empty") return new Uint8Array(16);
+        return md5(utf8Encode(text));
+    }
+
+    function stegoshareReadImage(rgba, width, height, key) {
+        var pixels = width * height;
+        if (pixels < 6) fail("The image is too small to hold a StegoShare header.");
+        function readByteAt(index) {
+            var offset = index * 4;
+            // Java's getRGB packs 0xAARRGGBB; the alpha byte is never touched.
+            var pixel = (rgba[offset] << 16) | (rgba[offset + 1] << 8) | rgba[offset + 2];
+            var keyIndex = (((pixel >>> 3) & 1) << 3) | (((pixel >>> 10) & 3) << 1) | ((pixel >>> 19) & 1);
+            var value = 0;
+            for (var b = 0; b < 8; b++) value |= ((pixel >>> STEGOSHARE_BITS[b]) & 1) << b;
+            return (value ^ key[keyIndex]) & 0xff;
+        }
+        var index = (readByteAt(0) << 8) | readByteAt(1);
+        var size = 0;
+        for (var s = 2; s <= 5; s++) size = size * 256 + readByteAt(s);
+        var capacity = pixels - 6;
+        if (size > capacity) {
+            fail("StegoShare image " + index + " says it carries " + size +
+                " bytes, but a " + width + "×" + height + " image can carry only " + capacity + ".");
+        }
+        var data = new Uint8Array(size);
+        for (var i = 0; i < size; i++) data[i] = readByteAt(i + 6);
+        return {index: index, size: size, capacity: capacity, data: data};
+    }
+
+    function stegoshareName(share) {
+        if (share.size < STEGOSHARE_NAME_BYTES) {
+            fail("The first StegoShare image has no 256-byte file-name block.");
+        }
+        if (share.data[STEGOSHARE_NAME_BYTES - 1] !== 10) {
+            fail("The StegoShare file-name block is invalid. Check the password, or the image was not written by StegoShare.");
+        }
+        var end = 0;
+        while (end < STEGOSHARE_NAME_BYTES && share.data[end] !== 10) end++;
+        var name = "";
+        for (var i = 0; i < end; i++) {
+            var byte = share.data[i];
+            if (byte >= 32 && byte < 127) name += String.fromCharCode(byte);
+        }
+        return name;
+    }
+
+    function stegoshareAssemble(shares) {
+        if (!shares.length) fail("No StegoShare images were found.");
+        shares.sort(function (a, b) { return a.index - b.index; });
+        for (var i = 0; i < shares.length; i++) {
+            if (i && shares[i].index === shares[i - 1].index) {
+                fail("The StegoShare set contains two images with index " + shares[i].index + ".");
+            }
+            if (shares[i].index !== i) {
+                fail("The StegoShare set is incomplete: image " + i + " is missing. Add every image the tool wrote.");
+            }
+        }
+        var fileName = stegoshareName(shares[0]);
+        var total = 0;
+        for (i = 0; i < shares.length; i++) total += shares[i].size - (i === 0 ? STEGOSHARE_NAME_BYTES : 0);
+        if (total > MAX_OUTPUT) fail("The StegoShare file is larger than this page will decode.");
+        var out = new Uint8Array(total);
+        var at = 0;
+        for (i = 0; i < shares.length; i++) {
+            var part = i === 0 ? shares[i].data.subarray(STEGOSHARE_NAME_BYTES) : shares[i].data;
+            out.set(part, at);
+            at += part.length;
+        }
+        return {data: out, fileName: fileName, shares: shares.length};
+    }
+
+    /* A StegoShare set is a folder of PNGs, and this editor hands one file to an
+     * operation, so the whole set arrives as a ZIP. Only the PNG entries are
+     * carriers; StegoShare always writes PNG. Stored and deflated entries are
+     * supported, which covers the usual archivers and "zip -0". */
+    function isZipInput(bytes) {
+        return bytes.length >= 4 && bytes[0] === 0x50 && bytes[1] === 0x4b &&
+            ((bytes[2] === 3 && bytes[3] === 4) || (bytes[2] === 5 && bytes[3] === 6));
+    }
+
+    function isPng(bytes) {
+        return bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e &&
+            bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+    }
+
+    function zipU16(bytes, offset) {
+        return bytes[offset] | (bytes[offset + 1] << 8);
+    }
+
+    function zipU32(bytes, offset) {
+        return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24)) >>> 0;
+    }
+
+    function zipEnd(bytes) {
+        var start = Math.max(0, bytes.length - 66000);
+        for (var i = bytes.length - 22; i >= start; i--) {
+            if (bytes[i] === 0x50 && bytes[i + 1] === 0x4b && bytes[i + 2] === 0x05 && bytes[i + 3] === 0x06) return i;
+        }
+        return -1;
+    }
+
+    async function inflateRaw(bytes) {
+        if (typeof DecompressionStream !== "function") {
+            fail("This browser cannot decompress the ZIP's DEFLATE entries (DecompressionStream is missing).");
+        }
+        try {
+            var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+            return new Uint8Array(await new Response(stream).arrayBuffer());
+        } catch (err) {
+            fail("Could not decompress a ZIP entry: " + (err && err.message ? err.message : err));
+        }
+    }
+
+    async function readZipEntries(bytes) {
+        var end = zipEnd(bytes);
+        if (end < 0) fail("The input starts like a ZIP but has no end-of-central-directory record.");
+        var count = zipU16(bytes, end + 10);
+        var directory = zipU32(bytes, end + 16);
+        if (count === 0xffff || directory === 0xffffffff) {
+            fail("ZIP64 archives are not supported; use a normal ZIP of the images.");
+        }
+        if (directory + 4 > bytes.length) fail("The ZIP central directory is outside the file.");
+        var entries = [];
+        var at = directory;
+        for (var i = 0; i < count; i++) {
+            if (at + 46 > bytes.length || zipU32(bytes, at) !== 0x02014b50) {
+                fail("The ZIP central directory is damaged.");
+            }
+            var flags = zipU16(bytes, at + 8);
+            var method = zipU16(bytes, at + 10);
+            var compressedSize = zipU32(bytes, at + 20);
+            var uncompressedSize = zipU32(bytes, at + 24);
+            var nameLength = zipU16(bytes, at + 28);
+            var extraLength = zipU16(bytes, at + 30);
+            var commentLength = zipU16(bytes, at + 32);
+            var localOffset = zipU32(bytes, at + 42);
+            var nameStart = at + 46;
+            if (nameStart + nameLength > bytes.length) fail("A ZIP entry name is outside the file.");
+            var name = utf8Decode(bytes.subarray(nameStart, nameStart + nameLength));
+            at = nameStart + nameLength + extraLength + commentLength;
+            if (flags & 1) fail("The ZIP entry \"" + name + "\" is encrypted; StegoShare does not encrypt its images.");
+            if (name.charAt(name.length - 1) === "/") continue;
+            if (localOffset + 30 > bytes.length || zipU32(bytes, localOffset) !== 0x04034b50) {
+                fail("The ZIP entry \"" + name + "\" has a damaged local header.");
+            }
+            var dataStart = localOffset + 30 + zipU16(bytes, localOffset + 26) + zipU16(bytes, localOffset + 28);
+            if (dataStart + compressedSize > bytes.length) fail("The ZIP entry \"" + name + "\" runs past the end of the file.");
+            var compressed = bytes.subarray(dataStart, dataStart + compressedSize);
+            var data;
+            if (method === 0) data = compressed;
+            else if (method === 8) data = await inflateRaw(compressed);
+            else continue; // an archiver may use an algorithm we cannot read; skip it
+            if (uncompressedSize && data.length !== uncompressedSize) {
+                fail("The ZIP entry \"" + name + "\" shrank to " + data.length + " bytes, not the recorded " + uncompressedSize + ".");
+            }
+            if (data.length > MAX_OUTPUT) fail("The ZIP entry \"" + name + "\" is larger than this page will decode.");
+            entries.push({name: name, data: data});
+        }
+        return entries;
+    }
+
+    async function stegoshareExtract(input, password) {
+        var bytes = toBytes(input);
+        var zip = isZipInput(bytes);
+        var carriers;
+        if (zip) {
+            var entries = await readZipEntries(bytes);
+            carriers = entries.filter(function (entry) { return isPng(entry.data); });
+            if (!carriers.length) {
+                fail("The ZIP contains no PNG images. StegoShare always writes its carriers as PNG.");
+            }
+        } else {
+            carriers = [{name: "", data: bytes}];
+        }
+
+        var images = [];
+        for (var i = 0; i < carriers.length; i++) {
+            try {
+                var image = await decodeImage(carriers[i].data);
+            } catch (err) {
+                if (!zip) throw err;
+                fail("Could not decode the ZIP entry \"" + carriers[i].name + "\" as an image: " +
+                    (err && err.message ? err.message : err));
+            }
+            images.push({data: image.data, width: image.width, height: image.height});
+        }
+
+        var key = stegoshareKey(password);
+        var shares = [];
+        for (i = 0; i < images.length; i++) {
+            shares.push(stegoshareReadImage(images[i].data, images[i].width, images[i].height, key));
+        }
+        if (!zip) {
+            if (shares[0].index !== 0) {
+                fail("This is StegoShare share " + shares[0].index + " of a set, not the start of the file. Zip every image in the set and pass the archive.");
+            }
+            if (shares[0].size === shares[0].capacity) {
+                fail("This share fills its image, so the file may continue in later shares. Zip every image in the set and pass the archive.");
+            }
+        }
+        return toByteArray(stegoshareAssemble(shares).data);
     }
 
     /* --------------------------------------------------------------- Blowfish
@@ -1253,6 +1475,10 @@ var CF_STEGO = (function () {
         bfDecryptBytes: bfDecryptBytes,
         bfDecryptNativeLE: bfDecryptNativeLE,
         extractOpenStego: openStegoExtract,
-        extractJphide: jphideExtract
+        extractJphide: jphideExtract,
+        extractStegoShare: stegoshareExtract,
+        stegoshareKey: stegoshareKey,
+        stegoshareReadImage: stegoshareReadImage,
+        stegoshareAssemble: stegoshareAssemble
     };
 })();

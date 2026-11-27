@@ -5537,6 +5537,12 @@ const GRID_SIZE = 22;
 // floor change never has to be made in two files.
 // The names these nodes shipped with, renamed on load so an existing graph reads correctly.
 const LEGACY_TITLES = {input: "Text input", file: "File input"};
+// The encodings a text node can parse. Hand-edited graphs, pasted fragments and old
+// autosaves can carry anything here; normalize at the boundary so rendering and running
+// always agree instead of calling toUpperCase on a number or object.
+const INPUT_ENCODINGS = new Set(["utf8", "hex", "base64", "latin1"]);
+const normalizeInputEncoding = encoding =>
+    typeof encoding === "string" && INPUT_ENCODINGS.has(encoding) ? encoding : "utf8";
 
 const CAT_COLORS = {
     "Data format": "#159b89",
@@ -5976,6 +5982,62 @@ function functionPorts(def) {
 function instancePorts(node, lookup) {
     const def = (lookup || (id => functionById(id)))(node?.fnId);
     return def ? functionPorts(def) : {inputs: [], outputs: []};
+}
+
+// Removing a declared port shifts every later one down inside the definition. Instances are
+// separate graphs, so their wires and typed values need the same shift: prune the wire on the
+// removed port, decrement later keys, and follow the selected output tab. Definitions can be
+// nested, so inspect the carrier graph and every function definition it owns.
+function remapFunctionInstancePorts(fnId, isInput, index) {
+    const roots = [];
+    const addGraph = graph => {
+        if (graph && !roots.includes(graph)) roots.push(graph);
+    };
+    addGraph(mainGraph);
+    addGraph(state);
+    for (const def of mainGraph?.functions || state?.functions || []) addGraph(def);
+    const prefix = isInput ? "fn:" : "out:";
+    const portRe = isInput ? /^fn:(\d+)$/ : /^out:(\d+)$/;
+    for (const graph of roots) {
+        if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) continue;
+        const instances = new Set();
+        for (const instance of graph.nodes) {
+            if (instance.type !== "fn" || instance.fnId !== fnId) continue;
+            instances.add(instance.id);
+            if (isInput && instance.typedInputs && typeof instance.typedInputs === "object") {
+                const shifted = {};
+                for (const [key, value] of Object.entries(instance.typedInputs)) {
+                    const m = /^fn:(\d+)$/.exec(key);
+                    if (!m) { shifted[key] = value; continue; }
+                    const n = Number(m[1]);
+                    if (n === index) continue;
+                    shifted["fn:" + (n > index ? n - 1 : n)] = value;
+                }
+                instance.typedInputs = shifted;
+            }
+            if (!isInput) {
+                const pick = Number(instance.portPick);
+                if (Number.isInteger(pick)) {
+                    if (pick === index) instance.portPick = 0;
+                    else if (pick > index) instance.portPick = pick - 1;
+                }
+            }
+            instance._sig = "";
+        }
+        if (!instances.size) continue;
+        graph.edges = graph.edges.flatMap(edge => {
+            const inputEdge = isInput && instances.has(edge.to);
+            const outputEdge = !isInput && instances.has(edge.from);
+            if (!inputEdge && !outputEdge) return [edge];
+            const key = inputEdge ? edge.toPort : edge.fromPort;
+            const m = portRe.exec(key || "");
+            if (!m) return [edge];
+            const n = Number(m[1]);
+            if (n === index) return [];
+            if (n < index) return [edge];
+            return [{...edge, [inputEdge ? "toPort" : "fromPort"]: prefix + (n - 1)}];
+        });
+    }
 }
 // The ports a node takes wires on.
 function nodeInPorts(node, lookup) {
@@ -6709,10 +6771,10 @@ function makeNode(type, opts = {}) {
         // An operation can carry its own input text, typed straight into the node. It is
         // used only when nothing is wired into the main port.
         node.inputText = opts.inputText ?? "";
-        node.inputEncoding = opts.inputEncoding || "utf8";
+        node.inputEncoding = normalizeInputEncoding(opts.inputEncoding);
     } else if (type === "input") {
         node.text = opts.text ?? "Hello, World!";
-        node.encoding = opts.encoding || "utf8";
+        node.encoding = normalizeInputEncoding(opts.encoding);
     } else if (type === "note") {
         // A sticky note: the words, which of the tints it wears, and the node it is stuck
         // under (0 when it floats on the canvas as a card of its own).
@@ -6722,7 +6784,11 @@ function makeNode(type, opts = {}) {
     } else if (type === "file") {
         node.fileName = opts.fileName || "";
         node.fileSize = opts.fileSize || 0;
-        node.fileData = opts.fileData || "";
+        // An empty file is still an attachment. Keep that fact separately from its bytes:
+        // fileData === "" is both a zero-byte file and a legacy slot with no payload.
+        const fileData = typeof opts.fileData === "string" ? opts.fileData : "";
+        node.fileData = fileData;
+        node.fileAttached = fileData !== "" || (typeof opts.fileData === "string" && Boolean(opts.fileAttached));
         node.mime = opts.mime || "";
     } else if (type === "join") {
         node.joinCount = opts.joinCount || 2;
@@ -6913,6 +6979,7 @@ function cleanNodeForSave(n) {
         fileName: n.fileName,
         fileSize: n.fileSize,
         fileData: n.fileData,
+        fileAttached: n.type === "file" ? Boolean(n.fileAttached) : undefined,
         mime: n.mime,
         joinCount: n.joinCount,
         separator: n.separator,
@@ -7036,10 +7103,11 @@ function nodeFromRaw(raw, {freshIds = false, localId = 0} = {}) {
             text: wasOutput ? "" : raw.text,
             encoding: raw.encoding,
             inputText: raw.inputText,
-            inputEncoding: ["utf8", "hex", "base64", "latin1"].includes(raw.inputEncoding) ? raw.inputEncoding : "utf8",
+            inputEncoding: normalizeInputEncoding(raw.inputEncoding),
             fileName: raw.fileName,
             fileSize: raw.fileSize,
             fileData: raw.fileData,
+            fileAttached: raw.fileAttached,
             mime: raw.mime,
             joinCount: clamp(Number(raw.joinCount) || 2, 1, 8),
             separator: raw.separator || "",
@@ -7153,7 +7221,7 @@ function saveLocalNow() {
         // Large file attachments can exceed localStorage. Keep the graph except file bytes.
         try {
             const payload = serializeGraph(graphToSave());
-            payload.nodes = payload.nodes.map(n => n.type === "file" ? {...n, fileData: ""} : n);
+            payload.nodes = payload.nodes.map(n => n.type === "file" ? {...n, fileData: "", fileAttached: false} : n);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
             lastSavedAt = Date.now();
             toast("Graph saved locally, but the file payload was too large for autosave.", "error");
@@ -7162,14 +7230,26 @@ function saveLocalNow() {
 }
 const saveLocalSoon = debounce(saveLocalNow, 320);
 
-function loadLocalGraph() {
+// Read the autosave and say whether it was absent or present but unreadable. The caller
+// needs that distinction: a corrupt slot is not a reason to attach an example to the name
+// of the graph the slot used to hold.
+function loadLocalGraphState() {
+    let raw;
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        return normalizeLoaded(JSON.parse(raw));
+        raw = localStorage.getItem(STORAGE_KEY);
     } catch {
-        return null;
+        return {graph: null, corrupt: false};
     }
+    if (!raw) return {graph: null, corrupt: false};
+    try {
+        return {graph: normalizeLoaded(JSON.parse(raw)), corrupt: false};
+    } catch {
+        return {graph: null, corrupt: true};
+    }
+}
+
+function loadLocalGraph() {
+    return loadLocalGraphState().graph;
 }
 
 function applyGraph(data, {fit = true} = {}) {
@@ -7834,6 +7914,8 @@ function buildInputNode(node) {
         wrap.appendChild(buildError(node));
         return wrap;
     }
+    node.encoding = normalizeInputEncoding(node.encoding);
+    const encoding = node.encoding;
     let bytes = new Uint8Array(0);
     try { bytes = inputNodeBytes(node); } catch { bytes = new Uint8Array(0); }
     wrap.innerHTML = `
@@ -7848,13 +7930,13 @@ function buildInputNode(node) {
             </select>
         </div>
         <textarea class="control typed-input" data-input-text rows="3" spellcheck="false" placeholder="Nothing piped in — type your own text here">${esc(node.text || "")}</textarea>
-        <div class="node-foot"><span class="bytes" data-bytes>${formatBytes(bytes.length)}</span><span>·</span><span>${node.encoding.toUpperCase()}</span><span style="margin-left:auto" class="bytes">${bytes.length ? "ready" : "empty"}</span></div>
+        <div class="node-foot"><span class="bytes" data-bytes>${formatBytes(bytes.length)}</span><span>·</span><span>${encoding.toUpperCase()}</span><span style="margin-left:auto" class="bytes">${bytes.length ? "ready" : "empty"}</span></div>
         <div class="error-box" data-node-error style="display:${node._error ? "block" : "none"}">${esc(node._error || "")}</div>
     `;
     bindInputPort($(".port.in", wrap), node.id, "main");
-    $("[data-encoding]", wrap).value = node.encoding;
+    $("[data-encoding]", wrap).value = encoding;
     $("[data-encoding]", wrap).addEventListener("change", e => {
-        node.encoding = e.target.value;
+        node.encoding = normalizeInputEncoding(e.target.value);
         node._sig = "";
         updateInputBytes(node);
         onGraphEdited();
@@ -7887,10 +7969,11 @@ function buildFileNode(node) {
         wrap.appendChild(buildError(node));
         return wrap;
     }
+    const attached = Boolean(node.fileAttached);
     // A name without bytes is what a shared or autosaved graph carries: the link leaves the
     // payload behind but keeps what the receiver needs in order to reattach it. Say the name
     // and expected size instead of showing an anonymous empty drop zone.
-    const expected = !node.fileData && node.fileName
+    const expected = !attached && node.fileName
         ? `<div class="file-name">${esc(node.fileName)}</div><div class="bytes">${formatBytes(node.fileSize || 0)} expected · not attached — click to reattach</div>`
         : "";
     wrap.innerHTML = `
@@ -7899,10 +7982,10 @@ function buildFileNode(node) {
             <span class="io-label">In</span>
         </div>
         <div class="file-drop" data-file-drop tabindex="0">
-            ${node.fileData ? `<div class="file-name">${esc(node.fileName || "File attached")}</div><div class="bytes">${formatBytes(node.fileSize || 0)} · click to replace</div>` : expected || `<div>${iconFill("file")}</div><div>Click or drop a file here</div><div style="color:var(--faint);font-size:8.5px;margin-top:2px">bytes stay in this page</div>`}
+            ${attached ? `<div class="file-name">${esc(node.fileName || "File attached")}</div><div class="bytes">${formatBytes(node.fileSize || 0)} · click to replace</div>` : expected || `<div>${iconFill("file")}</div><div>Click or drop a file here</div><div style="color:var(--faint);font-size:8.5px;margin-top:2px">bytes stay in this page</div>`}
         </div>
         <input type="file" hidden data-file-input>
-        <div class="node-foot"><span class="bytes" data-bytes>${node.fileData ? formatBytes(node.fileSize || 0) : "0 bytes"}</span><span style="margin-left:auto" class="bytes">raw bytes</span></div>
+        <div class="node-foot"><span class="bytes" data-bytes>${attached ? formatBytes(node.fileSize || 0) : "0 bytes"}</span><span style="margin-left:auto" class="bytes">raw bytes</span></div>
         <div class="error-box" data-node-error style="display:${node._error ? "block" : "none"}">${esc(node._error || "")}</div>
     `;
     bindInputPort($(".port.in", wrap), node.id, "main");
@@ -7913,9 +7996,15 @@ function buildFileNode(node) {
     drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("drag"); });
     drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
     drop.addEventListener("drop", e => {
-        e.preventDefault(); drop.classList.remove("drag");
         const file = e.dataTransfer?.files?.[0];
-        if (file) readFileToNode(node, file);
+        drop.classList.remove("drag");
+        // Only a file drop belongs to this target. Let palette drops through to the stage
+        // so dropping an operation on a File node still places it like anywhere else.
+        if (!file) return;
+        e.preventDefault();
+        e.stopPropagation();
+        stage.classList.remove("file-drag");
+        readFileToNode(node, file);
     });
     input.addEventListener("change", () => {
         const file = input.files?.[0];
@@ -7954,10 +8043,12 @@ async function readFileToNode(node, file) {
     try {
         const buffer = await file.arrayBuffer();
         node.fileData = bytesToB64(new Uint8Array(buffer));
+        node.fileAttached = true;
         node.fileName = file.name;
         node.fileSize = file.size;
         node.mime = file.type || "application/octet-stream";
         node._sig = "";
+        node._error = "";
         renderAllNodes();
         onGraphEdited(true);
     } catch (err) {
@@ -8912,10 +9003,13 @@ function buildFnInputNode(node) {
         drop.addEventListener("dragover", ev => { ev.preventDefault(); drop.classList.add("drag"); });
         drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
         drop.addEventListener("drop", ev => {
-            ev.preventDefault();
-            drop.classList.remove("drag");
             const file = ev.dataTransfer?.files?.[0];
-            if (file) readFileToSample(node, port, file);
+            drop.classList.remove("drag");
+            if (!file) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            stage.classList.remove("file-drag");
+            readFileToSample(node, port, file);
         });
         wrap.appendChild(sample);
     });
@@ -9226,8 +9320,9 @@ function updatePreviewEl(wrap, node) {
     const allEntries = view.all;
     const page = view.page;
     const shown = view.shown;
-    // A bundled wire can hold only empty values, which has no bytes but is still a result.
-    const has = Boolean(bytes && (bytes.length || bundled));
+    // A node that has never run holds a null output. A successful run can legitimately
+    // produce zero bytes, so presence decides whether there is a result, not its length.
+    const has = Boolean(bytes);
     const files = node._files?.length ? node._files : null;
     const selected = files ? preferredFileIndex(node, files) : 0;
     const shownLen = shown ? shown.length : 0;
@@ -9253,7 +9348,7 @@ function updatePreviewEl(wrap, node) {
         : (isSink ? 1100 : 420);
     // Pick knows why a result is empty: no bundle, a picked slot that is itself blank, or
     // an index beyond the end. Saying so beats the generic "run the graph" hint.
-    const pickEmpty = !has && node.type === "pick" && node._pickCount != null
+    const pickEmpty = node.type === "pick" && node._pickCount != null && !(bytes && bytes.length)
         ? (node._pickCount === 0 ? "The bundle is empty."
             : (pickIndex(node) > node._pickCount ? `No value at index ${pickIndex(node)}; the bundle has ${node._pickCount}.`
                 : "The picked value is empty."))
@@ -9265,6 +9360,9 @@ function updatePreviewEl(wrap, node) {
         pv = shownLen ? previewBytes(shown, mode, limit) : {text: "(empty)", binary: false};
     } else if (bundled) {
         pv = mode === "hex" ? previewBytes(bytes, mode, limit) : {text: listPreviewText(bytes, full), binary: false};
+    } else if (!bytes.length) {
+        // Ran successfully and produced nothing: that is a result, not a missing one.
+        pv = {text: pickEmpty || "(empty)", binary: false};
     } else {
         pv = previewBytes(bytes, mode, limit);
     }
@@ -11129,7 +11227,7 @@ function textBytes(text, encoding) {
 }
 
 function inputNodeBytes(node) {
-    return textBytes(node.text ?? "", node.encoding);
+    return textBytes(node.text ?? "", normalizeInputEncoding(node.encoding));
 }
 
 // The text typed into an operation's own input box, for when no wire feeds it.
@@ -11387,11 +11485,12 @@ function inputSignature(node, incoming, results, opts) {
     }
     if (node.type === "input") {
         const s = sourceBytesForPort(incoming, node.id, "main", results);
-        return JSON.stringify(["input", node.encoding, node.text, s.sig]);
+        return JSON.stringify(["input", normalizeInputEncoding(node.encoding), node.text, s.sig]);
     }
     if (node.type === "file") {
         const s = sourceBytesForPort(incoming, node.id, "main", results);
-        return JSON.stringify(["file", node.fileSize, node.fileName, fnvBytes(b64ToBytes(node.fileData || "")), s.sig]);
+        return JSON.stringify(["file", node.fileSize, node.fileName,
+            node.fileAttached ? "attached:" + fnvBytes(b64ToBytes(node.fileData || "")) : "missing", s.sig]);
     }
     if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo" ||
         node.type === "audiolevels") {
@@ -12640,9 +12739,9 @@ async function executeGraph(nodes, edges, opts = {}) {
                     if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
                     else out = main.bytes;
                 }
-                else if (!node.fileData) error = "Choose a file (or pipe bytes in) for this node.";
+                else if (!node.fileAttached) error = "Choose a file (or pipe bytes in) for this node.";
                 else if (!force && node._sig === sig) { out = node._output; reused++; countIt = false; }
-                else out = b64ToBytes(node.fileData);
+                else out = b64ToBytes(node.fileData || "");
             } else if (node.type === "pngchunks" || node.type === "pdfscan" || node.type === "imginfo") {
                 sig = sigHash(inputSignature(node, incoming, results, opts));
                 if (!force && node._sig === sig && node._output) { out = node._output; reused++; countIt = false; }
@@ -16095,7 +16194,7 @@ function shareableGraph() {
     let stripped = 0;
     const strip = node => {
         if (!node || typeof node !== "object") return;
-        if (node.fileData) { node.fileData = ""; stripped++; }
+        if (node.fileAttached || node.fileData) { node.fileData = ""; node.fileAttached = false; stripped++; }
         if (Array.isArray(node.ports)) {
             for (const port of node.ports) {
                 if (port && typeof port === "object" && port.sampleFileData) {
@@ -16364,7 +16463,7 @@ function saveNamedGraph(name) {
         try {
             write({
                 savedAt: Date.now(),
-                graph: {...graph, nodes: graph.nodes.map(n => n.type === "file" ? {...n, fileData: ""} : n)}
+                graph: {...graph, nodes: graph.nodes.map(n => n.type === "file" ? {...n, fileData: "", fileAttached: false} : n)}
             });
             toast("Saved, but the attached file was too large to keep in this browser.", "error");
         } catch {
@@ -19702,6 +19801,7 @@ function onNodeActionClick(ev) {
                     if (toPort === null || fromPort === null) return [];
                     return [{...e, toPort, fromPort}];
                 });
+                remapFunctionInstancePorts(editingFunctionId, isInput, index);
             }
             renderAllNodes();
             onGraphEdited();
@@ -20416,9 +20516,25 @@ async function init() {
     // A graph carried in the address fragment is read now but offered after the app is up:
     // boot must never be blocked by a link, and the answer decides what replaces the canvas.
     pendingShare = await readShareFromLocation();
-    state = loadLocalGraph();
-    currentGraphName = readCurrentGraphName();
-    const restored = Boolean(state);    if (!state) state = exampleState();
+    const localGraph = loadLocalGraphState();
+    state = localGraph.graph;
+    const restored = Boolean(state);
+    let autosaveWarning = "";
+    if (restored) {
+        currentGraphName = readCurrentGraphName();
+    } else {
+        // The example is not the graph the remembered name pointed at. Clear the stale
+        // association before the file menu or Save can use it to overwrite a saved graph.
+        const staleName = readCurrentGraphName();
+        currentGraphName = "";
+        if (staleName) setCurrentGraphName("");
+        if (localGraph.corrupt) {
+            autosaveWarning = "The autosaved canvas could not be read. Showing the example; saved graphs are unchanged.";
+        } else if (staleName) {
+            autosaveWarning = "The autosaved canvas is missing. Showing the example; saved graphs are unchanged.";
+        }
+    }
+    if (!state) state = exampleState();
     if (!state.view) state.view = {x: 40, y: 40, zoom: 0.7};
     renumberState(state);
     resetHistory();
@@ -20517,6 +20633,7 @@ async function init() {
     setTimeout(() => {
         if (!engine.loaded && !engine.lastError) setRunStatus("", "Loading engine…");
     }, 500);
+    if (autosaveWarning) setTimeout(() => toast(autosaveWarning, "error"), 700);
 }
 
 /* ================================================================ symbol ciphers

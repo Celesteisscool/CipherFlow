@@ -1,5 +1,5 @@
 {
-  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The gallery carriers are CC0 1.0 photos: pet portraits for the OpenStego, JPHide and StegoShare rows, and a kingfisher cover with a spoonbill hidden in it for the image-in-image row. Their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures.",
+  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The StegFS fixtures are 1 MB volumes made with the vendor 2015.08/202X.XX C library from albinoloverats/stegfs, compiled locally against libgcrypt: one 2015.08 volume holds /stegfs-notes.txt, /docs/nested.txt, an empty /empty.txt and /browser.txt, and one 202X.XX volume holds /docs/stegfs-current.txt and /docs/browser.txt, and a compact 64 KB 202X.XX volume holds /gallery.txt for the example gallery. The short /browser.txt files are used for the browser preview check; the larger files exercise multi-block chains and the 202X.XX MAC in the Node self-test. The gallery carriers are CC0 1.0 photos: pet portraits for the OpenStego, JPHide and StegoShare rows, and a kingfisher cover with a spoonbill hidden in it for the image-in-image row. Their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures.",
   "imageLicenses": {
     "openstego-randomlsb.png": {
       "title": "Dog at Nørre Vorupør Strand",
@@ -36,7 +36,10 @@
     {
       "id": "openstego-randomlsb",
       "operation": "OpenStego Extract",
-      "values": ["RandomLSB", "browser-random-pass"],
+      "values": [
+        "RandomLSB",
+        "browser-random-pass"
+      ],
       "carrier": "openstego-randomlsb.png",
       "payload": "openstego-randomlsb.payload.txt",
       "mime": "image/png",
@@ -48,7 +51,10 @@
     {
       "id": "openstego-bird",
       "operation": "OpenStego Extract",
-      "values": ["RandomLSB", "bird-image-pass"],
+      "values": [
+        "RandomLSB",
+        "bird-image-pass"
+      ],
       "carrier": "openstego-bird.png",
       "payload": "openstego-bird.payload.jpg",
       "mime": "image/png",
@@ -61,7 +67,9 @@
     {
       "id": "jphide",
       "operation": "JPHide / JPSeek Extract",
-      "values": ["browser-jphide-pass"],
+      "values": [
+        "browser-jphide-pass"
+      ],
       "carrier": "jphide.jpg",
       "payload": "jphide.payload.txt",
       "mime": "image/jpeg",
@@ -73,7 +81,9 @@
     {
       "id": "jphide-v05-raw",
       "operation": "JPHide / JPSeek Extract",
-      "values": ["v05-raw-pass"],
+      "values": [
+        "v05-raw-pass"
+      ],
       "carrier": "jphide-v05-raw.jpg",
       "payload": "jphide-v05-raw.payload.txt",
       "mime": "image/jpeg",
@@ -85,7 +95,9 @@
     {
       "id": "jphide-v05-lzo",
       "operation": "JPHide / JPSeek Extract",
-      "values": ["v05-lzo-pass"],
+      "values": [
+        "v05-lzo-pass"
+      ],
       "carrier": "jphide-v05-lzo.jpg",
       "payload": "jphide-v05-lzo.payload.txt",
       "mime": "image/jpeg",
@@ -97,7 +109,9 @@
     {
       "id": "stegoshare-single",
       "operation": "StegoShare Extract",
-      "values": ["vendor-single-pass"],
+      "values": [
+        "vendor-single-pass"
+      ],
       "carrier": "stegoshare-single.png",
       "payload": "stegoshare-single.payload.txt",
       "mime": "image/png",
@@ -109,11 +123,16 @@
     {
       "id": "stegoshare-set",
       "operation": "StegoShare Extract",
-      "values": ["vendor-set-pass"],
+      "values": [
+        "vendor-set-pass"
+      ],
       "carrier": "stegoshare-set.zip",
       "payload": "stegoshare-set.payload.txt",
       "mime": "application/zip",
-      "members": ["stegoshare-set-1.png", "stegoshare-set-2.png"],
+      "members": [
+        "stegoshare-set-1.png",
+        "stegoshare-set-2.png"
+      ],
       "tool": "StegoShare 1.01 (Digital Equality Foundation; vendor source compiled with JDK 17)",
       "cover": "magick dog-beach.jpg -crop 400x300+300+40 +repage -resize 32x24^ -gravity center -extent 32x24 -strip -alpha off cover1.png; magick cat-iezalel.jpg -crop 520x390+480+80 +repage -resize 32x24^ -gravity center -extent 32x24 -strip -alpha off cover2.png",
       "command": "java Main.StegoCli hide set-covers stegoshare-set.payload.txt vendor-set-pass (two covers used); python zipfile wrote stegoshare-set.zip from out/1.png and out/2.png",
@@ -122,7 +141,9 @@
     {
       "id": "stegoshare-empty",
       "operation": "StegoShare Extract",
-      "values": [""],
+      "values": [
+        ""
+      ],
       "carrier": "stegoshare-empty.png",
       "payload": "stegoshare-empty.payload.txt",
       "mime": "image/png",
@@ -130,6 +151,64 @@
       "cover": "magick -size 64x48 plasma:fractal -depth 8 cover1.png",
       "command": "java Main.StegoCli hide empty-covers stegoshare-empty.payload.txt Empty (the tool's no-password sentinel)",
       "verified": "java Main.StegoCli extract empty-covers/out verify Empty"
+    },
+    {
+      "id": "stegfs-legacy",
+      "operation": "StegFS Extract",
+      "values": [
+        "/browser.txt",
+        "browser-pass"
+      ],
+      "carrier": "stegfs-legacy.img",
+      "payload": "stegfs-browser.payload.txt",
+      "mime": "application/octet-stream",
+      "tool": "StegFS 2015.08 format (vendor C library from albinoloverats/stegfs, built with libgcrypt)",
+      "command": "mkstegfs stegfs-legacy.img -z 1M; a fixture writer linked against the vendor stegfs.c wrote /stegfs-notes.txt:stegfs-pass, /docs/nested.txt:nested-pass, /empty.txt:empty-pass and /browser.txt:browser-pass",
+      "verified": "/tmp/stegfs-verify stegfs-legacy.img /stegfs-notes.txt stegfs-pass (vendor stegfs_file_read); the same command read the nested and empty files",
+      "also": "The same image holds the large /stegfs-notes.txt (7,228 bytes), /empty.txt (0 bytes) and /docs/nested.txt; the Node self-test reads all of them."
+    },
+    {
+      "id": "stegfs-legacy-nested",
+      "operation": "StegFS Extract",
+      "values": [
+        "/docs/nested.txt",
+        "nested-pass"
+      ],
+      "carrier": "stegfs-legacy.img",
+      "payload": "stegfs-legacy-nested.payload.txt",
+      "mime": "application/octet-stream",
+      "tool": "StegFS 2015.08 format (vendor C library from albinoloverats/stegfs, built with libgcrypt)",
+      "command": "fixture writer linked against the vendor stegfs.c wrote /docs/nested.txt:nested-pass",
+      "verified": "/tmp/stegfs-verify stegfs-legacy.img /docs/nested.txt nested-pass (vendor stegfs_file_read)"
+    },
+    {
+      "id": "stegfs-current",
+      "operation": "StegFS Extract",
+      "values": [
+        "/docs/browser.txt",
+        "browser-current-pass"
+      ],
+      "carrier": "stegfs-current.img",
+      "payload": "stegfs-browser-current.payload.txt",
+      "mime": "application/octet-stream",
+      "tool": "StegFS 202X.XX format (vendor C library from albinoloverats/stegfs HEAD, built with libgcrypt)",
+      "command": "mkstegfs stegfs-current.img -z 1M; the same fixture writer wrote /docs/stegfs-current.txt:current-pass and /docs/browser.txt:browser-current-pass",
+      "verified": "/tmp/stegfs-verify stegfs-current.img /docs/stegfs-current.txt current-pass (vendor stegfs_file_read)",
+      "also": "The same image holds the larger /docs/stegfs-current.txt (3,438 bytes), which the Node self-test reads through the 202X.XX MAC path."
+    },
+    {
+      "id": "stegfs-gallery",
+      "operation": "StegFS Extract",
+      "values": [
+        "/gallery.txt",
+        "gallery-pass"
+      ],
+      "carrier": "stegfs-gallery.img",
+      "payload": "stegfs-gallery.payload.txt",
+      "mime": "application/octet-stream",
+      "tool": "StegFS 202X.XX format (vendor C library from albinoloverats/stegfs, built with libgcrypt)",
+      "command": "truncate -s 65536 stegfs-gallery.img; mkstegfs stegfs-gallery.img -f; the fixture writer linked against the vendor stegfs.c wrote /gallery.txt:gallery-pass",
+      "verified": "/tmp/stegfs-verify stegfs-gallery.img /gallery.txt gallery-pass (vendor stegfs_file_read)"
     }
   ]
 }

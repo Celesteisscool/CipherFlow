@@ -126,6 +126,25 @@ bytes("DES FIPS 81 decrypt vector",
     T.desDecryptBlock(Buffer.from("85E813540F0AB405", "hex"), desKeys),
     Buffer.from("0123456789ABCDEF", "hex"));
 
+// FIPS-197 appendix C.3: one AES-256 block; then a raw-CBC vector from OpenSSL,
+// because StegFS does not use PKCS#7 padding and WebCrypto would add it.
+bytes("AES-256 FIPS 197 decrypt vector",
+    T.aes256CbcDecrypt(
+        Buffer.from("8ea2b7ca516745bfeafc49904b496089", "hex"),
+        Buffer.from("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f", "hex"),
+        Buffer.alloc(16)),
+    Buffer.from("00112233445566778899aabbccddeeff", "hex"));
+{
+    const key = crypto.randomBytes(32);
+    const iv = crypto.randomBytes(16);
+    const plain = crypto.randomBytes(2016);
+    const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+    cipher.setAutoPadding(false);
+    const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
+    bytes("AES-256 raw CBC decrypt (2016 bytes)", T.aes256CbcDecrypt(encrypted, key, iv), plain);
+    await throws("AES-256 CBC rejects a partial block", () => T.aes256CbcDecrypt(Buffer.alloc(15), key, iv));
+}
+
 // The B_ (big-endian block) vectors from the bf.c self-test JPHS ships.
 for (const vector of [
     {key: "abcdefghijklmnopqrstuvwxyz", plain: "424c4f5746495348", cipher: "324ed0fef413a203"},
@@ -332,6 +351,47 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
 {
     const plain = PNG.sync.write({width: 20, height: 20, data: makeRgba(20, 20)}, {colorType: 6});
     await throws("OpenStego rejects an image with no header", () => runOp("OpenStego Extract", plain, ["Auto", ""]));
+}
+
+/* ---------------------------------------------------------------- StegFS */
+{
+    const fixtureDir = new URL("./fixtures/", import.meta.url);
+    const fixtureManifest = JSON.parse(fs.readFileSync(new URL("manifest.json", fixtureDir), "utf8"));
+    for (const fixture of (fixtureManifest.fixtures || []).filter(f => f.operation === "StegFS Extract")) {
+        try {
+            const carrier = fs.readFileSync(new URL(fixture.carrier, fixtureDir));
+            const expected = fs.readFileSync(new URL(fixture.payload, fixtureDir));
+            bytes(`${fixture.id} · ${fixture.tool}`, await runOp(fixture.operation, carrier, fixture.values), expected);
+            await wrongSecret(`${fixture.id} does not accept a wrong password`,
+                () => runOp(fixture.operation, carrier, [fixture.values[0], "wrong-" + fixture.id]), expected);
+        } catch (err) {
+            report(`${fixture.id} · ${fixture.tool}`, String(err && err.message ? err.message : err));
+        }
+    }
+
+    const legacy = fs.readFileSync(new URL("stegfs-legacy.img", fixtureDir));
+    const legacyPayload = fs.readFileSync(new URL("stegfs-legacy.payload.txt", fixtureDir));
+    const current = fs.readFileSync(new URL("stegfs-current.img", fixtureDir));
+    bytes("StegFS reads a multi-block 2015.08 file",
+        await runOp("StegFS Extract", legacy, ["/stegfs-notes.txt", "stegfs-pass"]), legacyPayload);
+    bytes("StegFS reads a multi-block 202X.XX file with its MAC",
+        await runOp("StegFS Extract", current, ["/docs/stegfs-current.txt", "current-pass"]),
+        fs.readFileSync(new URL("stegfs-current.payload.txt", fixtureDir)));
+    bytes("StegFS accepts a path without its leading slash",
+        await runOp("StegFS Extract", legacy, ["stegfs-notes.txt", "stegfs-pass"]), legacyPayload);
+    bytes("StegFS reads an empty hidden file",
+        await runOp("StegFS Extract", legacy, ["/empty.txt", "empty-pass"]),
+        fs.readFileSync(new URL("stegfs-empty.payload.txt", fixtureDir)));
+    await throws("StegFS rejects a path whose file is absent",
+        () => runOp("StegFS Extract", legacy, ["/not-there.txt", "stegfs-pass"]));
+    await throws("StegFS rejects an ordinary file",
+        () => runOp("StegFS Extract", Buffer.alloc(4096), ["/notes.txt", ""]));
+    const old = Buffer.alloc(4096);
+    old.writeBigUInt64BE(0xa157afa602cc9d1bn, 2008);
+    old.writeBigUInt64BE(0x33be2b298b76f2acn, 2016);
+    old.writeBigUInt64BE(0xc903284d7c593af6n, 2024);
+    await throws("StegFS rejects the older 2010.01 format",
+        () => runOp("StegFS Extract", old, ["/notes.txt", ""]));
 }
 
 /* ------------------------------------------------------- vendor JPHide fixtures */

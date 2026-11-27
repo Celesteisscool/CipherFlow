@@ -14,11 +14,14 @@
  *              3-component JPEGs.
  *   StegoShare StegoShare 1.01's multi-image LSB layout, MD5-keyed by pixel bits
  *              the embedder leaves untouched, for PNG carriers and ZIP sets.
+ *   StegFS     StegFS 2015.08 and 202X.XX volume blocks: path/name-derived
+ *              inode locations, AES-256-CBC with SHA-256 block checks, and
+ *              PBKDF2/HMAC-SHA256 for the 202X.XX format.
  *
  * Each format is reconstructed from its published source: OpenStego
  * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto), Allan Latham's
- * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), and StegoShare
- * 1.01 (Stego.java).
+ * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), StegoShare
+ * 1.01 (Stego.java), and StegFS (stegfs.c, mkfs.c).
  */
 var CF_STEGO = (function () {
     "use strict";
@@ -1446,6 +1449,446 @@ var CF_STEGO = (function () {
         }
     }
 
+    /* ------------------------------------------------------------- AES-256
+     * StegFS uses libgcrypt's CBC mode with no padding and keeps the CBC
+     * chaining state across the blocks of one file copy. WebCrypto's AES-CBC
+     * always applies and strips PKCS#7 padding, so decrypting a StegFS block
+     * with it fails unless the random tail happens to look like padding. A
+     * compact raw AES-256 decryptor keeps the format exact. The S-box and the
+     * key schedule are the FIPS-197 ones; only decryption is needed.
+     */
+    var AES_SBOX = new Uint8Array([
+        0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
+        0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
+        0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
+        0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
+        0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
+        0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
+        0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
+        0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
+        0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
+        0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
+        0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
+        0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
+        0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
+        0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
+        0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+        0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
+    ]);
+    var AES_INV_SBOX = (function () {
+        var table = new Uint8Array(256);
+        for (var i = 0; i < 256; i++) table[AES_SBOX[i]] = i;
+        return table;
+    })();
+
+    function aesXtime(value) {
+        return ((value << 1) ^ ((value & 0x80) ? 0x1b : 0)) & 0xff;
+    }
+
+    function aesSubWord(word) {
+        return (AES_SBOX[(word >>> 24) & 0xff] << 24) |
+            (AES_SBOX[(word >>> 16) & 0xff] << 16) |
+            (AES_SBOX[(word >>> 8) & 0xff] << 8) |
+            AES_SBOX[word & 0xff];
+    }
+
+    function aesExpandKey(key) {
+        if (key.length !== 32) fail("StegFS needs a 32-byte AES-256 key.");
+        var words = new Uint32Array(60);
+        for (var i = 0; i < 8; i++) words[i] = readBE32(key, i * 4);
+        var rcon = 1;
+        for (i = 8; i < 60; i++) {
+            var temp = words[i - 1];
+            if ((i & 7) === 0) {
+                temp = aesSubWord(((temp << 8) | (temp >>> 24)) >>> 0) ^ (rcon << 24);
+                rcon = aesXtime(rcon);
+            } else if ((i & 7) === 4) {
+                temp = aesSubWord(temp);
+            }
+            words[i] = (words[i - 8] ^ temp) >>> 0;
+        }
+        return words;
+    }
+
+    function aesAddRoundKey(state, words, round) {
+        for (var column = 0; column < 4; column++) {
+            var word = words[round * 4 + column];
+            var at = column * 4;
+            state[at] ^= (word >>> 24) & 0xff;
+            state[at + 1] ^= (word >>> 16) & 0xff;
+            state[at + 2] ^= (word >>> 8) & 0xff;
+            state[at + 3] ^= word & 0xff;
+        }
+    }
+
+    function aesInvShiftRows(state) {
+        var copy = new Uint8Array(state);
+        state[1] = copy[13]; state[5] = copy[1]; state[9] = copy[5]; state[13] = copy[9];
+        state[2] = copy[10]; state[6] = copy[14]; state[10] = copy[2]; state[14] = copy[6];
+        state[3] = copy[7]; state[7] = copy[11]; state[11] = copy[15]; state[15] = copy[3];
+    }
+
+    function aesInvSubBytes(state) {
+        for (var i = 0; i < 16; i++) state[i] = AES_INV_SBOX[state[i]];
+    }
+
+    function aesGmul(a, b) {
+        var product = 0;
+        for (var i = 0; i < 8; i++) {
+            if (b & 1) product ^= a;
+            var high = a & 0x80;
+            a = (a << 1) & 0xff;
+            if (high) a ^= 0x1b;
+            b >>>= 1;
+        }
+        return product & 0xff;
+    }
+
+    function aesInvMixColumns(state) {
+        for (var col = 0; col < 4; col++) {
+            var at = col * 4;
+            var a0 = state[at], a1 = state[at + 1], a2 = state[at + 2], a3 = state[at + 3];
+            state[at] = aesGmul(a0, 14) ^ aesGmul(a1, 11) ^ aesGmul(a2, 13) ^ aesGmul(a3, 9);
+            state[at + 1] = aesGmul(a0, 9) ^ aesGmul(a1, 14) ^ aesGmul(a2, 11) ^ aesGmul(a3, 13);
+            state[at + 2] = aesGmul(a0, 13) ^ aesGmul(a1, 9) ^ aesGmul(a2, 14) ^ aesGmul(a3, 11);
+            state[at + 3] = aesGmul(a0, 11) ^ aesGmul(a1, 13) ^ aesGmul(a2, 9) ^ aesGmul(a3, 14);
+        }
+    }
+
+    function aesDecryptBlock(block, roundKeys) {
+        var state = new Uint8Array(block);
+        aesAddRoundKey(state, roundKeys, 14);
+        for (var round = 13; round >= 1; round--) {
+            aesInvShiftRows(state);
+            aesInvSubBytes(state);
+            aesAddRoundKey(state, roundKeys, round);
+            aesInvMixColumns(state);
+        }
+        aesInvShiftRows(state);
+        aesInvSubBytes(state);
+        aesAddRoundKey(state, roundKeys, 0);
+        return state;
+    }
+
+    // Raw CBC: no padding is added, removed or checked. The caller keeps the
+    // returned next Iv when a file's data blocks continue one cipher stream.
+    function aes256CbcDecrypt(ciphertext, key, iv) {
+        if (!ciphertext.length || ciphertext.length % 16) fail("The StegFS AES data is not a whole number of blocks.");
+        var roundKeys = aesExpandKey(key);
+        var out = new Uint8Array(ciphertext.length);
+        var previous = iv;
+        for (var offset = 0; offset < ciphertext.length; offset += 16) {
+            var block = ciphertext.subarray(offset, offset + 16);
+            var plain = aesDecryptBlock(block, roundKeys);
+            for (var i = 0; i < 16; i++) out[offset + i] = plain[i] ^ previous[i];
+            previous = block;
+        }
+        return out;
+    }
+
+    /* -------------------------------------------------------------- UTF-8
+     * Small byte helpers shared by the StegFS hashes and key derivations.
+     */
+    function concatBytes() {
+        var total = 0;
+        for (var i = 0; i < arguments.length; i++) total += arguments[i].length;
+        var out = new Uint8Array(total);
+        var at = 0;
+        for (i = 0; i < arguments.length; i++) {
+            out.set(arguments[i], at);
+            at += arguments[i].length;
+        }
+        return out;
+    }
+
+    function equalBytes(a, b) {
+        if (a.length !== b.length) return false;
+        for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+        return true;
+    }
+
+    function readU64BE(bytes, offset) {
+        var value = 0n;
+        for (var i = 0; i < 8; i++) value = (value << 8n) | BigInt(bytes[offset + i]);
+        return value;
+    }
+
+    function readU64LE(bytes, offset) {
+        var value = 0n;
+        for (var i = 7; i >= 0; i--) value = (value << 8n) | BigInt(bytes[offset + i]);
+        return value;
+    }
+
+    function stegfsNormalize(value, blocks) {
+        var reduced = value % BigInt(blocks);
+        return Number(reduced);
+    }
+
+    function webCryptoSubtle() {
+        var webCrypto = typeof globalThis !== "undefined" ? globalThis.crypto : null;
+        if (!webCrypto || !webCrypto.subtle) fail("This browser cannot decrypt StegFS volumes (Web Crypto is missing).");
+        return webCrypto.subtle;
+    }
+
+    async function sha256(bytes) {
+        return new Uint8Array(await webCryptoSubtle().digest("SHA-256", bytes));
+    }
+
+    async function sha512(bytes) {
+        return new Uint8Array(await webCryptoSubtle().digest("SHA-512", bytes));
+    }
+
+    async function pbkdf2Sha256(seed, salt, iterations, length) {
+        var subtle = webCryptoSubtle();
+        var material = await subtle.importKey("raw", seed, "PBKDF2", false, ["deriveBits"]);
+        return new Uint8Array(await subtle.deriveBits(
+            {name: "PBKDF2", salt: salt, iterations: iterations, hash: "SHA-256"},
+            material, length * 8
+        ));
+    }
+
+    async function hmacSha256(key, data) {
+        var subtle = webCryptoSubtle();
+        var material = await subtle.importKey("raw", key, {name: "HMAC", hash: "SHA-256"}, false, ["sign"]);
+        return new Uint8Array(await subtle.sign("HMAC", material, data));
+    }
+
+    /* --------------------------------------------------------------- StegFS
+     * A 2015.08/202X.XX StegFS volume is a sequence of 2,048-byte blocks. A
+     * hidden file has no directory entry: SHA-512 of its directory path and
+     * name (rotated one byte for each copy) gives the little-endian block
+     * numbers to try for its inode. The AES-256 key is SHA-256 of
+     * path+name+password in 2015.08, or PBKDF2-HMAC-SHA-256 over
+     * SHA-256(name+password) with SHA-256(path) as salt in 202X.XX. The IV is
+     * SHA-256(password+name+path+copyNumber). Each block's first 32 bytes are
+     * a plaintext path hash; the rest is one continuous raw-CBC stream, with
+     * the SHA-256 of the 1,976-byte data area stored after it. Inode data
+     * holds the file size, one first-data-block address per copy, an optional
+     * HMAC, and up to (1,976-headerOffset) inline bytes.
+     */
+    var STEGFS_BLOCK_SIZE = 2048;
+    var STEGFS_PATH_BYTES = 32;
+    var STEGFS_DATA_BYTES = 1976;
+    var STEGFS_HASH_BYTES = 32;
+    var STEGFS_NEXT_BYTES = 8;
+    var STEGFS_MAGIC_0 = 0x5287505e71e039dfn;
+    var STEGFS_MAGIC_1 = 0xebccb02ab09ba26fn;
+    var STEGFS_MAGIC_2 = 0x089e07f0da733557n;
+    var STEGFS_MAGIC_201508_2 = 0x8c9b291a9e55c137n;
+    var STEGFS_MAGIC_201001_0 = 0xa157afa602cc9d1bn;
+    var STEGFS_MAGIC_201001_1 = 0x33be2b298b76f2acn;
+    var STEGFS_MAGIC_201001_2 = 0xc903284d7c593af6n;
+
+    function stegfsText(bytes) {
+        var out = "";
+        for (var i = 0; i < bytes.length; i++) out += String.fromCharCode(bytes[i]);
+        return out;
+    }
+
+    function stegfsSplitPath(value) {
+        var path = value == null ? "" : String(value).trim();
+        if (!path) fail("Enter the hidden file's path inside the StegFS volume, for example /notes.txt.");
+        if (path.charAt(0) !== "/") path = "/" + path;
+        if (path.length > 1 && path.charAt(path.length - 1) === "/") {
+            fail("The StegFS path must name a file, not end with a slash.");
+        }
+        var slash = path.lastIndexOf("/");
+        var name = path.slice(slash + 1);
+        if (!name) fail("Enter the hidden file's full path inside the StegFS volume, for example /notes.txt.");
+        return {path: slash === 0 ? "/" : path.slice(0, slash), name: name};
+    }
+
+    function stegfsParseSuperblock(bytes) {
+        if (bytes.length < 2 * STEGFS_BLOCK_SIZE || bytes.length % STEGFS_BLOCK_SIZE) {
+            fail("A StegFS volume must be a whole number of 2,048-byte blocks (at least two).");
+        }
+        var magic0 = readU64BE(bytes, STEGFS_PATH_BYTES + STEGFS_DATA_BYTES);
+        var magic1 = readU64BE(bytes, STEGFS_PATH_BYTES + STEGFS_DATA_BYTES + 8);
+        var magic2 = readU64BE(bytes, STEGFS_PATH_BYTES + STEGFS_DATA_BYTES + 16);
+        if (magic0 === STEGFS_MAGIC_201001_0 && magic1 === STEGFS_MAGIC_201001_1 && magic2 === STEGFS_MAGIC_201001_2) {
+            fail("This is the older 2010.01 StegFS format, which this node cannot read. Recover it with StegFS 2010.01 first.");
+        }
+        if (magic0 !== STEGFS_MAGIC_0 || magic1 !== STEGFS_MAGIC_1) {
+            fail("Not a StegFS volume: the superblock signature is missing.");
+        }
+        var data = bytes.subarray(STEGFS_PATH_BYTES, STEGFS_PATH_BYTES + STEGFS_DATA_BYTES);
+        var tags;
+        var offset;
+        if (magic2 === STEGFS_MAGIC_201508_2) {
+            tags = 8;
+            offset = 0;
+        } else if (magic2 === STEGFS_MAGIC_2) {
+            if (data.length < 8) fail("The StegFS superblock is too short for its tag count.");
+            tags = Number(readU64BE(data, 0));
+            offset = 8;
+        } else {
+            fail("Not a StegFS volume: the superblock layout version is unknown.");
+        }
+        if (tags > 16) fail("The StegFS superblock has an invalid tag count.");
+        var values = {};
+        for (var index = 0; index < tags; index++) {
+            if (offset + 3 > data.length) fail("The StegFS superblock ends in the middle of a tag.");
+            var tag = data[offset++];
+            var length = (data[offset] << 8) | data[offset + 1];
+            offset += 2;
+            if (offset + length > data.length) fail("A StegFS superblock tag runs past the end of the block.");
+            values[tag] = data.subarray(offset, offset + length);
+            offset += length;
+        }
+        function value(tag) { return values[tag] == null ? null : values[tag]; }
+        function text(tag) { var v = value(tag); return v == null ? "" : stegfsText(v); }
+        var stegfs = value(0);
+        if (!stegfs || stegfsText(stegfs) !== "stegfs") fail("Not a StegFS volume: the filesystem name tag is missing.");
+        var version = text(1);
+        if (version !== "2015.08" && version !== "202X.XX") {
+            fail("Unsupported StegFS format version \"" + version + "\". This node reads 2015.08 and 202X.XX.");
+        }
+        var cipher = text(2) || "RIJNDAEL256";
+        if (!/^(?:RIJNDAEL|AES)256$/i.test(cipher)) {
+            fail("This StegFS volume uses cipher \"" + cipher + "\"; this node only reads the default AES-256 (RIJNDAEL256).");
+        }
+        var mode = text(4) || "CBC";
+        if (mode.toUpperCase() !== "CBC") fail("This StegFS volume uses \"" + mode + "\" mode; this node only reads CBC.");
+        var hash = text(3) || "SHA256";
+        if (hash.toUpperCase() !== "SHA256") {
+            fail("This StegFS volume uses hash \"" + hash + "\"; this node only reads SHA-256.");
+        }
+        var blockTag = value(5);
+        var headerTag = value(6);
+        if (!blockTag || blockTag.length !== 4) fail("The StegFS superblock has no valid block size.");
+        if (!headerTag || headerTag.length !== 4) fail("The StegFS superblock has no valid header offset.");
+        var blocksize = readBE32(blockTag, 0);
+        var headOffset = readBE32(headerTag, 0);
+        if (blocksize !== STEGFS_BLOCK_SIZE) fail("Unsupported StegFS block size " + blocksize + ".");
+        var copies = 8;
+        var copyTag = value(7);
+        if (copyTag) {
+            if (version === "202X.XX") {
+                if (copyTag.length !== 1) fail("The StegFS copy count has an invalid length.");
+                copies = copyTag[0];
+            } else {
+                if (copyTag.length !== 4) fail("The StegFS copy count has an invalid length.");
+                copies = readBE32(copyTag, 0);
+            }
+        }
+        if (!copies || copies > 64) fail("The StegFS volume has an invalid number of file copies.");
+        if (headOffset > STEGFS_DATA_BYTES || headOffset < (copies + 1) * 8 + STEGFS_HASH_BYTES) {
+            fail("The StegFS volume has an invalid inline-data offset.");
+        }
+        var kdf = 32768;
+        var kdfTag = value(9);
+        if (kdfTag) {
+            if (kdfTag.length !== 8) fail("The StegFS key-derivation count has an invalid length.");
+            kdf = Number(readU64BE(kdfTag, 0));
+            if (!Number.isSafeInteger(kdf) || kdf <= 0) fail("The StegFS key-derivation count is invalid.");
+        }
+        var totalBlocks = bytes.length / STEGFS_BLOCK_SIZE;
+        var next = readU64BE(bytes, STEGFS_BLOCK_SIZE - STEGFS_NEXT_BYTES);
+        if (next !== BigInt(totalBlocks)) {
+            fail("The StegFS volume size does not match its superblock (it may be truncated or resized).");
+        }
+        var mac = text(8) || "HMAC_SHA256";
+        if (version === "202X.XX" && !/^HMAC[-_]SHA256$/i.test(mac)) {
+            fail("This StegFS volume uses MAC \"" + mac + "\"; this node only reads HMAC-SHA-256.");
+        }
+        return {
+            version: version,
+            copies: copies,
+            headOffset: headOffset,
+            kdf: kdf,
+            mac: mac,
+            totalBlocks: totalBlocks
+        };
+    }
+
+    async function stegfsReadBlock(bytes, index, key, state, pathHash, root) {
+        if (!Number.isInteger(index) || index <= 0 || index >= state.blocks) return null;
+        var offset = index * STEGFS_BLOCK_SIZE;
+        var raw = bytes.subarray(offset, offset + STEGFS_BLOCK_SIZE);
+        if (!root && !equalBytes(raw.subarray(0, STEGFS_PATH_BYTES), pathHash)) return null;
+        var ciphertext = raw.subarray(STEGFS_PATH_BYTES);
+        var plain = aes256CbcDecrypt(ciphertext, key, state.iv);
+        state.iv = ciphertext.subarray(ciphertext.length - 16);
+        var blockData = plain.subarray(0, STEGFS_DATA_BYTES);
+        var storedHash = plain.subarray(STEGFS_DATA_BYTES, STEGFS_DATA_BYTES + STEGFS_HASH_BYTES);
+        if (!equalBytes(await sha256(blockData), storedHash)) return null;
+        return {data: blockData, next: readU64BE(plain, STEGFS_DATA_BYTES + STEGFS_HASH_BYTES)};
+    }
+
+    async function stegfsTryCopy(bytes, config, key, macKey, pathHash, root, iv, inodeIndex, copyIndex) {
+        var inodeState = {iv: iv, blocks: config.totalBlocks};
+        var inode = await stegfsReadBlock(bytes, inodeIndex, key, inodeState, pathHash, root);
+        if (!inode) return null;
+        var sizeBig = inode.next;
+        if (sizeBig > BigInt(bytes.length) || sizeBig > BigInt(MAX_OUTPUT)) return null;
+        var size = Number(sizeBig);
+        if (!Number.isSafeInteger(size)) return null;
+        var inlineCapacity = STEGFS_DATA_BYTES - config.headOffset;
+        var inline = Math.min(size, inlineCapacity);
+        var blocks = Math.ceil((size - inline) / STEGFS_DATA_BYTES);
+        if (blocks > config.totalBlocks) return null;
+        var out = new Uint8Array(size);
+        if (inline) out.set(inode.data.subarray(config.headOffset, config.headOffset + inline), 0);
+        var address = readU64BE(inode.data, (copyIndex + 1) * 8);
+        var dataState = {iv: iv, blocks: config.totalBlocks};
+        var at = inline;
+        var macParts = null;
+        if (config.version === "202X.XX") {
+            macParts = new Uint8Array(blocks * STEGFS_DATA_BYTES);
+        }
+        for (var j = 0; j < blocks; j++) {
+            var blockIndex = stegfsNormalize(address, config.totalBlocks);
+            if (!blockIndex) return null;
+            var block = await stegfsReadBlock(bytes, blockIndex, key, dataState, pathHash, root);
+            if (!block) return null;
+            var take = Math.min(STEGFS_DATA_BYTES, size - at);
+            out.set(block.data.subarray(0, take), at);
+            if (macParts) macParts.set(block.data, j * STEGFS_DATA_BYTES);
+            at += take;
+            address = block.next;
+        }
+        if (config.version === "202X.XX") {
+            var macOffset = (config.copies + 1) * 8;
+            var storedMac = inode.data.subarray(macOffset, macOffset + 32);
+            if (storedMac.length !== 32 || !equalBytes(await hmacSha256(macKey, macParts), storedMac)) return null;
+        }
+        return out;
+    }
+
+    async function stegfsExtract(input, pathArg, passwordArg) {
+        var bytes = toBytes(input);
+        var config = stegfsParseSuperblock(bytes);
+        var file = stegfsSplitPath(pathArg);
+        var password = passwordArg == null ? "" : String(passwordArg);
+        var pathBytes = utf8Encode(file.path);
+        var nameBytes = utf8Encode(file.name);
+        var passBytes = utf8Encode(password);
+        var pathHash = await sha256(pathBytes);
+        var key;
+        var macKey = null;
+        if (config.version === "2015.08") {
+            key = await sha256(concatBytes(pathBytes, nameBytes, passBytes));
+        } else {
+            var seed = await sha256(concatBytes(nameBytes, passBytes));
+            key = await pbkdf2Sha256(seed, pathHash, config.kdf, 32);
+            // HMAC-SHA-256 asks libgcrypt for a 64-byte key, not the AES size.
+            macKey = await pbkdf2Sha256(seed, pathHash, config.kdf, 64);
+        }
+        var digest = await sha512(concatBytes(pathBytes, nameBytes));
+        var root = file.path === "/";
+        for (var copy = 0; copy < config.copies; copy++) {
+            var inodeIndex = stegfsNormalize(readU64LE(digest, 0), config.totalBlocks);
+            var ivHash = await sha256(concatBytes(passBytes, nameBytes, pathBytes, new Uint8Array([copy])));
+            var found = await stegfsTryCopy(bytes, config, key, macKey, pathHash, root, ivHash.subarray(0, 16), inodeIndex, copy);
+            if (found) return toByteArray(found);
+            var first = digest[0];
+            digest.copyWithin(0, 1);
+            digest[digest.length - 1] = first;
+        }
+        fail("No readable StegFS file at " + (root ? "" : file.path + "/") + file.name +
+            ". Check the path and password, and make sure the volume is not truncated.");
+    }
+
     async function openStegoExtract(input, plugin, password) {
         var image = await decodeImage(toBytes(input));
         var result = await openStegoFromRgba(image.data, image.width, image.height, password, plugin);
@@ -1477,6 +1920,10 @@ var CF_STEGO = (function () {
         extractOpenStego: openStegoExtract,
         extractJphide: jphideExtract,
         extractStegoShare: stegoshareExtract,
+        extractStegFS: stegfsExtract,
+        aes256CbcDecrypt: aes256CbcDecrypt,
+        aesExpandKey: aesExpandKey,
+        aesDecryptBlock: aesDecryptBlock,
         stegoshareKey: stegoshareKey,
         stegoshareReadImage: stegoshareReadImage,
         stegoshareAssemble: stegoshareAssemble

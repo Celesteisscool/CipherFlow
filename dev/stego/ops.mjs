@@ -32,6 +32,20 @@ export const ops = [
         }
     },
     {
+        name: "StegFS Extract",
+        group: "Steganography",
+        description: "Extracts one hidden file from a StegFS volume image. StegFS is a FUSE steganographic filesystem that stores each file's encrypted blocks in the free space of a volume; there is no visible directory listing. Attach the volume image, then give the file's path inside it (for example /notes.txt or /docs/notes.txt) and the password used when it was stored. The node derives the inode locations from the path and name, tries each of the volume's copies, decrypts the AES-256-CBC blocks and verifies their SHA-256 checksums. It reads the released 2015.08 format and the current 202X.XX format, with the default AES-256 (RIJNDAEL256), CBC and SHA-256 settings. Volumes made with a different cipher, mode or hash are reported, not guessed. The result is the file's raw bytes, ready for a File Output or another operation.",
+        args: [
+            {name: "Path", type: "string", value: "/"},
+            {name: "Password", type: "string", value: ""}
+        ],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
+        run: async function (input, args) {
+            return CF_STEGO.extractStegFS(input, args[0], args[1]);
+        }
+    },
+    {
         name: "StegoShare Extract",
         group: "Steganography",
         description: "Extracts a file hidden by StegoShare 1.01, which spreads one file over a set of PNG images. To prepare the input, use the PNGs StegoShare wrote, not the original covers: attach the single PNG when the file fit in one image; when the tool wrote several, put every one of them in one ordinary ZIP (not ZIP64 — folders, names and stored or deflated compression do not matter) and attach the ZIP, because a File node carries one file. Do not resize, re-encode or convert the images, and do not leave any out. The operation reads each image's 16-bit index, 32-bit length and low-bit payload (three blue, two green and three red LSBs), undoes the MD5(password) XOR keyed by untouched pixel bits, drops the 256-byte file-name block from the first image and joins the shares in index order. Leave the password empty (or type Empty) for a carrier hidden without one. A missing trailing image cannot be detected, because the format has no end marker.",

@@ -41,6 +41,8 @@ self.CipherFlowStegoTest = {
     passwordSeed: CF_STEGO.passwordSeed,
     openStegoFromRgba: CF_STEGO.openStegoFromRgba,
     extractStegoShare: CF_STEGO.extractStegoShare,
+    extractStegFS: CF_STEGO.extractStegFS,
+    aes256CbcDecrypt: CF_STEGO.aes256CbcDecrypt,
     stegoshareKey: CF_STEGO.stegoshareKey,
     stegoshareReadImage: CF_STEGO.stegoshareReadImage,
     stegoshareAssemble: CF_STEGO.stegoshareAssemble,

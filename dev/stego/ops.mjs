@@ -34,7 +34,7 @@ export const ops = [
     {
         name: "StegoShare Extract",
         group: "Steganography",
-        description: "Extracts a file hidden by StegoShare 1.01, which spreads one file over a set of PNG images. Give it the whole set as a ZIP archive, or one image when the file fit in a single cover: it reads each image's 16-bit index, 32-bit length and low-bit payload (three blue, two green and three red LSBs), undoes the MD5(password) XOR keyed by untouched pixel bits, drops the 256-byte file-name block from the first image and joins the shares in index order. Leave the password empty for a carrier hidden without one. A missing trailing image cannot be detected, because the format has no end marker.",
+        description: "Extracts a file hidden by StegoShare 1.01, which spreads one file over a set of PNG images. To prepare the input, use the PNGs StegoShare wrote, not the original covers: attach the single PNG when the file fit in one image; when the tool wrote several, put every one of them in one ordinary ZIP (not ZIP64 — folders, names and stored or deflated compression do not matter) and attach the ZIP, because a File node carries one file. Do not resize, re-encode or convert the images, and do not leave any out. The operation reads each image's 16-bit index, 32-bit length and low-bit payload (three blue, two green and three red LSBs), undoes the MD5(password) XOR keyed by untouched pixel bits, drops the 256-byte file-name block from the first image and joins the shares in index order. Leave the password empty (or type Empty) for a carrier hidden without one. A missing trailing image cannot be detected, because the format has no end marker.",
         args: [
             {name: "Password", type: "string", value: ""}
         ],

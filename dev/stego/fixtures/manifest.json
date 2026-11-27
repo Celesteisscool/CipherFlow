@@ -1,5 +1,25 @@
 {
-  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation.",
+  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The gallery carriers are CC0 1.0 pet photos; their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures.",
+  "imageLicenses": {
+    "openstego-randomlsb.png": {
+      "title": "Dog at Nørre Vorupør Strand",
+      "author": "W.carter",
+      "license": "CC0 1.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Dog_at_N%C3%B8rre_Vorup%C3%B8r_Strand.jpg"
+    },
+    "jphide.jpg": {
+      "title": "Cat portrait by iezalel williams IMG_2980-004 - Canon EOS 700D",
+      "author": "iezalel7williams",
+      "license": "CC0 1.0",
+      "source": "https://www.flickr.com/photos/181765699@N08/48051761348"
+    },
+    "stegoshare-set.zip": {
+      "title": "Dog at Nørre Vorupør Strand (share 1) and Cat portrait by iezalel williams IMG_2980-004 (share 2)",
+      "author": "W.carter; iezalel7williams",
+      "license": "CC0 1.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Dog_at_N%C3%B8rre_Vorup%C3%B8r_Strand.jpg; https://www.flickr.com/photos/181765699@N08/48051761348"
+    }
+  },
   "fixtures": [
     {
       "id": "openstego-randomlsb",
@@ -9,7 +29,7 @@
       "payload": "openstego-randomlsb.payload.txt",
       "mime": "image/png",
       "tool": "OpenStego 0.8.6 CLI",
-      "cover": "magick -size 220x160 plasma:fractal -depth 8 cover.png",
+      "cover": "magick dog-beach.jpg -crop 740x540+110+140 +repage -resize 220x160^ -gravity center -extent 220x160 -strip -alpha off cover.png",
       "command": "java -jar openstego-0.8.6/lib/openstego.jar embed -a RandomLSB -mf openstego-randomlsb.payload.txt -cf cover.png -sf openstego-randomlsb.png -e -p browser-random-pass",
       "verified": "java -jar openstego-0.8.6/lib/openstego.jar extract -a RandomLSB -sf openstego-randomlsb.png -xd verify -p browser-random-pass"
     },
@@ -21,7 +41,7 @@
       "payload": "jphide.payload.txt",
       "mime": "image/jpeg",
       "tool": "JPHide 0.3 (Allan Latham)",
-      "cover": "magick -size 320x240 plasma:fractal -quality 92 -interlace none cover.jpg",
+      "cover": "magick cat-iezalel.jpg -crop 945x709+40+0 +repage -resize 320x240^ -gravity center -extent 320x240 -strip -quality 92 -interlace none cover.jpg",
       "command": "jphide cover.jpg jphide.jpg jphide.payload.txt (passphrase browser-jphide-pass entered twice)",
       "verified": "jpseek jphide.jpg verify.bin (passphrase browser-jphide-pass)"
     },
@@ -70,7 +90,7 @@
       "mime": "application/zip",
       "members": ["stegoshare-set-1.png", "stegoshare-set-2.png"],
       "tool": "StegoShare 1.01 (Digital Equality Foundation; vendor source compiled with JDK 17)",
-      "cover": "magick -size 32x24 plasma:fractal -depth 8 cover1.png ... cover4.png",
+      "cover": "magick dog-beach.jpg -crop 400x300+300+40 +repage -resize 32x24^ -gravity center -extent 32x24 -strip -alpha off cover1.png; magick cat-iezalel.jpg -crop 520x390+480+80 +repage -resize 32x24^ -gravity center -extent 32x24 -strip -alpha off cover2.png",
       "command": "java Main.StegoCli hide set-covers stegoshare-set.payload.txt vendor-set-pass (two covers used); python zipfile wrote stegoshare-set.zip from out/1.png and out/2.png",
       "verified": "java Main.StegoCli extract set-covers/out verify vendor-set-pass"
     },

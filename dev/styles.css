@@ -1614,6 +1614,30 @@ select.control { padding-right: 4px; }
 .file-drop svg { width: 18px; height: 18px; margin: 0 auto 4px; }
 .file-drop:hover, .file-drop.drag { border-color: var(--node-accent); background: color-mix(in srgb, var(--node-accent) 6%, transparent); }
 .file-name { color: var(--ink); font-size: 10px; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
+/* A File node that holds an image shows it, while a container such as the StegoShare ZIP
+ * can carry one thumbnail per share. The small share PNGs are enlarged without smoothing
+ * so the pet in each 32x24 carrier stays legible. */
+.file-previews {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 7px;
+}
+.file-previews img {
+    display: block;
+    width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: repeating-conic-gradient(var(--line) 0 25%, transparent 0 50%) 0 0 / 12px 12px;
+}
+.file-previews.multi img {
+    width: calc(50% - 3px);
+    max-height: none;
+    image-rendering: pixelated;
+}
 /* A join input row: the wired source sits on the right, with its detach button beside it. */
 .io-row.join-row { margin-top: 4px; }
 .join-row:first-child { margin-top: 0; }

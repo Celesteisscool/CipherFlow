@@ -352,6 +352,17 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
     }
 }
 
+/* --------------------------------------------------- OpenStego image payload */
+{
+    const dir = new URL("./fixtures/", import.meta.url);
+    const carrier = fs.readFileSync(new URL("openstego-bird.png", dir));
+    const expected = fs.readFileSync(new URL("openstego-bird.payload.jpg", dir));
+    bytes("OpenStego reveals a bird image hidden in a bird cover",
+        await runOp("OpenStego Extract", carrier, ["RandomLSB", "bird-image-pass"]), expected);
+    await wrongSecret("OpenStego bird image does not accept a wrong password",
+        () => runOp("OpenStego Extract", carrier, ["RandomLSB", "wrong-bird-pass"]), expected);
+}
+
 /* -------------------------------------------------------------------- JPHide */
 const jphsDir = "/tmp/jphs-ref";
 const jphide = `${jphsDir}/jphide`;

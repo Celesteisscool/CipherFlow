@@ -130,7 +130,8 @@ async function diagnostics(page) {
 
 async function testFixture(page, fixture) {
     const carrier = fs.readFileSync(fixturePath(fixture, "carrier"));
-    const payloadText = fs.readFileSync(fixturePath(fixture, "payload"), "utf8");
+    const payload = fs.readFileSync(fixturePath(fixture, "payload"));
+    const payloadText = fixture.binary ? null : payload.toString("utf8");
     const graph = makeGraph(fixture, carrier);
     const title = `Result · ${fixture.id}`;
 
@@ -143,31 +144,51 @@ async function testFixture(page, fixture) {
     try {
         await page.waitForFunction(expected => [...document.querySelectorAll("[data-node-title]")]
             .some(node => node.textContent === expected), title, {timeout: 30_000});
-        await page.waitForFunction(expected => {
-            const preview = document.querySelector('.node[data-id="3"] .preview pre');
-            return Boolean(preview) && preview.textContent === expected;
-        }, payloadText, {timeout: RUN_TIMEOUT});
+        if (fixture.binary) {
+            await page.waitForFunction(() => {
+                const image = document.querySelector('.node[data-id="3"] .preview-img');
+                return Boolean(image) && image.complete && image.naturalWidth > 0;
+            }, null, {timeout: RUN_TIMEOUT});
+        } else {
+            await page.waitForFunction(expected => {
+                const preview = document.querySelector('.node[data-id="3"] .preview pre');
+                return Boolean(preview) && preview.textContent === expected;
+            }, payloadText, {timeout: RUN_TIMEOUT});
+        }
     } catch (err) {
         throw new Error(`${fixture.id} did not decode.\n${await diagnostics(page)}`);
     }
 
-    const actual = await page.locator('.node[data-id="3"] .preview pre').textContent();
-    if (actual !== payloadText) {
-        throw new Error(`${fixture.id}: preview differs from ${fixture.payload}\n${JSON.stringify(actual)}`);
+    if (fixture.binary) {
+        const src = await page.locator('.node[data-id="3"] .preview-img').getAttribute("src");
+        const actual = Buffer.from(String(src || "").split(",")[1] || "", "base64");
+        if (!actual.equals(payload)) {
+            throw new Error(`${fixture.id}: revealed image bytes differ from ${fixture.payload}`);
+        }
+    } else {
+        const actual = await page.locator('.node[data-id="3"] .preview pre').textContent();
+        if (actual !== payloadText) {
+            throw new Error(`${fixture.id}: preview differs from ${fixture.payload}\n${JSON.stringify(actual)}`);
+        }
     }
     const attached = (await page.locator('.node[data-id="1"] .file-name').textContent()).trim();
     if (attached !== fixture.carrier) {
         throw new Error(`${fixture.id}: File node shows ${JSON.stringify(attached)}, expected ${fixture.carrier}`);
     }
     const bytes = (await page.locator('.node[data-id="3"] .preview-head .bytes').textContent()).trim();
-    if (!bytes.includes(`${Buffer.byteLength(payloadText)} bytes`)) {
-        throw new Error(`${fixture.id}: result reports ${JSON.stringify(bytes)} for ${Buffer.byteLength(payloadText)} bytes`);
+    const byteLabel = payload.length < 1024
+        ? `${payload.length} byte${payload.length === 1 ? "" : "s"}`
+        : `${(payload.length / 1024).toFixed(1)} KB`;
+    if (!bytes.includes(byteLabel)) {
+        throw new Error(`${fixture.id}: result reports ${JSON.stringify(bytes)} for ${payload.length} bytes`);
     }
     const status = (await page.locator("#runStatusText").textContent()).trim();
     if (!status.startsWith("Ran 3 nodes")) {
         throw new Error(`${fixture.id}: run status ${JSON.stringify(status)}`);
     }
-    return `${payloadText.length} characters / ${Buffer.byteLength(payloadText)} bytes`;
+    return fixture.binary
+        ? `${payload.length} bytes image`
+        : `${payloadText.length} characters / ${payload.length} bytes`;
 }
 
 async function main() {

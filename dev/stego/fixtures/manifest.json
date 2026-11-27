@@ -1,5 +1,5 @@
 {
-  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The gallery carriers are CC0 1.0 pet photos; their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures.",
+  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The gallery carriers are CC0 1.0 photos: pet portraits for the OpenStego, JPHide and StegoShare rows, and a kingfisher cover with a spoonbill hidden in it for the image-in-image row. Their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures.",
   "imageLicenses": {
     "openstego-randomlsb.png": {
       "title": "Dog at Nørre Vorupør Strand",
@@ -18,6 +18,18 @@
       "author": "W.carter; iezalel7williams",
       "license": "CC0 1.0",
       "source": "https://commons.wikimedia.org/wiki/File:Dog_at_N%C3%B8rre_Vorup%C3%B8r_Strand.jpg; https://www.flickr.com/photos/181765699@N08/48051761348"
+    },
+    "openstego-bird.png": {
+      "title": "Eisvogel kingfisher",
+      "author": "Frank-2.0",
+      "license": "CC0 1.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Eisvogel_kingfisher.jpg"
+    },
+    "openstego-bird.payload.jpg": {
+      "title": "bird (roseate spoonbill)",
+      "author": "Mathias Appel",
+      "license": "CC0 1.0",
+      "source": "https://www.flickr.com/photos/91501748@N07/26154953033"
     }
   },
   "fixtures": [
@@ -32,6 +44,19 @@
       "cover": "magick dog-beach.jpg -crop 740x540+110+140 +repage -resize 220x160^ -gravity center -extent 220x160 -strip -alpha off cover.png",
       "command": "java -jar openstego-0.8.6/lib/openstego.jar embed -a RandomLSB -mf openstego-randomlsb.payload.txt -cf cover.png -sf openstego-randomlsb.png -e -p browser-random-pass",
       "verified": "java -jar openstego-0.8.6/lib/openstego.jar extract -a RandomLSB -sf openstego-randomlsb.png -xd verify -p browser-random-pass"
+    },
+    {
+      "id": "openstego-bird",
+      "operation": "OpenStego Extract",
+      "values": ["RandomLSB", "bird-image-pass"],
+      "carrier": "openstego-bird.png",
+      "payload": "openstego-bird.payload.jpg",
+      "mime": "image/png",
+      "binary": true,
+      "tool": "OpenStego 0.8.6 CLI",
+      "cover": "magick kingfisher.jpg -crop 620x451+170+90 +repage -resize 220x160^ -gravity center -extent 220x160 -strip -alpha off cover.png",
+      "command": "java -jar openstego-0.8.6/lib/openstego.jar embed -a RandomLSB -mf openstego-bird.payload.jpg -cf cover.png -sf openstego-bird.png -e -p bird-image-pass",
+      "verified": "java -jar openstego-0.8.6/lib/openstego.jar extract -a RandomLSB -sf openstego-bird.png -xd verify -p bird-image-pass"
     },
     {
       "id": "jphide",

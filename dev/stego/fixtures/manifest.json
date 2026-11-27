@@ -260,6 +260,19 @@
       "cover": "dev/stego/fixtures/jphide.jpg (CC0 cat portrait, see imageLicenses)",
       "command": "outguess -e -k browser-outguess-ecc -d outguess.payload.txt cover.jpg outguess-ecc.jpg",
       "verified": "outguess -r -e -k browser-outguess-ecc outguess-ecc.jpg verify.bin"
+    },
+    {
+      "id": "jsteg",
+      "operation": "JSteg Extract",
+      "values": [],
+      "carrier": "jsteg.jpg",
+      "payload": "jsteg.payload.txt",
+      "mime": "image/jpeg",
+      "tool": "JSteg (Derek Upham's jpeg-jsteg-v4 patch for IJG JPEG v4)",
+      "cover": "procedurally generated 480x360 PPM (smooth gradients with fine noise); no third-party image",
+      "command": "patch -p0 < jpeg-jsteg-v4.diff; make -f makefile.unix cjpeg djpeg; ./cjpeg -quality 90 -steg jsteg.payload.txt cover.ppm > jsteg.jpg",
+      "verified": "./djpeg -steg verify.bin jsteg.jpg (byte-for-byte match with jsteg.payload.txt)",
+      "also": "The vendor code needed one 64-bit portability fix to bitsource.c getrepwidth(): its original bit-counting loop assumed a 32-bit unsigned long, so on an LP64 build the five-bit field-width was 65508 and no payload could be read. The replacement counts significant bits directly; the on-wire header is unchanged. Sources: the jpeg-jsteg-v4 diff and jpeg-v4 tree from nic.funet.fi."
     }
   ]
 }

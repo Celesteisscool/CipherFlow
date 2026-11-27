@@ -51,6 +51,8 @@ self.CipherFlowStegoTest = {
     jphideV05FromCoefficients: CF_STEGO.jphideV05FromCoefficients,
     jphideV05Pass: CF_STEGO.jphideV05Pass,
     jphideFromJpeg: CF_STEGO.jphideFromJpeg,
+    jstegFromJpeg: CF_STEGO.jstegFromJpeg,
+    jstegBitReader: CF_STEGO.jstegBitReader,
     lzo1xDecompress: CF_STEGO.lzo1xDecompress,
     bfExpandKey: CF_STEGO.bfExpandKey,
     bfEncryptBytes: CF_STEGO.bfEncryptBytes,

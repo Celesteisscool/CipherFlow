@@ -6775,10 +6775,10 @@ function magicKeyedVariants(name, meta, key) {
     return [{op: name, args, label: `${name} (key)`, keyed: true}];
 }
 
-// The three steganography decoders read a carrier image, not text: on anything else they can
-// only refuse the input. They join the sweep only when the bytes open like an image one of
-// them can read, so an ordinary text sweep does not spend three candidates on a guaranteed miss.
-const MAGIC_IMAGE_OPS = new Set(["OpenStego Extract", "JPHide / JPSeek Extract", "StegoShare Extract"]);
+// The four unkeyed steganography decoders read a carrier image, not text: on anything else they
+// can only refuse the input. They join the sweep only when the bytes open like an image one of
+// them can read, so an ordinary text sweep does not spend four candidates on a guaranteed miss.
+const MAGIC_IMAGE_OPS = new Set(["OpenStego Extract", "JPHide / JPSeek Extract", "JSteg Extract", "StegoShare Extract"]);
 // Base58 and Base62 turn the whole input into one big integer, so their cost grows far
 // faster than the input. A 94 KB PNG spent the whole 120-second probe budget inside To
 // Base62 and the sweep never finished, so those converters are left out of a large-input

@@ -12,6 +12,9 @@
  *              streams) and JPHide/JPSeek 0.5/0.51 on Windows (native
  *              little-endian streams, mode selector bit, LZO1X payloads), for
  *              3-component JPEGs.
+ *   JSteg      Derek Upham's JPEG v4 patch: the LSBs of quantised DCT
+ *              coefficients in scan order (skipping 0 and +1), with the 5-bit
+ *              length-width header.
  *   StegoShare StegoShare 1.01's multi-image LSB layout, MD5-keyed by pixel bits
  *              the embedder leaves untouched, for PNG carriers and ZIP sets.
  *   StegFS     StegFS 2015.08 and 202X.XX volume blocks: path/name-derived
@@ -23,7 +26,8 @@
  *
  * Each format is reconstructed from its published source: OpenStego
  * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto), Allan Latham's
- * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), StegoShare
+ * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), JSteg
+ * (bitsource.c / bitsink.c from the jpeg-jsteg-v4 patch), StegoShare
  * 1.01 (Stego.java), StegFS (stegfs.c, mkfs.c), and OutGuess 0.2
  * (jpg.c, iterator.c, arc.c, golay.c).
  */
@@ -1453,6 +1457,117 @@ var CF_STEGO = (function () {
         }
     }
 
+    /* ------------------------------------------------------------------ JSTEG
+     * Derek Upham's JSteg is an IJG JPEG v4 patch. After quantisation, each
+     * coefficient whose value is neither 0 nor +1 carries one message bit in
+     * its LSB (bitsource.c: (value & 1) != value). The encoder walks the
+     * image in JPEG scan order: MCU by MCU, each component's v×h blocks, and
+     * within a block the DC coefficient then the AC coefficients in zigzag
+     * order (jcmcu.c writes block[ZAG[i]]). The header is five bits giving the
+     * width of the length field, then that many bits of length in bytes, then
+     * the file, all MSB first; a JPEG written by JSteg-Shell adds a name and
+     * RC4-40 on top and is not this format. There is no password or magic.
+     */
+    var JSTEG_ZIGZAG = [
+        0, 1, 8, 16, 9, 2, 3, 10,
+        17, 24, 32, 25, 18, 11, 4, 5,
+        12, 19, 26, 33, 40, 48, 41, 34,
+        27, 20, 13, 6, 7, 14, 21, 28,
+        35, 42, 49, 56, 57, 50, 43, 36,
+        29, 22, 15, 23, 30, 37, 44, 51,
+        58, 59, 52, 45, 38, 31, 39, 46,
+        53, 60, 61, 54, 47, 55, 62, 63
+    ];
+
+    // Lazy walker over the usable coefficient bits, so a large JPEG does not
+    // have to materialise a bit array before the header is even read.
+    function jstegBitReader(decoded) {
+        if (!decoded || !decoded.components || !decoded.components.length) {
+            fail("JSteg needs a JPEG with DCT coefficients.");
+        }
+        var components = decoded.components;
+        var maxH = 1, maxV = 1;
+        for (var c = 0; c < components.length; c++) {
+            if (components[c].h > maxH) maxH = components[c].h;
+            if (components[c].v > maxV) maxV = components[c].v;
+        }
+        var mcusPerLine = Math.ceil(decoded.width / 8 / maxH);
+        var mcusPerColumn = Math.ceil(decoded.height / 8 / maxV);
+        var mcuRow = 0, mcuCol = 0, compIndex = 0, blockY = 0, blockX = 0, k = 0;
+
+        return function nextBit() {
+            while (mcuRow < mcusPerColumn) {
+                var component = components[compIndex];
+                var usefulWidth = Math.min(component.h, component.blocksPerLine - mcuCol * component.h);
+                var usefulHeight = Math.min(component.v, component.blocksPerColumn - mcuRow * component.v);
+                if (blockY >= usefulHeight) {
+                    blockY = 0; blockX = 0; compIndex++;
+                    if (compIndex >= components.length) {
+                        compIndex = 0; mcuCol++;
+                        if (mcuCol >= mcusPerLine) { mcuCol = 0; mcuRow++; }
+                    }
+                    k = 0;
+                    continue;
+                }
+                if (blockX >= usefulWidth) { blockX = 0; blockY++; k = 0; continue; }
+                if (k < 64) {
+                    var row = component.blocks[mcuRow * component.v + blockY];
+                    var block = row ? row[mcuCol * component.h + blockX] : null;
+                    if (!block) { k = 64; continue; }
+                    var value = block[JSTEG_ZIGZAG[k]] | 0;
+                    k++;
+                    // Skip 0 and +1; -1 and every other value carry a bit.
+                    if ((value & 1) !== value) return value & 1;
+                    continue;
+                }
+                k = 0; blockX++; continue;
+            }
+            return -1;
+        };
+    }
+
+    function jstegFromJpeg(input) {
+        var bytes = toBytes(input);
+        if (bytes.length < 2 || bytes[0] !== 0xff || bytes[1] !== 0xd8) {
+            fail("JSteg needs a JPEG file (no SOI marker).");
+        }
+        var decoded;
+        try {
+            decoded = cfDecodeJpegCoefficients(bytes);
+        } catch (err) {
+            fail("Could not read the JPEG's DCT coefficients: " + (err && err.message ? err.message : err));
+        }
+        var nextBit = jstegBitReader(decoded);
+
+        function readBits(count) {
+            var value = 0;
+            for (var i = 0; i < count; i++) {
+                var bit = nextBit();
+                if (bit < 0) return -1;
+                value = (value << 1) | bit;
+            }
+            return value;
+        }
+
+        var width = readBits(5);
+        if (width < 0) fail("This JPEG has no JSteg data (it ran out of usable DCT coefficients).");
+        if (width === 0) {
+            fail("This JPEG has no JSteg payload: its 5-bit length-field width is zero, which JSteg writes only for an empty file.");
+        }
+        var length = readBits(width);
+        if (length < 0) fail("The JPEG ended before the JSteg length field was complete.");
+        if (length > MAX_OUTPUT) fail("The JSteg payload is larger than this page will decode.");
+        var data = new Uint8Array(length);
+        for (var n = 0; n < length; n++) {
+            var value = readBits(8);
+            if (value < 0) {
+                fail("The JPEG ended before the whole JSteg payload was recovered (the header says " + length + " bytes).");
+            }
+            data[n] = value;
+        }
+        return data;
+    }
+
     /* --------------------------------------------------------------- OUTGUESS
      * OutGuess 0.2 (Niels Provos) hides a message in the parity of quantised
      * JPEG DCT coefficients. Its libjpeg hook visits coefficients in MCU order,
@@ -2166,6 +2281,10 @@ var CF_STEGO = (function () {
         return toByteArray(jphideFromJpeg(input, passphrase));
     }
 
+    function jstegExtract(input) {
+        return toByteArray(jstegFromJpeg(input));
+    }
+
     return {
         toBytes: toBytes,
         md5: md5,
@@ -2179,6 +2298,8 @@ var CF_STEGO = (function () {
         jphideV05FromCoefficients: jphideV05FromCoefficients,
         jphideV05Pass: jphideV05Pass,
         jphideFromJpeg: jphideFromJpeg,
+        jstegFromJpeg: jstegFromJpeg,
+        jstegBitReader: jstegBitReader,
         lzo1xDecompress: lzo1xDecompress,
         bfExpandKey: bfExpandKey,
         bfEncryptBytes: bfEncryptBytes,
@@ -2186,6 +2307,7 @@ var CF_STEGO = (function () {
         bfDecryptNativeLE: bfDecryptNativeLE,
         extractOpenStego: openStegoExtract,
         extractJphide: jphideExtract,
+        extractJsteg: jstegExtract,
         extractStegoShare: stegoshareExtract,
         extractStegFS: stegfsExtract,
         outguessFromJpeg: outguessFromJpeg,

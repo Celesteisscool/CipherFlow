@@ -7,7 +7,8 @@
  * fixtures, over the committed vendor StegoShare 1.01 carriers, over the
  * committed vendor StegFS volumes and OutGuess 0.2 carriers, and over a fresh
  * JPEG hidden by the reference jphide from the original JPHS package when
- * /tmp/jphs-ref is present.
+ * /tmp/jphs-ref is present, and over the JSteg fixture written by Upham's own
+ * jpeg-jsteg-v4 build.
  *
  * The OpenStego fixtures are embedded with an independent writer that follows the
  * Java classes, and the encryption branch is produced with Node's OpenSSL 3DES in
@@ -413,6 +414,27 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
     }
     const png = PNG.sync.write({width: 20, height: 20, data: makeRgba(20, 20)}, {colorType: 6});
     await throws("OutGuess rejects a non-JPEG", () => runOp("OutGuess Extract", png, ["", false]));
+}
+
+/* -------------------------------------------------------------------- JSteg */
+{
+    const fixtureDir = new URL("./fixtures/", import.meta.url);
+    const fixtureManifest = JSON.parse(fs.readFileSync(new URL("manifest.json", fixtureDir), "utf8"));
+    for (const fixture of (fixtureManifest.fixtures || []).filter(f => f.operation === "JSteg Extract")) {
+        try {
+            const carrier = fs.readFileSync(new URL(fixture.carrier, fixtureDir));
+            const expected = fs.readFileSync(new URL(fixture.payload, fixtureDir));
+            bytes(`${fixture.id} · ${fixture.tool}`, await runOp(fixture.operation, carrier, fixture.values), expected);
+        } catch (err) {
+            report(`${fixture.id} · ${fixture.tool}`, String(err && err.message ? err.message : err));
+        }
+    }
+    const png = PNG.sync.write({width: 20, height: 20, data: makeRgba(20, 20)}, {colorType: 6});
+    await throws("JSteg rejects a non-JPEG", () => runOp("JSteg Extract", png, []));
+    // A clean JPEG has no JSteg header; whatever its first coefficients say,
+    // the claimed length runs past the usable coefficients or the width is 0.
+    const clean = fs.readFileSync(new URL("jphide.jpg", fixtureDir));
+    await throws("JSteg rejects a JPEG without JSteg data", () => runOp("JSteg Extract", clean, []));
 }
 
 /* ------------------------------------------------------- vendor JPHide fixtures */

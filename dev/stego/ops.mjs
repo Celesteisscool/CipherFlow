@@ -32,6 +32,17 @@ export const ops = [
         }
     },
     {
+        name: "JSteg Extract",
+        group: "Steganography",
+        description: "Extracts a file hidden in a JPEG by Derek Upham's JSteg, the IJG JPEG v4 patch (not JSteg-Shell, which adds a file name and RC4-40). JSteg writes one bit into the least-significant bit of each quantised DCT coefficient that is neither 0 nor +1, walking the image in JPEG scan order and each block's coefficients in zigzag order. It has no password, encryption or magic marker: the payload starts with five bits giving the length-field width, then the length in bytes, then the file's bytes, all most-significant-bit first. Because there is no signature, a JPEG that was not written by JSteg is usually rejected by the header's length check rather than reported as empty. The carrier must be the original JPEG, not a re-saved copy.",
+        args: [],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
+        run: function (input) {
+            return CF_STEGO.extractJsteg(input);
+        }
+    },
+    {
         name: "StegFS Extract",
         group: "Steganography",
         description: "Extracts one hidden file from a StegFS volume image. StegFS is a FUSE steganographic filesystem that stores each file's encrypted blocks in the free space of a volume; there is no visible directory listing. Attach the volume image, then give the file's path inside it (for example /notes.txt or /docs/notes.txt) and the password used when it was stored. The node derives the inode locations from the path and name, tries each of the volume's copies, decrypts the AES-256-CBC blocks and verifies their SHA-256 checksums. It reads the released 2015.08 format and the current 202X.XX format, with the default AES-256 (RIJNDAEL256), CBC and SHA-256 settings. Volumes made with a different cipher, mode or hash are reported, not guessed. The result is the file's raw bytes, ready for a File Output or another operation.",

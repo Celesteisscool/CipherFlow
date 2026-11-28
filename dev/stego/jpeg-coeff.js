@@ -1,8 +1,9 @@
 /* Vendored JPEG coefficient reader ------------------------------------------------
  * Adapted from jpeg-js/lib/decoder.js (Copyright 2011 notmasteryet, Apache-2.0).
- * The decoder is unchanged except for the dctComponents hook in parse(), which keeps
- * the quantised DCT blocks instead of converting every block to pixels. JPHide/JPSeek
- * needs the coefficients exactly as libjpeg returns them.
+ * Local changes: the dctComponents hook in parse() keeps the quantised DCT blocks
+ * instead of converting every block to pixels (JPHide/JPSeek and JSteg need the
+ * coefficients exactly as libjpeg returns them), and the single-component scan loop
+ * stops at mcuExpected so a partial last restart interval cannot run into EOI.
  *
  * Source: https://github.com/jpeg-js/jpeg-js/blob/master/lib/decoder.js
  */
@@ -310,7 +311,10 @@ var JpegImage = (function jpegImage() {
 
       if (componentsLength == 1) {
         component = components[0];
-        for (n = 0; n < resetInterval; n++) {
+        // A restart interval can span past the end of the scan when the last
+        // interval is partial. The interleaved branch below stops at mcuExpected;
+        // do the same here, otherwise the decoder runs into the EOI marker.
+        for (n = 0; n < resetInterval && mcu < mcuExpected; n++) {
           decodeBlock(component, decodeFn, mcu);
           mcu++;
         }

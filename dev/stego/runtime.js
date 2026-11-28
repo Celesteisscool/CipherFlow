@@ -1486,6 +1486,29 @@ var CF_STEGO = (function () {
             fail("JSteg needs a JPEG with DCT coefficients.");
         }
         var components = decoded.components;
+        // A grayscale JPEG is a non-interleaved scan: libjpeg gives it one block
+        // per MCU in raster order, with no MCU grouping or padded blocks, even
+        // when its sampling factors are larger than 1x1.
+        if (components.length === 1) {
+            var only = components[0];
+            var rowIndex = 0, colIndex = 0, bitIndex = 0;
+            return function nextBit() {
+                while (rowIndex < only.blocksPerColumn) {
+                    if (bitIndex >= 64) {
+                        bitIndex = 0; colIndex++;
+                        if (colIndex >= only.blocksPerLine) { colIndex = 0; rowIndex++; }
+                        continue;
+                    }
+                    var blockRow = only.blocks[rowIndex];
+                    var block = blockRow ? blockRow[colIndex] : null;
+                    if (!block) { bitIndex = 64; continue; }
+                    var value = block[JSTEG_ZIGZAG[bitIndex]] | 0;
+                    bitIndex++;
+                    if ((value & 1) !== value) return value & 1;
+                }
+                return -1;
+            };
+        }
         var maxH = 1, maxV = 1;
         for (var c = 0; c < components.length; c++) {
             if (components[c].h > maxH) maxH = components[c].h;
@@ -1498,9 +1521,13 @@ var CF_STEGO = (function () {
         return function nextBit() {
             while (mcuRow < mcusPerColumn) {
                 var component = components[compIndex];
-                var usefulWidth = Math.min(component.h, component.blocksPerLine - mcuCol * component.h);
-                var usefulHeight = Math.min(component.v, component.blocksPerColumn - mcuRow * component.v);
-                if (blockY >= usefulHeight) {
+                // Include the MCU-padded blocks at the right and bottom edges. The
+                // encoder fills those blocks by replicating edge pixels, so their DCT
+                // coefficients are not zero and JSteg writes bits into them. Limiting
+                // the walk to blocksPerLine/blocksPerColumn drops those bits and
+                // desynchronises the stream on carriers whose dimensions are not a
+                // whole number of MCUs.
+                if (blockY >= component.v) {
                     blockY = 0; blockX = 0; compIndex++;
                     if (compIndex >= components.length) {
                         compIndex = 0; mcuCol++;
@@ -1509,7 +1536,7 @@ var CF_STEGO = (function () {
                     k = 0;
                     continue;
                 }
-                if (blockX >= usefulWidth) { blockX = 0; blockY++; k = 0; continue; }
+                if (blockX >= component.h) { blockX = 0; blockY++; k = 0; continue; }
                 if (k < 64) {
                     var row = component.blocks[mcuRow * component.v + blockY];
                     var block = row ? row[mcuCol * component.h + blockX] : null;

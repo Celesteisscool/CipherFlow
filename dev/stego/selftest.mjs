@@ -8,8 +8,10 @@
  * committed vendor StegFS volumes and OutGuess 0.2 carriers, and over a fresh
  * JPEG hidden by the reference jphide from the original JPHS package when
  * /tmp/jphs-ref is present, over the JSteg fixture written by Upham's own
- * jpeg-jsteg-v4 build, and over the plain, compressed and encrypted text
- * carriers written by SNOW 20130616 itself.
+ * jpeg-jsteg-v4 build, over the plain, compressed and encrypted text
+ * carriers written by SNOW 20130616 itself, and over WAVs written by
+ * stego-lsb 1.7.4's WavSteg at 8-bit mono, 16-bit mono, 24-bit stereo and
+ * 32-bit stereo.
  *
  * The OpenStego fixtures are embedded with an independent writer that follows the
  * Java classes, and the encryption branch is produced with Node's OpenSSL 3DES in
@@ -486,6 +488,46 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
         () => runOp("SNOW Extract", fs.readFileSync(new URL("snow-cover.txt", fixtureDir)), ["", false]));
     await throws("SNOW rejects a group of more than seven spaces",
         () => runOp("SNOW Extract", "text\t        \n", ["", false]));
+}
+
+/* ------------------------------------------------------------------ WavSteg */
+{
+    const fixtureDir = new URL("./fixtures/", import.meta.url);
+    const fixtureManifest = JSON.parse(fs.readFileSync(new URL("manifest.json", fixtureDir), "utf8"));
+    const wavstegFixtures = (fixtureManifest.fixtures || []).filter(f => f.operation === "WavSteg Extract");
+    for (const fixture of wavstegFixtures) {
+        try {
+            const carrier = fs.readFileSync(new URL(fixture.carrier, fixtureDir));
+            const expected = fs.readFileSync(new URL(fixture.payload, fixtureDir));
+            bytes(`${fixture.id} · ${fixture.tool}`, await runOp(fixture.operation, carrier, fixture.values), expected);
+            const parsed = T.wavStegParse(carrier);
+            const lsb = fixture.values[0];
+            const capacity = Math.floor(parsed.sampleCount * lsb / 8);
+            check(`${fixture.id} parses the WAV samples`,
+                parsed.bitsPerSample === fixture.sampleBits &&
+                    parsed.channels === fixture.channels &&
+                    parsed.sampleCount === fixture.frames * fixture.channels &&
+                    parsed.sampleBytes === parsed.bitsPerSample / 8,
+                JSON.stringify({bits: parsed.bitsPerSample, channels: parsed.channels, samples: parsed.sampleCount, bytes: parsed.sampleBytes}));
+            const all = await runOp(fixture.operation, carrier, [lsb, 0]);
+            check(`${fixture.id} recovers the whole LSB capacity when the count is zero`,
+                all.length === capacity, `${all.length} bytes, expected ${capacity}`);
+            await throws(`${fixture.id} rejects a byte count beyond its capacity`,
+                () => runOp(fixture.operation, carrier, [lsb, capacity + 1]));
+        } catch (err) {
+            report(`${fixture.id} · ${fixture.tool}`, String(err && err.message ? err.message : err));
+        }
+    }
+    const widths = new Set(wavstegFixtures.map(fixture => fixture.sampleBits));
+    check("WavSteg fixtures cover 8-, 16-, 24- and 32-bit PCM",
+        [8, 16, 24, 32].every(bits => widths.has(bits)),
+        JSON.stringify([...widths].sort((a, b) => a - b)));
+    const mono = fs.readFileSync(new URL("wavsteg-16-mono.wav", fixtureDir));
+    await throws("WavSteg rejects a non-WAV", () => runOp("WavSteg Extract", Buffer.from("not a WAV file"), [2, 8]));
+    await throws("WavSteg rejects a truncated WAV", () => runOp("WavSteg Extract", Buffer.from(mono).subarray(0, 40), [2, 8]));
+    const nonPcm = Buffer.from(mono);
+    nonPcm.writeUInt16LE(3, 20); // WAVE_FORMAT_IEEE_FLOAT in the fmt chunk
+    await throws("WavSteg rejects non-PCM WAV samples", () => runOp("WavSteg Extract", nonPcm, [2, 8]));
 }
 
 /* ------------------------------------------------------- vendor JPHide fixtures */

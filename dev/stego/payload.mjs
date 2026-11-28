@@ -56,6 +56,8 @@ self.CipherFlowStegoTest = {
     jstegFromJpeg: CF_STEGO.jstegFromJpeg,
     jstegBitReader: CF_STEGO.jstegBitReader,
     snowExtract: CF_STEGO.snowExtract,
+    wavStegParse: CF_STEGO.wavStegParse,
+    wavStegFromWav: CF_STEGO.wavStegFromWav,
     snowIceKey: CF_STEGO.snowIceKey,
     snowIceEncryptBlock: CF_STEGO.snowIceEncryptBlock,
     lzo1xDecompress: CF_STEGO.lzo1xDecompress,

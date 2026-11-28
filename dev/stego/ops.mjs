@@ -96,5 +96,19 @@ export const ops = [
         run: function (input, args) {
             return CF_STEGO.extractStegoShare(input, args[0] == null ? "" : args[0]);
         }
+    },
+    {
+        name: "WavSteg Extract",
+        group: "Steganography",
+        description: "Extracts bytes hidden in a WAV by stego-lsb's WavSteg (the stegolsb wavsteg command, version 1.7.4). WavSteg overwrites the low bits of each interleaved PCM sample's raw little-endian byte group: for 16-, 24- and 32-bit audio that is the most-significant (last) byte, not the sample integer's low byte. It takes the last LSBs of each group and packs them most-significant-bit first. It reads 8-, 16-, 24- and 32-bit integer PCM RIFF/WAVE files, including WAVE_FORMAT_EXTENSIBLE PCM, with any channel count. WavSteg has no header, magic or length field, so give it the same LSBs per sample (-n) and exact byte count (-b) used when hiding; a byte count of 0 recovers the data chunk's entire LSB capacity, which can expose a payload with a known length but otherwise leaves trailing sample noise. There is no password or encryption layer. Use the WAV exactly as WavSteg wrote it, not a re-exported or converted copy, and note that the format cannot detect a wrong byte count.",
+        args: [
+            {name: "LSBs per sample (-n)", type: "option", value: ["1", "2", "3", "4", "5", "6", "7", "8"], defaultIndex: 1},
+            {name: "Bytes to recover (-b)", type: "number", value: 0}
+        ],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
+        run: function (input, args) {
+            return CF_STEGO.extractWavSteg(input, Number(args[0]), Number(args[1]));
+        }
     }
 ];

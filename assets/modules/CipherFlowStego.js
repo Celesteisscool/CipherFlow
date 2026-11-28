@@ -1508,14 +1508,18 @@ function cfDecodeJpegCoefficients(jpegData) {
  *              message, each group of 0-7 spaces carries 3 bits, and the
  *              optional -C Huffman layer and -p ICE/CFB encryption are undone
  *              after the bits are read.
+ *   WavSteg    stego-lsb 1.7.4's headerless PCM layout: the low bits of the
+ *              interleaved little-endian samples, MSB first, with the -n and
+ *              -b settings supplied by the caller.
  *
  * Each format is reconstructed from its published source: OpenStego
  * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto), Allan Latham's
  * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), JSteg
  * (bitsource.c / bitsink.c from the jpeg-jsteg-v4 patch), StegoShare
  * 1.01 (Stego.java), StegFS (stegfs.c, mkfs.c), OutGuess 0.2
- * (jpg.c, iterator.c, arc.c, golay.c), and SNOW 20130616 (encode.c,
- * compress.c, encrypt.c, ice.c, huffcode.h).
+ * (jpg.c, iterator.c, arc.c, golay.c), SNOW 20130616 (encode.c,
+ * compress.c, encrypt.c, ice.c, huffcode.h), and stego-lsb 1.7.4
+ * (WavSteg.py, bit_manipulation.py).
  */
 var CF_STEGO = (function () {
     "use strict";
@@ -1569,6 +1573,10 @@ var CF_STEGO = (function () {
         out[offset + 1] = (value >>> 16) & 0xff;
         out[offset + 2] = (value >>> 8) & 0xff;
         out[offset + 3] = value & 0xff;
+    }
+
+    function readLE16(bytes, offset) {
+        return bytes[offset] | (bytes[offset + 1] << 8);
     }
 
     function readLE32(bytes, offset) {
@@ -4049,6 +4057,140 @@ var CF_STEGO = (function () {
         return utf8Decode(Uint8Array.from(output));
     }
 
+    /* --------------------------------------------------------------- WavSteg
+     * stego-lsb 1.7.4's WavSteg hides payload bytes in the least-significant
+     * bits of the interleaved PCM samples. Its bit reader walks each sample's
+     * raw little-endian bytes, takes the last n bits of the group (the low bits
+     * of the most-significant byte, not of the sample integer), and packs them
+     * most-significant bit first; Python's wave module means RIFF/WAVE integer
+     * PCM only (8/16/24/32-bit samples, mono or multichannel). There is no
+     * header, magic or length, so the -n and -b settings used to hide have to
+     * be given to recovery. The default -n is 2; a -b of 0 here means the
+     * carrier's whole LSB capacity, which is useful only as a scan.
+     */
+    function wavFourCC(bytes, offset) {
+        return String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+    }
+
+    function wavStegParse(input) {
+        var bytes = toBytes(input);
+        if (bytes.length < 12 || wavFourCC(bytes, 0) !== "RIFF" || wavFourCC(bytes, 8) !== "WAVE") {
+            fail("WavSteg needs a RIFF/WAVE file. Attach the WAV carrier written by stego-lsb, not a converted or re-exported copy.");
+        }
+
+        var format = null;
+        var dataOffset = -1;
+        var dataSize = 0;
+        var at = 12;
+        while (at + 8 <= bytes.length) {
+            var id = wavFourCC(bytes, at);
+            var size = readLE32(bytes, at + 4);
+            var start = at + 8;
+            if (start + size > bytes.length) {
+                fail("The WAV file is truncated inside its \"" + id + "\" chunk.");
+            }
+            if (id === "fmt " && !format) {
+                if (size < 16) fail("The WAV fmt chunk is too short to describe its samples.");
+                var audioFormat = readLE16(bytes, start);
+                var channels = readLE16(bytes, start + 2);
+                var sampleRate = readLE32(bytes, start + 4);
+                var blockAlign = readLE16(bytes, start + 12);
+                var bitsPerSample = readLE16(bytes, start + 14);
+                if (audioFormat === 0xfffe) {
+                    if (size < 40 || readLE16(bytes, start + 16) < 22) {
+                        fail("The WAV extensible format chunk is too short.");
+                    }
+                    var pcmGuid = [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+                        0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71];
+                    for (var g = 0; g < pcmGuid.length; g++) {
+                        if (bytes[start + 24 + g] !== pcmGuid[g]) {
+                            fail("This WAV uses an extensible sub-format other than integer PCM. WavSteg reads PCM samples only.");
+                        }
+                    }
+                    audioFormat = 1;
+                }
+                if (audioFormat !== 1) {
+                    fail("This WAV uses audio format 0x" + audioFormat.toString(16) + ". WavSteg reads integer PCM samples only (not float, A-law, mu-law or ADPCM).");
+                }
+                if (bitsPerSample !== 8 && bitsPerSample !== 16 && bitsPerSample !== 24 && bitsPerSample !== 32) {
+                    fail("WavSteg supports 8, 16, 24 or 32 bits per sample; this WAV uses " + bitsPerSample + ".");
+                }
+                if (!channels || blockAlign !== channels * (bitsPerSample / 8)) {
+                    fail("The WAV's channel count and block alignment do not agree with its sample width.");
+                }
+                format = {
+                    channels: channels,
+                    sampleRate: sampleRate,
+                    bitsPerSample: bitsPerSample,
+                    sampleBytes: bitsPerSample / 8,
+                    blockAlign: blockAlign
+                };
+            } else if (id === "data" && dataOffset < 0) {
+                dataOffset = start;
+                dataSize = size;
+            }
+            at = start + size + (size & 1);
+        }
+
+        if (!format) fail("The WAV has no fmt chunk.");
+        if (dataOffset < 0) fail("The WAV has no data chunk.");
+        var frames = Math.floor(dataSize / format.blockAlign);
+        if (!frames) fail("The WAV data chunk contains no complete sample frames.");
+        return {
+            bytes: bytes,
+            dataOffset: dataOffset,
+            dataSize: dataSize,
+            sampleBytes: format.sampleBytes,
+            sampleCount: frames * format.channels,
+            channels: format.channels,
+            sampleRate: format.sampleRate,
+            bitsPerSample: format.bitsPerSample
+        };
+    }
+
+    function wavStegFromWav(input, lsbArg, byteCountArg) {
+        var wav = wavStegParse(input);
+        var lsb = Number(lsbArg);
+        if (!isFinite(lsb) || Math.floor(lsb) !== lsb || lsb < 1 || lsb > 8) {
+            fail("Choose 1 to 8 LSBs per sample.");
+        }
+        var capacity = Math.floor(wav.sampleCount * lsb / 8);
+        var count = byteCountArg == null ? 0 : Number(byteCountArg);
+        if (!isFinite(count) || count < 0) fail("Bytes to recover must be zero or a positive whole number.");
+        count = Math.floor(count);
+        if (count === 0) count = capacity;
+        if (!count) fail("This WAV has no complete sample frames to read.");
+        if (count > capacity) {
+            fail("This WAV carries at most " + capacity + " bytes at " + lsb +
+                " LSBs per sample; the request was " + count + ".");
+        }
+        if (count > MAX_OUTPUT) fail("The requested WavSteg output is larger than this page will decode.");
+
+        var out = new Uint8Array(count);
+        var outAt = 0;
+        var bitBuffer = 0;
+        var bitCount = 0;
+        for (var i = 0; i < wav.sampleCount && outAt < count; i++) {
+            // WavSteg slices the last n bits off the raw little-endian sample
+            // group, so for 16/24/32-bit audio this is the most-significant
+            // byte's low bits, not the sample integer's least-significant bits.
+            var low = wav.bytes[wav.dataOffset + (i + 1) * wav.sampleBytes - 1];
+            for (var b = lsb - 1; b >= 0; b--) {
+                bitBuffer = (bitBuffer << 1) | ((low >>> b) & 1);
+                if (++bitCount === 8) {
+                    out[outAt++] = bitBuffer;
+                    bitBuffer = 0;
+                    bitCount = 0;
+                    if (outAt === count) break;
+                }
+            }
+        }
+        if (outAt !== count) {
+            fail("The WAV data ended before the requested byte count could be read.");
+        }
+        return toByteArray(out);
+    }
+
     async function openStegoExtract(input, plugin, password) {
         var image = await decodeImage(toBytes(input));
         var result = await openStegoFromRgba(image.data, image.width, image.height, password, plugin);
@@ -4061,6 +4203,10 @@ var CF_STEGO = (function () {
 
     function jstegExtract(input) {
         return toByteArray(jstegFromJpeg(input));
+    }
+
+    function wavstegExtract(input, lsb, byteCount) {
+        return wavStegFromWav(input, lsb, byteCount);
     }
 
     return {
@@ -4079,6 +4225,8 @@ var CF_STEGO = (function () {
         jstegFromJpeg: jstegFromJpeg,
         jstegBitReader: jstegBitReader,
         snowExtract: snowExtract,
+        wavStegParse: wavStegParse,
+        wavStegFromWav: wavStegFromWav,
         snowIceKey: snowIceKey,
         snowIceEncryptBlock: snowIceEncryptBlock,
         lzo1xDecompress: lzo1xDecompress,
@@ -4089,6 +4237,7 @@ var CF_STEGO = (function () {
         extractOpenStego: openStegoExtract,
         extractJphide: jphideExtract,
         extractJsteg: jstegExtract,
+        extractWavSteg: wavstegExtract,
         extractSnow: snowExtract,
         extractStegoShare: stegoshareExtract,
         extractStegFS: stegfsExtract,
@@ -4179,6 +4328,17 @@ var CF_SPECS = [
         outputType: "byteArray",
         run: function (input, args) {
             return CF_STEGO.extractStegoShare(input, args[0] == null ? "" : args[0]);
+        }
+    },
+    {
+        name: "WavSteg Extract",
+        group: "Steganography",
+        description: "Extracts bytes hidden in a WAV by stego-lsb's WavSteg (the stegolsb wavsteg command, version 1.7.4). WavSteg overwrites the low bits of each interleaved PCM sample's raw little-endian byte group: for 16-, 24- and 32-bit audio that is the most-significant (last) byte, not the sample integer's low byte. It takes the last LSBs of each group and packs them most-significant-bit first. It reads 8-, 16-, 24- and 32-bit integer PCM RIFF/WAVE files, including WAVE_FORMAT_EXTENSIBLE PCM, with any channel count. WavSteg has no header, magic or length field, so give it the same LSBs per sample (-n) and exact byte count (-b) used when hiding; a byte count of 0 recovers the data chunk's entire LSB capacity, which can expose a payload with a known length but otherwise leaves trailing sample noise. There is no password or encryption layer. Use the WAV exactly as WavSteg wrote it, not a re-exported or converted copy, and note that the format cannot detect a wrong byte count.",
+        args: [{"name":"LSBs per sample (-n)","type":"option","value":["1","2","3","4","5","6","7","8"],"defaultIndex":1},{"name":"Bytes to recover (-b)","type":"number","value":0}],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
+        run: function (input, args) {
+            return CF_STEGO.extractWavSteg(input, Number(args[0]), Number(args[1]));
         }
     }
 ];

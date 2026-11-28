@@ -1,0 +1,3 @@
+WavSteg vendor fixture
+The least-significant sample bits carry these bytes.
+Headerless: recovery needs the exact byte count and LSB setting.

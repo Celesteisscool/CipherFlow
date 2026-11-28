@@ -1,5 +1,5 @@
 {
-  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The StegFS fixtures are 1 MB volumes made with the vendor 2015.08/202X.XX C library from albinoloverats/stegfs, compiled locally against libgcrypt: one 2015.08 volume holds /stegfs-notes.txt, /docs/nested.txt, an empty /empty.txt and /browser.txt, and one 202X.XX volume holds /docs/stegfs-current.txt and /docs/browser.txt, and a compact 64 KB 202X.XX volume holds /gallery.txt for the example gallery. The short /browser.txt files are used for the browser preview check; the larger files exercise multi-block chains and the 202X.XX MAC in the Node self-test. The keyed OutGuess fixture is an OutGuess 0.2 carrier made from the CC0 cow photograph \"Smiling cow in the Brazilian Northeast\"; the default-key and error-corrected fixtures use the same CC0 cat photograph as JPHide. The keyed carrier uses -k browser-outguess-pass, the default-key carrier no -k, and the error-corrected carrier -e -k browser-outguess-ecc. The vendor tool read all three back byte-for-byte. The gallery carriers are CC0 1.0 photos: animal portraits for the OpenStego, JPHide, StegoShare and OutGuess rows, and a kingfisher cover with a spoonbill hidden in it for the image-in-image row. Their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures.",
+  "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The StegFS fixtures are 1 MB volumes made with the vendor 2015.08/202X.XX C library from albinoloverats/stegfs, compiled locally against libgcrypt: one 2015.08 volume holds /stegfs-notes.txt, /docs/nested.txt, an empty /empty.txt and /browser.txt, and one 202X.XX volume holds /docs/stegfs-current.txt and /docs/browser.txt, and a compact 64 KB 202X.XX volume holds /gallery.txt for the example gallery. The short /browser.txt files are used for the browser preview check; the larger files exercise multi-block chains and the 202X.XX MAC in the Node self-test. The keyed OutGuess fixture is an OutGuess 0.2 carrier made from the CC0 cow photograph \"Smiling cow in the Brazilian Northeast\"; the default-key and error-corrected fixtures use the same CC0 cat photograph as JPHide. The keyed carrier uses -k browser-outguess-pass, the default-key carrier no -k, and the error-corrected carrier -e -k browser-outguess-ecc. The vendor tool read all three back byte-for-byte. The gallery carriers are CC0 1.0 photos: animal portraits for the OpenStego, JPHide, StegoShare and OutGuess rows, and a kingfisher cover with a spoonbill hidden in it for the image-in-image row. Their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures. The WavSteg fixtures were written by stego-lsb 1.7.4's stegolsb CLI from procedural 8 kHz WAV covers; WavSteg is headerless, so verification used the exact -n and -b settings recorded on each fixture. Only the stego WAV carriers and the shared payload are committed.",
   "imageLicenses": {
     "openstego-randomlsb.png": {
       "title": "Dog at Nørre Vorupør Strand",
@@ -334,6 +334,78 @@
       "cover": "snow-ascii-cover.txt is not committed: a 39-line winter landscape written for the gallery, with a star field and a wave border, used as the visible ASCII art",
       "command": "./snow -Q -C -p snow-pass -f snow-ascii.payload.txt snow-ascii-cover.txt snow-ascii.txt (cover has 557-662 bits of capacity)",
       "verified": "./snow -Q -C -p snow-pass snow-ascii.txt verify.txt (byte-for-byte match with snow-ascii.payload.txt)"
+    },
+    {
+      "id": "wavsteg-8-mono",
+      "operation": "WavSteg Extract",
+      "values": [
+        1,
+        141
+      ],
+      "sampleBits": 8,
+      "channels": 1,
+      "frames": 4000,
+      "carrier": "wavsteg-8-mono.wav",
+      "payload": "wavsteg.payload.txt",
+      "mime": "audio/wav",
+      "tool": "stego-lsb 1.7.4 CLI (stegolsb wavsteg; Ryan Gibson; MIT)",
+      "cover": "procedurally generated 8-bit mono 8 kHz WAV (4,000 frames, quiet 440 Hz tone plus low-level noise); cover not committed",
+      "command": "stegolsb wavsteg -h -i wavsteg-8-mono-cover.wav -s wavsteg.payload.txt -o wavsteg-8-mono.wav -n 1",
+      "verified": "stegolsb wavsteg -r -i wavsteg-8-mono.wav -o verify.bin -n 1 -b 141 (byte-for-byte match with wavsteg.payload.txt)"
+    },
+    {
+      "id": "wavsteg-16-mono",
+      "operation": "WavSteg Extract",
+      "values": [
+        2,
+        141
+      ],
+      "sampleBits": 16,
+      "channels": 1,
+      "frames": 4000,
+      "carrier": "wavsteg-16-mono.wav",
+      "payload": "wavsteg.payload.txt",
+      "mime": "audio/wav",
+      "tool": "stego-lsb 1.7.4 CLI (stegolsb wavsteg; Ryan Gibson; MIT)",
+      "cover": "procedurally generated 16-bit mono 8 kHz WAV (4,000 frames, quiet 440 Hz tone plus low-level noise); cover not committed",
+      "command": "stegolsb wavsteg -h -i wavsteg-16-mono-cover.wav -s wavsteg.payload.txt -o wavsteg-16-mono.wav -n 2",
+      "verified": "stegolsb wavsteg -r -i wavsteg-16-mono.wav -o verify.bin -n 2 -b 141 (byte-for-byte match with wavsteg.payload.txt)"
+    },
+    {
+      "id": "wavsteg-24-stereo",
+      "operation": "WavSteg Extract",
+      "values": [
+        3,
+        141
+      ],
+      "sampleBits": 24,
+      "channels": 2,
+      "frames": 1600,
+      "carrier": "wavsteg-24-stereo.wav",
+      "payload": "wavsteg.payload.txt",
+      "mime": "audio/wav",
+      "tool": "stego-lsb 1.7.4 CLI (stegolsb wavsteg; Ryan Gibson; MIT)",
+      "cover": "procedurally generated 24-bit stereo 8 kHz WAV (1,600 frames, 330 Hz and 550 Hz tones plus low-level noise); cover not committed",
+      "command": "stegolsb wavsteg -h -i wavsteg-24-stereo-cover.wav -s wavsteg.payload.txt -o wavsteg-24-stereo.wav -n 3",
+      "verified": "stegolsb wavsteg -r -i wavsteg-24-stereo.wav -o verify.bin -n 3 -b 141 (byte-for-byte match with wavsteg.payload.txt)"
+    },
+    {
+      "id": "wavsteg-32-stereo",
+      "operation": "WavSteg Extract",
+      "values": [
+        4,
+        141
+      ],
+      "sampleBits": 32,
+      "channels": 2,
+      "frames": 1600,
+      "carrier": "wavsteg-32-stereo.wav",
+      "payload": "wavsteg.payload.txt",
+      "mime": "audio/wav",
+      "tool": "stego-lsb 1.7.4 CLI (stegolsb wavsteg; Ryan Gibson; MIT)",
+      "cover": "procedurally generated 32-bit stereo 8 kHz WAV (1,600 frames, 330 Hz and 550 Hz tones plus low-level noise); cover not committed",
+      "command": "stegolsb wavsteg -h -i wavsteg-32-stereo-cover.wav -s wavsteg.payload.txt -o wavsteg-32-stereo.wav -n 4",
+      "verified": "stegolsb wavsteg -r -i wavsteg-32-stereo.wav -o verify.bin -n 4 -b 141 (byte-for-byte match with wavsteg.payload.txt)"
     }
   ]
 }

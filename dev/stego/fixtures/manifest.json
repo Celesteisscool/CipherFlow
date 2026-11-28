@@ -273,6 +273,67 @@
       "command": "patch -p0 < jpeg-jsteg-v4.diff; make -f makefile.unix cjpeg djpeg; ./cjpeg -quality 90 -steg jsteg.payload.txt cover.ppm > jsteg.jpg",
       "verified": "./djpeg -steg verify.bin jsteg.jpg (byte-for-byte match with jsteg.payload.txt)",
       "also": "The vendor code needed one 64-bit portability fix to bitsource.c getrepwidth(): its original bit-counting loop assumed a 32-bit unsigned long, so on an LP64 build the five-bit field-width was 65508 and no payload could be read. The replacement counts significant bits directly; the on-wire header is unchanged. Sources: the jpeg-jsteg-v4 diff and jpeg-v4 tree from nic.funet.fi."
+    },
+    {
+      "id": "snow-plain",
+      "operation": "SNOW Extract",
+      "values": [
+        "",
+        false
+      ],
+      "carrier": "snow-plain.txt",
+      "payload": "snow.payload.txt",
+      "mime": "text/plain",
+      "tool": "SNOW 20130616 (Matthew Kwan; Apache-2.0)",
+      "cover": "snow-cover.txt: 360 procedurally written harbour lines, 60-74 columns, generated for this fixture",
+      "command": "./snow -Q -f snow.payload.txt snow-cover.txt snow-plain.txt (no -C and no -p)",
+      "verified": "./snow -Q snow-plain.txt verify.bin (byte-for-byte match with snow.payload.txt)"
+    },
+    {
+      "id": "snow-compressed",
+      "operation": "SNOW Extract",
+      "values": [
+        "",
+        true
+      ],
+      "carrier": "snow-compressed.txt",
+      "payload": "snow.payload.txt",
+      "mime": "text/plain",
+      "tool": "SNOW 20130616 (Matthew Kwan; Apache-2.0)",
+      "cover": "snow-cover.txt: 360 procedurally written harbour lines, 60-74 columns, generated for this fixture",
+      "command": "./snow -Q -C -f snow.payload.txt snow-cover.txt snow-compressed.txt",
+      "verified": "./snow -Q -C snow-compressed.txt verify.bin (byte-for-byte match with snow.payload.txt)"
+    },
+    {
+      "id": "snow-encrypted",
+      "operation": "SNOW Extract",
+      "values": [
+        "snow-pass",
+        true
+      ],
+      "carrier": "snow-encrypted.txt",
+      "payload": "snow.payload.txt",
+      "mime": "text/plain",
+      "tool": "SNOW 20130616 (Matthew Kwan; Apache-2.0)",
+      "cover": "snow-cover.txt: 360 procedurally written harbour lines, 60-74 columns, generated for this fixture",
+      "command": "./snow -Q -C -p snow-pass -f snow.payload.txt snow-cover.txt snow-encrypted.txt",
+      "verified": "./snow -Q -C -p snow-pass snow-encrypted.txt verify.bin (byte-for-byte match with snow.payload.txt)",
+      "also": "The vendor source was built with GCC using make CFLAGS='-O -include string.h'; main.c calls strcmp without including <string.h> on this compiler. The source tar is from github.com/mattkwan-zz/snow, release 20130616."
+    },
+    {
+      "id": "snow-ascii",
+      "operation": "SNOW Extract",
+      "values": [
+        "snow-pass",
+        true
+      ],
+      "carrier": "snow-ascii.txt",
+      "payload": "snow-ascii.payload.txt",
+      "mime": "text/plain",
+      "tool": "SNOW 20130616 (Matthew Kwan; Apache-2.0)",
+      "cover": "snow-ascii-cover.txt is not committed: a 39-line winter landscape written for the gallery, with a star field and a wave border, used as the visible ASCII art",
+      "command": "./snow -Q -C -p snow-pass -f snow-ascii.payload.txt snow-ascii-cover.txt snow-ascii.txt (cover has 557-662 bits of capacity)",
+      "verified": "./snow -Q -C -p snow-pass snow-ascii.txt verify.txt (byte-for-byte match with snow-ascii.payload.txt)"
     }
   ]
 }

@@ -214,6 +214,82 @@ var CF_BF_INIT = [
     0x578fdfe3, 0x3ac372e6
 ];
 
+/* SNOW Huffman code table ------------------------------------------------------
+ * The 256 code strings from SNOW 20130616's huffcode.h, indexed by byte value,
+ * most-significant bit first. SNOW only uses this table when the carrier was
+ * written with -C. Copyright (C) 1999 Matthew Kwan; Apache-2.0. See
+ * https://darkside.com.au/snow/ for the original program and license.
+ *
+ * Kept as a plain script concatenated into the generated CipherFlowStego worker
+ * module: operation bodies are serialized, so the table has to travel with them.
+ */
+var CF_SNOW_HUFFCODE = [
+    "010011101110011001000", "010011101110011001001", "010011101110011001010", "010011101110011001011",
+    "010011101110011001100", "010011101110011001101", "010011101110011001110", "010011101110011001111",
+    "101100010101", "0100100", "101101", "010011101110011010000",
+    "0100111011100111", "010011101110011010001", "010011101110011010010", "010011101110011010011",
+    "010011101110011010100", "010011101110011010101", "010011101110011010110", "010011101110011010111",
+    "010011101110011011000", "010011101110011011001", "010011101110011011010", "010011101110011011011",
+    "010011101110011011100", "010011101110011011101", "010011101110011011110", "010011101110001",
+    "010011101110011011111", "01001110111000000000", "01001110111000000001", "01001110111000000010",
+    "111", "0100101000", "101100100", "10111111111",
+    "101111010010", "1011000101000", "0010100010101", "00101011",
+    "101111110", "00100011", "010010101", "101111010011",
+    "1010110", "10111110", "101000", "101111001",
+    "0010000", "01001011", "101100101", "001010101",
+    "001010011", "1011110111", "1011001100", "0100101001",
+    "1010011001", "001010000", "101111000", "10111111110",
+    "01001110110", "10100101010", "10111101000", "1010010100",
+    "0010100011", "01001111", "1011110110", "101100011",
+    "101001101", "00100010", "001010010", "1011000000",
+    "1011001101", "0111000", "10110000011", "10110001011",
+    "001010100", "101100111", "101001011", "101100001",
+    "010011100", "1010011110001", "101001110", "10100100",
+    "10101110", "1011110101", "10100111101", "1011000100",
+    "10110000010", "0100111010", "010011101111", "101001111001",
+    "001010001011", "101001010111", "1011000101001", "10111111100",
+    "00101000100", "0101", "001001", "110110",
+    "01000", "1100", "101010", "011101",
+    "10001", "0011", "1010011111", "0100110",
+    "01111", "101110", "0001", "0110",
+    "100001", "10111111101", "11010", "0000",
+    "1001", "110111", "0111001", "001011",
+    "10101111", "100000", "1010011000", "1010011110000",
+    "101001010110", "0100111011101", "0010100010100", "01001110111000000011",
+    "010011101110000001000", "010011101110000001001", "010011101110000001010", "010011101110000001011",
+    "010011101110000001100", "010011101110000001101", "010011101110000001110", "010011101110000001111",
+    "010011101110000010000", "010011101110000010001", "010011101110000010010", "010011101110000010011",
+    "010011101110000010100", "010011101110000010101", "010011101110000010110", "010011101110000010111",
+    "010011101110000011000", "010011101110000011001", "010011101110000011010", "010011101110000011011",
+    "010011101110000011100", "010011101110000011101", "010011101110000011110", "010011101110000011111",
+    "010011101110000100000", "010011101110000100001", "010011101110000100010", "010011101110000100011",
+    "010011101110000100100", "010011101110000100101", "010011101110000100110", "010011101110000100111",
+    "010011101110000101000", "010011101110000101001", "010011101110000101010", "010011101110000101011",
+    "010011101110000101100", "010011101110000101101", "010011101110000101110", "010011101110000101111",
+    "010011101110000110000", "010011101110000110001", "010011101110000110010", "010011101110000110011",
+    "010011101110000110100", "010011101110000110101", "010011101110000110110", "010011101110000110111",
+    "010011101110000111000", "010011101110000111001", "010011101110000111010", "010011101110000111011",
+    "010011101110000111100", "010011101110000111101", "010011101110000111110", "010011101110000111111",
+    "010011101110010000000", "010011101110010000001", "010011101110010000010", "010011101110010000011",
+    "010011101110010000100", "010011101110010000101", "010011101110010000110", "010011101110010000111",
+    "010011101110010001000", "010011101110010001001", "010011101110010001010", "010011101110010001011",
+    "010011101110010001100", "010011101110010001101", "010011101110010001110", "010011101110010001111",
+    "010011101110010010000", "010011101110010010001", "010011101110010010010", "010011101110010010011",
+    "010011101110010010100", "010011101110010010101", "010011101110010010110", "010011101110010010111",
+    "010011101110010011000", "010011101110010011001", "010011101110010011010", "010011101110010011011",
+    "010011101110010011100", "010011101110010011101", "010011101110010011110", "010011101110010011111",
+    "010011101110010100000", "010011101110010100001", "010011101110010100010", "010011101110010100011",
+    "010011101110010100100", "010011101110010100101", "010011101110010100110", "010011101110010100111",
+    "010011101110010101000", "010011101110010101001", "010011101110010101010", "010011101110010101011",
+    "010011101110010101100", "010011101110010101101", "010011101110010101110", "010011101110010101111",
+    "010011101110010110000", "010011101110010110001", "010011101110010110010", "010011101110010110011",
+    "010011101110010110100", "010011101110010110101", "010011101110010110110", "010011101110010110111",
+    "010011101110010111000", "010011101110010111001", "010011101110010111010", "010011101110010111011",
+    "010011101110010111100", "010011101110010111101", "010011101110010111110", "010011101110010111111",
+    "010011101110011000000", "010011101110011000001", "010011101110011000010", "010011101110011000011",
+    "010011101110011000100", "010011101110011000101", "010011101110011000110", "010011101110011000111"
+];
+
 /* Vendored JPEG coefficient reader ------------------------------------------------
  * Adapted from jpeg-js/lib/decoder.js (Copyright 2011 notmasteryet, Apache-2.0).
  * Local changes: the dctComponents hook in parse() keeps the quantised DCT blocks
@@ -1428,13 +1504,18 @@ function cfDecodeJpegCoefficients(jpegData) {
  *   OutGuess   OutGuess 0.2's coefficient-parity bitmap, MD5-prefixed RC4
  *              iterator and streams, default/custom keys, and optional
  *              (23,12,7) Golay error correction.
+ *   SNOW       Matthew Kwan's trailing-whitespace carriers: a tab starts the
+ *              message, each group of 0-7 spaces carries 3 bits, and the
+ *              optional -C Huffman layer and -p ICE/CFB encryption are undone
+ *              after the bits are read.
  *
  * Each format is reconstructed from its published source: OpenStego
  * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto), Allan Latham's
  * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), JSteg
  * (bitsource.c / bitsink.c from the jpeg-jsteg-v4 patch), StegoShare
- * 1.01 (Stego.java), StegFS (stegfs.c, mkfs.c), and OutGuess 0.2
- * (jpg.c, iterator.c, arc.c, golay.c).
+ * 1.01 (Stego.java), StegFS (stegfs.c, mkfs.c), OutGuess 0.2
+ * (jpg.c, iterator.c, arc.c, golay.c), and SNOW 20130616 (encode.c,
+ * compress.c, encrypt.c, ice.c, huffcode.h).
  */
 var CF_STEGO = (function () {
     "use strict";
@@ -3703,6 +3784,271 @@ var CF_STEGO = (function () {
             ". Check the path and password, and make sure the volume is not truncated.");
     }
 
+    /* --------------------------------------------------------------- SNOW
+     * SNOW 20130616 (Matthew Kwan, Apache-2.0) appends the message to lines as
+     * trailing tabs and spaces. A tab on the first usable line marks the start;
+     * after it each group of 0-7 spaces is three data bits, low bit first, and a
+     * tab terminates the group. The optional -C layer is a fixed Huffman code
+     * (snow-huffman.js), and -p runs the resulting bits through ICE in 1-bit
+     * CFB mode. The format has no length, checksum or magic, so the settings
+     * have to match the tool's command line; a wrong password cannot be
+     * detected, only a wrong -C setting usually produces invalid Huffman codes.
+     */
+    var CF_SNOW_SMOD = [
+        [333, 313, 505, 369],
+        [379, 375, 319, 391],
+        [361, 445, 451, 397],
+        [397, 425, 395, 505]
+    ];
+    var CF_SNOW_SXOR = [
+        [0x83, 0x85, 0x9b, 0xcd],
+        [0xcc, 0xa7, 0xad, 0x41],
+        [0x4b, 0x2e, 0xd4, 0x33],
+        [0xea, 0xcb, 0x2e, 0x04]
+    ];
+    var CF_SNOW_PBOX = [
+        0x00000001, 0x00000080, 0x00000400, 0x00002000,
+        0x00080000, 0x00200000, 0x01000000, 0x40000000,
+        0x00000008, 0x00000020, 0x00000100, 0x00004000,
+        0x00010000, 0x00800000, 0x04000000, 0x20000000,
+        0x00000004, 0x00000010, 0x00000200, 0x00008000,
+        0x00020000, 0x00400000, 0x08000000, 0x10000000,
+        0x00000002, 0x00000040, 0x00000800, 0x00001000,
+        0x00040000, 0x00100000, 0x02000000, 0x80000000
+    ];
+    var CF_SNOW_KEYROT = [0, 1, 2, 3, 2, 1, 3, 0, 1, 3, 2, 0, 3, 1, 0, 2];
+    var CF_SNOW_SBOXES = null;
+
+    function snowGfMult(a, b, m) {
+        var result = 0;
+        while (b) {
+            if (b & 1) result ^= a;
+            a <<= 1;
+            b >>= 1;
+            if (a >= 256) a ^= m;
+        }
+        return result >>> 0;
+    }
+
+    function snowGfExp7(b, m) {
+        if (b === 0) return 0;
+        var x = snowGfMult(b, b, m);
+        x = snowGfMult(b, x, m);
+        x = snowGfMult(x, x, m);
+        return snowGfMult(b, x, m);
+    }
+
+    function snowPerm32(value) {
+        var result = 0;
+        value = value >>> 0;
+        for (var i = 0; i < 32; i++) {
+            if (value & 1) result = (result | CF_SNOW_PBOX[i]) >>> 0;
+            value >>>= 1;
+        }
+        return result >>> 0;
+    }
+
+    function snowIceSboxes() {
+        if (CF_SNOW_SBOXES) return CF_SNOW_SBOXES;
+        var boxes = [new Uint32Array(1024), new Uint32Array(1024), new Uint32Array(1024), new Uint32Array(1024)];
+        for (var i = 0; i < 1024; i++) {
+            var col = (i >>> 1) & 0xff;
+            var row = (i & 1) | ((i & 0x200) >>> 8);
+            boxes[0][i] = snowPerm32((snowGfExp7(col ^ CF_SNOW_SXOR[0][row], CF_SNOW_SMOD[0][row]) << 24) >>> 0);
+            boxes[1][i] = snowPerm32((snowGfExp7(col ^ CF_SNOW_SXOR[1][row], CF_SNOW_SMOD[1][row]) << 16) >>> 0);
+            boxes[2][i] = snowPerm32((snowGfExp7(col ^ CF_SNOW_SXOR[2][row], CF_SNOW_SMOD[2][row]) << 8) >>> 0);
+            boxes[3][i] = snowPerm32(snowGfExp7(col ^ CF_SNOW_SXOR[3][row], CF_SNOW_SMOD[3][row]));
+        }
+        CF_SNOW_SBOXES = boxes;
+        return boxes;
+    }
+
+    function snowIceSchedBuild(keys, kb, n, rotation) {
+        for (var i = 0; i < 8; i++) {
+            var subkey = keys[n + i];
+            var kr = rotation[i];
+            for (var j = 0; j < 15; j++) {
+                var word = subkey[j % 3];
+                for (var k = 0; k < 4; k++) {
+                    var index = (kr + k) & 3;
+                    var bit = kb[index] & 1;
+                    word = ((word << 1) | bit) >>> 0;
+                    kb[index] = ((kb[index] >>> 1) | ((bit ^ 1) << 15)) & 0xffff;
+                }
+                subkey[j % 3] = word;
+            }
+        }
+    }
+
+    function snowIceKey(password) {
+        var pass = utf8Encode(password == null ? "" : String(password));
+        var level = Math.ceil(pass.length * 7 / 64);
+        if (level < 1) level = 1;
+        if (level > 128) level = 128;
+        var material = new Uint8Array(1024);
+        var i = 0;
+        for (var p = 0; p < pass.length; p++) {
+            var c = pass[p] & 0x7f;
+            var index = (i / 8) | 0;
+            var bit = i & 7;
+            if (bit === 0) {
+                material[index] = (c << 1) & 0xff;
+            } else if (bit === 1) {
+                material[index] |= c;
+            } else {
+                material[index] |= c >>> (bit - 1);
+                if (index + 1 < material.length) material[index + 1] = (c << (9 - bit)) & 0xff;
+            }
+            i += 7;
+            if (i > 8184) break;
+        }
+
+        var rounds = level * 16;
+        var keys = new Array(rounds);
+        for (var n = 0; n < rounds; n++) keys[n] = [0, 0, 0];
+        for (var block = 0; block < level; block++) {
+            var kb = [0, 0, 0, 0];
+            for (var j = 0; j < 4; j++) {
+                kb[3 - j] = (material[block * 8 + j * 2] << 8) | material[block * 8 + j * 2 + 1];
+            }
+            snowIceSchedBuild(keys, kb, block * 8, CF_SNOW_KEYROT);
+            snowIceSchedBuild(keys, kb, rounds - 8 - block * 8, CF_SNOW_KEYROT.slice(8));
+        }
+        return {rounds: rounds, keys: keys, material: material};
+    }
+
+    function snowIceF(p, subkey) {
+        var tl = ((p >>> 16) & 0x3ff) | (((p >>> 14) | (p << 18)) & 0xffc00);
+        var tr = (p & 0x3ff) | ((p << 2) & 0xffc00);
+        var al = (subkey[2] & (tl ^ tr)) >>> 0;
+        var ar = (al ^ tr) >>> 0;
+        al = (al ^ tl ^ subkey[0]) >>> 0;
+        ar = (ar ^ subkey[1]) >>> 0;
+        var boxes = snowIceSboxes();
+        return (boxes[0][al >>> 10] | boxes[1][al & 0x3ff] | boxes[2][ar >>> 10] | boxes[3][ar & 0x3ff]) >>> 0;
+    }
+
+    function snowIceEncryptBlock(key, block) {
+        var l = readBE32(block, 0);
+        var r = readBE32(block, 4);
+        for (var i = 0; i < key.rounds; i += 2) {
+            l = (l ^ snowIceF(r, key.keys[i])) >>> 0;
+            r = (r ^ snowIceF(l, key.keys[i + 1])) >>> 0;
+        }
+        var out = new Uint8Array(8);
+        for (var n = 0; n < 4; n++) {
+            out[3 - n] = r & 0xff;
+            out[7 - n] = l & 0xff;
+            r >>>= 8;
+            l >>>= 8;
+        }
+        return out;
+    }
+
+    function snowDecryptor(password) {
+        var text = password == null ? "" : String(password);
+        if (!text) return function (bit) { return bit; };
+        var key = snowIceKey(text);
+        var iv = snowIceEncryptBlock(key, key.material.subarray(0, 8));
+        return function (bit) {
+            var stream = snowIceEncryptBlock(key, iv);
+            var plain = (stream[0] & 0x80) ? (bit ^ 1) : bit;
+            for (var i = 0; i < 7; i++) {
+                iv[i] = ((iv[i] << 1) | ((iv[i + 1] & 0x80) ? 1 : 0)) & 0xff;
+            }
+            iv[7] = ((iv[7] << 1) | bit) & 0xff;
+            return plain;
+        };
+    }
+
+    var CF_SNOW_HUFFMAP = (function () {
+        var map = Object.create(null);
+        for (var i = 0; i < 256; i++) map[CF_SNOW_HUFFCODE[i]] = i;
+        return map;
+    })();
+
+    function snowExtract(input, password, compressed) {
+        var text = typeof input === "string" ? input : utf8Decode(toBytes(input));
+        var lines = text.split(/\r\n|\n|\r/);
+        var decrypt = snowDecryptor(password);
+        var output = [];
+        var outputValue = 0;
+        var outputBits = 0;
+        var huffmanCode = "";
+
+        function emitByte(byte) {
+            for (var i = 0; i < 8; i++) outputBit((byte >>> (7 - i)) & 1);
+        }
+
+        function outputBit(bit) {
+            outputValue = (outputValue << 1) | bit;
+            if (++outputBits === 8) {
+                if (output.length >= MAX_OUTPUT) fail("The SNOW payload is larger than this page will decode.");
+                output.push(outputValue);
+                outputValue = 0;
+                outputBits = 0;
+            }
+        }
+
+        function plainBit(bit) {
+            if (!compressed) return outputBit(bit);
+            huffmanCode += bit ? "1" : "0";
+            if (CF_SNOW_HUFFMAP[huffmanCode] !== undefined) {
+                emitByte(CF_SNOW_HUFFMAP[huffmanCode]);
+                huffmanCode = "";
+            } else if (huffmanCode.length >= 21) {
+                fail("The SNOW data does not match its Huffman codes. Check the Compressed (-C) setting and the password.");
+            }
+        }
+
+        function cipherBit(bit) {
+            plainBit(decrypt(bit));
+        }
+
+        function emitGroup(spaces) {
+            if (spaces > 7) {
+                fail("Invalid SNOW whitespace: a group of " + spaces + " spaces (the format allows at most 7).");
+            }
+            cipherBit(spaces & 1);
+            cipherBit((spaces >>> 1) & 1);
+            cipherBit((spaces >>> 2) & 1);
+        }
+
+        var started = false;
+        for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            var line = lines[lineIndex];
+            var end = line.length;
+            while (end > 0) {
+                var code = line.charCodeAt(end - 1);
+                if (code !== 32 && code !== 9) break;
+                end--;
+            }
+            if (end === line.length) continue;
+            var run = line.slice(end);
+            if (!started) {
+                if (run.charAt(0) === " ") continue;
+                started = true;
+                run = run.slice(1);
+                if (!run.length) continue;
+            }
+            var spaces = 0;
+            for (var i = 0; i < run.length; i++) {
+                if (run.charAt(i) === " ") {
+                    spaces++;
+                } else {
+                    emitGroup(spaces);
+                    spaces = 0;
+                }
+            }
+            if (spaces > 0) emitGroup(spaces);
+        }
+
+        if (!started) {
+            fail("No SNOW start tab found. Keep the carrier's trailing tabs and spaces intact; this operation reads SNOW's text output, not the cover text alone.");
+        }
+        return utf8Decode(Uint8Array.from(output));
+    }
+
     async function openStegoExtract(input, plugin, password) {
         var image = await decodeImage(toBytes(input));
         var result = await openStegoFromRgba(image.data, image.width, image.height, password, plugin);
@@ -3732,6 +4078,9 @@ var CF_STEGO = (function () {
         jphideFromJpeg: jphideFromJpeg,
         jstegFromJpeg: jstegFromJpeg,
         jstegBitReader: jstegBitReader,
+        snowExtract: snowExtract,
+        snowIceKey: snowIceKey,
+        snowIceEncryptBlock: snowIceEncryptBlock,
         lzo1xDecompress: lzo1xDecompress,
         bfExpandKey: bfExpandKey,
         bfEncryptBytes: bfEncryptBytes,
@@ -3740,6 +4089,7 @@ var CF_STEGO = (function () {
         extractOpenStego: openStegoExtract,
         extractJphide: jphideExtract,
         extractJsteg: jstegExtract,
+        extractSnow: snowExtract,
         extractStegoShare: stegoshareExtract,
         extractStegFS: stegfsExtract,
         outguessFromJpeg: outguessFromJpeg,
@@ -3759,6 +4109,8 @@ var CF_SPECS = [
         group: "Steganography",
         description: "Extracts a file hidden by OpenStego's RandomLSB or LSB plugin. Reads OpenStego's v1 or v2 header, then undoes the password-based DES or current AES-128/256 encryption and the GZIP compression when the image's header flags say they were used. The payload comes back as raw bytes, ready for a File Output or another operation.",
         args: [{"name":"Plugin","type":"option","value":["Auto","RandomLSB","LSB"],"defaultIndex":0},{"name":"Password","type":"string","value":""}],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
         run: async function (input, args) {
             return CF_STEGO.extractOpenStego(input, args[0] || "Auto", args[1] == null ? "" : args[1]);
         }
@@ -3768,6 +4120,8 @@ var CF_SPECS = [
         group: "Steganography",
         description: "Extracts a file hidden in a JPEG by JPHide/JPSeek v0.3 (Linux) or JPHide/JPSeek 0.5/0.51 (Windows). Rebuilds JPSeek's coefficient scan and the version's four Blowfish streams, reads the 8- or 16-byte header, applies the 0.5/0.51 mode selector bit, and decompresses LZO1X payloads when the header says they were compressed. Needs a three-component (colour) JPEG and the exact passphrase used when hiding; leave the passphrase empty for a 0.5/0.51 carrier hidden without one.",
         args: [{"name":"Passphrase","type":"string","value":""}],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
         run: function (input, args) {
             return CF_STEGO.extractJphide(input, args[0] == null ? "" : args[0]);
         }
@@ -3777,8 +4131,21 @@ var CF_SPECS = [
         group: "Steganography",
         description: "Extracts a file hidden in a JPEG by Derek Upham's JSteg, the IJG JPEG v4 patch (not JSteg-Shell, which adds a file name and RC4-40). JSteg writes one bit into the least-significant bit of each quantised DCT coefficient that is neither 0 nor +1, walking the image in JPEG scan order and each block's coefficients in zigzag order. It has no password, encryption or magic marker: the payload starts with five bits giving the length-field width, then the length in bytes, then the file's bytes, all most-significant-bit first. Because there is no signature, a JPEG that was not written by JSteg is usually rejected by the header's length check rather than reported as empty. The carrier must be the original JPEG, not a re-saved copy.",
         args: [],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
         run: function (input) {
             return CF_STEGO.extractJsteg(input);
+        }
+    },
+    {
+        name: "SNOW Extract",
+        group: "Steganography",
+        description: "Extracts a message hidden by SNOW 20130616, Matthew Kwan's whitespace steganography. SNOW appends trailing tabs and spaces to the cover text: a tab marks the start of the message, and each group of 0-7 spaces after it carries three bits, separated by tabs. The input must be SNOW's output text with its trailing whitespace intact, not the cover on its own or a copy that has been reflowed or trimmed. Turn on Compressed (-C) for a carrier written with SNOW's Huffman compression, and enter the password used with -p (if any); the Huffman layer is undone after the optional ICE 1-bit CFB decryption. SNOW has no signature, length field or authentication, so a wrong password can produce arbitrary text, while a carrier with no start tab is rejected. The extracted bytes are shown as UTF-8 text.",
+        args: [{"name":"Password","type":"string","value":""},{"name":"Compressed (-C)","type":"boolean","value":false}],
+        inputType: "string",
+        outputType: "string",
+        run: function (input, args) {
+            return CF_STEGO.extractSnow(input, args[0] == null ? "" : args[0], Boolean(args[1]));
         }
     },
     {
@@ -3786,6 +4153,8 @@ var CF_SPECS = [
         group: "Steganography",
         description: "Extracts one hidden file from a StegFS volume image. StegFS is a FUSE steganographic filesystem that stores each file's encrypted blocks in the free space of a volume; there is no visible directory listing. Attach the volume image, then give the file's path inside it (for example /notes.txt or /docs/notes.txt) and the password used when it was stored. The node derives the inode locations from the path and name, tries each of the volume's copies, decrypts the AES-256-CBC blocks and verifies their SHA-256 checksums. It reads the released 2015.08 format and the current 202X.XX format, with the default AES-256 (RIJNDAEL256), CBC and SHA-256 settings. Volumes made with a different cipher, mode or hash are reported, not guessed. The result is the file's raw bytes, ready for a File Output or another operation.",
         args: [{"name":"Path","type":"string","value":"/"},{"name":"Password","type":"string","value":""}],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
         run: async function (input, args) {
             return CF_STEGO.extractStegFS(input, args[0], args[1]);
         }
@@ -3795,6 +4164,8 @@ var CF_SPECS = [
         group: "Steganography",
         description: "Extracts a file hidden by OutGuess 0.2 in a JPEG. OutGuess stores the message in the parity of quantised DCT coefficients selected by a key-seeded RC4 iterator; a 16-bit seed and the message length travel in an encrypted header. Leave Key empty for OutGuess's built-in default key (\"Default key\"), which is what the tool uses when no -k option was given. Turn on Error-corrected for carriers written with -e, which wraps the header and body in a (23,12,7) Golay code. The image must be the OutGuess output itself, not a re-saved copy, and the result is the original file's raw bytes.",
         args: [{"name":"Key","type":"string","value":""},{"name":"Error-corrected (-e)","type":"boolean","value":false}],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
         run: function (input, args) {
             return CF_STEGO.outguessFromJpeg(input, args[0] == null ? "" : args[0], Boolean(args[1]));
         }
@@ -3804,6 +4175,8 @@ var CF_SPECS = [
         group: "Steganography",
         description: "Extracts a file hidden by StegoShare 1.01, which spreads one file over a set of PNG images. To prepare the input, use the PNGs StegoShare wrote, not the original covers: attach the single PNG when the file fit in one image; when the tool wrote several, put every one of them in one ordinary ZIP (not ZIP64 — folders, names and stored or deflated compression do not matter) and attach the ZIP, because a File node carries one file. Do not resize, re-encode or convert the images, and do not leave any out. The operation reads each image's 16-bit index, 32-bit length and low-bit payload (three blue, two green and three red LSBs), undoes the MD5(password) XOR keyed by untouched pixel bits, drops the 256-byte file-name block from the first image and joins the shares in index order. Leave the password empty (or type Empty) for a carrier hidden without one. A missing trailing image cannot be detected, because the format has no end marker.",
         args: [{"name":"Password","type":"string","value":""}],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
         run: function (input, args) {
             return CF_STEGO.extractStegoShare(input, args[0] == null ? "" : args[0]);
         }
@@ -3835,8 +4208,8 @@ function cfMakeClass(spec) {
             super();
             this.name = spec.name;
             this.module = CF_MODULE;
-            this.inputType = "ArrayBuffer";
-            this.outputType = "byteArray";
+            this.inputType = spec.inputType;
+            this.outputType = spec.outputType;
             this.args = spec.args;
         }
         run(input, args) {
@@ -3852,8 +4225,8 @@ for (var s = 0; s < CF_SPECS.length; s++) {
         module: CF_MODULE,
         name: spec.name,
         description: spec.description,
-        inputType: "ArrayBuffer",
-        outputType: "byteArray",
+        inputType: spec.inputType,
+        outputType: spec.outputType,
         args: spec.args,
         flowControl: false
     };

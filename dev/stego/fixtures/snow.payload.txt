@@ -1,0 +1,3 @@
+SNOW fixture payload: the quick brown fox jumps over 13 lazy dogs.
+This line proves the Huffman layer returns whole bytes.
+CipherFlow self-test — SNOW 20130616.

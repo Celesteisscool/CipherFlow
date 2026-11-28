@@ -43,6 +43,20 @@ export const ops = [
         }
     },
     {
+        name: "SNOW Extract",
+        group: "Steganography",
+        description: "Extracts a message hidden by SNOW 20130616, Matthew Kwan's whitespace steganography. SNOW appends trailing tabs and spaces to the cover text: a tab marks the start of the message, and each group of 0-7 spaces after it carries three bits, separated by tabs. The input must be SNOW's output text with its trailing whitespace intact, not the cover on its own or a copy that has been reflowed or trimmed. Turn on Compressed (-C) for a carrier written with SNOW's Huffman compression, and enter the password used with -p (if any); the Huffman layer is undone after the optional ICE 1-bit CFB decryption. SNOW has no signature, length field or authentication, so a wrong password can produce arbitrary text, while a carrier with no start tab is rejected. The extracted bytes are shown as UTF-8 text.",
+        args: [
+            {name: "Password", type: "string", value: ""},
+            {name: "Compressed (-C)", type: "boolean", value: false}
+        ],
+        inputType: "string",
+        outputType: "string",
+        run: function (input, args) {
+            return CF_STEGO.extractSnow(input, args[0] == null ? "" : args[0], Boolean(args[1]));
+        }
+    },
+    {
         name: "StegFS Extract",
         group: "Steganography",
         description: "Extracts one hidden file from a StegFS volume image. StegFS is a FUSE steganographic filesystem that stores each file's encrypted blocks in the free space of a volume; there is no visible directory listing. Attach the volume image, then give the file's path inside it (for example /notes.txt or /docs/notes.txt) and the password used when it was stored. The node derives the inode locations from the path and name, tries each of the volume's copies, decrypts the AES-256-CBC blocks and verifies their SHA-256 checksums. It reads the released 2015.08 format and the current 202X.XX format, with the default AES-256 (RIJNDAEL256), CBC and SHA-256 settings. Volumes made with a different cipher, mode or hash are reported, not guessed. The result is the file's raw bytes, ready for a File Output or another operation.",

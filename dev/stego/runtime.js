@@ -23,13 +23,18 @@
  *   OutGuess   OutGuess 0.2's coefficient-parity bitmap, MD5-prefixed RC4
  *              iterator and streams, default/custom keys, and optional
  *              (23,12,7) Golay error correction.
+ *   SNOW       Matthew Kwan's trailing-whitespace carriers: a tab starts the
+ *              message, each group of 0-7 spaces carries 3 bits, and the
+ *              optional -C Huffman layer and -p ICE/CFB encryption are undone
+ *              after the bits are read.
  *
  * Each format is reconstructed from its published source: OpenStego
  * (LSBInputStream / RandomLSBInputStream / OpenStegoCrypto), Allan Latham's
  * JPHide/JPSeek 0.3 and 0.5/0.51 (jpseek.c, bf.c, ltable.h), JSteg
  * (bitsource.c / bitsink.c from the jpeg-jsteg-v4 patch), StegoShare
- * 1.01 (Stego.java), StegFS (stegfs.c, mkfs.c), and OutGuess 0.2
- * (jpg.c, iterator.c, arc.c, golay.c).
+ * 1.01 (Stego.java), StegFS (stegfs.c, mkfs.c), OutGuess 0.2
+ * (jpg.c, iterator.c, arc.c, golay.c), and SNOW 20130616 (encode.c,
+ * compress.c, encrypt.c, ice.c, huffcode.h).
  */
 var CF_STEGO = (function () {
     "use strict";
@@ -2298,6 +2303,271 @@ var CF_STEGO = (function () {
             ". Check the path and password, and make sure the volume is not truncated.");
     }
 
+    /* --------------------------------------------------------------- SNOW
+     * SNOW 20130616 (Matthew Kwan, Apache-2.0) appends the message to lines as
+     * trailing tabs and spaces. A tab on the first usable line marks the start;
+     * after it each group of 0-7 spaces is three data bits, low bit first, and a
+     * tab terminates the group. The optional -C layer is a fixed Huffman code
+     * (snow-huffman.js), and -p runs the resulting bits through ICE in 1-bit
+     * CFB mode. The format has no length, checksum or magic, so the settings
+     * have to match the tool's command line; a wrong password cannot be
+     * detected, only a wrong -C setting usually produces invalid Huffman codes.
+     */
+    var CF_SNOW_SMOD = [
+        [333, 313, 505, 369],
+        [379, 375, 319, 391],
+        [361, 445, 451, 397],
+        [397, 425, 395, 505]
+    ];
+    var CF_SNOW_SXOR = [
+        [0x83, 0x85, 0x9b, 0xcd],
+        [0xcc, 0xa7, 0xad, 0x41],
+        [0x4b, 0x2e, 0xd4, 0x33],
+        [0xea, 0xcb, 0x2e, 0x04]
+    ];
+    var CF_SNOW_PBOX = [
+        0x00000001, 0x00000080, 0x00000400, 0x00002000,
+        0x00080000, 0x00200000, 0x01000000, 0x40000000,
+        0x00000008, 0x00000020, 0x00000100, 0x00004000,
+        0x00010000, 0x00800000, 0x04000000, 0x20000000,
+        0x00000004, 0x00000010, 0x00000200, 0x00008000,
+        0x00020000, 0x00400000, 0x08000000, 0x10000000,
+        0x00000002, 0x00000040, 0x00000800, 0x00001000,
+        0x00040000, 0x00100000, 0x02000000, 0x80000000
+    ];
+    var CF_SNOW_KEYROT = [0, 1, 2, 3, 2, 1, 3, 0, 1, 3, 2, 0, 3, 1, 0, 2];
+    var CF_SNOW_SBOXES = null;
+
+    function snowGfMult(a, b, m) {
+        var result = 0;
+        while (b) {
+            if (b & 1) result ^= a;
+            a <<= 1;
+            b >>= 1;
+            if (a >= 256) a ^= m;
+        }
+        return result >>> 0;
+    }
+
+    function snowGfExp7(b, m) {
+        if (b === 0) return 0;
+        var x = snowGfMult(b, b, m);
+        x = snowGfMult(b, x, m);
+        x = snowGfMult(x, x, m);
+        return snowGfMult(b, x, m);
+    }
+
+    function snowPerm32(value) {
+        var result = 0;
+        value = value >>> 0;
+        for (var i = 0; i < 32; i++) {
+            if (value & 1) result = (result | CF_SNOW_PBOX[i]) >>> 0;
+            value >>>= 1;
+        }
+        return result >>> 0;
+    }
+
+    function snowIceSboxes() {
+        if (CF_SNOW_SBOXES) return CF_SNOW_SBOXES;
+        var boxes = [new Uint32Array(1024), new Uint32Array(1024), new Uint32Array(1024), new Uint32Array(1024)];
+        for (var i = 0; i < 1024; i++) {
+            var col = (i >>> 1) & 0xff;
+            var row = (i & 1) | ((i & 0x200) >>> 8);
+            boxes[0][i] = snowPerm32((snowGfExp7(col ^ CF_SNOW_SXOR[0][row], CF_SNOW_SMOD[0][row]) << 24) >>> 0);
+            boxes[1][i] = snowPerm32((snowGfExp7(col ^ CF_SNOW_SXOR[1][row], CF_SNOW_SMOD[1][row]) << 16) >>> 0);
+            boxes[2][i] = snowPerm32((snowGfExp7(col ^ CF_SNOW_SXOR[2][row], CF_SNOW_SMOD[2][row]) << 8) >>> 0);
+            boxes[3][i] = snowPerm32(snowGfExp7(col ^ CF_SNOW_SXOR[3][row], CF_SNOW_SMOD[3][row]));
+        }
+        CF_SNOW_SBOXES = boxes;
+        return boxes;
+    }
+
+    function snowIceSchedBuild(keys, kb, n, rotation) {
+        for (var i = 0; i < 8; i++) {
+            var subkey = keys[n + i];
+            var kr = rotation[i];
+            for (var j = 0; j < 15; j++) {
+                var word = subkey[j % 3];
+                for (var k = 0; k < 4; k++) {
+                    var index = (kr + k) & 3;
+                    var bit = kb[index] & 1;
+                    word = ((word << 1) | bit) >>> 0;
+                    kb[index] = ((kb[index] >>> 1) | ((bit ^ 1) << 15)) & 0xffff;
+                }
+                subkey[j % 3] = word;
+            }
+        }
+    }
+
+    function snowIceKey(password) {
+        var pass = utf8Encode(password == null ? "" : String(password));
+        var level = Math.ceil(pass.length * 7 / 64);
+        if (level < 1) level = 1;
+        if (level > 128) level = 128;
+        var material = new Uint8Array(1024);
+        var i = 0;
+        for (var p = 0; p < pass.length; p++) {
+            var c = pass[p] & 0x7f;
+            var index = (i / 8) | 0;
+            var bit = i & 7;
+            if (bit === 0) {
+                material[index] = (c << 1) & 0xff;
+            } else if (bit === 1) {
+                material[index] |= c;
+            } else {
+                material[index] |= c >>> (bit - 1);
+                if (index + 1 < material.length) material[index + 1] = (c << (9 - bit)) & 0xff;
+            }
+            i += 7;
+            if (i > 8184) break;
+        }
+
+        var rounds = level * 16;
+        var keys = new Array(rounds);
+        for (var n = 0; n < rounds; n++) keys[n] = [0, 0, 0];
+        for (var block = 0; block < level; block++) {
+            var kb = [0, 0, 0, 0];
+            for (var j = 0; j < 4; j++) {
+                kb[3 - j] = (material[block * 8 + j * 2] << 8) | material[block * 8 + j * 2 + 1];
+            }
+            snowIceSchedBuild(keys, kb, block * 8, CF_SNOW_KEYROT);
+            snowIceSchedBuild(keys, kb, rounds - 8 - block * 8, CF_SNOW_KEYROT.slice(8));
+        }
+        return {rounds: rounds, keys: keys, material: material};
+    }
+
+    function snowIceF(p, subkey) {
+        var tl = ((p >>> 16) & 0x3ff) | (((p >>> 14) | (p << 18)) & 0xffc00);
+        var tr = (p & 0x3ff) | ((p << 2) & 0xffc00);
+        var al = (subkey[2] & (tl ^ tr)) >>> 0;
+        var ar = (al ^ tr) >>> 0;
+        al = (al ^ tl ^ subkey[0]) >>> 0;
+        ar = (ar ^ subkey[1]) >>> 0;
+        var boxes = snowIceSboxes();
+        return (boxes[0][al >>> 10] | boxes[1][al & 0x3ff] | boxes[2][ar >>> 10] | boxes[3][ar & 0x3ff]) >>> 0;
+    }
+
+    function snowIceEncryptBlock(key, block) {
+        var l = readBE32(block, 0);
+        var r = readBE32(block, 4);
+        for (var i = 0; i < key.rounds; i += 2) {
+            l = (l ^ snowIceF(r, key.keys[i])) >>> 0;
+            r = (r ^ snowIceF(l, key.keys[i + 1])) >>> 0;
+        }
+        var out = new Uint8Array(8);
+        for (var n = 0; n < 4; n++) {
+            out[3 - n] = r & 0xff;
+            out[7 - n] = l & 0xff;
+            r >>>= 8;
+            l >>>= 8;
+        }
+        return out;
+    }
+
+    function snowDecryptor(password) {
+        var text = password == null ? "" : String(password);
+        if (!text) return function (bit) { return bit; };
+        var key = snowIceKey(text);
+        var iv = snowIceEncryptBlock(key, key.material.subarray(0, 8));
+        return function (bit) {
+            var stream = snowIceEncryptBlock(key, iv);
+            var plain = (stream[0] & 0x80) ? (bit ^ 1) : bit;
+            for (var i = 0; i < 7; i++) {
+                iv[i] = ((iv[i] << 1) | ((iv[i + 1] & 0x80) ? 1 : 0)) & 0xff;
+            }
+            iv[7] = ((iv[7] << 1) | bit) & 0xff;
+            return plain;
+        };
+    }
+
+    var CF_SNOW_HUFFMAP = (function () {
+        var map = Object.create(null);
+        for (var i = 0; i < 256; i++) map[CF_SNOW_HUFFCODE[i]] = i;
+        return map;
+    })();
+
+    function snowExtract(input, password, compressed) {
+        var text = typeof input === "string" ? input : utf8Decode(toBytes(input));
+        var lines = text.split(/\r\n|\n|\r/);
+        var decrypt = snowDecryptor(password);
+        var output = [];
+        var outputValue = 0;
+        var outputBits = 0;
+        var huffmanCode = "";
+
+        function emitByte(byte) {
+            for (var i = 0; i < 8; i++) outputBit((byte >>> (7 - i)) & 1);
+        }
+
+        function outputBit(bit) {
+            outputValue = (outputValue << 1) | bit;
+            if (++outputBits === 8) {
+                if (output.length >= MAX_OUTPUT) fail("The SNOW payload is larger than this page will decode.");
+                output.push(outputValue);
+                outputValue = 0;
+                outputBits = 0;
+            }
+        }
+
+        function plainBit(bit) {
+            if (!compressed) return outputBit(bit);
+            huffmanCode += bit ? "1" : "0";
+            if (CF_SNOW_HUFFMAP[huffmanCode] !== undefined) {
+                emitByte(CF_SNOW_HUFFMAP[huffmanCode]);
+                huffmanCode = "";
+            } else if (huffmanCode.length >= 21) {
+                fail("The SNOW data does not match its Huffman codes. Check the Compressed (-C) setting and the password.");
+            }
+        }
+
+        function cipherBit(bit) {
+            plainBit(decrypt(bit));
+        }
+
+        function emitGroup(spaces) {
+            if (spaces > 7) {
+                fail("Invalid SNOW whitespace: a group of " + spaces + " spaces (the format allows at most 7).");
+            }
+            cipherBit(spaces & 1);
+            cipherBit((spaces >>> 1) & 1);
+            cipherBit((spaces >>> 2) & 1);
+        }
+
+        var started = false;
+        for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            var line = lines[lineIndex];
+            var end = line.length;
+            while (end > 0) {
+                var code = line.charCodeAt(end - 1);
+                if (code !== 32 && code !== 9) break;
+                end--;
+            }
+            if (end === line.length) continue;
+            var run = line.slice(end);
+            if (!started) {
+                if (run.charAt(0) === " ") continue;
+                started = true;
+                run = run.slice(1);
+                if (!run.length) continue;
+            }
+            var spaces = 0;
+            for (var i = 0; i < run.length; i++) {
+                if (run.charAt(i) === " ") {
+                    spaces++;
+                } else {
+                    emitGroup(spaces);
+                    spaces = 0;
+                }
+            }
+            if (spaces > 0) emitGroup(spaces);
+        }
+
+        if (!started) {
+            fail("No SNOW start tab found. Keep the carrier's trailing tabs and spaces intact; this operation reads SNOW's text output, not the cover text alone.");
+        }
+        return utf8Decode(Uint8Array.from(output));
+    }
+
     async function openStegoExtract(input, plugin, password) {
         var image = await decodeImage(toBytes(input));
         var result = await openStegoFromRgba(image.data, image.width, image.height, password, plugin);
@@ -2327,6 +2597,9 @@ var CF_STEGO = (function () {
         jphideFromJpeg: jphideFromJpeg,
         jstegFromJpeg: jstegFromJpeg,
         jstegBitReader: jstegBitReader,
+        snowExtract: snowExtract,
+        snowIceKey: snowIceKey,
+        snowIceEncryptBlock: snowIceEncryptBlock,
         lzo1xDecompress: lzo1xDecompress,
         bfExpandKey: bfExpandKey,
         bfEncryptBytes: bfEncryptBytes,
@@ -2335,6 +2608,7 @@ var CF_STEGO = (function () {
         extractOpenStego: openStegoExtract,
         extractJphide: jphideExtract,
         extractJsteg: jstegExtract,
+        extractSnow: snowExtract,
         extractStegoShare: stegoshareExtract,
         extractStegFS: stegfsExtract,
         outguessFromJpeg: outguessFromJpeg,

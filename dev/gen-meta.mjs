@@ -53,8 +53,9 @@ for (const spec of DCODE) {
     category.ops.push(spec.name);
 }
 
-/* Steganography is one category of its own, next to Multimedia: these are binary
- * decoders, not text ciphers, and they live in their own worker module. */
+/* Steganography is one category of its own, next to Multimedia: these are
+ * format-specific decoders (mostly binary; SNOW reads and writes text), not
+ * text ciphers, and they live in their own worker module. */
 let stegoCategory = CATEGORIES.find(c => c.name === "Steganography");
 if (!stegoCategory) {
     stegoCategory = {name: "Steganography", ops: []};
@@ -693,7 +694,7 @@ for (const name of opNames) {
             op: name,
             kind: "probe",
             input: "",
-            skip: "Needs a real OpenStego image, JPHide JPEG, OutGuess JPEG, StegoShare PNG/ZIP set or StegFS volume image and its password/path/key; open one with a File Input node."
+            skip: "Needs a real OpenStego image, JPHide/JPSeek or OutGuess JPEG, JSteg JPEG, StegoShare PNG/ZIP set, StegFS volume image or SNOW text carrier, plus its password, path, key or compression setting; open one with a File Input node."
         });
         continue;
     }

@@ -7,8 +7,9 @@
  * fixtures, over the committed vendor StegoShare 1.01 carriers, over the
  * committed vendor StegFS volumes and OutGuess 0.2 carriers, and over a fresh
  * JPEG hidden by the reference jphide from the original JPHS package when
- * /tmp/jphs-ref is present, and over the JSteg fixture written by Upham's own
- * jpeg-jsteg-v4 build.
+ * /tmp/jphs-ref is present, over the JSteg fixture written by Upham's own
+ * jpeg-jsteg-v4 build, and over the plain, compressed and encrypted text
+ * carriers written by SNOW 20130616 itself.
  *
  * The OpenStego fixtures are embedded with an independent writer that follows the
  * Java classes, and the encryption branch is produced with Node's OpenSSL 3DES in
@@ -97,10 +98,22 @@ function toBuffer(value) {
     return Buffer.from(String(value), "utf8");
 }
 
+const specs = new Map(allOps().map(spec => [spec.name, spec]));
+
 async function runOp(name, input, args) {
     const cls = registry[name];
     if (!cls) throw new Error(`${name} was not registered`);
-    const raw = await new cls().run(arrayBuffer(Buffer.from(input)), args);
+    const spec = specs.get(name);
+    const dish = spec && spec.inputType === "string"
+        ? (typeof input === "string" ? input : Buffer.from(input).toString("utf8"))
+        : arrayBuffer(Buffer.from(input));
+    const raw = await new cls().run(dish, args);
+    if (spec && spec.outputType === "string") {
+        if (typeof raw !== "string") {
+            throw new Error(`${name} returned ${Object.prototype.toString.call(raw)}, not a string`);
+        }
+        return raw;
+    }
     // CyberChef's byteArray dish accepts a Uint8Array (or a plain array), not an
     // ArrayBuffer. Catch the boundary here as well as in the browser.
     if (!(raw instanceof Uint8Array) && !Array.isArray(raw)) {
@@ -113,8 +126,10 @@ async function runOp(name, input, args) {
 check("module registers every operation", Object.keys(registry).length === allOps().length, JSON.stringify(Object.keys(registry)));
 for (const spec of allOps()) {
     check(`${spec.name} has operation config`, Boolean(config[spec.name]), "missing from OperationConfig");
-    check(`${spec.name} takes ArrayBuffer and returns bytes`,
-        config[spec.name] && config[spec.name].inputType === "ArrayBuffer" && config[spec.name].outputType === "byteArray",
+    const expectedInput = spec.inputType || "ArrayBuffer";
+    const expectedOutput = spec.outputType || "byteArray";
+    check(`${spec.name} declares ${expectedInput} input and ${expectedOutput} output`,
+        config[spec.name] && config[spec.name].inputType === expectedInput && config[spec.name].outputType === expectedOutput,
         JSON.stringify(config[spec.name] && {input: config[spec.name].inputType, output: config[spec.name].outputType}));
 }
 
@@ -173,6 +188,17 @@ const jr = T.javaRandom(0n);
 const sequence = [jr.nextInt(100), jr.nextInt(100), jr.nextInt(100), jr.nextInt(100), jr.nextInt(100)];
 check("Java Random seed 0 nextInt(100)", sequence.join(",") === "60,48,29,47,15", sequence.join(","));
 check("Java Random empty-password seed", T.passwordSeed("") === 98234782n, String(T.passwordSeed("")));
+
+// SNOW's ICE key is one level for a short password. The IV and first CFB
+// keystream block come from the vendor ice.c with the same password, so this
+// catches a wrong S-box, key schedule or block byte order before any carrier.
+{
+    const key = T.snowIceKey("snow-pass");
+    const iv = T.snowIceEncryptBlock(key, key.material.subarray(0, 8));
+    check("SNOW ICE uses one level for a short password", key.rounds === 16, String(key.rounds));
+    bytes("SNOW ICE IV", iv, Buffer.from("f842c2eafa58cc5b", "hex"));
+    bytes("SNOW ICE first CFB keystream block", T.snowIceEncryptBlock(key, iv), Buffer.from("5531ef2b8cdf99d4", "hex"));
+}
 
 /* ------------------------------------------------------------ OpenStego fixtures */
 const SALT = Buffer.from([0x28, 0x5f, 0x71, 0xc9, 0x1e, 0x35, 0x0a, 0x62]);
@@ -435,6 +461,31 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
     // the claimed length runs past the usable coefficients or the width is 0.
     const clean = fs.readFileSync(new URL("jphide.jpg", fixtureDir));
     await throws("JSteg rejects a JPEG without JSteg data", () => runOp("JSteg Extract", clean, []));
+}
+
+/* -------------------------------------------------------------------- SNOW */
+{
+    const fixtureDir = new URL("./fixtures/", import.meta.url);
+    const fixtureManifest = JSON.parse(fs.readFileSync(new URL("manifest.json", fixtureDir), "utf8"));
+    for (const fixture of (fixtureManifest.fixtures || []).filter(f => f.operation === "SNOW Extract")) {
+        try {
+            const carrier = fs.readFileSync(new URL(fixture.carrier, fixtureDir));
+            const expected = fs.readFileSync(new URL(fixture.payload, fixtureDir));
+            bytes(`${fixture.id} · ${fixture.tool}`, await runOp(fixture.operation, carrier, fixture.values), expected);
+            if (fixture.values[0]) {
+                const wrong = fixture.values.slice();
+                wrong[0] = "wrong-" + fixture.id;
+                await wrongSecret(`${fixture.id} does not reveal the message with a wrong password`,
+                    () => runOp(fixture.operation, carrier, wrong), expected);
+            }
+        } catch (err) {
+            report(`${fixture.id} · ${fixture.tool}`, String(err && err.message ? err.message : err));
+        }
+    }
+    await throws("SNOW rejects a cover with no start tab",
+        () => runOp("SNOW Extract", fs.readFileSync(new URL("snow-cover.txt", fixtureDir)), ["", false]));
+    await throws("SNOW rejects a group of more than seven spaces",
+        () => runOp("SNOW Extract", "text\t        \n", ["", false]));
 }
 
 /* ------------------------------------------------------- vendor JPHide fixtures */

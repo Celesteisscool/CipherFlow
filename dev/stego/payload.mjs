@@ -13,7 +13,7 @@ import {ops} from "./ops.mjs";
 
 export const MODULE_NAME = "CipherFlowStego";
 // Order matters only in that runtime.js reads the tables at call time, not load time.
-export const RUNTIME_FILES = ["ltable.js", "blowfish-tables.js", "jpeg-coeff.js", "runtime.js"];
+export const RUNTIME_FILES = ["ltable.js", "blowfish-tables.js", "snow-huffman.js", "jpeg-coeff.js", "runtime.js"];
 
 export function allOps() {
     return ops;
@@ -28,6 +28,8 @@ export function renderModule(options = {}) {
         group: spec.group,
         description: spec.description,
         args: spec.args || [],
+        inputType: spec.inputType || "ArrayBuffer",
+        outputType: spec.outputType || "byteArray",
         run: String(spec.run)
     }));
     const internals = options.exposeInternals ? `
@@ -53,6 +55,9 @@ self.CipherFlowStegoTest = {
     jphideFromJpeg: CF_STEGO.jphideFromJpeg,
     jstegFromJpeg: CF_STEGO.jstegFromJpeg,
     jstegBitReader: CF_STEGO.jstegBitReader,
+    snowExtract: CF_STEGO.snowExtract,
+    snowIceKey: CF_STEGO.snowIceKey,
+    snowIceEncryptBlock: CF_STEGO.snowIceEncryptBlock,
     lzo1xDecompress: CF_STEGO.lzo1xDecompress,
     bfExpandKey: CF_STEGO.bfExpandKey,
     bfEncryptBytes: CF_STEGO.bfEncryptBytes,
@@ -71,6 +76,8 @@ ${specs.map(spec => `    {
         group: ${JSON.stringify(spec.group)},
         description: ${JSON.stringify(spec.description)},
         args: ${JSON.stringify(spec.args)},
+        inputType: ${JSON.stringify(spec.inputType)},
+        outputType: ${JSON.stringify(spec.outputType)},
         run: ${spec.run}
     }`).join(",\n")}
 ];
@@ -100,8 +107,8 @@ function cfMakeClass(spec) {
             super();
             this.name = spec.name;
             this.module = CF_MODULE;
-            this.inputType = "ArrayBuffer";
-            this.outputType = "byteArray";
+            this.inputType = spec.inputType;
+            this.outputType = spec.outputType;
             this.args = spec.args;
         }
         run(input, args) {
@@ -117,8 +124,8 @@ for (var s = 0; s < CF_SPECS.length; s++) {
         module: CF_MODULE,
         name: spec.name,
         description: spec.description,
-        inputType: "ArrayBuffer",
-        outputType: "byteArray",
+        inputType: spec.inputType,
+        outputType: spec.outputType,
         args: spec.args,
         flowControl: false
     };

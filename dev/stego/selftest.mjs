@@ -138,6 +138,10 @@ for (const spec of allOps()) {
 const md5 = value => Buffer.from(T.md5(Buffer.from(value))).toString("hex");
 check("MD5 empty", md5("") === "d41d8cd98f00b204e9800998ecf8427e", md5(""));
 check("MD5 abc", md5("abc") === "900150983cd24fb0d6963f7d28e17f72", md5("abc"));
+
+const sha1 = value => Buffer.from(T.f5Sha1(Buffer.from(value))).toString("hex");
+check("SHA-1 empty", sha1("") === "da39a3ee5e6b4b0d3255bfef95601890afd80709", sha1(""));
+check("SHA-1 abc", sha1("abc") === "a9993e364706816aba3e25717850c26c9cd0d89d", sha1("abc"));
 check("MD5 long", md5("The quick brown fox jumps over the lazy dog") === "9e107d9d372bb6826bd81d3542a419d6");
 
 const desKeys = T.desSubkeys(Buffer.from("133457799BBCDFF1", "hex"));
@@ -463,6 +467,29 @@ const randomFixture = prepare(96, 96, SHORT, "random.txt", "rand-pass", true, tr
     // the claimed length runs past the usable coefficients or the width is 0.
     const clean = fs.readFileSync(new URL("jphide.jpg", fixtureDir));
     await throws("JSteg rejects a JPEG without JSteg data", () => runOp("JSteg Extract", clean, []));
+}
+
+/* ----------------------------------------------------------------------- F5 */
+{
+    const fixtureDir = new URL("./fixtures/", import.meta.url);
+    const fixtureManifest = JSON.parse(fs.readFileSync(new URL("manifest.json", fixtureDir), "utf8"));
+    for (const fixture of (fixtureManifest.fixtures || []).filter(f => f.operation === "F5 Extract")) {
+        try {
+            const carrier = fs.readFileSync(new URL(fixture.carrier, fixtureDir));
+            const expected = fs.readFileSync(new URL(fixture.payload, fixtureDir));
+            bytes(`${fixture.id} · ${fixture.tool}`, await runOp(fixture.operation, carrier, fixture.values), expected);
+            const wrong = fixture.values.slice();
+            wrong[0] = "wrong-" + fixture.id;
+            await wrongSecret(`${fixture.id} does not reveal the payload with a wrong password`,
+                () => runOp(fixture.operation, carrier, wrong), expected);
+        } catch (err) {
+            report(`${fixture.id} · ${fixture.tool}`, String(err && err.message ? err.message : err));
+        }
+    }
+    const png = PNG.sync.write({width: 20, height: 20, data: makeRgba(20, 20)}, {colorType: 6});
+    await throws("F5 rejects a non-JPEG", () => runOp("F5 Extract", png, ["abc123"]));
+    const clean = fs.readFileSync(new URL("jphide.jpg", fixtureDir));
+    await throws("F5 rejects a JPEG without F5 data", () => runOp("F5 Extract", clean, ["browser-f5-pass"]));
 }
 
 /* -------------------------------------------------------------------- SNOW */

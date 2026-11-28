@@ -43,6 +43,19 @@ export const ops = [
         }
     },
     {
+        name: "F5 Extract",
+        group: "Steganography",
+        description: "Extracts a file hidden in a JPEG by Andreas Westfeld's F5 (2001), the algorithm behind the original f5.jar. F5 re-encodes the carrier and hides in quantised DCT coefficients: a password-seeded Java SHA1PRNG drives a Fisher-Yates permutation of every coefficient and the XOR pads on the 32-bit header and the payload. The header carries k in its top byte and the byte count in the low 23 bits; k=0 means plain LSBs, otherwise a (1, 2^k-1, k) matrix code carries k bits per group of 2^k-1 values. DC and zero coefficients are skipped, and a negative coefficient contributes the parity of its absolute value. Enter the password used with -p; f5.jar's own default when -p is omitted is abc123. F5 has no magic number or authentication, so a wrong password normally fails the header's k and length checks but cannot be ruled out entirely. Use the JPEG exactly as f5.jar wrote it, not a re-saved or re-encoded copy.",
+        args: [
+            {name: "Password", type: "string", value: "abc123"}
+        ],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
+        run: function (input, args) {
+            return CF_STEGO.extractF5(input, args[0] == null ? "" : args[0]);
+        }
+    },
+    {
         name: "SNOW Extract",
         group: "Steganography",
         description: "Extracts a message hidden by SNOW 20130616, Matthew Kwan's whitespace steganography. SNOW appends trailing tabs and spaces to the cover text: a tab marks the start of the message, and each group of 0-7 spaces after it carries three bits, separated by tabs. The input must be SNOW's output text with its trailing whitespace intact, not the cover on its own or a copy that has been reflowed or trimmed. Turn on Compressed (-C) for a carrier written with SNOW's Huffman compression, and enter the password used with -p (if any); the Huffman layer is undone after the optional ICE 1-bit CFB decryption. SNOW has no signature, length field or authentication, so a wrong password can produce arbitrary text, while a carrier with no start tab is rejected. The extracted bytes are shown as UTF-8 text.",

@@ -694,7 +694,7 @@ for (const name of opNames) {
             op: name,
             kind: "probe",
             input: "",
-            skip: "Needs a real OpenStego image, JPHide/JPSeek, OutGuess or JSteg JPEG, WavSteg WAV, StegoShare PNG/ZIP set, StegFS volume image or SNOW text carrier, plus its password, path, key, LSB/byte count or compression setting; open one with a File Input node."
+            skip: "Needs a real OpenStego image, JPHide/JPSeek, OutGuess, JSteg or F5 JPEG, WavSteg WAV, StegoShare PNG/ZIP set, StegFS volume image or SNOW text carrier, plus its password, path, key, LSB/byte count or compression setting; open one with a File Input node."
         });
         continue;
     }

@@ -3089,6 +3089,290 @@ var CF_STEGO = (function () {
         return data;
     }
 
+    /* ---------------------------------------------------------------------- F5
+     * F5 (Andreas Westfeld, 2001) hides data in the quantised DCT coefficients
+     * of a JPEG. Its generator is Java's sun.security.provider.SecureRandom
+     * (SHA1PRNG) seeded with the raw password bytes, so the state starts as
+     * SHA-1(password) and each 20-byte block advances it by
+     * state = state + digest + 1 with Java's signed-byte arithmetic. The same
+     * stream drives a Fisher-Yates permutation of every coefficient and the
+     * XOR pads on the header and payload. Coefficients are visited in scan
+     * order, skipping DC and zero values; negative coefficients use their
+     * absolute value's parity. A 32-bit header carries k in its top byte and
+     * the byte count in the low 23 bits; k=0 means plain LSBs, otherwise a
+     * (1, 2^k-1, k) matrix code carries k bits per group of 2^k-1 values.
+     * F5 has no magic bytes, so a wrong password normally fails the header's
+     * k/length checks but cannot be ruled out completely.
+     */
+
+    function f5Sha1(data) {
+        var length = data.length;
+        var padded = new Uint8Array(Math.ceil((length + 9) / 64) * 64);
+        padded.set(data);
+        padded[length] = 0x80;
+        var high = Math.floor(length / 536870912);
+        var low = (length * 8) >>> 0;
+        var end = padded.length;
+        padded[end - 8] = (high >>> 24) & 0xff;
+        padded[end - 7] = (high >>> 16) & 0xff;
+        padded[end - 6] = (high >>> 8) & 0xff;
+        padded[end - 5] = high & 0xff;
+        padded[end - 4] = (low >>> 24) & 0xff;
+        padded[end - 3] = (low >>> 16) & 0xff;
+        padded[end - 2] = (low >>> 8) & 0xff;
+        padded[end - 1] = low & 0xff;
+
+        function rotl(value, bits) {
+            return (value << bits) | (value >>> (32 - bits));
+        }
+
+        var h0 = 0x67452301 | 0, h1 = 0xefcdab89 | 0, h2 = 0x98badcfe | 0;
+        var h3 = 0x10325476 | 0, h4 = 0xc3d2e1f0 | 0;
+        var words = new Int32Array(80);
+        for (var offset = 0; offset < end; offset += 64) {
+            var i;
+            for (i = 0; i < 16; i++) {
+                var at = offset + i * 4;
+                words[i] = (padded[at] << 24) | (padded[at + 1] << 16) |
+                    (padded[at + 2] << 8) | padded[at + 3];
+            }
+            for (i = 16; i < 80; i++) {
+                words[i] = rotl(words[i - 3] ^ words[i - 8] ^ words[i - 14] ^ words[i - 16], 1);
+            }
+            var a = h0, b = h1, c = h2, d = h3, e = h4;
+            for (i = 0; i < 80; i++) {
+                var f, k;
+                if (i < 20) {
+                    f = (b & c) | (~b & d); k = 0x5a827999;
+                } else if (i < 40) {
+                    f = b ^ c ^ d; k = 0x6ed9eba1;
+                } else if (i < 60) {
+                    f = (b & c) | (b & d) | (c & d); k = 0x8f1bbcdc;
+                } else {
+                    f = b ^ c ^ d; k = 0xca62c1d6;
+                }
+                var temp = (rotl(a, 5) + f + e + k + words[i]) | 0;
+                e = d; d = c; c = rotl(b, 30); b = a; a = temp;
+            }
+            h0 = (h0 + a) | 0;
+            h1 = (h1 + b) | 0;
+            h2 = (h2 + c) | 0;
+            h3 = (h3 + d) | 0;
+            h4 = (h4 + e) | 0;
+        }
+        var out = new Uint8Array(20);
+        var hashes = [h0, h1, h2, h3, h4];
+        for (i = 0; i < 5; i++) {
+            out[i * 4] = (hashes[i] >>> 24) & 0xff;
+            out[i * 4 + 1] = (hashes[i] >>> 16) & 0xff;
+            out[i * 4 + 2] = (hashes[i] >>> 8) & 0xff;
+            out[i * 4 + 3] = hashes[i] & 0xff;
+        }
+        return out;
+    }
+
+    function f5Signed(value) {
+        return value > 127 ? value - 256 : value;
+    }
+
+    function f5Random(passwordBytes) {
+        var state = f5Sha1(passwordBytes);
+        var buffer = null;
+        var at = 0;
+
+        function step() {
+            var digest = f5Sha1(state);
+            // sun.security.provider.SecureRandom.updateState(). The JDK adds
+            // bytes as signed values and keeps an arithmetic carry, so this is
+            // deliberately not an unsigned 160-bit addition.
+            var last = 1;
+            var changed = false;
+            for (var i = 0; i < state.length; i++) {
+                var value = f5Signed(state[i]) + f5Signed(digest[i]) + last;
+                var next = value & 0xff;
+                if (next !== state[i]) changed = true;
+                state[i] = next;
+                last = value >> 8;
+            }
+            if (!changed) state[0] = (state[0] + 1) & 0xff;
+            buffer = digest;
+            at = 0;
+        }
+
+        function nextByte() {
+            if (buffer === null || at >= buffer.length) step();
+            return buffer[at++];
+        }
+
+        function nextValue(maxValue) {
+            // Java's getNextValue() sign-extends each byte before shifting.
+            var value = f5Signed(nextByte()) | (f5Signed(nextByte()) << 8) |
+                (f5Signed(nextByte()) << 16) | (f5Signed(nextByte()) << 24);
+            var result = value % maxValue;
+            if (result < 0) result += maxValue;
+            return result;
+        }
+
+        return {nextByte: nextByte, nextValue: nextValue};
+    }
+
+    function f5Permutation(size, random) {
+        var shuffled = new Int32Array(size);
+        for (var i = 0; i < size; i++) shuffled[i] = i;
+        var maxRandom = size;
+        for (i = 0; i < size; i++) {
+            var randomIndex = random.nextValue(maxRandom--);
+            var swap = shuffled[randomIndex];
+            shuffled[randomIndex] = shuffled[maxRandom];
+            shuffled[maxRandom] = swap;
+        }
+        return shuffled;
+    }
+
+    // F5's Huffman decoder stores each 8x8 block in zigzag order and maps the
+    // shuffled index through deZigZag before reading, which is exactly reading
+    // the coefficient at that natural position. jpeg-coeff keeps blocks in
+    // natural order already, so the flat array below is walk order + natural
+    // block position, with the same MCU padding the vendor decoder sees.
+    function f5Coefficients(decoded) {
+        var components = decoded.components;
+        if (!components || !components.length) fail("F5 needs a JPEG with DCT coefficients.");
+        var maxH = 1, maxV = 1;
+        for (var c = 0; c < components.length; c++) {
+            if (components[c].h > maxH) maxH = components[c].h;
+            if (components[c].v > maxV) maxV = components[c].v;
+        }
+        var mcusPerLine = Math.ceil(decoded.width / 8 / maxH);
+        var mcusPerColumn = Math.ceil(decoded.height / 8 / maxV);
+        var perMcu = 0;
+        for (c = 0; c < components.length; c++) perMcu += components[c].h * components[c].v;
+        var coefficients = new Int32Array(mcusPerLine * mcusPerColumn * perMcu * 64);
+        var at = 0;
+        for (var mcuRow = 0; mcuRow < mcusPerColumn; mcuRow++) {
+            for (var mcuCol = 0; mcuCol < mcusPerLine; mcuCol++) {
+                for (c = 0; c < components.length; c++) {
+                    var component = components[c];
+                    for (var y = 0; y < component.v; y++) {
+                        for (var x = 0; x < component.h; x++) {
+                            var row = component.blocks[mcuRow * component.v + y];
+                            var block = row ? row[mcuCol * component.h + x] : null;
+                            for (var k = 0; k < 64; k++) {
+                                coefficients[at++] = block ? (block[k] | 0) : 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return coefficients;
+    }
+
+    function f5FromCoefficients(coefficients, password) {
+        var size = coefficients.length;
+        if (!size) fail("F5 needs a JPEG with DCT coefficients.");
+        var random = f5Random(utf8Encode(password == null ? "" : String(password)));
+        var permutation = f5Permutation(size, random);
+
+        var header = 0, bits = 0, pos = 0;
+        while (bits < 32) {
+            if (pos >= size) {
+                fail("This JPEG ran out of usable coefficients before completing an F5 header; it may not be an F5 carrier, or the password may be wrong.");
+            }
+            var index = permutation[pos++];
+            if ((index & 63) === 0) continue;
+            var value = coefficients[index] | 0;
+            if (value === 0) continue;
+            header |= (value > 0 ? value & 1 : 1 - (value & 1)) << bits;
+            bits++;
+        }
+
+        header ^= f5Signed(random.nextByte());
+        header ^= f5Signed(random.nextByte()) << 8;
+        header ^= f5Signed(random.nextByte()) << 16;
+        header ^= f5Signed(random.nextByte()) << 24;
+        var k = (header >> 24) % 32;
+        var length = header & 0x007fffff;
+        if (k < 0 || k > 7) {
+            fail("This JPEG does not contain a readable F5 header (matrix parameter " + k +
+                "); it may not be an F5 carrier, or the password may be wrong.");
+        }
+        if (length <= 0) {
+            fail("This JPEG has no F5 payload: the header's length field is zero.");
+        }
+        if (length > MAX_OUTPUT) fail("The F5 payload is larger than this page will decode.");
+        if (length > Math.floor(size / 8)) {
+            fail("The F5 header claims " + length + " bytes, more than this JPEG's coefficients can carry; it may not be an F5 carrier, or the password may be wrong.");
+        }
+
+        var output = new Uint8Array(length);
+        var outAt = 0;
+        var current = 0;
+        var available = 0;
+        var n = k === 0 ? 0 : (1 << k) - 1;
+
+        if (n > 0) {
+            var startOfN = pos;
+            while (outAt < length) {
+                var hash = 0;
+                var code = 1;
+                while (code <= n) {
+                    if (startOfN >= size) {
+                        fail("The JPEG ended before the whole F5 payload was recovered (the header claims " + length + " bytes).");
+                    }
+                    var at = permutation[startOfN++];
+                    if ((at & 63) === 0) continue;
+                    var value = coefficients[at] | 0;
+                    if (value === 0) continue;
+                    var coefficientBit = value > 0 ? value & 1 : 1 - (value & 1);
+                    if (coefficientBit === 1) hash ^= code;
+                    code++;
+                }
+                for (var j = 0; j < k && outAt < length; j++) {
+                    current |= ((hash >> j) & 1) << available;
+                    if (++available === 8) {
+                        current ^= random.nextByte() & 0xff;
+                        output[outAt++] = current & 0xff;
+                        current = 0;
+                        available = 0;
+                    }
+                }
+            }
+        } else {
+            while (outAt < length) {
+                if (pos >= size) {
+                    fail("The JPEG ended before the whole F5 payload was recovered (the header claims " + length + " bytes).");
+                }
+                var index = permutation[pos++];
+                if ((index & 63) === 0) continue;
+                var value = coefficients[index] | 0;
+                if (value === 0) continue;
+                var coefficientBit = value > 0 ? value & 1 : 1 - (value & 1);
+                current |= coefficientBit << available;
+                if (++available === 8) {
+                    current ^= random.nextByte() & 0xff;
+                    output[outAt++] = current & 0xff;
+                    current = 0;
+                    available = 0;
+                }
+            }
+        }
+        return output;
+    }
+
+    function f5FromJpeg(input, password) {
+        var bytes = toBytes(input);
+        if (bytes.length < 2 || bytes[0] !== 0xff || bytes[1] !== 0xd8) {
+            fail("F5 needs a JPEG file (no SOI marker).");
+        }
+        var decoded;
+        try {
+            decoded = cfDecodeJpegCoefficients(bytes);
+        } catch (err) {
+            fail("Could not read the JPEG's DCT coefficients: " + (err && err.message ? err.message : err));
+        }
+        return f5FromCoefficients(f5Coefficients(decoded), password);
+    }
+
     /* --------------------------------------------------------------- OUTGUESS
      * OutGuess 0.2 (Niels Provos) hides a message in the parity of quantised
      * JPEG DCT coefficients. Its libjpeg hook visits coefficients in MCU order,
@@ -4205,6 +4489,10 @@ var CF_STEGO = (function () {
         return toByteArray(jstegFromJpeg(input));
     }
 
+    function f5Extract(input, password) {
+        return toByteArray(f5FromJpeg(input, password));
+    }
+
     function wavstegExtract(input, lsb, byteCount) {
         return wavStegFromWav(input, lsb, byteCount);
     }
@@ -4224,6 +4512,12 @@ var CF_STEGO = (function () {
         jphideFromJpeg: jphideFromJpeg,
         jstegFromJpeg: jstegFromJpeg,
         jstegBitReader: jstegBitReader,
+        f5Sha1: f5Sha1,
+        f5Random: f5Random,
+        f5Permutation: f5Permutation,
+        f5Coefficients: f5Coefficients,
+        f5FromCoefficients: f5FromCoefficients,
+        f5FromJpeg: f5FromJpeg,
         snowExtract: snowExtract,
         wavStegParse: wavStegParse,
         wavStegFromWav: wavStegFromWav,
@@ -4237,6 +4531,7 @@ var CF_STEGO = (function () {
         extractOpenStego: openStegoExtract,
         extractJphide: jphideExtract,
         extractJsteg: jstegExtract,
+        extractF5: f5Extract,
         extractWavSteg: wavstegExtract,
         extractSnow: snowExtract,
         extractStegoShare: stegoshareExtract,
@@ -4284,6 +4579,17 @@ var CF_SPECS = [
         outputType: "byteArray",
         run: function (input) {
             return CF_STEGO.extractJsteg(input);
+        }
+    },
+    {
+        name: "F5 Extract",
+        group: "Steganography",
+        description: "Extracts a file hidden in a JPEG by Andreas Westfeld's F5 (2001), the algorithm behind the original f5.jar. F5 re-encodes the carrier and hides in quantised DCT coefficients: a password-seeded Java SHA1PRNG drives a Fisher-Yates permutation of every coefficient and the XOR pads on the 32-bit header and the payload. The header carries k in its top byte and the byte count in the low 23 bits; k=0 means plain LSBs, otherwise a (1, 2^k-1, k) matrix code carries k bits per group of 2^k-1 values. DC and zero coefficients are skipped, and a negative coefficient contributes the parity of its absolute value. Enter the password used with -p; f5.jar's own default when -p is omitted is abc123. F5 has no magic number or authentication, so a wrong password normally fails the header's k and length checks but cannot be ruled out entirely. Use the JPEG exactly as f5.jar wrote it, not a re-saved or re-encoded copy.",
+        args: [{"name":"Password","type":"string","value":"abc123"}],
+        inputType: "ArrayBuffer",
+        outputType: "byteArray",
+        run: function (input, args) {
+            return CF_STEGO.extractF5(input, args[0] == null ? "" : args[0]);
         }
     },
     {

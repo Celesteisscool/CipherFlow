@@ -1,6 +1,12 @@
 {
   "notes": "Each carrier and its payload file were produced by the vendor tool, not by CipherFlow's self-test writer. The OpenStego fixture uses the vendor's default compression and AES-128 encryption. A released OpenStego 0.7.2 or 0.8.6 distribution registers RandomLSB and DWTDugad, but not the sequential LSB plugin, so browser coverage uses RandomLSB; the Node self-test still covers the sequential layout. The JPHide fixtures come from JPHide 0.3 on Linux and JPHide/JPSeek 0.51 on Windows; the 0.51 pair covers a raw mode-1 carrier and a mode-3 carrier whose payload the tool stored as LZO1X. The StegoShare fixtures come from the GPL StegoShare 1.01 source archive on SourceForge, compiled unchanged with JDK 17 and driven through its own hide/extract methods; the set fixture is a two-image carrier zipped so the single-file editor can pass it to the operation. The StegFS fixtures are 1 MB volumes made with the vendor 2015.08/202X.XX C library from albinoloverats/stegfs, compiled locally against libgcrypt: one 2015.08 volume holds /stegfs-notes.txt, /docs/nested.txt, an empty /empty.txt and /browser.txt, and one 202X.XX volume holds /docs/stegfs-current.txt and /docs/browser.txt, and a compact 64 KB 202X.XX volume holds /gallery.txt for the example gallery. The short /browser.txt files are used for the browser preview check; the larger files exercise multi-block chains and the 202X.XX MAC in the Node self-test. The keyed OutGuess fixture is an OutGuess 0.2 carrier made from the CC0 cow photograph \"Smiling cow in the Brazilian Northeast\"; the default-key and error-corrected fixtures use the same CC0 cat photograph as JPHide. The keyed carrier uses -k browser-outguess-pass, the default-key carrier no -k, and the error-corrected carrier -e -k browser-outguess-ecc. The vendor tool read all three back byte-for-byte. The gallery carriers are CC0 1.0 photos: animal portraits for the OpenStego, JPHide, StegoShare and OutGuess rows, and a kingfisher cover with a spoonbill hidden in it for the image-in-image row. Their titles, authors and source pages are recorded in imageLicenses. No attribution is required, but the provenance is kept with the fixtures. The WavSteg fixtures were written by stego-lsb 1.7.4's stegolsb CLI from procedural 8 kHz WAV covers; WavSteg is headerless, so verification used the exact -n and -b settings recorded on each fixture. Only the stego WAV carriers and the shared payload are committed.",
   "imageLicenses": {
+    "f5.jpg": {
+      "title": "F5 carrier re-encoded from the cat portrait by iezalel williams IMG_2980-004 - Canon EOS 700D",
+      "author": "iezalel7williams",
+      "license": "CC0 1.0",
+      "source": "https://www.flickr.com/photos/181765699@N08/48051761348"
+    },
     "openstego-randomlsb.png": {
       "title": "Dog at Nørre Vorupør Strand",
       "author": "W.carter",
@@ -273,6 +279,21 @@
       "command": "patch -p0 < jpeg-jsteg-v4.diff; make -f makefile.unix cjpeg djpeg; ./cjpeg -quality 90 -steg jsteg.payload.txt cover.ppm > jsteg.jpg",
       "verified": "./djpeg -steg verify.bin jsteg.jpg (byte-for-byte match with jsteg.payload.txt)",
       "also": "The vendor code needed one 64-bit portability fix to bitsource.c getrepwidth(): its original bit-counting loop assumed a 32-bit unsigned long, so on an LP64 build the five-bit field-width was 65508 and no payload could be read. The replacement counts significant bits directly; the on-wire header is unchanged. Sources: the jpeg-jsteg-v4 diff and jpeg-v4 tree from nic.funet.fi."
+    },
+    {
+      "id": "f5",
+      "operation": "F5 Extract",
+      "values": [
+        "browser-f5-pass"
+      ],
+      "carrier": "f5.jpg",
+      "payload": "f5.payload.txt",
+      "mime": "image/jpeg",
+      "tool": "F5 1.0 (Andreas Westfeld); the Java sources bundled in f5.jar built with Temurin 8 after removing the AWT Frame/MediaTracker wait from JpegEncoder (headless shell only; embedding code unchanged)",
+      "cover": "magick jphide.jpg -type TrueColor -depth 8 -strip BMP3:f5-cover.bmp (the CC0 cat cover already used by the JPHide fixture)",
+      "command": "java -cp classes Main e -e f5.payload.txt -p browser-f5-pass -q 80 f5-cover.bmp f5.jpg",
+      "verified": "java -cp classes Main x -p browser-f5-pass -e verify.bin f5.jpg (byte-for-byte match with f5.payload.txt)",
+      "also": "The tool chose a (1, 3, 2) code and reported 7,232 embedded bits (900 payload bytes plus the 4-byte header); the JPEG carries 115,200 coefficients."
     },
     {
       "id": "snow-plain",
